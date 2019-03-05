@@ -109,11 +109,10 @@ class Supervisor(QtWidgets.QMainWindow, Ui_Supervisor):
     def _update_client_list(self, *args):
         # add all clients to list
         self.listLogClients.clear()
-        for c in self.comm.clients:
-            name = c[:c.find('@')]
-            item = QtWidgets.QListWidgetItem(name)
+        for client_name in self.comm.clients:
+            item = QtWidgets.QListWidgetItem(client_name)
             item.setCheckState(QtCore.Qt.Checked)
-            item.setForeground(QtGui.QColor(Color(pick_for=name).hex))
+            item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
             self.listLogClients.addItem(item)
 
         # create model for commands
@@ -207,10 +206,9 @@ class CommandModel(QtCore.QAbstractTableModel):
 
         # create model
         self.commands = []
-        for c in comm.clients:
+        for client_name in comm.clients:
             # get proxy
-            client_name = c[:c.find('@')]
-            proxy = comm[c]
+            proxy = comm[client_name]
 
             # loop commands
             for method in proxy.method_names:
