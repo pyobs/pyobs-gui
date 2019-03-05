@@ -160,7 +160,10 @@ class Supervisor(QtWidgets.QMainWindow, Ui_Supervisor):
         mod = self.comm[module]
 
         # split arguments, if any
-        args = [a[1:-1] if a[0] == a[-1] == '"' else a for a in self.args_regexp.findall(m1.group(3))]
+        args = [a for a in self.args_regexp.findall(m1.group(3))]
+
+        # remove quotes
+        args = [a[1:-1] if a[0] == a[-1] and a[0] in ['"', "'"] else a for a in args]
 
         # execute command in new thread
         thread = Thread(target=self._execute_command_async, args=(mod, command, *args),
