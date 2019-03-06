@@ -92,7 +92,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.shell.update_client_list()
 
     def process_log_entry(self, entry: LogEvent, sender: str) -> bool:
-        print("receives")
         # date
         time = Time(entry.time, format='unix')
 
