@@ -6,40 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>612</width>
-    <height>491</height>
+    <width>425</width>
+    <height>312</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+    <widget class="QTextBrowser" name="textCommandLog">
+     <property name="font">
+      <font>
+       <family>Monospace</family>
+      </font>
      </property>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QTextBrowser" name="textCommandLog">
-         <property name="font">
-          <font>
-           <family>Monospace</family>
-          </font>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="CommandInput" name="textCommandInput"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QTextBrowser" name="textCommandHelp"/>
     </widget>
+   </item>
+   <item>
+    <widget class="CommandInput" name="textCommandInput"/>
    </item>
   </layout>
  </widget>

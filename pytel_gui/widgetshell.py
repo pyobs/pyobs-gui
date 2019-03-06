@@ -70,6 +70,7 @@ class CommandModel(QtCore.QAbstractTableModel):
 
 class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
     add_command_log = pyqtSignal(str)
+    show_help = pyqtSignal(str)
 
     def __init__(self, comm, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
@@ -106,6 +107,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         # signals/slots
         self.add_command_log.connect(self.textCommandLog.append)
         self.textCommandInput.commandExecuted.connect(self.execute_command)
+        self.textCommandInput.textChanged.connect(self._update_docs)
 
     def _add_command_log(self, msg, color=None):
         if color is not None:
@@ -163,11 +165,10 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         # get documentation
         doc = self.command_model.doc(cmd)
         if not doc:
-            self.textCommandHelp.clear()
-            return
+            doc = ''
 
         # emit doc
-        self.textCommandHelp.setText(doc)
+        self.show_help.emit(doc)
 
     def update_client_list(self):
         # create model for commands

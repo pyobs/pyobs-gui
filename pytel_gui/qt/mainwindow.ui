@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QSplitter" name="splitter_2">
+     <widget class="QSplitter" name="splitterLog">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
@@ -90,7 +90,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSplitter" name="splitter">
+         <widget class="QSplitter" name="splitterToolBox">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -103,13 +103,23 @@
            <property name="currentIndex">
             <number>0</number>
            </property>
+           <widget class="QWidget" name="pageHelp">
+            <attribute name="label">
+             <string>Help</string>
+            </attribute>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QTextBrowser" name="textHelp"/>
+             </item>
+            </layout>
+           </widget>
            <widget class="QWidget" name="pageClients">
             <property name="geometry">
              <rect>
               <x>0</x>
               <y>0</y>
               <width>498</width>
-              <height>426</height>
+              <height>394</height>
              </rect>
             </property>
             <attribute name="label">
@@ -140,7 +150,7 @@
               <x>0</x>
               <y>0</y>
               <width>498</width>
-              <height>426</height>
+              <height>394</height>
              </rect>
             </property>
             <attribute name="label">

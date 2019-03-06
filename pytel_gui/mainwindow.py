@@ -31,6 +31,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # closing
         self.closing = Event()
 
+        # splitters
+        self.splitterToolBox.setSizes([self.width() - 400, 400])
+        self.splitterLog.setSizes([self.height() - 100, 100])
+
         # auto exclusive
         self.menuShell.setCheckable(True)
         self.menuShell.setAutoExclusive(True)
@@ -45,10 +49,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log_model.rowsInserted.connect(lambda: QtCore.QTimer.singleShot(0, self.tableLog.scrollToBottom))
         self.log_model.rowsInserted.connect(self._resize_log_table)
         self.listClients.itemChanged.connect(self._log_client_changed)
-        #self.listClients.itemChanged.connect(self._log_client_changed)
 
         # log
         self.shell = WidgetShell(self.comm)
+        self.shell.show_help.connect(self.show_help)
         self.stackedWidget.addWidget(self.shell)
         self.stackedWidget.setCurrentIndex(1)
 
@@ -115,3 +119,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def _log_client_changed(self, item: QtWidgets.QListWidgetItem):
         # update proxy
         self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
+
+    def show_help(self, text):
+        self.textHelp.setText(text)
