@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+import os
+import subprocess
+import sys
+import uuid
+
+src = sys.argv[1]
+dest = sys.argv[2]
+
+# create unique filename
+tmp_file = 'pyuic5_' + str(uuid.uuid4()) + '.tmp'
+
+# run pyuic5
+subprocess.call(['/usr/bin/pyuic5', src, '--from-imports', '-o', tmp_file])
+
+# open files
+with open(tmp_file, 'r') as fin:
+    with open(dest, 'w') as fout:
+        for line in fin:
+            if line.startswith('from'):
+                if 'PyQt' not in line and 'resources' not in line:
+                    line = line.replace('from ', 'from .')
+            fout.write(line)
+
+# clean up
+os.unlink(tmp_file)

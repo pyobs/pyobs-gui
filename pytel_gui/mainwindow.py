@@ -1,103 +1,117 @@
-# -*- coding: utf-8 -*-
+import inspect
+import pprint
+from threading import RLock, Event, Thread
+import os
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import pyqtSignal
+from astropy.time import Time
+from colour import Color
 
-# Form implementation generated from reading ui file 'mainwindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.11.2
-#
-# WARNING! All changes made in this file will be lost!
+from pytel.comm import RemoteException
+from pytel.events import LogEvent
+from pytel.events.clientconnected import ClientConnectedEvent
+from pytel.events.clientdisconnected import ClientDisconnectedEvent
+from pytel_gui.qt.mainwindow import Ui_MainWindow
+from pytel_gui.logmodel import LogModel, LogModelProxy
+from pytel_gui.widgetshell import WidgetShell
 
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-class Ui_Supervisor(object):
-    def setupUi(self, Supervisor):
-        Supervisor.setObjectName("Supervisor")
-        Supervisor.resize(1232, 723)
-        self.centralwidget = QtWidgets.QWidget(Supervisor)
-        self.centralwidget.setObjectName("centralwidget")
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox.setObjectName("groupBox")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.groupBox)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.listLogClients = QtWidgets.QListWidget(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.listLogClients.sizePolicy().hasHeightForWidth())
-        self.listLogClients.setSizePolicy(sizePolicy)
-        self.listLogClients.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.listLogClients.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
-        self.listLogClients.setObjectName("listLogClients")
-        self.horizontalLayout.addWidget(self.listLogClients)
-        self.tableLog = QtWidgets.QTableView(self.groupBox)
-        self.tableLog.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.tableLog.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tableLog.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tableLog.setGridStyle(QtCore.Qt.NoPen)
-        self.tableLog.setSortingEnabled(False)
-        self.tableLog.setObjectName("tableLog")
-        self.tableLog.horizontalHeader().setVisible(True)
-        self.tableLog.horizontalHeader().setStretchLastSection(True)
-        self.tableLog.verticalHeader().setVisible(False)
-        self.tableLog.verticalHeader().setDefaultSectionSize(20)
-        self.tableLog.verticalHeader().setMinimumSectionSize(20)
-        self.horizontalLayout.addWidget(self.tableLog)
-        self.horizontalLayout.setStretch(0, 1)
-        self.verticalLayout_4.addWidget(self.groupBox)
-        self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_2.setObjectName("groupBox_2")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox_2)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.splitter = QtWidgets.QSplitter(self.groupBox_2)
-        self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        self.splitter.setObjectName("splitter")
-        self.layoutWidget = QtWidgets.QWidget(self.splitter)
-        self.layoutWidget.setObjectName("layoutWidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.textCommandLog = QtWidgets.QTextBrowser(self.layoutWidget)
-        font = QtGui.QFont()
-        font.setFamily("Monospace")
-        self.textCommandLog.setFont(font)
-        self.textCommandLog.setObjectName("textCommandLog")
-        self.verticalLayout.addWidget(self.textCommandLog)
-        self.textCommandInput = CommandInput(self.layoutWidget)
-        self.textCommandInput.setObjectName("textCommandInput")
-        self.verticalLayout.addWidget(self.textCommandInput)
-        self.textCommandHelp = QtWidgets.QTextBrowser(self.splitter)
-        self.textCommandHelp.setObjectName("textCommandHelp")
-        self.verticalLayout_2.addWidget(self.splitter)
-        self.verticalLayout_4.addWidget(self.groupBox_2)
-        self.horizontalLayout_2.addLayout(self.verticalLayout_4)
-        self.groupBox_3 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_3.setObjectName("groupBox_3")
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox_3)
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.tableVariables = QtWidgets.QTableWidget(self.groupBox_3)
-        self.tableVariables.setObjectName("tableVariables")
-        self.tableVariables.setColumnCount(0)
-        self.tableVariables.setRowCount(0)
-        self.tableVariables.horizontalHeader().setStretchLastSection(True)
-        self.tableVariables.verticalHeader().setVisible(False)
-        self.verticalLayout_3.addWidget(self.tableVariables)
-        self.horizontalLayout_2.addWidget(self.groupBox_3)
-        self.horizontalLayout_2.setStretch(0, 3)
-        self.horizontalLayout_2.setStretch(1, 1)
-        Supervisor.setCentralWidget(self.centralwidget)
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    add_log = pyqtSignal(list)
+    add_command_log = pyqtSignal(str)
+    client_list_changed = pyqtSignal()
 
-        self.retranslateUi(Supervisor)
-        QtCore.QMetaObject.connectSlotsByName(Supervisor)
+    def __init__(self, comm, log_latency=2, **kwargs):
+        QtWidgets.QMainWindow.__init__(self)
+        self.setupUi(self)
 
-    def retranslateUi(self, Supervisor):
-        _translate = QtCore.QCoreApplication.translate
-        Supervisor.setWindowTitle(_translate("Supervisor", "pytel supervisor"))
-        self.groupBox.setTitle(_translate("Supervisor", "Logs"))
-        self.groupBox_2.setTitle(_translate("Supervisor", "Commands"))
-        self.groupBox_3.setTitle(_translate("Supervisor", "Variables"))
+        # store comm client
+        self.comm = comm
 
-from .commandinput import CommandInput
+        # closing
+        self.closing = Event()
+
+        # auto exclusive
+        self.menuShell.setCheckable(True)
+        self.menuShell.setAutoExclusive(True)
+        self.menuShell.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
+
+        # logs
+        self.log_model = LogModel()
+        self.add_log.connect(self.log_model.add_entry)
+        self.log_proxy = LogModelProxy()
+        self.log_proxy.setSourceModel(self.log_model)
+        self.tableLog.setModel(self.log_proxy)
+        self.log_model.rowsInserted.connect(lambda: QtCore.QTimer.singleShot(0, self.tableLog.scrollToBottom))
+        self.log_model.rowsInserted.connect(self._resize_log_table)
+        self.listClients.itemChanged.connect(self._log_client_changed)
+        #self.listClients.itemChanged.connect(self._log_client_changed)
+
+        # log
+        self.shell = WidgetShell(self.comm)
+        self.stackedWidget.addWidget(self.shell)
+        self.stackedWidget.setCurrentIndex(1)
+
+        # get clients
+        self._update_client_list()
+
+        # subscribe to events
+        self.comm.register_event(LogEvent, self.process_log_entry)
+        self.comm.register_event(ClientConnectedEvent, lambda x, y: self.client_list_changed.emit())
+        self.comm.register_event(ClientDisconnectedEvent, lambda x, y: self.client_list_changed.emit())
+
+        """
+        # timer for showing variables
+        self.tableVariables.setColumnCount(2)
+        self.tableVariables.setHorizontalHeaderLabels(['Key', 'Value'])
+        self._variables_timer = QtCore.QTimer()
+        self._variables_timer.timeout.connect(self._update_variables)
+        self._variables_timer.start(1000)
+        """
+
+    @QtCore.pyqtSlot()
+    def _update_variables(self):
+        self.tableVariables.setRowCount(len(self.comm.variables))
+        for i, key in enumerate(self.comm.variables.keys()):
+            self.tableVariables.setItem(i, 0, QtWidgets.QTableWidgetItem(key))
+            self.tableVariables.setItem(i, 1, QtWidgets.QTableWidgetItem(str(self.comm.variables[key])))
+
+    def _update_client_list(self, *args):
+        # add all clients to list
+        self.listClients.clear()
+        for client_name in self.comm.clients:
+            item = QtWidgets.QListWidgetItem(client_name)
+            item.setCheckState(QtCore.Qt.Checked)
+            item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
+            self.listClients.addItem(item)
+
+        self.shell.update_client_list()
+
+    def process_log_entry(self, entry: LogEvent, sender: str) -> bool:
+        print("receives")
+        # date
+        time = Time(entry.time, format='unix')
+
+        # format sender
+        sender = str(sender)
+        sender = sender[:sender.index('@')]
+
+        # define new row and emit
+        row = [time.iso.split()[1],
+               str(sender),
+               entry.level,
+               '%s:%d' % (os.path.basename(entry.filename), entry.line),
+               entry.message]
+        self.add_log.emit(row)
+        return True
+
+    def _resize_log_table(self):
+        # resize columns
+        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeToContents)
+        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        # this is a one-time shot, so unconnect signal
+        self.log_model.rowsInserted.disconnect(self._resize_log_table)
+
+    def _log_client_changed(self, item: QtWidgets.QListWidgetItem):
+        # update proxy
+        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
