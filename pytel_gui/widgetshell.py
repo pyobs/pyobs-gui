@@ -1,4 +1,5 @@
 import pprint
+import traceback
 from threading import Thread
 import re
 from PyQt5 import QtWidgets, QtCore
@@ -148,7 +149,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
             return
         except RemoteException as e:
             if e:
-                self._add_command_log('Remote error: %s' % str(e), 'red')
+                self._add_command_log(traceback.format_exc(), 'red')
             else:
                 self._add_command_log('Unknown Remote error', 'red')
             return
