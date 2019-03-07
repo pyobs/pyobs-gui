@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 import inspect
 
-from pytel.comm import RemoteException
+from pyobs.comm import RemoteException
 from .qt.widgetshell import Ui_WidgetShell
 
 

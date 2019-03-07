@@ -195,9 +195,9 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
             self.image_filename = self.status['ICamera']['LastImage']
 
             # download image
-            from pytel.vfs import VirtualFileSystem
+            from pyobs.vfs import VirtualFileSystem
             vfs = VirtualFileSystem(
-                roots={'cache': {'class': 'pytel.vfs.HttpFile', 'upload': 'http://localhost:37075',
+                roots={'cache': {'class': 'pyobs.vfs.HttpFile', 'upload': 'http://localhost:37075',
                                  'download': 'http://localhost:37075'}})
             self.image = vfs.download_fits_image(self.image_filename)
 

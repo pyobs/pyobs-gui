@@ -4,8 +4,8 @@ import logging
 import sys
 from PyQt5 import QtWidgets
 
-from pytel.comm.xmpp import XmppComm
-from pytel_gui.mainwindow import MainWindow
+from pyobs.comm.xmpp import XmppComm
+from pyobs_gui.mainwindow import MainWindow
 
 if __name__ == '__main__':
     # logger
