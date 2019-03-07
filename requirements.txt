@@ -1,2 +1,5 @@
 colour
 PyQt5
+astropy
+aplpy
+matplotlib

@@ -1,21 +1,18 @@
-import inspect
-import pprint
-from threading import RLock, Event, Thread
+from threading import Event
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
-from pytel.comm import RemoteException
-from pytel.events import LogEvent
-from pytel.events.clientconnected import ClientConnectedEvent
-from pytel.events.clientdisconnected import ClientDisconnectedEvent
-from pytel.interfaces import ICamera
-from pytel_gui.qt.mainwindow import Ui_MainWindow
-from pytel_gui.logmodel import LogModel, LogModelProxy
-from pytel_gui.widgetcamera import WidgetCamera
-from pytel_gui.widgetshell import WidgetShell
+from pyobs.events import LogEvent
+from pyobs.events.clientconnected import ClientConnectedEvent
+from pyobs.events.clientdisconnected import ClientDisconnectedEvent
+from pyobs.interfaces import ICamera
+from pyobs_gui.qt.mainwindow import Ui_MainWindow
+from pyobs_gui.logmodel import LogModel, LogModelProxy
+from pyobs_gui.widgetcamera import WidgetCamera
+from pyobs_gui.widgetshell import WidgetShell
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):

@@ -1,13 +1,12 @@
 import threading
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QMessageBox
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import aplpy
 
-from pytel.interfaces import ICamera, ICameraBinning, ICameraWindow
+from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow
 from .qt.widgetcamera import Ui_WidgetCamera
 
 

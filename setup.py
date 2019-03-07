@@ -2,11 +2,11 @@
 from distutils.core import setup
 
 setup(
-    name='pytel_gui',
+    name='pyobs_gui',
     version='0.1',
-    description='GUI for pytel',
+    description='GUI for pyobs',
     author='Tim-Oliver Husser',
     author_email='thusser@uni-goettingen.de',
-    packages=['pytel_gui'],
-    scripts=['bin/pytel-gui']
+    packages=['pyobs_gui'],
+    scripts=['bin/pyobs-gui']
 )
