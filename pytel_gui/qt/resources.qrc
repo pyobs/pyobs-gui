@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/">
+    <file>resources/Crystal_Clear_device_camera.png</file>
     <file>resources/Crystal_Clear_app_terminal.png</file>
   </qresource>
 </RCC>

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1232</width>
-    <height>723</height>
+    <width>779</width>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,73 +23,31 @@
       <widget class="QWidget" name="">
        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
         <item>
-         <widget class="QScrollArea" name="scrollArea">
+         <widget class="QListWidget" name="listPages">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>100</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
           </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOn</enum>
+          <property name="iconSize">
+           <size>
+            <width>64</width>
+            <height>64</height>
+           </size>
           </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
+          <property name="viewMode">
+           <enum>QListView::IconMode</enum>
           </property>
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>92</width>
-             <height>490</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <widget class="QToolButton" name="menuShell">
-              <property name="minimumSize">
-               <size>
-                <width>80</width>
-                <height>100</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Shell</string>
-              </property>
-              <property name="icon">
-               <iconset resource="resources.qrc">
-                <normaloff>:/resources/Crystal_Clear_app_terminal.png</normaloff>:/resources/Crystal_Clear_app_terminal.png</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>64</width>
-                <height>64</height>
-               </size>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextUnderIcon</enum>
-              </property>
-              <property name="autoRaise">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
          </widget>
         </item>
         <item>
@@ -121,8 +79,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>500</width>
-              <height>394</height>
+              <width>299</width>
+              <height>237</height>
              </rect>
             </property>
             <attribute name="label">
@@ -152,8 +110,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>500</width>
-              <height>394</height>
+              <width>299</width>
+              <height>237</height>
              </rect>
             </property>
             <attribute name="label">
@@ -178,6 +136,9 @@
        </layout>
       </widget>
       <widget class="QTableView" name="tableLog">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>

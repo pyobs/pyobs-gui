@@ -11,8 +11,10 @@ from pytel.comm import RemoteException
 from pytel.events import LogEvent
 from pytel.events.clientconnected import ClientConnectedEvent
 from pytel.events.clientdisconnected import ClientDisconnectedEvent
+from pytel.interfaces import ICamera
 from pytel_gui.qt.mainwindow import Ui_MainWindow
 from pytel_gui.logmodel import LogModel, LogModelProxy
+from pytel_gui.widgetcamera import WidgetCamera
 from pytel_gui.widgetshell import WidgetShell
 
 
@@ -24,6 +26,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, comm, log_latency=2, **kwargs):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
+        self.resize(1300, 800)
 
         # store comm client
         self.comm = comm
@@ -34,11 +37,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # splitters
         self.splitterToolBox.setSizes([self.width() - 400, 400])
         self.splitterLog.setSizes([self.height() - 100, 100])
-
-        # auto exclusive
-        self.menuShell.setCheckable(True)
-        self.menuShell.setAutoExclusive(True)
-        self.menuShell.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
 
         # logs
         self.log_model = LogModel()
@@ -59,6 +57,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # get clients
         self._update_client_list()
 
+        # add shell nav button and view
+        self.shell = WidgetShell(self.comm)
+        self.shell.show_help.connect(self.show_help)
+        idx = self.stackedWidget.addWidget(self.shell)
+        self._add_nav_button('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"))
+
+        # create other nav buttons and views
+        for client_name in self.comm.clients:
+            # get proxy
+            proxy = self.comm[client_name]
+
+            # what do we have?
+            if isinstance(proxy, ICamera):
+                widget = WidgetCamera(proxy)
+                icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
+            else:
+                continue
+
+            # add it
+            self.stackedWidget.addWidget(widget)
+
+            # button
+            self._add_nav_button(client_name, icon)
+
+        # change page
+        self.listPages.currentRowChanged.connect(self._change_page)
+
         # subscribe to events
         self.comm.register_event(LogEvent, self.process_log_entry)
         self.comm.register_event(ClientConnectedEvent, lambda x, y: self.client_list_changed.emit())
@@ -72,6 +97,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._variables_timer.timeout.connect(self._update_variables)
         self._variables_timer.start(1000)
         """
+
+    def _add_nav_button(self, text, icon):
+        item = QtWidgets.QListWidgetItem()
+        item.setIcon(icon)
+        item.setText(text)
+        self.listPages.addItem(item)
+
+    def _change_page(self, idx):
+        # get current widget
+        widget = self.stackedWidget.currentWidget()
+
+        # if it has a leave method, call it
+        if hasattr(widget, 'leave'):
+            widget.leave()
+
+        # change to new page
+        self.stackedWidget.setCurrentIndex(idx + 1)
+
+        # get new widget
+        widget = self.stackedWidget.currentWidget()
+
+        # if it has an enter method, call it
+        if hasattr(widget, 'enter'):
+            widget.enter()
 
     @QtCore.pyqtSlot()
     def _update_variables(self):
