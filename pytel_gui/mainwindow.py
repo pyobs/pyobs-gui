@@ -98,6 +98,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._variables_timer.start(1000)
         """
 
+    def closeEvent(self, a0: QtGui.QCloseEvent):
+        # get current widget
+        widget = self.stackedWidget.currentWidget()
+
+        # if it has a leave method, call it
+        if hasattr(widget, 'leave'):
+            widget.leave()
+
     def _add_nav_button(self, text, icon):
         item = QtWidgets.QListWidgetItem()
         item.setIcon(icon)
