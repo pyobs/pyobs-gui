@@ -48,7 +48,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="groupWindowing">
          <property name="title">
           <string>Window</string>
          </property>
@@ -129,7 +129,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
+        <widget class="QGroupBox" name="groupBinning">
          <property name="title">
           <string>Binning:</string>
          </property>
@@ -175,7 +175,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_3">
+        <widget class="QGroupBox" name="groupExposure">
          <property name="title">
           <string>Exposure</string>
          </property>

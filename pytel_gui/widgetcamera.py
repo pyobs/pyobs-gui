@@ -28,6 +28,10 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         image_types = [t.name for t in ICamera.ImageType]
         self.comboImageType.addItems(image_types)
 
+        # hide groups, if necessary
+        self.groupWindowing.setVisible(isinstance(self.module, ICameraWindow))
+        self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
+
         # add image panel
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
@@ -67,14 +71,15 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self._update_thread_event = None
 
     def set_full_frame(self):
-        # get full frame
-        frame = self.module.get_full_frame()
+        if isinstance(self.module, ICameraWindow):
+            # get full frame
+            frame = self.module.get_full_frame()
 
-        # set it
-        self.spinWindowLeft.setValue(frame['left'])
-        self.spinWindowTop.setValue(frame['top'])
-        self.spinWindowWidth.setValue(frame['width'])
-        self.spinWindowHeight.setValue(frame['height'])
+            # set it
+            self.spinWindowLeft.setValue(frame['left'])
+            self.spinWindowTop.setValue(frame['top'])
+            self.spinWindowWidth.setValue(frame['width'])
+            self.spinWindowHeight.setValue(frame['height'])
 
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
