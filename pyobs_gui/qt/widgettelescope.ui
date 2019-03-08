@@ -210,7 +210,7 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QPushButton" name="butMoveAltAz">
+         <widget class="QPushButton" name="butMove">
           <property name="text">
            <string>Move</string>
           </property>
