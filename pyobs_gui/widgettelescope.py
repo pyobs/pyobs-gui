@@ -1,7 +1,7 @@
 import threading
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
 
 from pyobs.interfaces import ITelescope
@@ -25,6 +25,7 @@ class WidgetTelescope(QtWidgets.QWidget, Ui_WidgetTelescope):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.butTrack.clicked.connect(self.track)
 
     def enter(self):
         # create event for update thread to close
@@ -56,6 +57,9 @@ class WidgetTelescope(QtWidgets.QWidget, Ui_WidgetTelescope):
             self._update_thread_event.wait(0.5)
 
     def update_gui(self):
+        # show motion status
+        self.labelStatus.setText(self.status['ITelescope']['Status'].upper())
+
         # get coordinates
         pos = self.status['ITelescope']['Position']
         ra_dec = SkyCoord(ra=pos['RA'] * u.deg, dec=pos['Dec'] * u.deg, frame='icrs')
@@ -65,3 +69,15 @@ class WidgetTelescope(QtWidgets.QWidget, Ui_WidgetTelescope):
         self.labelCurDec.setText(ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
         self.labelCurAlt.setText('%.3f' % pos['Alt'])
         self.labelCurAz.setText('%.3f' % pos['Az'])
+
+    def track(self):
+        # get ra and dec
+        ra = self.textTrackRA.text()
+        dec = self.textTrackDec.text()
+        coords = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
+
+        # start thread with move
+        threading.Thread(target=self._track, args=(coords.ra.degree, coords.dec.degree)).start()
+
+    def _track(self, ra, dec):
+        self.module.track(ra, dec)
