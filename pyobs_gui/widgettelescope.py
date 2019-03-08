@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtSignal
 from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
 
-from pyobs.interfaces import ITelescope
+from pyobs.interfaces import ITelescope, IFilters, IFocuser
 from .qt.widgettelescope import Ui_WidgetTelescope
 from .basewidget import BaseWidget
 
@@ -14,7 +14,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     def __init__(self, module, parent=None):
         BaseWidget.__init__(self, parent)
         self.setupUi(self)
-        self.module = module    # type: ITelescope
+        self.module = module    # type: ITelescope, IFilters, IFocuser
 
         # variables
         self.status = None
@@ -26,12 +26,19 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._update_thread = None
         self._update_thread_event = None
 
+        # get all filters
+        self.comboFilter.addItems(self.module.list_filters())
+
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
         self.butTrack.clicked.connect(self.track)
         self.butMove.clicked.connect(self.move)
         self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
         self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
+        self.butSetFocus.clicked.connect(lambda: self.run_async(self.module.set_focus,
+                                                                self.spinFocus.value()))
+        self.butSetFilter.clicked.connect(lambda: self.run_async(self.module.set_filter,
+                                                                 self.comboFilter.currentText()))
 
     def enter(self):
         # create event for update thread to close
@@ -78,6 +85,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.labelCurDec.setText(ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
         self.labelCurAlt.setText('%.3f' % pos['Alt'])
         self.labelCurAz.setText('%.3f' % pos['Az'])
+
+        # filter
+        self.labelCurFilter.setText(self.status['IFilter']['Filter'])
+
+        # focus
+        self.labelCurFocus.setText('%.3f' % self.status['IFocuser']['Focus'])
 
     def track(self):
         # get ra and dec
