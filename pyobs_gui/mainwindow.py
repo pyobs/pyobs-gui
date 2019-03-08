@@ -20,13 +20,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     add_command_log = pyqtSignal(str)
     client_list_changed = pyqtSignal()
 
-    def __init__(self, comm, log_latency=2, **kwargs):
+    def __init__(self, comm, vfs, log_latency=2, **kwargs):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
 
         # store comm client
         self.comm = comm
+        self.vfs = vfs
 
         # closing
         self.closing = Event()
@@ -67,7 +68,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # what do we have?
             if isinstance(proxy, ICamera):
-                widget = WidgetCamera(proxy)
+                widget = WidgetCamera(proxy, self.vfs)
                 icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
             else:
                 continue

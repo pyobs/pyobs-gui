@@ -7,16 +7,18 @@ import matplotlib.pyplot as plt
 import aplpy
 
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow
+from pyobs.vfs import VirtualFileSystem
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
 class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, parent=None):
+    def __init__(self, module, vfs, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.module = module    # type: ICamera
+        self.vfs = vfs          # type: VirtualFileSystem
 
         # variables
         self.image_filename = None
@@ -123,7 +125,6 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
 
     def plot(self):
         # clear figure
-        print("plot")
         self.figure.clf()
 
         # plot image
@@ -195,11 +196,7 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
             self.image_filename = self.status['ICamera']['LastImage']
 
             # download image
-            from pyobs.vfs import VirtualFileSystem
-            vfs = VirtualFileSystem(
-                roots={'cache': {'class': 'pyobs.vfs.HttpFile', 'upload': 'http://localhost:37075',
-                                 'download': 'http://localhost:37075'}})
-            self.image = vfs.download_fits_image(self.image_filename)
+            self.image = self.vfs.download_fits_image(self.image_filename)
 
             # trigger plot
             self.plot()
