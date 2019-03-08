@@ -8,11 +8,12 @@ from colour import Color
 from pyobs.events import LogEvent
 from pyobs.events.clientconnected import ClientConnectedEvent
 from pyobs.events.clientdisconnected import ClientDisconnectedEvent
-from pyobs.interfaces import ICamera
+from pyobs.interfaces import ICamera, ITelescope
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
 from pyobs_gui.widgetcamera import WidgetCamera
 from pyobs_gui.widgetshell import WidgetShell
+from pyobs_gui.widgettelescope import WidgetTelescope
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -69,6 +70,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # what do we have?
             if isinstance(proxy, ICamera):
                 widget = WidgetCamera(proxy, self.vfs)
+                icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
+            elif isinstance(proxy,  ITelescope):
+                widget = WidgetTelescope(proxy)
                 icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
             else:
                 continue
