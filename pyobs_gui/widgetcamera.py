@@ -29,6 +29,9 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         image_types = [t.name for t in ICamera.ImageType]
         self.comboImageType.addItems(image_types)
 
+        # before first update, disable mys
+        self.setEnabled(False)
+
         # hide groups, if necessary
         self.groupWindowing.setVisible(isinstance(self.module, ICameraWindow))
         self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
@@ -160,6 +163,9 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
             self._update_thread_event.wait(0.5)
 
     def update_gui(self):
+        # enable myself
+        self.setEnabled(True)
+
         # enable/disable buttons
         self.butExpose.setEnabled(self.status['ICamera']['Status'] == 'idle')
         self.butAbort.setEnabled(self.status['ICamera']['Status'] != 'idle')

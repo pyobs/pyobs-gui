@@ -19,6 +19,9 @@ class WidgetTelescope(QtWidgets.QWidget, Ui_WidgetTelescope):
         # variables
         self.status = None
 
+        # before first update, disable mys
+        self.setEnabled(False)
+
         # update thread
         self._update_thread = None
         self._update_thread_event = None
@@ -57,6 +60,9 @@ class WidgetTelescope(QtWidgets.QWidget, Ui_WidgetTelescope):
             self._update_thread_event.wait(0.5)
 
     def update_gui(self):
+        # enable myself
+        self.setEnabled(True)
+
         # show motion status
         self.labelStatus.setText(self.status['ITelescope']['Status'].upper())
 
