@@ -13,7 +13,7 @@ class GUI(PyObsModule):
         app = QtWidgets.QApplication([])
 
         # create and show window
-        window = MainWindow(self.comm, self.vfs)
+        window = MainWindow(self.comm, self.vfs, self.environment)
         window.show()
 
         # run

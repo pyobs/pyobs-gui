@@ -21,7 +21,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     add_command_log = pyqtSignal(str)
     client_list_changed = pyqtSignal()
 
-    def __init__(self, comm, vfs, log_latency=2, **kwargs):
+    def __init__(self, comm, vfs, environment, log_latency=2, **kwargs):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
@@ -29,6 +29,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # store comm client
         self.comm = comm
         self.vfs = vfs
+        self.environment = environment
 
         # closing
         self.closing = Event()
@@ -72,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 widget = WidgetCamera(proxy, self.vfs)
                 icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
             elif isinstance(proxy,  ITelescope):
-                widget = WidgetTelescope(proxy)
+                widget = WidgetTelescope(proxy, self.environment)
                 icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
             else:
                 continue
