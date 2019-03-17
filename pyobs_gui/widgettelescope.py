@@ -31,7 +31,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._update_thread_event = None
 
         # get all filters
-        self.comboFilter.addItems(self.module.list_filters())
+        if isinstance(self.module, IFilters):
+            self.comboFilter.addItems(self.module.list_filters())
 
         # plot
         self.figure = plt.figure()
@@ -104,10 +105,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.labelCurAz.setText('%.3f' % pos['Az'])
 
         # filter
-        self.labelCurFilter.setText(self.status['IFilter']['Filter'])
+        if isinstance(self.module, IFilters):
+            self.labelCurFilter.setText(self.status['IFilter']['Filter'])
 
         # focus
-        self.labelCurFocus.setText('%.3f' % self.status['IFocuser']['Focus'])
+        if isinstance(self.module, IFocuser):
+            self.labelCurFocus.setText('%.3f' % self.status['IFocuser']['Focus'])
 
     def track(self):
         # get ra and dec
