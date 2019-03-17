@@ -79,7 +79,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 pass
 
             # sleep a little
-            self._update_thread_event.wait(0.5)
+            self._update_thread_event.wait(1)
 
     def update_gui(self):
         # enable myself
