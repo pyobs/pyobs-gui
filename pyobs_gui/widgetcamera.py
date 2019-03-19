@@ -26,6 +26,10 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.image_filename = None
         self.image = None
         self.status = None
+        self.exposure_status = ICamera.ExposureStatus.IDLE
+        self.exposures_left = 0
+        self.exposure_time_left = 0
+        self.exposure_progress = 0
 
         # set exposure types
         image_types = [t.name for t in ICamera.ImageType]
@@ -71,6 +75,10 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         # start update thread
         self._update_thread = threading.Thread(target=self._update)
         self._update_thread.start()
+
+        # get status
+        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status())
+        self.update_gui()
 
     def leave(self):
         # stop thread
@@ -127,11 +135,16 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         try:
             filename = self.module.expose(self.spinExpTime.value(), self.comboImageType.currentText().lower(),
                                           self.spinCount.value())
+            self.image = self.vfs.download_fits_image(filename)
+            self.signal_update_gui.emit()
+
         except:
             #QMessageBox.information(self, 'Error', 'Could not take image.')
             return
 
     def plot(self):
+        """Show image."""
+
         # clear figure
         self.figure.clf()
 
@@ -143,6 +156,8 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.canvas.draw()
         
     def abort(self):
+        """Abort exposure."""
+
         # do we have a status?
         if self.status is None:
             return
@@ -156,11 +171,15 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
     def _update(self):
         while not self._update_thread_event.is_set():
             try:
-                # get camera status
-                self.status = self.module.status()
+                # are we exposing?
+                if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+                    # get camera status
+                    self.exposures_left = self.module.get_exposures_left()
+                    self.exposure_time_left = self.module.get_exposure_time_left()
+                    self.exposure_progress = self.module.get_exposure_progress()
 
-                # signal GUI update
-                self.signal_update_gui.emit()
+                    # signal GUI update
+                    self.signal_update_gui.emit()
             except:
                 pass
 
@@ -168,27 +187,30 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
             self._update_thread_event.wait(1)
 
     def update_gui(self):
+        """Update the GUI."""
+
         # enable myself
         self.setEnabled(True)
 
         # enable/disable buttons
-        self.butExpose.setEnabled(self.status['ICamera']['Status'] == 'idle')
-        self.butAbort.setEnabled(self.status['ICamera']['Status'] != 'idle')
+        self.butExpose.setEnabled(self.exposure_status == ICamera.ExposureStatus.IDLE)
+        self.butAbort.setEnabled(self.exposure_status != ICamera.ExposureStatus.IDLE)
 
         # set abort text
-        if self.status['ICamera']['ExposuresLeft'] > 1:
+        if self.exposures_left > 1:
             self.butAbort.setText('Abort sequence')
         else:
             self.butAbort.setText('Abort exposure')
 
         # set progress
-        if self.status['ICamera']['Status'] == 'idle':
+        msg = ''
+        if self.exposure_status == ICamera.ExposureStatus.IDLE:
             self.progressExposure.setValue(0)
             msg = 'IDLE'
-        elif self.status['ICamera']['Status'] == 'exposing':
-            self.progressExposure.setValue(self.status['ICamera']['Progress'])
-            msg = 'EXPOSING %.1fs' % (self.status['ICamera']['ExposureTimeLeft'] / 1000.,)
-        elif self.status['ICamera']['Status'] == 'readout':
+        elif self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+            self.progressExposure.setValue(self.exposure_progress)
+            msg = 'EXPOSING %.1fs' % (self.exposure_time_left / 1000.,)
+        elif self.exposure_status == ICamera.ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
             msg = 'READOUT'
 
@@ -196,21 +218,29 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.labelStatus.setText(msg)
 
         # exposures left
-        if self.status['ICamera']['ExposuresLeft'] > 0:
-            self.labelExposuresLeft.setText('%d exposure(s) left' % self.status['ICamera']['ExposuresLeft'])
+        if self.exposures_left > 0:
+            self.labelExposuresLeft.setText('%d exposure(s) left' % self.exposures_left)
         else:
             self.labelExposuresLeft.setText('')
 
-        # image
-        if self.image_filename != self.status['ICamera']['LastImage']:
-            # set it
-            self.image_filename = self.status['ICamera']['LastImage']
-
-            # download image
-            self.image = self.vfs.download_fits_image(self.image_filename)
-
-            # trigger plot
+        # trigger plot
+        if self.image is not None:
+            # plot image
             self.plot()
 
-    def _exposure_status_changed(self, event, sender):
-        print('exposure status changed:', sender, event.last, event.current)
+            # reset it
+            self.image = None
+
+    def _exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str):
+        """Called when exposure status of module changed.
+
+        Args:
+            event: Status change event.
+            sender: Name of sender.
+        """
+
+        # store new status
+        self.exposure_status = event.current
+
+        # trigger GUI update
+        self.signal_update_gui.emit()
