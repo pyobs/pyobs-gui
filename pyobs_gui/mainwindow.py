@@ -70,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # what do we have?
             if isinstance(proxy, ICamera):
-                widget = WidgetCamera(proxy, self.vfs)
+                widget = WidgetCamera(proxy, self.comm, self.vfs)
                 icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
             elif isinstance(proxy,  ITelescope):
                 widget = WidgetTelescope(proxy, self.environment)

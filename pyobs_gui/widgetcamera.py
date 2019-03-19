@@ -6,6 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import aplpy
 
+from pyobs.events import ExposureStatusChangedEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow
 from pyobs.vfs import VirtualFileSystem
 from .qt.widgetcamera import Ui_WidgetCamera
@@ -14,10 +15,11 @@ from .qt.widgetcamera import Ui_WidgetCamera
 class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, vfs, parent=None):
+    def __init__(self, module, comm, vfs, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.module = module    # type: ICamera
+        self.comm = comm        # type: Comm
         self.vfs = vfs          # type: VirtualFileSystem
 
         # variables
@@ -58,6 +60,9 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         # initial values
         self.set_full_frame()
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
+
+        # subscribe to events
+        self.comm.register_event(ExposureStatusChangedEvent, self._exposure_status_changed)
 
     def enter(self):
         # create event for update thread to close
@@ -206,3 +211,6 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
 
             # trigger plot
             self.plot()
+
+    def _exposure_status_changed(self, event, sender):
+        print('exposure status changed:', sender, event.last, event.current)
