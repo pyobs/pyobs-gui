@@ -4,11 +4,15 @@ from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+import logging
 
 from pyobs.interfaces import ITelescope, IFilters, IFocuser
 from pyobs_gui.visplot import VisPlot
 from .qt.widgettelescope import Ui_WidgetTelescope
 from .basewidget import BaseWidget
+
+
+log = logging.getLogger(__name__)
 
 
 class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
@@ -21,7 +25,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.environment = environment  # type: Environment
 
         # variables
-        self.status = None
+        #self.status = None
+        self._ra_dec = None
+        self._alt_az = None
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -71,11 +77,19 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         while not self._update_thread_event.is_set():
             try:
                 # get camera status
-                self.status = self.module.status()
+                #self.status = self.module.status()
+                # get RA/Dec
+                ra, dec = self.module.get_ra_dec()
+                self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs')
+
+                # get Alt/Az
+                alt, az = self.module.get_alt_az()
+                self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz')
 
                 # signal GUI update
                 self.signal_update_gui.emit()
             except:
+                log.exception('Error')
                 pass
 
             # sleep a little
@@ -86,31 +100,27 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.setEnabled(True)
 
         # show motion status
-        self.labelStatus.setText(self.status['ITelescope']['Status'].upper())
-
-        # get coordinates
-        pos = self.status['ITelescope']['Position']
-        ra_dec = SkyCoord(ra=pos['RA'] * u.deg, dec=pos['Dec'] * u.deg, frame='icrs')
+        #self.labelStatus.setText(self.status['ITelescope']['Status'].upper())
 
         # plot
         if self.first:
-            self.plot.plot(ra_dec)
+            self.plot.plot(self._ra_dec)
             self.canvas.draw()
             self.first = False
 
         # show them
-        self.labelCurRA.setText(ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
-        self.labelCurDec.setText(ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
-        self.labelCurAlt.setText('%.3f' % pos['Alt'])
-        self.labelCurAz.setText('%.3f' % pos['Az'])
+        self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
+        self.labelCurDec.setText(self._ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
+        self.labelCurAlt.setText('%.3f' % self._alt_az.alt.degree)
+        self.labelCurAz.setText('%.3f' % self._alt_az.az.degree)
 
         # filter
-        if isinstance(self.module, IFilters):
-            self.labelCurFilter.setText(self.status['IFilter']['Filter'])
+        #if isinstance(self.module, IFilters):
+        #    self.labelCurFilter.setText(self.status['IFilter']['Filter'])
 
         # focus
-        if isinstance(self.module, IFocuser):
-            self.labelCurFocus.setText('%.3f' % self.status['IFocuser']['Focus'])
+        #if isinstance(self.module, IFocuser):
+        #    self.labelCurFocus.setText('%.3f' % self.status['IFocuser']['Focus'])
 
     def track(self):
         # get ra and dec
