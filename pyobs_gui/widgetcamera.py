@@ -66,7 +66,7 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
         # subscribe to events
-        self.comm.register_event(ExposureStatusChangedEvent, self._exposure_status_changed)
+        self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
     def enter(self):
         # create event for update thread to close
@@ -233,7 +233,7 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
             # reset it
             self.image = None
 
-    def _exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str):
+    def _on_exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str):
         """Called when exposure status of module changed.
 
         Args:
