@@ -90,13 +90,13 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
             # get full frame
-            frame = self.module.get_full_frame()
+            left, top, width, height = self.module.get_full_frame()
 
             # set it
-            self.spinWindowLeft.setValue(frame['left'])
-            self.spinWindowTop.setValue(frame['top'])
-            self.spinWindowWidth.setValue(frame['width'])
-            self.spinWindowHeight.setValue(frame['height'])
+            self.spinWindowLeft.setValue(left)
+            self.spinWindowTop.setValue(top)
+            self.spinWindowWidth.setValue(width)
+            self.spinWindowHeight.setValue(height)
 
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
@@ -131,10 +131,12 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
                 #QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
 
+        # get image type
+        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
+
         # do exposure(s)
         try:
-            filename = self.module.expose(self.spinExpTime.value(), self.comboImageType.currentText().lower(),
-                                          self.spinCount.value())
+            filename = self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value())
             self.image = self.vfs.download_fits_image(filename)
             self.signal_update_gui.emit()
 
@@ -241,6 +243,7 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
 
         # store new status
         self.exposure_status = event.current
+        print(event.last, event.current)
 
         # trigger GUI update
         self.signal_update_gui.emit()
