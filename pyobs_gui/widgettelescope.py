@@ -126,10 +126,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.labelStatus.setText(self._motion_status.value.upper())
 
         # plot
-        if self.first:
-            self.plot.plot(self._ra_dec)
-            self.canvas.draw()
-            self.first = False
+        #if self.first:
+        #    self.plot.plot(self._ra_dec)
+        #    self.canvas.draw()
+        #    self.first = False
 
         # show them
         self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
