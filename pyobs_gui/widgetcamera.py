@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import aplpy
 
-from pyobs.events import ExposureStatusChangedEvent
+from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow
 from pyobs.vfs import VirtualFileSystem
 from .qt.widgetcamera import Ui_WidgetCamera
@@ -67,6 +67,7 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
 
         # subscribe to events
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        self.comm.register_event(NewImageEvent, self._on_new_image)
 
     def enter(self):
         # create event for update thread to close
@@ -243,4 +244,18 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.exposure_status = event.current
 
         # trigger GUI update
+        self.signal_update_gui.emit()
+
+    def _on_new_image(self, event: NewImageEvent, sender: str):
+        """Called when new image is ready.
+
+        Args:
+            event: Status change event.
+            sender: Name of sender.
+        """
+
+        # download image
+        self.image = self.vfs.download_fits_image(event.filename)
+
+        # update GUI
         self.signal_update_gui.emit()
