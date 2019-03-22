@@ -136,9 +136,7 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
 
         # do exposure(s)
         try:
-            filename = self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value())
-            self.image = self.vfs.download_fits_image(filename)
-            self.signal_update_gui.emit()
+            self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value())
 
         except:
             #QMessageBox.information(self, 'Error', 'Could not take image.')
