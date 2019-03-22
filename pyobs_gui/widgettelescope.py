@@ -132,10 +132,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         #    self.first = False
 
         # show them
-        self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
-        self.labelCurDec.setText(self._ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
-        self.labelCurAlt.setText('%.3f' % self._alt_az.alt.degree)
-        self.labelCurAz.setText('%.3f' % self._alt_az.az.degree)
+        if self._ra_dec is not None:
+            self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
+            self.labelCurDec.setText(self._ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
+        if self._alt_az is not None:
+            self.labelCurAlt.setText('%.3f' % self._alt_az.alt.degree)
+            self.labelCurAz.setText('%.3f' % self._alt_az.az.degree)
 
         # filter
         if self._filter:
