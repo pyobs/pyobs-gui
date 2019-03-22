@@ -53,8 +53,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.butTrack.clicked.connect(self.track)
-        self.butMove.clicked.connect(self.move)
+        self.butTrack.clicked.connect(self.move_ra_dec)
+        self.butMove.clicked.connect(self.move_alt_az)
         self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
         self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
         self.butSetFocus.clicked.connect(lambda: self.run_async(self.module.set_focus,
@@ -65,7 +65,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
         self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
-
 
     def enter(self):
         # create event for update thread to close
@@ -146,7 +145,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if self._focus:
             self.labelCurFocus.setText('%.3f' % self._focus)
 
-    def track(self):
+    def move_ra_dec(self):
         # get ra and dec
         ra = self.textTrackRA.text()
         dec = self.textTrackDec.text()
@@ -158,7 +157,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # plot it
         self.plot.plot(coords)
 
-    def move(self):
+    def move_alt_az(self):
         # get alt and az
         alt = self.spinMoveAlt.value()
         az = self.spinMoveAz.value()
@@ -179,7 +178,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # trigger GUI update
         self.signal_update_gui.emit()
-
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
         """Called when filter changed.

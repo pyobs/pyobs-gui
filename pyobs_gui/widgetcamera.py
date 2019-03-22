@@ -243,7 +243,6 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
 
         # store new status
         self.exposure_status = event.current
-        print(event.last, event.current)
 
         # trigger GUI update
         self.signal_update_gui.emit()
