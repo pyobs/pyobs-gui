@@ -1,4 +1,6 @@
 import threading
+
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
@@ -9,6 +11,8 @@ import logging
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
 from pyobs.interfaces import ITelescope, IFilters, IFocuser
 from pyobs_gui.visplot import VisPlot
+from pyobs_gui.widgetfilter import WidgetFilter
+from pyobs_gui.widgetfocus import WidgetFocus
 from .qt.widgettelescope import Ui_WidgetTelescope
 from .basewidget import BaseWidget
 
@@ -30,8 +34,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._motion_status = None
         self._ra_dec = None
         self._alt_az = None
-        self._focus = None
-        self._filter = None
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -40,15 +42,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._update_thread = None
         self._update_thread_event = None
 
-        # get all filters
-        if isinstance(self.module, IFilters):
-            self.comboFilter.addItems(self.module.list_filters())
-
         # plot
         self.figure = plt.figure()
         self.plot = VisPlot(self.figure, self.environment)
         self.canvas = FigureCanvas(self.figure)
-        self.groupStatus.layout().addWidget(self.canvas)
+        self.widgetPlot.setLayout(QtWidgets.QVBoxLayout())
+        self.widgetPlot.layout().addWidget(self.canvas)
         self.first = True
 
         # connect signals
@@ -57,14 +56,25 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.butMove.clicked.connect(self.move_alt_az)
         self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
         self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
-        self.butSetFocus.clicked.connect(lambda: self.run_async(self.module.set_focus,
-                                                                self.spinFocus.value()))
-        self.butSetFilter.clicked.connect(lambda: self.run_async(self.module.set_filter,
-                                                                 self.comboFilter.currentText()))
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
-        self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
+
+        # fill sidebar
+        self.sidebar_widgets = []
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.widgetSidebar.setLayout(layout)
+        if isinstance(self.module, IFilters):
+            widget = WidgetFilter(module, comm)
+            self.sidebar_widgets.append(widget)
+            layout.addWidget(widget)
+        if isinstance(self.module, IFilters):
+            widget = WidgetFocus(module, comm)
+            self.sidebar_widgets.append(widget)
+            layout.addWidget(widget)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacerItem)
 
     def enter(self):
         # create event for update thread to close
@@ -77,10 +87,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # get variables
         self._motion_status = self.module.get_motion_status()
         self._fetch_coordinates()
-        if isinstance(self.module, IFilters):
-            self._filter = self.module.get_filter()
-        if isinstance(self.module, IFocuser):
-            self._focus = self.module.get_focus()
+
+        # sidebar
+        for sb in self.sidebar_widgets:
+            sb.enter()
 
     def leave(self):
         # stop thread
@@ -88,6 +98,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._update_thread.join()
         self._update_thread = None
         self._update_thread_event = None
+
+        # sidebar
+        for sb in self.sidebar_widgets:
+            sb.leave()
 
     def _fetch_coordinates(self):
         # get RA/Dec
@@ -104,13 +118,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 # get coordinates
                 self._fetch_coordinates()
 
-                # and focus
-                if isinstance(self.module, IFocuser):
-                    self._focus = self.module.get_focus()
-
-
                 # signal GUI update
                 self.signal_update_gui.emit()
+
             except:
                 log.exception('Error')
                 pass
@@ -138,14 +148,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if self._alt_az is not None:
             self.labelCurAlt.setText('%.3f' % self._alt_az.alt.degree)
             self.labelCurAz.setText('%.3f' % self._alt_az.az.degree)
-
-        # filter
-        if self._filter:
-            self.labelCurFilter.setText(self._filter)
-
-        # focus
-        if self._focus:
-            self.labelCurFocus.setText('%.3f' % self._focus)
 
     def move_ra_dec(self):
         # get ra and dec
@@ -177,20 +179,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # store new status
         self._motion_status = event.current
-
-        # trigger GUI update
-        self.signal_update_gui.emit()
-
-    def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
-        """Called when filter changed.
-
-        Args:
-            event: Filter change event.
-            sender: Name of sender.
-        """
-
-        # store new filter
-        self._filter = event.filter
 
         # trigger GUI update
         self.signal_update_gui.emit()

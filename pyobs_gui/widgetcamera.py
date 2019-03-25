@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import aplpy
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow
+from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling
 from pyobs.vfs import VirtualFileSystem
+from pyobs_gui.widgetcooling import WidgetCooling
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
@@ -30,9 +31,6 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.exposures_left = 0
         self.exposure_time_left = 0
         self.exposure_progress = 0
-
-        # sidebar
-        self.frameSidebar.setVisible(False)
 
         # set exposure types
         image_types = [t.name for t in ICamera.ImageType]
@@ -71,6 +69,18 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         # subscribe to events
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
         self.comm.register_event(NewImageEvent, self._on_new_image)
+
+        # fill sidebar
+        self.sidebar_widgets = []
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.widgetSidebar.setLayout(layout)
+        if isinstance(self.module, ICooling):
+            widget = WidgetCooling(module, comm)
+            self.sidebar_widgets.append(widget)
+            layout.addWidget(widget)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        layout.addItem(spacerItem)
 
     def enter(self):
         # create event for update thread to close

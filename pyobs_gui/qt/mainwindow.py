@@ -19,12 +19,12 @@ class Ui_MainWindow(object):
         self.splitterLog = QtWidgets.QSplitter(self.centralwidget)
         self.splitterLog.setOrientation(QtCore.Qt.Vertical)
         self.splitterLog.setObjectName("splitterLog")
-        self.widget = QtWidgets.QWidget(self.splitterLog)
-        self.widget.setObjectName("widget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
+        self.layoutWidget = QtWidgets.QWidget(self.splitterLog)
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.layoutWidget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.listPages = QtWidgets.QListWidget(self.widget)
+        self.listPages = QtWidgets.QListWidget(self.layoutWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -36,7 +36,7 @@ class Ui_MainWindow(object):
         self.listPages.setViewMode(QtWidgets.QListView.IconMode)
         self.listPages.setObjectName("listPages")
         self.horizontalLayout.addWidget(self.listPages)
-        self.splitterToolBox = QtWidgets.QSplitter(self.widget)
+        self.splitterToolBox = QtWidgets.QSplitter(self.layoutWidget)
         self.splitterToolBox.setOrientation(QtCore.Qt.Horizontal)
         self.splitterToolBox.setObjectName("splitterToolBox")
         self.stackedWidget = QtWidgets.QStackedWidget(self.splitterToolBox)
@@ -76,6 +76,6 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "pytel supervisor"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "pyobs GUI"))
 
 from . import resources_rc

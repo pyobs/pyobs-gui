@@ -1138,14 +1138,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="frameSidebar">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
-     </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
-     </property>
-    </widget>
+    <widget class="QWidget" name="widgetSidebar" native="true"/>
    </item>
   </layout>
  </widget>
