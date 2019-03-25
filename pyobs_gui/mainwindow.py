@@ -35,7 +35,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.closing = Event()
 
         # splitters
-        self.splitterToolBox.setSizes([self.width() - 400, 400])
+        self.splitterClients.setSizes([self.width() - 200, 200])
         self.splitterLog.setSizes([self.height() - 100, 100])
 
         # logs

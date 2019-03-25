@@ -426,6 +426,11 @@ class Ui_WidgetCamera(object):
         self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame.setObjectName("frame")
         self.horizontalLayout.addWidget(self.frame)
+        self.frameSidebar = QtWidgets.QFrame(WidgetCamera)
+        self.frameSidebar.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frameSidebar.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frameSidebar.setObjectName("frameSidebar")
+        self.horizontalLayout.addWidget(self.frameSidebar)
         self.horizontalLayout.setStretch(1, 1)
 
         self.retranslateUi(WidgetCamera)

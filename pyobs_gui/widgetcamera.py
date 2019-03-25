@@ -31,6 +31,9 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.exposure_time_left = 0
         self.exposure_progress = 0
 
+        # sidebar
+        self.frameSidebar.setVisible(False)
+
         # set exposure types
         image_types = [t.name for t in ICamera.ImageType]
         self.comboImageType.addItems(image_types)
