@@ -76,6 +76,15 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout.addItem(spacerItem)
 
+        # initial values
+        threading.Thread(target=self._init).start()
+
+    def _init(self):
+        # get variables
+        self._motion_status = self.module.get_motion_status()
+        self._fetch_coordinates()
+        self.signal_update_gui.emit()
+
     def enter(self):
         # create event for update thread to close
         self._update_thread_event = threading.Event()
@@ -83,10 +92,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # start update thread
         self._update_thread = threading.Thread(target=self._update)
         self._update_thread.start()
-
-        # get variables
-        self._motion_status = self.module.get_motion_status()
-        self._fetch_coordinates()
 
         # sidebar
         for sb in self.sidebar_widgets:

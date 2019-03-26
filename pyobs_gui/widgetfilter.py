@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
+import threading
 
 from pyobs.events import FilterChangedEvent
 from pyobs.interfaces import IFilters
@@ -18,10 +19,6 @@ class WidgetFilter(QtWidgets.QWidget, Ui_WidgetFilter):
         # variables
         self._filter = None
 
-        # get all filters
-        if isinstance(self.module, IFilters):
-            self.comboFilter.addItems(self.module.list_filters())
-
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
         self.butSetFilter.clicked.connect(lambda: self.run_async(self.module.set_filter,
@@ -30,8 +27,19 @@ class WidgetFilter(QtWidgets.QWidget, Ui_WidgetFilter):
         # subscribe to events
         self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
 
+        # initial values
+        threading.Thread(target=self._init).start()
+
+    def _init(self):
+        # get all filters
+        if isinstance(self.module, IFilters):
+            self.comboFilter.addItems(self.module.list_filters())
+
         # get current filter
         self._filter = self.module.get_filter()
+
+        # update gui
+        self.signal_update_gui.emit()
 
     def update_gui(self):
         # enable myself and set filter

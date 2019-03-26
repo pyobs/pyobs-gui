@@ -82,6 +82,14 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout.addItem(spacerItem)
 
+        # initial values
+        threading.Thread(target=self._init).start()
+
+    def _init(self):
+        # get status and update gui
+        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status())
+        self.signal_update_gui.emit()
+
     def enter(self):
         # create event for update thread to close
         self._update_thread_event = threading.Event()
@@ -89,10 +97,6 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         # start update thread
         self._update_thread = threading.Thread(target=self._update)
         self._update_thread.start()
-
-        # get status
-        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status())
-        self.update_gui()
 
     def leave(self):
         # stop thread
