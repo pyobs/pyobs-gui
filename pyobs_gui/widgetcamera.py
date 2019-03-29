@@ -46,10 +46,14 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         # add image panel
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
-        self.canvasToolbar = NavigationToolbar2QT(self.canvas, self.frame)
-        self.canvasLayout = QtWidgets.QVBoxLayout(self.frame)
+        self.canvasToolbar = NavigationToolbar2QT(self.canvas, self.tabImage)
+        self.canvasLayout = QtWidgets.QVBoxLayout(self.tabImage)
         self.canvasLayout.addWidget(self.canvasToolbar)
         self.canvasLayout.addWidget(self.canvas)
+
+        # set headers for fits header tab
+        self.tableFitsHeader.setColumnCount(3)
+        self.tableFitsHeader.setHorizontalHeaderLabels(['Key', 'Value', 'Comment'])
 
         # update thread
         self._update_thread = None
@@ -241,13 +245,35 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         else:
             self.labelExposuresLeft.setText('')
 
-        # trigger plot
+        # trigger image update
         if self.image is not None:
             # plot image
             self.plot()
 
+            # set fits headers
+            self.show_fits_headers()
+
             # reset it
             self.image = None
+
+    def show_fits_headers(self):
+        # get all header cards
+        headers = {}
+        for card in self.image.header.cards:
+            headers[card.keyword] = (card.value, card.comment)
+
+        # prepare table
+        self.tableFitsHeader.setRowCount(len(headers))
+
+        # set headers
+        for i, key in enumerate(sorted(headers.keys())):
+            self.tableFitsHeader.setItem(i, 0, QtWidgets.QTableWidgetItem(key))
+            self.tableFitsHeader.setItem(i, 1, QtWidgets.QTableWidgetItem(str(headers[key][0])))
+            self.tableFitsHeader.setItem(i, 2, QtWidgets.QTableWidgetItem(headers[key][1]))
+
+        # adjust column widths
+        self.tableFitsHeader.resizeColumnToContents(0)
+        self.tableFitsHeader.resizeColumnToContents(1)
 
     def _on_exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str):
         """Called when exposure status of module changed.
