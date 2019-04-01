@@ -24,7 +24,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, environment, parent=None):
-        BaseWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent=parent, update_func=self._update)
         self.setupUi(self)
         self.module = module    # type: ITelescope, IFilters, IFocuser
         self.comm = comm  # type: Comm
@@ -37,10 +37,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # before first update, disable mys
         self.setEnabled(False)
-
-        # update thread
-        self._update_thread = None
-        self._update_thread_event = None
 
         # plot
         self.figure = plt.figure()
@@ -75,25 +71,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._fetch_coordinates()
         self.signal_update_gui.emit()
 
-    def enter(self):
-        BaseWidget.enter(self)
-
-        # create event for update thread to close
-        self._update_thread_event = threading.Event()
-
-        # start update thread
-        self._update_thread = threading.Thread(target=self._update)
-        self._update_thread.start()
-
-    def leave(self):
-        BaseWidget.leave(self)
-
-        # stop thread
-        self._update_thread_event.set()
-        self._update_thread.join()
-        self._update_thread = None
-        self._update_thread_event = None
-
     def _fetch_coordinates(self):
         # get RA/Dec
         ra, dec = self.module.get_ra_dec()
@@ -104,20 +81,11 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz')
 
     def _update(self):
-        while not self._update_thread_event.is_set():
-            try:
-                # get coordinates
-                self._fetch_coordinates()
+        # get coordinates
+        self._fetch_coordinates()
 
-                # signal GUI update
-                self.signal_update_gui.emit()
-
-            except:
-                log.exception('Error')
-                pass
-
-            # sleep a little
-            self._update_thread_event.wait(1)
+        # signal GUI update
+        self.signal_update_gui.emit()
 
     def update_gui(self):
         # enable myself

@@ -19,7 +19,7 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, environment, parent=None):
-        BaseWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent=parent, update_func=self._update)
         self.setupUi(self)
         self.module = module    # type: IRoof
         self.comm = comm        # type: Comm
@@ -28,10 +28,6 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         # status
         self.motion_status = None
         self.percent_open = None
-
-        # update thread
-        self._update_thread = None
-        self._update_thread_event = None
 
         # connect signals
         self.buttonOpen.clicked.connect(lambda: self.run_async(self.module.open_roof))
@@ -47,41 +43,15 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         self.motion_status = self.module.get_motion_status()
         self.signal_update_gui.emit()
 
-    def enter(self):
-        BaseWidget.enter(self)
-
-        # create event for update thread to close
-        self._update_thread_event = threading.Event()
-
-        # start update thread
-        self._update_thread = threading.Thread(target=self._update)
-        self._update_thread.start()
-
-    def leave(self):
-        BaseWidget.leave(self)
-
-        # stop thread
-        self._update_thread_event.set()
-        self._update_thread.join()
-        self._update_thread = None
-        self._update_thread_event = None
-
     def _update(self):
-        while not self._update_thread_event.is_set():
-            try:
-                # motion status
-                self.motion_status = self.module.get_motion_status()
+        # motion status
+        self.motion_status = self.module.get_motion_status()
 
-                # open status
-                self.percent_open = self.module.get_percent_open()
+        # open status
+        self.percent_open = self.module.get_percent_open()
 
-                # signal GUI update
-                self.signal_update_gui.emit()
-            except:
-                pass
-
-            # sleep a little
-            self._update_thread_event.wait(1)
+        # signal GUI update
+        self.signal_update_gui.emit()
 
     def update_gui(self):
         """Update the GUI."""

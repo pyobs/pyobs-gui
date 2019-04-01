@@ -19,7 +19,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, vfs, parent=None):
-        BaseWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent=parent, update_func=self._update)
         self.setupUi(self)
         self.module = module    # type: ICamera
         self.comm = comm        # type: Comm
@@ -57,10 +57,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.tableFitsHeader.setColumnCount(3)
         self.tableFitsHeader.setHorizontalHeaderLabels(['Key', 'Value', 'Comment'])
 
-        # update thread
-        self._update_thread = None
-        self._update_thread_event = None
-
         # connect signals
         self.butFullFrame.clicked.connect(self.set_full_frame)
         self.comboImageType.currentTextChanged.connect(self.image_type_changed)
@@ -89,25 +85,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # get status and update gui
         self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status())
         self.signal_update_gui.emit()
-
-    def enter(self):
-        BaseWidget.enter(self)
-
-        # create event for update thread to close
-        self._update_thread_event = threading.Event()
-
-        # start update thread
-        self._update_thread = threading.Thread(target=self._update)
-        self._update_thread.start()
-
-    def leave(self):
-        BaseWidget.leave(self)
-
-        # stop thread
-        self._update_thread_event.set()
-        self._update_thread.join()
-        self._update_thread = None
-        self._update_thread_event = None
 
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
@@ -191,22 +168,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.module.abort()
 
     def _update(self):
-        while not self._update_thread_event.is_set():
-            try:
-                # are we exposing?
-                if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
-                    # get camera status
-                    self.exposures_left = self.module.get_exposures_left()
-                    self.exposure_time_left = self.module.get_exposure_time_left()
-                    self.exposure_progress = self.module.get_exposure_progress()
+        # are we exposing?
+        if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+            # get camera status
+            self.exposures_left = self.module.get_exposures_left()
+            self.exposure_time_left = self.module.get_exposure_time_left()
+            self.exposure_progress = self.module.get_exposure_progress()
 
-                    # signal GUI update
-                    self.signal_update_gui.emit()
-            except:
-                pass
-
-            # sleep a little
-            self._update_thread_event.wait(1)
+            # signal GUI update
+            self.signal_update_gui.emit()
 
     def update_gui(self):
         """Update the GUI."""

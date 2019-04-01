@@ -13,12 +13,18 @@ class BaseWidget(QtWidgets.QWidget):
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, update_func=None, update_interval: float = 1, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
 
         # signals
         self._show_error.connect(self.show_error)
         self._enable_buttons.connect(self.enable_buttons)
+
+        # update thread
+        self._update_func = update_func
+        self._update_interval = update_interval
+        self._update_thread = None
+        self._update_thread_event = None
 
         # sidebar
         self.sidebar_widgets = []
@@ -42,10 +48,36 @@ class BaseWidget(QtWidgets.QWidget):
         for sb in self.sidebar_widgets:
             sb.enter()
 
+        if self._update_func:
+            # create event for update thread to close
+            self._update_thread_event = threading.Event()
+
+            # start update thread
+            self._update_thread = threading.Thread(target=self._update_loop_thread)
+            self._update_thread.start()
+
     def leave(self):
         # sidebar
         for sb in self.sidebar_widgets:
             sb.leave()
+
+        if self._update_func:
+            # stop thread
+            self._update_thread_event.set()
+            self._update_thread.join()
+            self._update_thread = None
+            self._update_thread_event = None
+
+    def _update_loop_thread(self):
+        while not self._update_thread_event.is_set():
+            try:
+                # call update function
+                self._update_func()
+            except:
+                pass
+
+            # sleep a little
+            self._update_thread_event.wait(1)
 
     def run_async(self, method, *args, **kwargs):
         threading.Thread(target=self._async_thread, args=(method, *args), kwargs=kwargs).start()
