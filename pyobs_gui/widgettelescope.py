@@ -9,10 +9,11 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import logging
 
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures
 from pyobs_gui.visplot import VisPlot
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
+from pyobs_gui.widgettemperatures import WidgetTemperatures
 from .qt.widgettelescope import Ui_WidgetTelescope
 from .basewidget import BaseWidget
 
@@ -61,6 +62,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, IFocuser):
             self.add_to_sidebar(WidgetFocus(module, comm))
+        if isinstance(self.module, ITemperatures):
+            self.add_to_sidebar(WidgetTemperatures(module, comm))
 
         # initial values
         threading.Thread(target=self._init).start()

@@ -23,6 +23,7 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonApply.clicked.connect(self.set_cooling)
 
     def _update(self):
         # get status
@@ -37,7 +38,7 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
             self.setEnabled(True)
 
             # split values
-            enabled, set_point, power, temps = self._status
+            enabled, set_point, power = self._status
 
             # set it
             if enabled:
@@ -45,4 +46,12 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
                 self.labelPower.setText('%d%%' % power)
             else:
                 self.labelStatus.setText('OFF')
-                self.labelStatus.clear()
+                self.labelPower.clear()
+
+    def set_cooling(self):
+        # get enabeld and setpoint temperature
+        enabled = self.checkEnabled.isChecked()
+        temp = self.spinSetPoint.value()
+
+        # send it
+        self.module.set_cooling(enabled, temp)

@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_WidgetCooling(object):
     def setupUi(self, WidgetCooling):
         WidgetCooling.setObjectName("WidgetCooling")
-        WidgetCooling.resize(307, 180)
+        WidgetCooling.resize(307, 218)
         self.verticalLayout = QtWidgets.QVBoxLayout(WidgetCooling)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")

@@ -450,7 +450,7 @@ class Ui_WidgetCamera(object):
         self.horizontalLayout.setStretch(1, 1)
 
         self.retranslateUi(WidgetCamera)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(WidgetCamera)
 
     def retranslateUi(self, WidgetCamera):

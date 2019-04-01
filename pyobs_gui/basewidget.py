@@ -41,7 +41,7 @@ class BaseWidget(QtWidgets.QWidget):
 
         # append widget
         self.sidebar_widgets.append(widget)
-        self.sidebar_layout.insertWidget(0, widget)
+        self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
     def enter(self):
         # sidebar
