@@ -1,17 +1,17 @@
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 import threading
 
 from pyobs.events import FilterChangedEvent
 from pyobs.interfaces import IFilters
+from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfilter import Ui_WidgetFilter
 
 
-class WidgetFilter(QtWidgets.QWidget, Ui_WidgetFilter):
+class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent)
         self.setupUi(self)
         self.module = module    # type: IFilters
         self.comm = comm        # type: Comm
