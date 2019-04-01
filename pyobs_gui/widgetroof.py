@@ -32,7 +32,7 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         # connect signals
         self.buttonOpen.clicked.connect(lambda: self.run_async(self.module.open_roof))
         self.buttonClose.clicked.connect(lambda: self.run_async(self.module.close_roof))
-        self.buttonStop.clicked.connect(lambda: self.run_async(self.module.stop_roof))
+        self.buttonStop.clicked.connect(lambda: self.run_async(self.module.stop_motion))
         self.signal_update_gui.connect(self.update_gui)
 
         # initial values
@@ -71,12 +71,3 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
                 self.labelOpen.setText('OPENED')
             else:
                 self.labelOpen.setText(str(int(self.percent_open)) + '%')
-
-    def open_roof(self):
-        pass
-
-    def close_roof(self):
-        pass
-
-    def stop_roof(self):
-        pass
