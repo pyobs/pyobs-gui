@@ -63,7 +63,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # fill sidebar
         if isinstance(self.module, IFilters):
             self.add_to_sidebar(WidgetFilter(module, comm))
-        if isinstance(self.module, IFilters):
+        if isinstance(self.module, IFocuser):
             self.add_to_sidebar(WidgetFocus(module, comm))
 
         # initial values

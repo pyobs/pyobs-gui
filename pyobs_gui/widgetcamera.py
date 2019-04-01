@@ -7,10 +7,11 @@ import matplotlib.pyplot as plt
 import aplpy
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling
+from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
+from pyobs_gui.widgetfilter import WidgetFilter
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
@@ -76,6 +77,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comm.register_event(NewImageEvent, self._on_new_image)
 
         # fill sidebar
+        if isinstance(self.module, IFilters):
+            self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, ICooling):
             self.add_to_sidebar(WidgetCooling(module, comm))
 
