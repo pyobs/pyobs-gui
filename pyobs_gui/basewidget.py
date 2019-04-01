@@ -77,7 +77,7 @@ class BaseWidget(QtWidgets.QWidget):
                 pass
 
             # sleep a little
-            self._update_thread_event.wait(1)
+            self._update_thread_event.wait(self._update_interval)
 
     def run_async(self, method, *args, **kwargs):
         threading.Thread(target=self._async_thread, args=(method, *args), kwargs=kwargs).start()

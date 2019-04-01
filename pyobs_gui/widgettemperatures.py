@@ -15,7 +15,7 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+        BaseWidget.__init__(self, parent=parent, update_func=self._update, update_interval=10)
         self.setupUi(self)
         self.module = module    # type: ITemperatures
         self.comm = comm        # type: Comm
@@ -45,7 +45,9 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
             layout = self.groupBox.layout()
 
             # loop temps
-            for key, value in self._temps.items():
+            for key in sorted(self._temps.keys()):
+                value = self._temps[key]
+
                 # does key widget exist?
                 if key not in self._widgets:
                     # create label and widget
