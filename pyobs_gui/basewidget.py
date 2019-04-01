@@ -16,8 +16,36 @@ class BaseWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
 
+        # signals
         self._show_error.connect(self.show_error)
         self._enable_buttons.connect(self.enable_buttons)
+
+        # sidebar
+        self.sidebar_widgets = []
+        self.sidebar_layout = None
+
+    def add_to_sidebar(self, widget):
+        # if no layout exists on sidebar, create it
+        if self.sidebar_layout is None:
+            self.sidebar_layout = QtWidgets.QVBoxLayout(self)
+            self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
+            spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            self.sidebar_layout.addItem(spacer_item)
+            self.widgetSidebar.setLayout(self.sidebar_layout)
+
+        # append widget
+        self.sidebar_widgets.append(widget)
+        self.sidebar_layout.insertWidget(0, widget)
+
+    def enter(self):
+        # sidebar
+        for sb in self.sidebar_widgets:
+            sb.enter()
+
+    def leave(self):
+        # sidebar
+        for sb in self.sidebar_widgets:
+            sb.leave()
 
     def run_async(self, method, *args, **kwargs):
         threading.Thread(target=self._async_thread, args=(method, *args), kwargs=kwargs).start()

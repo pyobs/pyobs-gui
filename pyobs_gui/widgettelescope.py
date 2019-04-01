@@ -61,20 +61,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
         # fill sidebar
-        self.sidebar_widgets = []
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.widgetSidebar.setLayout(layout)
         if isinstance(self.module, IFilters):
-            widget = WidgetFilter(module, comm)
-            self.sidebar_widgets.append(widget)
-            layout.addWidget(widget)
+            self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, IFilters):
-            widget = WidgetFocus(module, comm)
-            self.sidebar_widgets.append(widget)
-            layout.addWidget(widget)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        layout.addItem(spacerItem)
+            self.add_to_sidebar(WidgetFocus(module, comm))
 
         # initial values
         threading.Thread(target=self._init).start()
@@ -86,6 +76,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.signal_update_gui.emit()
 
     def enter(self):
+        BaseWidget.enter(self)
+
         # create event for update thread to close
         self._update_thread_event = threading.Event()
 
@@ -93,20 +85,14 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._update_thread = threading.Thread(target=self._update)
         self._update_thread.start()
 
-        # sidebar
-        for sb in self.sidebar_widgets:
-            sb.enter()
-
     def leave(self):
+        BaseWidget.leave(self)
+
         # stop thread
         self._update_thread_event.set()
         self._update_thread.join()
         self._update_thread = None
         self._update_thread_event = None
-
-        # sidebar
-        for sb in self.sidebar_widgets:
-            sb.leave()
 
     def _fetch_coordinates(self):
         # get RA/Dec

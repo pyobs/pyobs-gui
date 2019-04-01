@@ -9,15 +9,16 @@ import aplpy
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling
 from pyobs.vfs import VirtualFileSystem
+from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
-class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
+class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, vfs, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent)
         self.setupUi(self)
         self.module = module    # type: ICamera
         self.comm = comm        # type: Comm
@@ -75,16 +76,8 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.comm.register_event(NewImageEvent, self._on_new_image)
 
         # fill sidebar
-        self.sidebar_widgets = []
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.widgetSidebar.setLayout(layout)
         if isinstance(self.module, ICooling):
-            widget = WidgetCooling(module, comm)
-            self.sidebar_widgets.append(widget)
-            layout.addWidget(widget)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        layout.addItem(spacerItem)
+            self.add_to_sidebar(WidgetCooling(module, comm))
 
         # initial values
         threading.Thread(target=self._init).start()
@@ -95,6 +88,8 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self.signal_update_gui.emit()
 
     def enter(self):
+        BaseWidget.enter(self)
+
         # create event for update thread to close
         self._update_thread_event = threading.Event()
 
@@ -103,6 +98,8 @@ class WidgetCamera(QtWidgets.QWidget, Ui_WidgetCamera):
         self._update_thread.start()
 
     def leave(self):
+        BaseWidget.leave(self)
+
         # stop thread
         self._update_thread_event.set()
         self._update_thread.join()
