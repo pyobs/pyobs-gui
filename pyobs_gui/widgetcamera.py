@@ -97,8 +97,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # set it
             self.spinWindowLeft.setValue(left)
             self.spinWindowTop.setValue(top)
-            self.spinWindowWidth.setValue(width)
-            self.spinWindowHeight.setValue(height)
+            self.spinWindowWidth.setValue(width / self.spinBinningX.value())
+            self.spinWindowHeight.setValue(height / self.spinBinningY.value())
 
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
