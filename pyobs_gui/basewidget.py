@@ -46,7 +46,8 @@ class BaseWidget(QtWidgets.QWidget):
     def enter(self):
         # sidebar
         for sb in self.sidebar_widgets:
-            sb.enter()
+            if hasattr(sb, 'enter'):
+                sb.enter()
 
         if self._update_func:
             # create event for update thread to close
@@ -59,7 +60,8 @@ class BaseWidget(QtWidgets.QWidget):
     def leave(self):
         # sidebar
         for sb in self.sidebar_widgets:
-            sb.leave()
+            if hasattr(sb, 'leave'):
+                sb.leave()
 
         if self._update_func:
             # stop thread
