@@ -76,13 +76,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
             elif isinstance(proxy,  ITelescope):
                 widget = WidgetTelescope(proxy, self.comm, self.environment)
-                icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
+                icon = QtGui.QIcon(":/resources/Crystal_Clear_action_find.png")
             elif isinstance(proxy, IRoof):
                 widget = WidgetRoof(proxy, self.comm, self.environment)
-                icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
+                icon = QtGui.QIcon(":/resources/Crystal_Clear_app_kfm_home.png")
             elif isinstance(proxy, IFocuser):
                 widget = WidgetFocus(proxy, self.comm)
-                icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
+                icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
             else:
                 continue
 
