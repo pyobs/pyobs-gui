@@ -1,19 +1,16 @@
 import threading
 
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import logging
+from astroquery.simbad import Simbad
 
-from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
+from pyobs.events import MotionStatusChangedEvent
 from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures
-from pyobs_gui.visplot import VisPlot
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
-#from pyobs_gui.widgettemperatures import WidgetTemperatures
+from pyobs_gui.widgettemperatures import WidgetTemperatures
 from .qt.widgettelescope import Ui_WidgetTelescope
 from .basewidget import BaseWidget
 
@@ -40,12 +37,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.setEnabled(False)
 
         # plot
-        self.figure = plt.figure()
-        self.plot = VisPlot(self.figure, self.environment)
-        self.canvas = FigureCanvas(self.figure)
-        self.widgetPlot.setLayout(QtWidgets.QVBoxLayout())
-        self.widgetPlot.layout().addWidget(self.canvas)
-        self.first = True
+        #self.figure = plt.figure()
+        #self.plot = VisPlot(self.figure, self.environment)
+        #self.canvas = FigureCanvas(self.figure)
+        #self.widgetPlot.setLayout(QtWidgets.QVBoxLayout())
+        #self.widgetPlot.layout().addWidget(self.canvas)
+        #self.first = True
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -53,6 +50,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.butMove.clicked.connect(self.move_alt_az)
         self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
         self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
+        self.buttonSimbadQuery.clicked.connect(self._query_simbad)
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
@@ -62,8 +60,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, IFocuser):
             self.add_to_sidebar(WidgetFocus(module, comm))
-#        if isinstance(self.module, ITemperatures):
-#            self.add_to_sidebar(WidgetTemperatures(module, comm))
+        if isinstance(self.module, ITemperatures):
+            self.add_to_sidebar(WidgetTemperatures(module, comm))
 
         # initial values
         threading.Thread(target=self._init).start()
@@ -144,3 +142,16 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+
+    def _query_simbad(self):
+        """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
+
+        # query
+        result = Simbad.query_object(self.textSimbadName.text())
+
+        # always use first result
+        for r in result:
+            # set it
+            self.textTrackRA.setText(r['RA'])
+            self.textTrackDec.setText(r['DEC'])
+            self.textSimbadName.setText(r['MAIN_ID'].decode('utf-8'))
