@@ -50,6 +50,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.butMove.clicked.connect(self.move_alt_az)
         self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
         self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
+        self.textTrackRA.textChanged.connect(self._calc_track_alt_az)
+        self.textTrackDec.textChanged.connect(self._calc_track_alt_az)
         self.buttonSimbadQuery.clicked.connect(self._query_simbad)
 
         # subscribe to events
@@ -155,3 +157,26 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.textTrackRA.setText(r['RA'])
             self.textTrackDec.setText(r['DEC'])
             self.textSimbadName.setText(r['MAIN_ID'].decode('utf-8'))
+
+    def _calc_track_alt_az(self):
+        """Called, whenever RA/Dec input changes. Calculates destination Alt/Az."""
+
+        # get ra and dec
+        ra = self.textTrackRA.text()
+        dec = self.textTrackDec.text()
+
+        # parse it
+        try:
+            ra_dec = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
+        except ValueError:
+            # on error, show it
+            self.textTrackAlt.setText('N/A')
+            self.textTrackAz.setText('N/A')
+            return
+
+        # to alt/az
+        alt_az = self.environment.to_altaz(ra_dec)
+
+        # display
+        self.textTrackAlt.setText('%.2f°' % alt_az.alt.degree)
+        self.textTrackAz.setText('%.2f°' % alt_az.az.degree)
