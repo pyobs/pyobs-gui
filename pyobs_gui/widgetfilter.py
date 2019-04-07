@@ -60,6 +60,10 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
             sender: Name of sender.
         """
 
+        # ignore events from wrong sender
+        if sender != self.module.name:
+            return
+
         # store new filter
         self._filter = event.filter
 

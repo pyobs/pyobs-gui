@@ -165,10 +165,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # date
         time = Time(entry.time, format='unix')
 
-        # format sender
-        sender = str(sender)
-        sender = sender[:sender.index('@')]
-
         # define new row and emit
         row = [time.iso.split()[1],
                str(sender),
