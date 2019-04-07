@@ -121,7 +121,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.run_async(self.module.track, coords.ra.degree, coords.dec.degree)
 
         # plot it
-        self.plot.plot(coords)
+        #self.plot.plot(coords)
 
     def move_alt_az(self):
         # get alt and az

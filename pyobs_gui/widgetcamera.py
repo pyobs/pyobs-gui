@@ -13,6 +13,7 @@ from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
 #from pyobs_gui.widgettemperatures import WidgetTemperatures
+from pyobs_gui.widgettemperatures import WidgetTemperatures
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
@@ -78,8 +79,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, ICooling):
             self.add_to_sidebar(WidgetCooling(module, comm))
-#        if isinstance(self.module, ITemperatures):
-#            self.add_to_sidebar(WidgetTemperatures(module, comm))
+        if isinstance(self.module, ITemperatures):
+            self.add_to_sidebar(WidgetTemperatures(module, comm))
 
         # initial values
         threading.Thread(target=self._init).start()
