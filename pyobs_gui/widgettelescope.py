@@ -139,6 +139,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             sender: Name of sender.
         """
 
+        # ignore events from wrong sender
+        if sender != self.module.name:
+            return
+
         # store new status
         self._motion_status = event.current
 

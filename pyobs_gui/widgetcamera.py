@@ -257,6 +257,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             sender: Name of sender.
         """
 
+        # ignore events from wrong sender
+        if sender != self.module.name:
+            return
+
         # store new status
         self.exposure_status = event.current
 
@@ -270,6 +274,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             event: Status change event.
             sender: Name of sender.
         """
+
+        # ignore events from wrong sender
+        if sender != self.module.name:
+            return
 
         # download image
         self.image = self.vfs.download_fits_image(event.filename)
