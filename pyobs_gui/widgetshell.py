@@ -1,13 +1,27 @@
 import pprint
 import traceback
+from io import BytesIO
 from threading import Thread
 import re
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 import inspect
+import tokenize
+from enum import Enum
 
 from pyobs.comm import RemoteException
 from .qt.widgetshell import Ui_WidgetShell
+
+
+class ParserState(Enum):
+    START = 0
+    MODULE = 1
+    MODSEP = 2
+    COMMAND = 3
+    OPEN = 4
+    PARAM = 5
+    PARAMSEP = 6
+    CLOSE = 7
 
 
 class CommandModel(QtCore.QAbstractTableModel):
@@ -115,35 +129,109 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
             msg = '<span style="color:%s;">%s</span>' % (color, msg)
         self.add_command_log.emit(msg)
 
+    def _parse_command(self, command):
+        # tokenize command
+        tokens = tokenize.tokenize(BytesIO(command.encode('utf-8')).readline)
+
+        # init values
+        module = None
+        command = None
+        params = []
+
+        # we start here
+        state = ParserState.START
+
+        # loop tokens
+        for t in tokens:
+            if state == ParserState.START:
+                # first token is always ENCODING
+                if t.type != tokenize.ENCODING:
+                    raise ValueError('Invalid command.')
+                state = ParserState.MODULE
+
+            elif state == ParserState.MODULE:
+                # 2nd token is always a NAME with the command
+                if t.type != tokenize.NAME:
+                    raise ValueError('Invalid command.')
+                module = t.string
+                state = ParserState.MODSEP
+
+            elif state == ParserState.MODSEP:
+                # 3rd token is always a point
+                if t.type != tokenize.OP or t.string != '.':
+                    raise ValueError('Invalid command.')
+                state = ParserState.COMMAND
+
+            elif state == ParserState.COMMAND:
+                # 4th token is always a NAME with the command
+                if t.type != tokenize.NAME:
+                    raise ValueError('Invalid command.')
+                command = t.string
+                state = ParserState.OPEN
+
+            elif state == ParserState.OPEN:
+                # 5th token is always an OP with an opening bracket
+                if t.type != tokenize.OP or t.string != '(':
+                    raise ValueError('Invalid parameters.')
+                state = ParserState.PARAM
+
+            elif state == ParserState.PARAM:
+                # if params list is empty, we accept an OP with a closing bracket, otherwise it must be
+                # a NUMBER or STRING
+                if len(params) == 0 and t.type == tokenize.OP and t.string == ')':
+                    state = ParserState.CLOSE
+                elif t.type == tokenize.NUMBER or t.type == tokenize.STRING:
+                    if t.type == tokenize.STRING:
+                        if t.string[0] == t.string[-1] and t.string[0] in ['"', '"']:
+                            params.append(t.string[1:-1])
+                        else:
+                            params.append(t.string)
+                    else:
+                        params.append(float(t.string))
+                    state = ParserState.PARAMSEP
+                else:
+                    raise ValueError('Invalid parameters.')
+
+            elif state == ParserState.PARAMSEP:
+                # following a PARAM, there must be an OP, either a comma, or a closing bracket
+                if t.type != tokenize.OP:
+                    raise ValueError('Invalid parameters.')
+                if t.string == ',':
+                    state = ParserState.PARAM
+                elif t.string == ')':
+                    state = ParserState.CLOSE
+                else:
+                    raise ValueError('Invalid parameters.')
+
+            elif state == ParserState.CLOSE:
+                # must be a closing bracket
+                if t.type != tokenize.NEWLINE:
+                    raise ValueError('Invalid parameters.')
+
+                # return results
+                return module, command, params
+
+        # if we came here, something went wrong
+        raise ValueError('Invalid parameters.')
+
     def execute_command(self, command):
         self._add_command_log('$ ' + command, 'blue')
 
         # parse command
-        m1 = self.command_regexp.match(command)
-        if not m1:
-            self._add_command_log('Invalid syntax', 'red')
-            return
-        module = m1.group(1)
-        command = m1.group(2)
+        client, command, params = self._parse_command(command)
 
-        # get module
-        mod = self.comm[module]
-
-        # split arguments, if any
-        args = [a for a in self.args_regexp.findall(m1.group(3))]
-
-        # remove quotes
-        args = [a[1:-1] if a[0] == a[-1] and a[0] in ['"', "'"] else a for a in args]
+        # get proxy
+        proxy = self.comm[client]
 
         # execute command in new thread
-        thread = Thread(target=self._execute_command_async, args=(mod, command, *args),
-                        name=module + '.' + command)
+        thread = Thread(target=self._execute_command_async, args=(proxy, command, *params),
+                        name=client + '.' + command)
         thread.start()
 
     def _execute_command_async(self, mod, command, *args):
         # execute command
         try:
-            response = mod.execute_safely(command, *args)
+            response = mod.execute(command, *args)
         except ValueError as e:
             self._add_command_log('Invalid parameter: %s' % str(e), 'red')
             return
