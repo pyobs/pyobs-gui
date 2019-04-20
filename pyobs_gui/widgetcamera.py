@@ -1,10 +1,6 @@
 import threading
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-import aplpy
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures
@@ -12,8 +8,8 @@ from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
-#from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgettemperatures import WidgetTemperatures
+from qfitsview import QFitsView
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
@@ -48,12 +44,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
 
         # add image panel
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.canvasToolbar = NavigationToolbar2QT(self.canvas, self.tabImage)
-        self.canvasLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        self.canvasLayout.addWidget(self.canvasToolbar)
-        self.canvasLayout.addWidget(self.canvas)
+        self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
+        self.imageView = QFitsView()
+        self.imageLayout.addWidget(self.imageView)
 
         # set headers for fits header tab
         self.tableFitsHeader.setColumnCount(3)
@@ -147,16 +140,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def plot(self):
         """Show image."""
-
-        # clear figure
-        self.figure.clf()
-
-        # plot image
-        gc = aplpy.FITSFigure(self.image, figure=self.figure)
-        gc.show_colorscale(cmap='gist_heat', stretch='arcsinh')
-
-        # show it
-        self.canvas.draw()
+        self.imageView.display(self.image)
         
     def abort(self):
         """Abort exposure."""
