@@ -1,29 +1,20 @@
 import threading
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-import aplpy
+from astroplan import Observer
 
-from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters
-from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
-from pyobs_gui.widgetcooling import WidgetCooling
-from pyobs_gui.widgetfilter import WidgetFilter
 from .qt.widgetroof import Ui_WidgetRoof
 
 
 class WidgetRoof(BaseWidget, Ui_WidgetRoof):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, environment, parent=None):
+    def __init__(self, module, comm, observer, parent=None):
         BaseWidget.__init__(self, parent=parent, update_func=self._update)
         self.setupUi(self)
         self.module = module    # type: IRoof
         self.comm = comm        # type: Comm
-        self.environment = environment   # type: Environment
+        self.observer = observer   # type: Observer
 
         # status
         self.motion_status = None

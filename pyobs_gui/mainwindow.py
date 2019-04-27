@@ -25,7 +25,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_connected = pyqtSignal(str)
     client_disconnected = pyqtSignal(str)
 
-    def __init__(self, comm, vfs, environment, log_latency=2, **kwargs):
+    def __init__(self, comm, vfs, observer, log_latency=2, **kwargs):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
@@ -33,7 +33,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # store comm client
         self.comm = comm
         self.vfs = vfs
-        self.environment = environment
+        self.observer = observer
 
         # closing
         self.closing = Event()
@@ -208,10 +208,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             widget = WidgetCamera(proxy, self.comm, self.vfs)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         elif isinstance(proxy, ITelescope):
-            widget = WidgetTelescope(proxy, self.comm, self.environment)
+            widget = WidgetTelescope(proxy, self.comm, self.observer)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_action_find.png")
         elif isinstance(proxy, IRoof):
-            widget = WidgetRoof(proxy, self.comm, self.environment)
+            widget = WidgetRoof(proxy, self.comm, self.observer)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_kfm_home.png")
         elif isinstance(proxy, IFocuser):
             widget = WidgetFocus(proxy, self.comm)

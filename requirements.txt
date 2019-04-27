@@ -1,3 +1,5 @@
+astroquery
+astroplan
 colour
 PyQt5
 astropy

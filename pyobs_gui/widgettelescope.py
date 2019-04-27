@@ -1,13 +1,15 @@
 import threading
-
 from PyQt5.QtCore import pyqtSignal
+from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
 import logging
 from astroquery.simbad import Simbad
 
+from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
 from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures
+from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
 from pyobs_gui.widgettemperatures import WidgetTemperatures
@@ -21,12 +23,12 @@ log = logging.getLogger(__name__)
 class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, environment, parent=None):
+    def __init__(self, module, comm, observer, parent=None):
         BaseWidget.__init__(self, parent=parent, update_func=self._update)
         self.setupUi(self)
-        self.module = module    # type: ITelescope, IFilters, IFocuser
+        self.module = module    # type: (ITelescope, IFilters, IFocuser)
         self.comm = comm  # type: Comm
-        self.environment = environment  # type: Environment
+        self.observer = observer  # type: Observer
 
         # variables
         self._motion_status = None
@@ -179,7 +181,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             return
 
         # to alt/az
-        alt_az = self.environment.to_altaz(ra_dec)
+        alt_az = self.observer.altaz(Time.now(), ra_dec)
 
         # display
         self.textTrackAlt.setText('%.2f°' % alt_az.alt.degree)
