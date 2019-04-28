@@ -46,12 +46,6 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         self.setEnabled(True)
         self.labelCurFilter.setText(self._filter)
 
-    def enter(self):
-        pass
-
-    def leave(self):
-        pass
-
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
         """Called when filter changed.
 

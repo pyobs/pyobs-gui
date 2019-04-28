@@ -23,11 +23,5 @@ class WidgetScript(BaseWidget):
         self.button.clicked.connect(self.execute)
         layout.addWidget(self.button)
 
-    def enter(self):
-        pass
-
-    def leave(self):
-        pass
-
     def execute(self):
         self.run_async(self.module.run_script, self.script.toPlainText())

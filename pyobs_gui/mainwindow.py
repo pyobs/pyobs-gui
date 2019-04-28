@@ -85,10 +85,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # get current widget
         widget = self.stackedWidget.currentWidget()
 
-        # if it has a leave method, call it
-        if hasattr(widget, 'leave'):
-            widget.leave()
-
     def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget):
         """
 
@@ -122,12 +118,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             idx: Index of new page in nav list.
         """
 
-        # do we have a current widget?
-        if self._current_widget:
-            # if it has a leave method, call it
-            if hasattr(self._current_widget, 'leave'):
-                self._current_widget.leave()
-
         # get name of new page
         client = self.listPages.item(idx).text()
 
@@ -136,10 +126,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get new widget
         self._current_widget = self.stackedWidget.currentWidget()
-
-        # if it has an enter method, call it
-        if hasattr(self._current_widget, 'enter'):
-            self._current_widget.enter()
 
     def _update_client_list(self, *args):
         """Updates the list of clients for the log."""
@@ -240,7 +226,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # is current?
         if self.stackedWidget.currentWidget() == widget:
-            widget.leave()
             self._current_widget = None
 
         # remove widget

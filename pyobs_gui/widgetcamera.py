@@ -1,5 +1,5 @@
 import threading
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent

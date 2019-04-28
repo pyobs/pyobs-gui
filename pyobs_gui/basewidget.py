@@ -1,7 +1,7 @@
 import threading
 import logging
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 
@@ -43,12 +43,7 @@ class BaseWidget(QtWidgets.QWidget):
         self.sidebar_widgets.append(widget)
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
-    def enter(self):
-        # sidebar
-        for sb in self.sidebar_widgets:
-            if hasattr(sb, 'enter'):
-                sb.enter()
-
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
         if self._update_func:
             # create event for update thread to close
             self._update_thread_event = threading.Event()
@@ -57,12 +52,7 @@ class BaseWidget(QtWidgets.QWidget):
             self._update_thread = threading.Thread(target=self._update_loop_thread)
             self._update_thread.start()
 
-    def leave(self):
-        # sidebar
-        for sb in self.sidebar_widgets:
-            if hasattr(sb, 'leave'):
-                sb.leave()
-
+    def hideEvent(self, event: QtGui.QHideEvent) -> None:
         if self._update_func:
             # stop thread
             self._update_thread_event.set()
