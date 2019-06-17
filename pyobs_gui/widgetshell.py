@@ -137,6 +137,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         module = None
         command = None
         params = []
+        sign = 1
 
         # we start here
         state = ParserState.START
@@ -180,6 +181,8 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
                 # a NUMBER or STRING
                 if len(params) == 0 and t.type == tokenize.OP and t.string == ')':
                     state = ParserState.CLOSE
+                elif t.type == tokenize.OP and t.string == '-':
+                    sign = -1
                 elif t.type == tokenize.NUMBER or t.type == tokenize.STRING:
                     if t.type == tokenize.STRING:
                         if t.string[0] == t.string[-1] and t.string[0] in ['"', '"']:
@@ -187,7 +190,8 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
                         else:
                             params.append(t.string)
                     else:
-                        params.append(float(t.string))
+                        params.append(sign * float(t.string))
+                    sign = 1
                     state = ParserState.PARAMSEP
                 else:
                     raise ValueError('Invalid parameters.')
@@ -205,7 +209,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
 
             elif state == ParserState.CLOSE:
                 # must be a closing bracket
-                if t.type != tokenize.ENDMARKER:
+                if t.type not in [tokenize.NEWLINE, tokenize.ENDMARKER]:
                     raise ValueError('Expecting end of command after closing bracket.')
 
                 # return results
