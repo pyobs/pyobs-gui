@@ -205,7 +205,6 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
 
             elif state == ParserState.CLOSE:
                 # must be a closing bracket
-                print(t, t.type)
                 if t.type != tokenize.ENDMARKER:
                     raise ValueError('Expecting end of command after closing bracket.')
 
