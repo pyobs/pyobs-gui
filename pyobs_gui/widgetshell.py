@@ -205,8 +205,9 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
 
             elif state == ParserState.CLOSE:
                 # must be a closing bracket
-                if t.type != tokenize.NEWLINE:
-                    raise ValueError('Invalid parameters.')
+                print(t, t.type)
+                if t.type != tokenize.ENDMARKER:
+                    raise ValueError('Expecting end of command after closing bracket.')
 
                 # return results
                 return module, command, params
