@@ -83,7 +83,7 @@ class BaseWidget(QtWidgets.QWidget):
 
         # call method
         try:
-            method(*args, **kwargs)
+            method(*args, **kwargs).wait()
         except Exception as e:
             log.exception("error")
             self._show_error.emit(str(e))

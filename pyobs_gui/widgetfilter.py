@@ -33,10 +33,10 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     def _init(self):
         # get all filters
         if isinstance(self.module, IFilters):
-            self.comboFilter.addItems(self.module.list_filters())
+            self.comboFilter.addItems(self.module.list_filters().wait())
 
         # get current filter
-        self._filter = self.module.get_filter()
+        self._filter = self.module.get_filter().wait()
 
         # update gui
         self.signal_update_gui.emit()

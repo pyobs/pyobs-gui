@@ -235,7 +235,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
     def _execute_command_async(self, mod, command, *args):
         # execute command
         try:
-            response = mod.execute(command, *args)
+            response = mod.execute(command, *args).wait()
         except ValueError as e:
             self._add_command_log('Invalid parameter: %s' % str(e), 'red')
             return

@@ -31,7 +31,7 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
 
     def _update(self):
         # get temps
-        self._temps = self.module.get_temperatures()
+        self._temps = self.module.get_temperatures().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()

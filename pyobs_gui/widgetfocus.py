@@ -33,12 +33,12 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
 
     def _init(self):
         # get current filter
-        self._focus = self.module.get_focus()
+        self._focus = self.module.get_focus().wait()
         self.signal_update_gui.emit()
 
     def _update(self):
         # get focus
-        self._focus = self.module.get_focus()
+        self._focus = self.module.get_focus().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()

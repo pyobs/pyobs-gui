@@ -80,13 +80,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def _init(self):
         # get status and update gui
-        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status())
+        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
         self.signal_update_gui.emit()
 
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
             # get full frame
-            left, top, width, height = self.module.get_full_frame()
+            left, top, width, height = self.module.get_full_frame().wait()
 
             # set it
             self.spinWindowLeft.setValue(left)
@@ -110,7 +110,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ICameraBinning):
             binx, biny = self.spinBinningX.value(), self.spinBinningY.value()
             try:
-                self.module.set_binning(binx, biny)
+                self.module.set_binning(binx, biny).wait()
             except:
                 #QMessageBox.information(self, 'Error', 'Could not set binning.')
                 return
@@ -122,7 +122,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                self.module.set_window(left, top, width * binx, height * biny)
+                self.module.set_window(left, top, width * binx, height * biny).wait()
             except:
                 #QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
@@ -132,7 +132,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # do exposure(s)
         try:
-            self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value())
+            self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value()).wait()
 
         except:
             #QMessageBox.information(self, 'Error', 'Could not take image.')
@@ -151,17 +151,17 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # got exposures left?
         if self.status['ICamera']['ExposuresLeft'] > 1:
-            self.module.abort_sequence()
+            self.module.abort_sequence().wait()
         else:
-            self.module.abort()
+            self.module.abort().wait()
 
     def _update(self):
         # are we exposing?
         if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             # get camera status
-            self.exposures_left = self.module.get_exposures_left()
-            self.exposure_time_left = self.module.get_exposure_time_left()
-            self.exposure_progress = self.module.get_exposure_progress()
+            self.exposures_left = self.module.get_exposures_left().wait()
+            self.exposure_time_left = self.module.get_exposure_time_left().wait()
+            self.exposure_progress = self.module.get_exposure_progress().wait()
 
             # signal GUI update
             self.signal_update_gui.emit()
