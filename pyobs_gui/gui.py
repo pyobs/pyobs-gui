@@ -5,10 +5,7 @@ from .mainwindow import MainWindow
 
 
 class GUI(PyObsModule):
-    def __init__(self, *args, **kwargs):
-        PyObsModule.__init__(self, thread_funcs=self._run, restart_threads=False, *args, **kwargs)
-
-    def _run(self):
+    def run(self):
         # create app
         app = QtWidgets.QApplication([])
 
