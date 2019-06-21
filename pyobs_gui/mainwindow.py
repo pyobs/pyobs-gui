@@ -221,6 +221,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # update client list
         self._update_client_list()
 
+        # not in list?
+        if client not in self._widgets:
+            return
+
         # get widget
         widget = self._widgets[client]
 
