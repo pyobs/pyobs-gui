@@ -31,15 +31,15 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
 
     def _init(self):
         # get status and update gui
-        self.motion_status = self.module.get_motion_status()
+        self.motion_status = self.module.get_motion_status().wait()
         self.signal_update_gui.emit()
 
     def _update(self):
         # motion status
-        self.motion_status = self.module.get_motion_status()
+        self.motion_status = self.module.get_motion_status().wait()
 
         # open status
-        self.percent_open = self.module.get_percent_open()
+        #self.percent_open = self.module.get_percent_open().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -52,7 +52,7 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
 
         # set status
         if self.motion_status is not None:
-            self.labelStatus.setText(self.motion_status.name)
+            self.labelStatus.setText(self.motion_status.value)
 
         # open
         if self.percent_open is not None:
