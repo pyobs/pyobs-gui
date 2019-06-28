@@ -12,6 +12,7 @@ from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
 from pyobs_gui.widgetcamera import WidgetCamera
+from pyobs_gui.widgetevents import WidgetEvents
 from pyobs_gui.widgetroof import WidgetRoof
 from pyobs_gui.widgetshell import WidgetShell
 from pyobs_gui.widgettelescope import WidgetTelescope
@@ -59,6 +60,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # add shell nav button and view
         self.shell = WidgetShell(self.comm)
         self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+
+        # add events nav button and view
+        self.events = WidgetEvents(self.comm)
+        self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
 
         # create other nav buttons and views
         for client_name in self.comm.clients:
