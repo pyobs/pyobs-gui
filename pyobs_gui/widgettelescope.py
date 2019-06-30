@@ -78,11 +78,11 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
     def _fetch_coordinates(self):
         # get RA/Dec
-        ra, dec = self.module.get_ra_dec().wait()
+        ra, dec = self.module.get_radec().wait()
         self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs')
 
         # get Alt/Az
-        alt, az = self.module.get_alt_az().wait()
+        alt, az = self.module.get_altaz().wait()
         self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz')
 
     def _update(self):
