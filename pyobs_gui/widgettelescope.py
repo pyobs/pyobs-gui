@@ -120,7 +120,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         coords = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
 
         # start thread with move
-        self.run_async(self.module.track, coords.ra.degree, coords.dec.degree)
+        self.run_async(self.module.track_radec, coords.ra.degree, coords.dec.degree)
 
         # plot it
         #self.plot.plot(coords)
@@ -131,7 +131,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         az = self.spinMoveAz.value()
 
         # move
-        self.run_async(self.module.move, alt, az)
+        self.run_async(self.module.move_altaz, alt, az)
 
     def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
         """Called when motion status of module changed.
