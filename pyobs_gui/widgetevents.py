@@ -37,7 +37,8 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
             event: Event itself.
             sender: Sender of event.
         """
-        print("received event", event)
+        #print("received event", event)
+        pass
 
     @QtCore.pyqtSlot()
     def on_buttonSend_clicked(self):
