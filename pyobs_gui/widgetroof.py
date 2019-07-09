@@ -21,8 +21,8 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         self.percent_open = None
 
         # connect signals
-        self.buttonOpen.clicked.connect(lambda: self.run_async(self.module.open_roof))
-        self.buttonClose.clicked.connect(lambda: self.run_async(self.module.close_roof))
+        self.buttonOpen.clicked.connect(lambda: self.run_async(self.module.init))
+        self.buttonClose.clicked.connect(lambda: self.run_async(self.module.park))
         self.buttonStop.clicked.connect(lambda: self.run_async(self.module.stop_motion))
         self.signal_update_gui.connect(self.update_gui)
 
