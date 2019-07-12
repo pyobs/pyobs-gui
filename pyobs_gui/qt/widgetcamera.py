@@ -2,18 +2,19 @@
 
 # Form implementation generated from reading ui file 'widgetcamera.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.2
+# Created by: PyQt5 UI code generator 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_WidgetCamera(object):
     def setupUi(self, WidgetCamera):
         WidgetCamera.setObjectName("WidgetCamera")
         WidgetCamera.resize(897, 657)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(WidgetCamera)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(WidgetCamera)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.scrollArea = QtWidgets.QScrollArea(WidgetCamera)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -169,6 +170,9 @@ class Ui_WidgetCamera(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
@@ -214,6 +218,9 @@ class Ui_WidgetCamera(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 42, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
@@ -259,6 +266,9 @@ class Ui_WidgetCamera(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
         self.butExpose.setPalette(palette)
         self.butExpose.setObjectName("butExpose")
         self.gridLayout_4.addWidget(self.butExpose, 3, 0, 1, 2)
@@ -309,6 +319,9 @@ class Ui_WidgetCamera(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
@@ -354,6 +367,9 @@ class Ui_WidgetCamera(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(85, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
@@ -399,6 +415,9 @@ class Ui_WidgetCamera(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
         self.butAbort.setPalette(palette)
         self.butAbort.setObjectName("butAbort")
         self.gridLayout_4.addWidget(self.butAbort, 4, 0, 1, 2)
@@ -420,7 +439,20 @@ class Ui_WidgetCamera(object):
         self.labelExposuresLeft.setObjectName("labelExposuresLeft")
         self.verticalLayout.addWidget(self.labelExposuresLeft)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.horizontalLayout.addWidget(self.scrollArea)
+        self.horizontalLayout_2.addWidget(self.scrollArea)
+        self.verticalLayout_3 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem1)
+        self.checkAutoUpdate = QtWidgets.QCheckBox(WidgetCamera)
+        self.checkAutoUpdate.setChecked(True)
+        self.checkAutoUpdate.setObjectName("checkAutoUpdate")
+        self.horizontalLayout.addWidget(self.checkAutoUpdate)
+        spacerItem2 = QtWidgets.QSpacerItem(38, 18, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem2)
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
         self.tabWidget = QtWidgets.QTabWidget(WidgetCamera)
         self.tabWidget.setObjectName("tabWidget")
         self.tabImage = QtWidgets.QWidget()
@@ -443,11 +475,12 @@ class Ui_WidgetCamera(object):
         self.tableFitsHeader.verticalHeader().setVisible(False)
         self.verticalLayout_2.addWidget(self.tableFitsHeader)
         self.tabWidget.addTab(self.tabFitsHeader, "")
-        self.horizontalLayout.addWidget(self.tabWidget)
+        self.verticalLayout_3.addWidget(self.tabWidget)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_3)
         self.widgetSidebar = QtWidgets.QWidget(WidgetCamera)
         self.widgetSidebar.setObjectName("widgetSidebar")
-        self.horizontalLayout.addWidget(self.widgetSidebar)
-        self.horizontalLayout.setStretch(1, 1)
+        self.horizontalLayout_2.addWidget(self.widgetSidebar)
+        self.horizontalLayout_2.setStretch(1, 1)
 
         self.retranslateUi(WidgetCamera)
         self.tabWidget.setCurrentIndex(0)
@@ -474,6 +507,8 @@ class Ui_WidgetCamera(object):
         self.butAbort.setText(_translate("WidgetCamera", "Abort"))
         self.labelStatus.setText(_translate("WidgetCamera", "IDLE"))
         self.labelExposuresLeft.setText(_translate("WidgetCamera", "IDLE"))
+        self.checkAutoUpdate.setText(_translate("WidgetCamera", "Auto-update on new image"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabImage), _translate("WidgetCamera", "Image"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsHeader), _translate("WidgetCamera", "FITS header"))
+
 

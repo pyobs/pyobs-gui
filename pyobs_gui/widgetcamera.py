@@ -263,6 +263,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if sender != self.module.name:
             return
 
+        # don't update?
+        if not self.checkAutoUpdate.isChecked():
+            return
+
         # download image
         self.image = self.vfs.download_fits_image(event.filename)
 
