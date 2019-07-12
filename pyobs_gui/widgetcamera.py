@@ -1,3 +1,5 @@
+import logging
+import os
 import threading
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
@@ -13,6 +15,9 @@ from qfitsview import QFitsView
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
+log = logging.getLogger(__name__)
+
+
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
 
@@ -24,6 +29,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.vfs = vfs          # type: VirtualFileSystem
 
         # variables
+        self.new_image = False
         self.image_filename = None
         self.image = None
         self.status = None
@@ -58,6 +64,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
         self.signal_update_gui.connect(self.update_gui)
+        self.butAutoSave.clicked.connect(self.select_autosave_path)
+        self.butSaveTo.clicked.connect(self.save_image)
+        self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
         # initial values
         self.set_full_frame()
@@ -204,15 +213,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.labelExposuresLeft.setText('')
 
         # trigger image update
-        if self.image is not None:
+        if self.new_image:
             # plot image
             self.plot()
 
             # set fits headers
             self.show_fits_headers()
-
-            # reset it
-            self.image = None
 
     def show_fits_headers(self):
         # get all header cards
@@ -269,6 +275,51 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # download image
         self.image = self.vfs.download_fits_image(event.filename)
+        self.image_filename = event.filename
+        self.new_image = True
+
+        # auto save?
+        if self.checkAutoSave.isChecked():
+            # get path and check
+            path = self.textAutoSavePath.text()
+            if not os.path.exists(path):
+                log.warning('Invalid path for auto-saving.')
+
+            else:
+                # save image
+                filename = os.path.join(path, os.path.basename(self.image_filename.replace('.fits.gz', '.fits')))
+                log.info('Saving image as %s...', filename)
+                self.image.writeto(filename, overwrite=True)
 
         # update GUI
         self.signal_update_gui.emit()
+
+    def select_autosave_path(self):
+        """Select path for auto-saving."""
+
+        # ask for path
+        path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")
+
+        # set it
+        if path:
+            self.textAutoSavePath.setText(path)
+        else:
+            self.textAutoSavePath.clear()
+
+    def save_image(self):
+        """Save image."""
+
+        # no image?
+        if self.image is None:
+            return
+
+        # get initial filename
+        init_filename = os.path.basename(self.image_filename).replace('.fits.gz', '.fits')
+
+        # ask for filename
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save image", init_filename,
+                                                            "FITS Files (*.fits,*.fits.gz)")
+
+        # save
+        if filename:
+            self.image.writeto(filename, overwrite=True)
