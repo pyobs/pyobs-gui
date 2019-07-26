@@ -39,7 +39,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposure_progress = 0
 
         # set exposure types
-        image_types = [t.name for t in ICamera.ImageType]
+        image_types = ['OBJECT', 'BIAS', 'DARK']
         self.comboImageType.addItems(image_types)
 
         # before first update, disable mys
