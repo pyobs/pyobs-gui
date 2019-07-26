@@ -1,8 +1,10 @@
+from datetime import datetime
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
 from pyobs.comm import RemoteException
+from pyobs.events import LogEvent
 from pyobs_gui.qt.widgetevents import Ui_WidgetEvents
 
 
@@ -11,6 +13,13 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.comm = comm
+
+        # set up table
+        self.tableEvents.setColumnCount(4)
+        self.tableEvents.setHorizontalHeaderLabels(['Time', 'Sender', 'Event', 'Data'])
+        self.tableEvents.setColumnWidth(0, 80)
+        self.tableEvents.setColumnWidth(1, 100)
+        self.tableEvents.setColumnWidth(2, 200)
 
         # loop all event types
         for name, cls in pyobs.events.__dict__.items():
@@ -37,8 +46,26 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
             event: Event itself.
             sender: Sender of event.
         """
-        #print("received event", event)
-        pass
+
+        # ignore log events
+        if isinstance(event, LogEvent):
+            return
+
+        # add row to table
+        self.tableEvents.insertRow(0)
+
+        # get time
+        time = datetime.fromtimestamp(event.timestamp)
+
+        # fill it
+        self.tableEvents.setItem(0, 0, QtWidgets.QTableWidgetItem(time.strftime('%H:%M:%S')))
+        self.tableEvents.setItem(0, 1, QtWidgets.QTableWidgetItem(sender))
+        self.tableEvents.setItem(0, 2, QtWidgets.QTableWidgetItem(event.__class__.__name__))
+        self.tableEvents.setItem(0, 3, QtWidgets.QTableWidgetItem(str(event.data)))
+
+        # limit number of rows
+        if self.tableEvents.rowCount() > 500:
+            self.tableEvents.setRowCount(400)
 
     @QtCore.pyqtSlot()
     def on_buttonSend_clicked(self):
