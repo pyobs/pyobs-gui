@@ -139,13 +139,23 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # get image type
         image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
 
-        # do exposure(s)
-        try:
-            self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value()).wait()
+        # set initial image count
+        self.exposures_left = self.spinCount.value()
 
-        except:
-            #QMessageBox.information(self, 'Error', 'Could not take image.')
-            return
+        # do exposure(s)
+        while self.exposures_left > 0:
+            # take image
+            try:
+                self.module.expose(self.spinExpTime.value(), image_type).wait()
+            except:
+                self.exposures_left = 0
+                return
+
+            # reduce number of exposures
+            self.exposures_left -= 1
+
+            # signal GUI update
+            self.signal_update_gui.emit()
 
     def plot(self):
         """Show image."""
@@ -154,13 +164,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     def abort(self):
         """Abort exposure."""
 
-        # do we have a status?
-        if self.status is None:
+        # do we have a running exposure?
+        if self.exposures_left == 0:
             return
 
         # got exposures left?
-        if self.status['ICamera']['ExposuresLeft'] > 1:
-            self.module.abort_sequence().wait()
+        if self.exposures_left > 1:
+            self.exposures_left = 1
         else:
             self.module.abort().wait()
 
@@ -168,7 +178,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # are we exposing?
         if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             # get camera status
-            self.exposures_left = self.module.get_exposures_left().wait()
             self.exposure_time_left = self.module.get_exposure_time_left().wait()
             self.exposure_progress = self.module.get_exposure_progress().wait()
 
