@@ -8,9 +8,13 @@ from PyQt5.QtCore import pyqtSignal
 import inspect
 import tokenize
 from enum import Enum
+import logging
 
 from pyobs.comm import RemoteException
 from .qt.widgetshell import Ui_WidgetShell
+
+
+log = logging.getLogger(__name__)
 
 
 class ParserState(Enum):
@@ -237,6 +241,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         try:
             response = mod.execute(command, *args).wait()
         except ValueError as e:
+            log.exception('Something has gone wrong.')
             self._add_command_log('Invalid parameter: %s' % str(e), 'red')
             return
         except RemoteException as e:
