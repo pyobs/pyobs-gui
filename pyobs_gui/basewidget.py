@@ -99,3 +99,22 @@ class BaseWidget(QtWidgets.QWidget):
 
     def enable_buttons(self, widgets, enable):
         [w.setEnabled(enable) for w in widgets]
+
+    def get_fits_headers(self) -> dict:
+        """Returns FITS header for the current status of the telescope.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+
+    def get_fits_headers(self) -> dict:
+        """Returns FITS header for the current status of the telescope.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+        hdr = {}
+        for widget in self.sidebar_widgets:
+            for k, v in widget.get_fits_headers().items():
+                hdr[k] = v
+        return hdr

@@ -245,3 +245,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if self.listPages.item(row).text() == client:
                 self.listPages.takeItem(row)
                 break
+
+    def get_fits_headers(self) -> dict:
+        """Returns FITS header for the current status of the telescope.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+        hdr = {}
+        for widget in self._widgets.values():
+            if hasattr(widget, 'get_fits_headers'):
+                for k, v in widget.get_fits_headers().items():
+                    hdr[k] = v
+        return hdr

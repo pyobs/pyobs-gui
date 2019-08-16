@@ -11,6 +11,7 @@ from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgettemperatures import WidgetTemperatures
+from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
 from qfitsview import QFitsView
 from .qt.widgetcamera import Ui_WidgetCamera
 
@@ -77,6 +78,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comm.register_event(NewImageEvent, self._on_new_image)
 
         # fill sidebar
+        self.add_to_sidebar(WidgetFitsHeaders(module, comm))
         if isinstance(self.module, IFilters):
             self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, ICooling):
