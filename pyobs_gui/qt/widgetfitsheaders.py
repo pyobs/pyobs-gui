@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './widgetfitsheaders.ui'
+# Form implementation generated from reading ui file 'widgetfitsheaders.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.3
+# Created by: PyQt5 UI code generator 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_WidgetFitsHeaders(object):
     def setupUi(self, WidgetFitsHeaders):
@@ -48,4 +49,5 @@ class Ui_WidgetFitsHeaders(object):
         self.label.setText(_translate("WidgetFitsHeaders", "OBJECT:"))
         self.label_2.setText(_translate("WidgetFitsHeaders", "PROPID:"))
         self.label_3.setText(_translate("WidgetFitsHeaders", "USER:"))
+
 
