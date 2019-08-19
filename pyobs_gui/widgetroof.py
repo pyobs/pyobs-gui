@@ -26,9 +26,6 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         self.buttonStop.clicked.connect(lambda: self.run_async(self.module.stop_motion))
         self.signal_update_gui.connect(self.update_gui)
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get status and update gui
         self.motion_status = self.module.get_motion_status().wait()

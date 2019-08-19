@@ -28,9 +28,6 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.butSetFocus.clicked.connect(lambda: self.run_async(self.module.set_focus,
                                                                 self.spinFocus.value()))
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get current filter
         self._focus = self.module.get_focus().wait()

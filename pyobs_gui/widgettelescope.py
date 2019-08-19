@@ -67,9 +67,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if isinstance(self.module, ITemperatures):
             self.add_to_sidebar(WidgetTemperatures(module, comm))
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get variables
         self._motion_status = self.module.get_motion_status().wait()

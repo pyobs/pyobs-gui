@@ -27,9 +27,6 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # subscribe to events
         self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get all filters
         if isinstance(self.module, IFilters):

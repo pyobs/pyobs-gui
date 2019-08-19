@@ -44,6 +44,9 @@ class BaseWidget(QtWidgets.QWidget):
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
+        if hasattr(self, '_init'):
+            threading.Thread(target=self._init).start()
+
         if self._update_func:
             # create event for update thread to close
             self._update_thread_event = threading.Event()

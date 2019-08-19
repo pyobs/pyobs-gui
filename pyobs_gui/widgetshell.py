@@ -34,38 +34,47 @@ class CommandModel(QtCore.QAbstractTableModel):
 
         # create model
         self.commands = []
+        command_names = []
         for client_name in comm.clients:
-            # get proxy
-            proxy = comm[client_name]
+            # loop interfaces
+            for interface in comm.get_interfaces(client_name):
+                # loop methods
+                for method_name, member in inspect.getmembers(interface):
+                    # not a method?
+                    if not inspect.isfunction(member):
+                        continue
 
-            # loop commands
-            for method in proxy.method_names:
-                # get name
-                name = '%s.%s' % (client_name, method)
+                    # get name
+                    name = '%s.%s' % (client_name, method_name)
 
-                # get signature
-                params = []
-                for param_name, param in proxy.signature(method).parameters.items():
-                    if param_name not in ['self', 'args', 'kwargs']:
-                        # parameter name itself
-                        arg = param_name
+                    # exists?
+                    if name in command_names:
+                        continue
+                    command_names.append(name)
 
-                        # go a type?
-                        if param.annotation != inspect.Parameter.empty:
-                            arg += ': ' + param.annotation.__name__
+                    # get signature
+                    params = []
+                    for param_name, param in inspect.signature(member).parameters.items():
+                        if param_name not in ['self', 'args', 'kwargs']:
+                            # parameter name itself
+                            arg = param_name
 
-                        # default value?
-                        if param.default != inspect.Parameter.empty:
-                            arg += ' = ' + str(param.default)
+                            # go a type?
+                            if param.annotation != inspect.Parameter.empty:
+                                arg += ': ' + param.annotation.__name__
 
-                        params.append(arg)
+                            # default value?
+                            if param.default != inspect.Parameter.empty:
+                                arg += ' = ' + str(param.default)
 
-                # get first line of documentation
-                doc = proxy.interface_method(method).__doc__
-                short_doc = doc.split('\n')[0]
+                            params.append(arg)
 
-                # append to list
-                self.commands.append((name, '(' + ', '.join(params) + ')', short_doc, doc))
+                    # get first line of documentation
+                    doc = member.__doc__
+                    short_doc = doc.split('\n')[0]
+
+                    # append to list
+                    self.commands.append((name, '(' + ', '.join(params) + ')', short_doc, doc))
 
         # sort
         self.commands.sort(key=lambda m: m[0])
@@ -97,7 +106,9 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         self.comm = comm
 
         # commands
-        self.command_model = None
+        #self.command_model = None
+        self.command_model = CommandModel(self.comm)
+
         self.command_regexp = re.compile(r'(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)')
         self.args_regexp = re.compile(r'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
@@ -107,6 +118,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         self.completer.setCompletionRole(QtCore.Qt.DisplayRole)
         self.completer.setCompletionColumn(0)
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.completer.setModel(self.command_model)
         self.textCommandInput.setCompleter(self.completer)
         self.update_client_list()
 
@@ -270,5 +282,6 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
 
     def update_client_list(self):
         # create model for commands
-        self.command_model = CommandModel(self.comm)
-        self.completer.setModel(self.command_model)
+        #self.command_model = CommandModel(self.comm)
+        #self.completer.setModel(self.command_model)
+        pass

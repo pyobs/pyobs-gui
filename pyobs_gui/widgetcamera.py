@@ -86,9 +86,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ITemperatures):
             self.add_to_sidebar(WidgetTemperatures(module, comm))
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get status and update gui
         self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
