@@ -70,7 +70,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
         # initial values
-        self.set_full_frame()
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
         # subscribe to events
@@ -89,6 +88,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     def _init(self):
         # get status and update gui
         self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
+        self.set_full_frame()
         self.signal_update_gui.emit()
 
     def set_full_frame(self):

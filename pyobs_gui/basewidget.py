@@ -30,6 +30,9 @@ class BaseWidget(QtWidgets.QWidget):
         self.sidebar_widgets = []
         self.sidebar_layout = None
 
+        # has it been initialized?
+        self._initialized = False
+
     def add_to_sidebar(self, widget):
         # if no layout exists on sidebar, create it
         if self.sidebar_layout is None:
@@ -44,8 +47,9 @@ class BaseWidget(QtWidgets.QWidget):
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
-        if hasattr(self, '_init'):
-            threading.Thread(target=self._init).start()
+        if self._initialized is False and hasattr(self, '_init'):
+            self._init()
+            self._initialized = True
 
         if self._update_func:
             # create event for update thread to close
