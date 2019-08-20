@@ -145,7 +145,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         while self.exposures_left > 0:
             # take image
             try:
-                self.module.expose(self.spinExpTime.value(), image_type).wait()
+                exp_time = int(self.spinExpTime.value() * 1000)
+                self.module.expose(exp_time, image_type).wait()
             except:
                 self.exposures_left = 0
                 return
