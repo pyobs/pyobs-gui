@@ -7,5 +7,5 @@ setup(
     description='GUI for pyobs',
     author='Tim-Oliver Husser',
     author_email='thusser@uni-goettingen.de',
-    packages=['pyobs_gui']
+    packages=['pyobs_gui', 'pyobs_gui.qt']
 )
