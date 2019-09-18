@@ -229,6 +229,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # set fits headers
             self.show_fits_headers()
 
+            # reset
+            self.new_image = False
+
     def show_fits_headers(self):
         # get all header cards
         headers = {}
