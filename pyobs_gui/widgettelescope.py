@@ -75,12 +75,18 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
     def _fetch_coordinates(self):
         # get RA/Dec
-        ra, dec = self.module.get_radec().wait()
-        self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs')
+        try:
+            ra, dec = self.module.get_radec().wait()
+            self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs')
+        except:
+            self._ra_dec = None
 
         # get Alt/Az
-        alt, az = self.module.get_altaz().wait()
-        self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz')
+        try:
+            alt, az = self.module.get_altaz().wait()
+            self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz')
+        except:
+            self._alt_az = None
 
     def _update(self):
         # get coordinates
@@ -106,9 +112,15 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if self._ra_dec is not None:
             self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
             self.labelCurDec.setText(self._ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
+        else:
+            self.labelCurRA.setText('N/A')
+            self.labelCurDec.setText('N/A')
         if self._alt_az is not None:
             self.labelCurAlt.setText('%.3f°' % self._alt_az.alt.degree)
             self.labelCurAz.setText('%.3f°' % self._alt_az.az.degree)
+        else:
+            self.labelCurAlt.setText('N/A')
+            self.labelCurAz.setText('N/A')
 
     def move_ra_dec(self):
         # get ra and dec
