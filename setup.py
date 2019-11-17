@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pyobs-gui',
-    version='0.8.1',
+    version='0.8.2',
     description='GUI for pyobs',
     author='Tim-Oliver Husser',
     author_email='thusser@uni-goettingen.de',
