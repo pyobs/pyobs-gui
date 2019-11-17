@@ -1,6 +1,4 @@
 import logging
-from PyQt5.QtCore import pyqtSignal
-import pwd
 import os
 
 from pyobs.interfaces import ICooling
@@ -18,8 +16,13 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         self.module = module    # type: ICooling
         self.comm = comm        # type: Comm
 
-        # set current username
-        self.textUser.setText(pwd.getpwuid(os.getuid()).pw_name)
+        # this only works in Linux
+        try:
+            # set current username
+            import pwd
+            self.textUser.setText(pwd.getpwuid(os.getuid()).pw_name)
+        except ModuleNotFoundError:
+            pass
 
     def get_fits_headers(self) -> dict:
         """Returns FITS header for the current status of the telescope.
