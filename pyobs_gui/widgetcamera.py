@@ -1,10 +1,8 @@
+import logging
+import os
 import threading
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
-import aplpy
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures
@@ -12,9 +10,13 @@ from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
-#from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgettemperatures import WidgetTemperatures
+from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
+from qfitsview import QFitsView
 from .qt.widgetcamera import Ui_WidgetCamera
+
+
+log = logging.getLogger(__name__)
 
 
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
@@ -28,6 +30,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.vfs = vfs          # type: VirtualFileSystem
 
         # variables
+        self.new_image = False
         self.image_filename = None
         self.image = None
         self.status = None
@@ -37,7 +40,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposure_progress = 0
 
         # set exposure types
-        image_types = [t.name for t in ICamera.ImageType]
+        image_types = ['OBJECT', 'BIAS', 'DARK']
         self.comboImageType.addItems(image_types)
 
         # before first update, disable mys
@@ -48,12 +51,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
 
         # add image panel
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.canvasToolbar = NavigationToolbar2QT(self.canvas, self.tabImage)
-        self.canvasLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        self.canvasLayout.addWidget(self.canvasToolbar)
-        self.canvasLayout.addWidget(self.canvas)
+        self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
+        self.imageView = QFitsView()
+        self.imageLayout.addWidget(self.imageView)
 
         # set headers for fits header tab
         self.tableFitsHeader.setColumnCount(3)
@@ -65,9 +65,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
         self.signal_update_gui.connect(self.update_gui)
+        self.butAutoSave.clicked.connect(self.select_autosave_path)
+        self.butSaveTo.clicked.connect(self.save_image)
+        self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
         # initial values
-        self.set_full_frame()
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
         # subscribe to events
@@ -75,6 +77,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comm.register_event(NewImageEvent, self._on_new_image)
 
         # fill sidebar
+        self.add_to_sidebar(WidgetFitsHeaders(module, comm))
         if isinstance(self.module, IFilters):
             self.add_to_sidebar(WidgetFilter(module, comm))
         if isinstance(self.module, ICooling):
@@ -82,18 +85,16 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ITemperatures):
             self.add_to_sidebar(WidgetTemperatures(module, comm))
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get status and update gui
-        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status())
+        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
+        self.set_full_frame()
         self.signal_update_gui.emit()
 
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
             # get full frame
-            left, top, width, height = self.module.get_full_frame()
+            left, top, width, height = self.module.get_full_frame().wait()
 
             # set it
             self.spinWindowLeft.setValue(left)
@@ -117,7 +118,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ICameraBinning):
             binx, biny = self.spinBinningX.value(), self.spinBinningY.value()
             try:
-                self.module.set_binning(binx, biny)
+                self.module.set_binning(binx, biny).wait()
             except:
                 #QMessageBox.information(self, 'Error', 'Could not set binning.')
                 return
@@ -129,7 +130,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                self.module.set_window(left, top, width * binx, height * biny)
+                self.module.set_window(left, top, width * binx, height * biny).wait()
             except:
                 #QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
@@ -137,47 +138,48 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # get image type
         image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
 
-        # do exposure(s)
-        try:
-            self.module.expose(self.spinExpTime.value(), image_type, self.spinCount.value())
+        # set initial image count
+        self.exposures_left = self.spinCount.value()
 
-        except:
-            #QMessageBox.information(self, 'Error', 'Could not take image.')
-            return
+        # do exposure(s)
+        while self.exposures_left > 0:
+            # take image
+            try:
+                exp_time = int(self.spinExpTime.value() * 1000)
+                self.module.expose(exp_time, image_type).wait()
+            except:
+                self.exposures_left = 0
+                return
+
+            # reduce number of exposures
+            self.exposures_left -= 1
+
+            # signal GUI update
+            self.signal_update_gui.emit()
 
     def plot(self):
         """Show image."""
-
-        # clear figure
-        self.figure.clf()
-
-        # plot image
-        gc = aplpy.FITSFigure(self.image, figure=self.figure)
-        gc.show_colorscale(cmap='gist_heat', stretch='arcsinh')
-
-        # show it
-        self.canvas.draw()
+        self.imageView.display(self.image)
         
     def abort(self):
         """Abort exposure."""
 
-        # do we have a status?
-        if self.status is None:
+        # do we have a running exposure?
+        if self.exposures_left == 0:
             return
 
         # got exposures left?
-        if self.status['ICamera']['ExposuresLeft'] > 1:
-            self.module.abort_sequence()
+        if self.exposures_left > 1:
+            self.exposures_left = 1
         else:
-            self.module.abort()
+            self.module.abort().wait()
 
     def _update(self):
         # are we exposing?
         if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             # get camera status
-            self.exposures_left = self.module.get_exposures_left()
-            self.exposure_time_left = self.module.get_exposure_time_left()
-            self.exposure_progress = self.module.get_exposure_progress()
+            self.exposure_time_left = self.module.get_exposure_time_left().wait()
+            self.exposure_progress = self.module.get_exposure_progress().wait()
 
             # signal GUI update
             self.signal_update_gui.emit()
@@ -220,15 +222,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.labelExposuresLeft.setText('')
 
         # trigger image update
-        if self.image is not None:
+        if self.new_image:
             # plot image
             self.plot()
 
             # set fits headers
             self.show_fits_headers()
 
-            # reset it
-            self.image = None
+            # reset
+            self.new_image = False
 
     def show_fits_headers(self):
         # get all header cards
@@ -279,8 +281,57 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if sender != self.module.name:
             return
 
+        # don't update?
+        if not self.checkAutoUpdate.isChecked():
+            return
+
         # download image
         self.image = self.vfs.download_fits_image(event.filename)
+        self.image_filename = event.filename
+        self.new_image = True
+
+        # auto save?
+        if self.checkAutoSave.isChecked():
+            # get path and check
+            path = self.textAutoSavePath.text()
+            if not os.path.exists(path):
+                log.warning('Invalid path for auto-saving.')
+
+            else:
+                # save image
+                filename = os.path.join(path, os.path.basename(self.image_filename.replace('.fits.gz', '.fits')))
+                log.info('Saving image as %s...', filename)
+                self.image.writeto(filename, overwrite=True)
 
         # update GUI
         self.signal_update_gui.emit()
+
+    def select_autosave_path(self):
+        """Select path for auto-saving."""
+
+        # ask for path
+        path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")
+
+        # set it
+        if path:
+            self.textAutoSavePath.setText(path)
+        else:
+            self.textAutoSavePath.clear()
+
+    def save_image(self):
+        """Save image."""
+
+        # no image?
+        if self.image is None:
+            return
+
+        # get initial filename
+        init_filename = os.path.basename(self.image_filename).replace('.fits.gz', '.fits')
+
+        # ask for filename
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save image", init_filename,
+                                                            "FITS Files (*.fits,*.fits.gz)")
+
+        # save
+        if filename:
+            self.image.writeto(filename, overwrite=True)

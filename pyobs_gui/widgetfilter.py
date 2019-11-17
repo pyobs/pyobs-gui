@@ -27,16 +27,13 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # subscribe to events
         self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
 
-        # initial values
-        threading.Thread(target=self._init).start()
-
     def _init(self):
         # get all filters
         if isinstance(self.module, IFilters):
-            self.comboFilter.addItems(self.module.list_filters())
+            self.comboFilter.addItems(self.module.list_filters().wait())
 
         # get current filter
-        self._filter = self.module.get_filter()
+        self._filter = self.module.get_filter().wait()
 
         # update gui
         self.signal_update_gui.emit()
@@ -45,12 +42,6 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # enable myself and set filter
         self.setEnabled(True)
         self.labelCurFilter.setText(self._filter)
-
-    def enter(self):
-        pass
-
-    def leave(self):
-        pass
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
         """Called when filter changed.

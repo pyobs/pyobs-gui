@@ -8,14 +8,16 @@ from colour import Color
 from pyobs.events import LogEvent
 from pyobs.events.clientconnected import ClientConnectedEvent
 from pyobs.events.clientdisconnected import ClientDisconnectedEvent
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser
+from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
 from pyobs_gui.widgetcamera import WidgetCamera
+from pyobs_gui.widgetevents import WidgetEvents
 from pyobs_gui.widgetroof import WidgetRoof
 from pyobs_gui.widgetshell import WidgetShell
 from pyobs_gui.widgettelescope import WidgetTelescope
 from pyobs_gui.widgetfocus import WidgetFocus
+from pyobs_gui.widgetscript import WidgetScript
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -24,7 +26,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_connected = pyqtSignal(str)
     client_disconnected = pyqtSignal(str)
 
-    def __init__(self, comm, vfs, environment, log_latency=2, **kwargs):
+    def __init__(self, comm, vfs, observer, log_latency=2, **kwargs):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
@@ -32,7 +34,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # store comm client
         self.comm = comm
         self.vfs = vfs
-        self.environment = environment
+        self.observer = observer
 
         # closing
         self.closing = Event()
@@ -59,6 +61,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.shell = WidgetShell(self.comm)
         self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
 
+        # add events nav button and view
+        self.events = WidgetEvents(self.comm)
+        self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+
         # create other nav buttons and views
         for client_name in self.comm.clients:
             self._client_connected(client_name)
@@ -83,10 +89,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get current widget
         widget = self.stackedWidget.currentWidget()
-
-        # if it has a leave method, call it
-        if hasattr(widget, 'leave'):
-            widget.leave()
 
     def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget):
         """
@@ -121,12 +123,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             idx: Index of new page in nav list.
         """
 
-        # do we have a current widget?
-        if self._current_widget:
-            # if it has a leave method, call it
-            if hasattr(self._current_widget, 'leave'):
-                self._current_widget.leave()
-
         # get name of new page
         client = self.listPages.item(idx).text()
 
@@ -135,10 +131,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get new widget
         self._current_widget = self.stackedWidget.currentWidget()
-
-        # if it has an enter method, call it
-        if hasattr(self._current_widget, 'enter'):
-            self._current_widget.enter()
 
     def _update_client_list(self, *args):
         """Updates the list of clients for the log."""
@@ -207,13 +199,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             widget = WidgetCamera(proxy, self.comm, self.vfs)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         elif isinstance(proxy, ITelescope):
-            widget = WidgetTelescope(proxy, self.comm, self.environment)
+            widget = WidgetTelescope(proxy, self.comm, self.observer)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_action_find.png")
         elif isinstance(proxy, IRoof):
-            widget = WidgetRoof(proxy, self.comm, self.environment)
+            widget = WidgetRoof(proxy, self.comm, self.observer)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_kfm_home.png")
         elif isinstance(proxy, IFocuser):
             widget = WidgetFocus(proxy, self.comm)
+            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
+        elif isinstance(proxy, IScriptRunner):
+            widget = WidgetScript(proxy, self.comm)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         else:
             return
@@ -231,12 +226,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # update client list
         self._update_client_list()
 
+        # not in list?
+        if client not in self._widgets:
+            return
+
         # get widget
         widget = self._widgets[client]
 
         # is current?
         if self.stackedWidget.currentWidget() == widget:
-            widget.leave()
             self._current_widget = None
 
         # remove widget
@@ -247,3 +245,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if self.listPages.item(row).text() == client:
                 self.listPages.takeItem(row)
                 break
+
+    def get_fits_headers(self) -> dict:
+        """Returns FITS header for the current status of the telescope.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+        hdr = {}
+        for widget in self._widgets.values():
+            if hasattr(widget, 'get_fits_headers'):
+                for k, v in widget.get_fits_headers().items():
+                    hdr[k] = v
+        return hdr

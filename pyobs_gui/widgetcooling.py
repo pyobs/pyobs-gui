@@ -27,7 +27,7 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
 
     def _update(self):
         # get status
-        self._status = self.module.get_cooling_status()
+        self._status = self.module.get_cooling_status().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -54,4 +54,4 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
         temp = self.spinSetPoint.value()
 
         # send it
-        self.module.set_cooling(enabled, temp)
+        self.module.set_cooling(enabled, temp).wait()

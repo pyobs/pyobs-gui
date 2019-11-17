@@ -1,7 +1,7 @@
 import threading
 import logging
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 
@@ -30,6 +30,9 @@ class BaseWidget(QtWidgets.QWidget):
         self.sidebar_widgets = []
         self.sidebar_layout = None
 
+        # has it been initialized?
+        self._initialized = False
+
     def add_to_sidebar(self, widget):
         # if no layout exists on sidebar, create it
         if self.sidebar_layout is None:
@@ -43,11 +46,10 @@ class BaseWidget(QtWidgets.QWidget):
         self.sidebar_widgets.append(widget)
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
-    def enter(self):
-        # sidebar
-        for sb in self.sidebar_widgets:
-            if hasattr(sb, 'enter'):
-                sb.enter()
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        if self._initialized is False and hasattr(self, '_init'):
+            self._init()
+            self._initialized = True
 
         if self._update_func:
             # create event for update thread to close
@@ -57,15 +59,13 @@ class BaseWidget(QtWidgets.QWidget):
             self._update_thread = threading.Thread(target=self._update_loop_thread)
             self._update_thread.start()
 
-    def leave(self):
-        # sidebar
-        for sb in self.sidebar_widgets:
-            if hasattr(sb, 'leave'):
-                sb.leave()
-
-        if self._update_func:
-            # stop thread
+    def hideEvent(self, event: QtGui.QHideEvent) -> None:
+        # stop thread
+        if self._update_thread_event is not None:
             self._update_thread_event.set()
+
+        # wait for it
+        if self._update_thread is not None:
             self._update_thread.join()
             self._update_thread = None
             self._update_thread_event = None
@@ -93,7 +93,7 @@ class BaseWidget(QtWidgets.QWidget):
 
         # call method
         try:
-            method(*args, **kwargs)
+            method(*args, **kwargs).wait()
         except Exception as e:
             log.exception("error")
             self._show_error.emit(str(e))
@@ -106,3 +106,22 @@ class BaseWidget(QtWidgets.QWidget):
 
     def enable_buttons(self, widgets, enable):
         [w.setEnabled(enable) for w in widgets]
+
+    def get_fits_headers(self) -> dict:
+        """Returns FITS header for the current status of the telescope.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+
+    def get_fits_headers(self) -> dict:
+        """Returns FITS header for the current status of the telescope.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+        hdr = {}
+        for widget in self.sidebar_widgets:
+            for k, v in widget.get_fits_headers().items():
+                hdr[k] = v
+        return hdr

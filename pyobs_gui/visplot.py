@@ -1,17 +1,17 @@
+from astroplan import Observer
 from astropy.time import TimeDelta
 import astropy.units as u
 import pylab as plt
 import numpy as np
 
 from pyobs.utils.time import Time
-from pyobs.environment import Environment
 
 
 class VisPlot:
-    def __init__(self, figure, environment):
+    def __init__(self, figure, observer):
         """Inits the dialog."""
         self.figure = figure
-        self.environment = environment  # type: Environment
+        self.observer = observer  # type: Observer
 
     def plot(self, coords):
         """Plot visibility plots for the given coordinates starting from now."""
@@ -30,7 +30,7 @@ class VisPlot:
         az = []
         while time < end:
             # convert to alz/az
-            altaz = self.environment.to_altaz(coords, time)
+            altaz = self.observer.altaz(time, coords)
             if altaz.alt < 0:
                 break
 
