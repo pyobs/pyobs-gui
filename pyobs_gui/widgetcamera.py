@@ -3,6 +3,7 @@ import os
 import threading
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures
@@ -110,17 +111,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinExpTime.setEnabled(True)
 
     def expose(self):
-        # start thread for exposure
-        threading.Thread(target=self._expose).start()
-
-    def _expose(self):
         # set binning
         if isinstance(self.module, ICameraBinning):
             binx, biny = self.spinBinningX.value(), self.spinBinningY.value()
             try:
                 self.module.set_binning(binx, biny).wait()
             except:
-                #QMessageBox.information(self, 'Error', 'Could not set binning.')
+                QMessageBox.information(self, 'Error', 'Could not set binning.')
                 return
         else:
             binx, biny = 1, 1
@@ -132,7 +129,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             try:
                 self.module.set_window(left, top, width * binx, height * biny).wait()
             except:
-                #QMessageBox.information(self, 'Error', 'Could not set window.')
+                QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
 
         # get image type
@@ -142,20 +139,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposures_left = self.spinCount.value()
 
         # do exposure(s)
-        while self.exposures_left > 0:
-            # take image
-            try:
-                exp_time = int(self.spinExpTime.value() * 1000)
-                self.module.expose(exp_time, image_type).wait()
-            except:
-                self.exposures_left = 0
-                return
+        exp_time = int(self.spinExpTime.value() * 1000)
+        self.module.expose(exp_time, image_type, self.exposures_left)
 
-            # reduce number of exposures
-            self.exposures_left -= 1
-
-            # signal GUI update
-            self.signal_update_gui.emit()
+        # signal GUI update
+        self.signal_update_gui.emit()
 
     def plot(self):
         """Show image."""
@@ -170,7 +158,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # got exposures left?
         if self.exposures_left > 1:
-            self.exposures_left = 1
+            # abort sequence
+            self.module.abort_sequence().wait()
         else:
             self.module.abort().wait()
 
@@ -178,11 +167,23 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # are we exposing?
         if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             # get camera status
-            self.exposure_time_left = self.module.get_exposure_time_left().wait()
-            self.exposure_progress = self.module.get_exposure_progress().wait()
+            exposure_time_left = self.module.get_exposure_time_left()
+            exposure_progress = self.module.get_exposure_progress()
 
-            # signal GUI update
-            self.signal_update_gui.emit()
+            # fetch results
+            self.exposure_time_left = exposure_time_left.wait()
+            self.exposure_progress = exposure_progress.wait()
+
+        else:
+            # reset
+            self.exposure_time_left = 0
+            self.exposure_progress = 0
+
+        # exposures to do
+        self.exposures_left = self.module.get_exposures_left().wait()
+
+        # signal GUI update
+        self.signal_update_gui.emit()
 
     def update_gui(self):
         """Update the GUI."""
