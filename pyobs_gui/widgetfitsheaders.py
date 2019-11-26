@@ -24,7 +24,7 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         except ModuleNotFoundError:
             pass
 
-    def get_fits_headers(self, namespaces: list = None) -> dict:
+    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -33,8 +33,11 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         Returns:
             Dictionary containing FITS headers.
         """
-        return {
-            'OBJECT': (self.textObject.text(), 'Observed object'),
-            'PROPID': (self.textProject.text(), 'Proposal ID'),
-            'USER': (self.textUser.text(), 'Name of user')
-        }
+        if namespaces is None or self.comm.name in namespaces:
+            return {
+                'OBJECT': (self.textObject.text(), 'Observed object'),
+                'PROPID': (self.textProject.text(), 'Proposal ID'),
+                'USER': (self.textUser.text(), 'Name of user')
+            }
+        else:
+            return {}

@@ -21,7 +21,7 @@ class GUI(PyObsModule, IFitsHeaderProvider):
         # run
         app.exec()
 
-    def get_fits_headers(self, namespaces: list = None) -> dict:
+    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
         """Returns FITS header for the current status of this module.
 
         Args:
