@@ -24,8 +24,11 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         except ModuleNotFoundError:
             pass
 
-    def get_fits_headers(self) -> dict:
-        """Returns FITS header for the current status of the telescope.
+    def get_fits_headers(self, namespaces: list = None) -> dict:
+        """Returns FITS header for the current status of this module.
+
+        Args:
+            namespaces: If given, only return FITS headers for the given namespaces.
 
         Returns:
             Dictionary containing FITS headers.

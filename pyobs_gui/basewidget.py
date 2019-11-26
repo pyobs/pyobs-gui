@@ -107,15 +107,11 @@ class BaseWidget(QtWidgets.QWidget):
     def enable_buttons(self, widgets, enable):
         [w.setEnabled(enable) for w in widgets]
 
-    def get_fits_headers(self) -> dict:
-        """Returns FITS header for the current status of the telescope.
+    def get_fits_headers(self, namespaces: list = None) -> dict:
+        """Returns FITS header for the current status of this module.
 
-        Returns:
-            Dictionary containing FITS headers.
-        """
-
-    def get_fits_headers(self) -> dict:
-        """Returns FITS header for the current status of the telescope.
+        Args:
+            namespaces: If given, only return FITS headers for the given namespaces.
 
         Returns:
             Dictionary containing FITS headers.
