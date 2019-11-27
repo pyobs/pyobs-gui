@@ -155,7 +155,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             return
 
         # store new status
-        self._motion_status = event.current
+        if 'ITelescope' in event.interfaces:
+            self._motion_status = event.interfaces['ITelescope']
+        else:
+            self._motion_status = event.status
 
         # trigger GUI update
         self.signal_update_gui.emit()
