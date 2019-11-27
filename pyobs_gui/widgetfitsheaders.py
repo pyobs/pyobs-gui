@@ -33,7 +33,7 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         Returns:
             Dictionary containing FITS headers.
         """
-        if namespaces is None or self.comm.name in namespaces:
+        if self.checkAddHeaders.isChecked() and (namespaces is None or self.comm.name in namespaces):
             return {
                 'OBJECT': (self.textObject.text(), 'Observed object'),
                 'PROPID': (self.textProject.text(), 'Proposal ID'),
