@@ -45,7 +45,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # enable myself and set filter
         self.setEnabled(True)
         self.labelCurStatus.setText(self._motion_status.name)
-        self.labelCurFilter.setText(self._filter)
+        self.labelCurFilter.setText('' if self._filter is None else self._filter)
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
         """Called when filter changed.

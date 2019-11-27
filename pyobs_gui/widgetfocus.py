@@ -50,7 +50,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # enable myself and set filter
         self.setEnabled(True)
         self.labelCurStatus.setText(self._motion_status.name)
-        self.labelCurFocus.setText('%.3f' % self._focus)
+        self.labelCurFocus.setText('' if self._focus is None else '%.3f' % self._focus)
 
     def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
         """Called when motion status of module changed.
