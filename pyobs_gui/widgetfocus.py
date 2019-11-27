@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 from pyobs.events import MotionStatusChangedEvent
 
-from pyobs.interfaces import IFocuser
+from pyobs.interfaces import IFocuser, IMotion
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfocus import Ui_WidgetFocus
 
@@ -23,6 +23,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
 
         # variables
         self._focus = None
+        self._motion_status = IMotion.Status.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)

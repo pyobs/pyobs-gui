@@ -2,7 +2,7 @@ from PyQt5.QtCore import pyqtSignal
 import threading
 
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
-from pyobs.interfaces import IFilters
+from pyobs.interfaces import IFilters, IMotion
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfilter import Ui_WidgetFilter
 
@@ -18,6 +18,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # variables
         self._filter = None
+        self._motion_status = IMotion.Status.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)

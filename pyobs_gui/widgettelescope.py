@@ -8,7 +8,7 @@ from astroquery.simbad import Simbad
 
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
@@ -31,7 +31,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.observer = observer  # type: Observer
 
         # variables
-        self._motion_status = None
+        self._motion_status = IMotion.Status.UNKNOWN
         self._ra_dec = None
         self._alt_az = None
 
