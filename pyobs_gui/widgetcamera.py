@@ -331,7 +331,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # ask for filename
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save image", init_filename,
-                                                            "FITS Files (*.fits,*.fits.gz)")
+                                                            "FITS Files (*.fits *.fits.gz)")
 
         # save
         if filename:
