@@ -224,6 +224,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # trigger image update
         if self.new_image:
+            # set filename
+            self.tabWidget.setTabText(0, os.path.basename(self.image_filename))
+
             # plot image
             self.plot()
 
