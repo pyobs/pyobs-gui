@@ -16,7 +16,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+        BaseWidget.__init__(self, parent=parent, update_func=self._update, update_interval=5)
         self.setupUi(self)
         self.module = module    # type: IFocuser
         self.comm = comm        # type: Comm
@@ -37,13 +37,6 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # get current filter
         self._focus = self.module.get_focus().wait()
         self._motion_status = self.module.get_motion_status().wait()
-        self.signal_update_gui.emit()
-
-    def _update(self):
-        # get focus
-        self._focus = self.module.get_focus().wait()
-
-        # signal GUI update
         self.signal_update_gui.emit()
 
     def update_gui(self):
@@ -72,3 +65,14 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+
+    def _update(self):
+        # get focus and motion status
+        self._focus = self.module.get_focus().wait()
+        self._motion_status = self.module.get_motion_status().wait()
+
+        # signal GUI update
+        self.signal_update_gui.emit()
+
+
+__all__ = ['WidgetFocus']

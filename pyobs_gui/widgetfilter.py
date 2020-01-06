@@ -11,7 +11,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent)
+        BaseWidget.__init__(self, parent=parent, update_func=self._update, update_interval=10)
         self.setupUi(self)
         self.module = module    # type: IFilters
         self.comm = comm        # type: Comm
@@ -85,3 +85,14 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+
+    def _update(self):
+        # get filter and motion status
+        self._filter = self.module.get_filter().wait()
+        self._motion_status = self.module.get_motion_status().wait()
+
+        # signal GUI update
+        self.signal_update_gui.emit()
+
+
+__all__ = ['WidgetFilter']
