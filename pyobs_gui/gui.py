@@ -10,7 +10,7 @@ class GUI(PyObsModule, IFitsHeaderProvider):
         PyObsModule.__init__(self, *args, **kwargs)
         self._window = None
 
-    def run(self):
+    def main(self):
         # create app
         app = QtWidgets.QApplication([])
 
