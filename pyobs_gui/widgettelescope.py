@@ -1,5 +1,6 @@
 import threading
 from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtWidgets
 from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
@@ -168,6 +169,11 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # query
         result = Simbad.query_object(self.textSimbadName.text())
+
+        # check it
+        if result is None:
+            QtWidgets.QMessageBox.critical(self, 'Simbad', 'No result found')
+            return
 
         # always use first result
         for r in result:
