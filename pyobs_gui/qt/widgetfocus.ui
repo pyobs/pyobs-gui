@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>310</width>
-    <height>184</height>
+    <width>248</width>
+    <height>196</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -31,15 +34,15 @@
      <property name="title">
       <string>Focus</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_6" columnstretch="1,2">
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_11">
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_12">
         <property name="text">
-         <string>Set:</string>
+         <string>Focus:</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="0" column="1">
        <widget class="QLineEdit" name="labelCurFocus">
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -50,23 +53,81 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="label_12">
+       <widget class="QLabel" name="label_11">
         <property name="text">
-         <string>Current:</string>
+         <string>Base:</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="butSetFocus">
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLineEdit" name="labelCurFocusBase">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="butSetFocusBase">
+          <property name="text">
+           <string>set...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_14">
         <property name="text">
-         <string>Set focus</string>
+         <string>Offset:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLineEdit" name="labelCurFocusOffset">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="butSetFocusOffset">
+          <property name="text">
+           <string>set...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Status:</string>
         </property>
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QDoubleSpinBox" name="spinFocus"/>
-      </item>
-      <item row="5" column="1">
        <widget class="QLineEdit" name="labelCurStatus">
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -76,18 +137,19 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_13">
-        <property name="text">
-         <string>Status:</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>labelCurFocus</tabstop>
+  <tabstop>labelCurFocusBase</tabstop>
+  <tabstop>butSetFocusBase</tabstop>
+  <tabstop>labelCurFocusOffset</tabstop>
+  <tabstop>butSetFocusOffset</tabstop>
+  <tabstop>labelCurStatus</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
