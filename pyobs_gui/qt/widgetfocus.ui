@@ -44,6 +44,12 @@
       </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="labelCurFocus">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
@@ -118,6 +124,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QToolButton" name="buttonResetFocusOffset">
+          <property name="text">
+           <string>reset</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item row="3" column="0">
@@ -129,6 +142,12 @@
       </item>
       <item row="3" column="1">
        <widget class="QLineEdit" name="labelCurStatus">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>

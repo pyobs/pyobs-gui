@@ -30,6 +30,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.signal_update_gui.connect(self.update_gui)
         self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
         self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
+        self.buttonResetFocusOffset.clicked.connect(lambda: self.run_async(self.module.set_focus_offset, 0))
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
