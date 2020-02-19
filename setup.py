@@ -19,7 +19,6 @@ setup(
         'astropy',
         'aplpy',
         'matplotlib',
-        'pyobs-core',
         'qfitsview'
     ]
 )
