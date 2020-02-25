@@ -1,4 +1,6 @@
 import threading
+
+import astroquery
 from PyQt5.QtCore import pyqtSignal
 from PyQt5 import QtWidgets
 from astroplan import Observer
@@ -6,6 +8,7 @@ from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
 import logging
 
+from astroquery.exceptions import InvalidQueryError
 from astroquery.simbad import Simbad
 from astroquery.mpc import MPC
 
@@ -189,18 +192,14 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         """Takes the object name from the text box, queries Horizons, and fills the RA/Dec inputs with the result."""
 
         # query
-        result = MPC.get_ephemeris(self.textMpcName.text(), location=self.observer.location)
-        print(result)
-
-        # to coordinates
-
-        coord = SkyCoord.guess_from_table(result)[0]
-        print(coord.to_string('hmsdms'))
-
-        # check it
-        if result is None:
+        try:
+            result = MPC.get_ephemeris(self.textMpcName.text(), location=self.observer.location)
+        except InvalidQueryError:
             QtWidgets.QMessageBox.critical(self, 'MPC', 'No result found')
             return
+
+        # to coordinates
+        coord = SkyCoord.guess_from_table(result)[0]
 
         # set it
         self.textTrackRA.setText(coord.ra.to_string(u.hour, sep=':'))
