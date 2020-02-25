@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'widgettelescope.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.2
+# Created by: PyQt5 UI code generator 5.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_WidgetTelescope(object):
     def setupUi(self, WidgetTelescope):
@@ -168,6 +170,22 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_2.setColumnStretch(0, 1)
         self.gridLayout_2.setColumnStretch(1, 2)
         self.verticalLayout_2.addWidget(self.groupBox)
+        self.groupBox_2 = QtWidgets.QGroupBox(WidgetTelescope)
+        self.groupBox_2.setObjectName("groupBox_2")
+        self.gridLayout_6 = QtWidgets.QGridLayout(self.groupBox_2)
+        self.gridLayout_6.setObjectName("gridLayout_6")
+        self.label_12 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_12.setObjectName("label_12")
+        self.gridLayout_6.addWidget(self.label_12, 0, 0, 1, 1)
+        self.textMpcName = QtWidgets.QLineEdit(self.groupBox_2)
+        self.textMpcName.setObjectName("textMpcName")
+        self.gridLayout_6.addWidget(self.textMpcName, 0, 1, 1, 1)
+        self.buttonMpcQuery = QtWidgets.QPushButton(self.groupBox_2)
+        self.buttonMpcQuery.setObjectName("buttonMpcQuery")
+        self.gridLayout_6.addWidget(self.buttonMpcQuery, 1, 1, 1, 1)
+        self.gridLayout_6.setColumnStretch(0, 1)
+        self.gridLayout_6.setColumnStretch(1, 2)
+        self.verticalLayout_2.addWidget(self.groupBox_2)
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem2)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
@@ -205,4 +223,6 @@ class Ui_WidgetTelescope(object):
         self.groupBox.setTitle(_translate("WidgetTelescope", "Simbad"))
         self.label_11.setText(_translate("WidgetTelescope", "Name:"))
         self.buttonSimbadQuery.setText(_translate("WidgetTelescope", "Query"))
-
+        self.groupBox_2.setTitle(_translate("WidgetTelescope", "MPC"))
+        self.label_12.setText(_translate("WidgetTelescope", "Name:"))
+        self.buttonMpcQuery.setText(_translate("WidgetTelescope", "Query"))

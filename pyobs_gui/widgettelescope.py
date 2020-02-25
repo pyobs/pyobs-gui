@@ -5,7 +5,9 @@ from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS
 import astropy.units as u
 import logging
+
 from astroquery.simbad import Simbad
+from astroquery.mpc import MPC
 
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
@@ -56,6 +58,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.textTrackRA.textChanged.connect(self._calc_track_alt_az)
         self.textTrackDec.textChanged.connect(self._calc_track_alt_az)
         self.buttonSimbadQuery.clicked.connect(self._query_simbad)
+        self.buttonMpcQuery.clicked.connect(self._query_mpc)
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
@@ -181,6 +184,27 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.textTrackRA.setText(r['RA'])
             self.textTrackDec.setText(r['DEC'])
             self.textSimbadName.setText(r['MAIN_ID'].decode('utf-8'))
+
+    def _query_mpc(self):
+        """Takes the object name from the text box, queries Horizons, and fills the RA/Dec inputs with the result."""
+
+        # query
+        result = MPC.get_ephemeris(self.textMpcName.text(), location=self.observer.location)
+        print(result)
+
+        # to coordinates
+
+        coord = SkyCoord.guess_from_table(result)[0]
+        print(coord.to_string('hmsdms'))
+
+        # check it
+        if result is None:
+            QtWidgets.QMessageBox.critical(self, 'MPC', 'No result found')
+            return
+
+        # set it
+        self.textTrackRA.setText(coord.ra.to_string(u.hour, sep=':'))
+        self.textTrackDec.setText(coord.dec.to_string(sep=':'))
 
     def _calc_track_alt_az(self):
         """Called, whenever RA/Dec input changes. Calculates destination Alt/Az."""
