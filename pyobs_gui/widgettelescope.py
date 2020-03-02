@@ -1,10 +1,10 @@
 import threading
 
 import astroquery
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets
 from astroplan import Observer
-from astropy.coordinates import SkyCoord, ICRS
+from astropy.coordinates import SkyCoord, ICRS, AltAz
 import astropy.units as u
 import logging
 
@@ -74,6 +74,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if isinstance(self.module, ITemperatures):
             self.add_to_sidebar(WidgetTemperatures(module, comm))
 
+        # init coord type
+        self.select_coord_type()
+
     def _init(self):
         # get variables
         self._motion_status = self.module.get_motion_status().wait()
@@ -129,25 +132,28 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.labelCurAlt.setText('N/A')
             self.labelCurAz.setText('N/A')
 
-    def move_ra_dec(self):
-        # get ra and dec
-        ra = self.textTrackRA.text()
-        dec = self.textTrackDec.text()
-        coords = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
+    @pyqtSlot(name='on_buttonMove_clicked')
+    def move(self):
+        # coordinate type
+        coord_type = self.comboMoveType.currentIndex()
 
-        # start thread with move
-        self.run_async(self.module.track_radec, float(coords.ra.degree), float(coords.dec.degree))
+        # what do we do?
+        if coord_type == 0:
+            # get ra and dec
+            ra = self.textMoveRA.text()
+            dec = self.textMoveDec.text()
+            coords = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
 
-        # plot it
-        #self.plot.plot(coords)
+            # start thread with move
+            self.run_async(self.module.track_radec, float(coords.ra.degree), float(coords.dec.degree))
 
-    def move_alt_az(self):
-        # get alt and az
-        alt = self.spinMoveAlt.value()
-        az = self.spinMoveAz.value()
+        elif coord_type == 1:
+            # get alt and az
+            alt = self.spinMoveAlt.value()
+            az = self.spinMoveAz.value()
 
-        # move
-        self.run_async(self.module.move_altaz, alt, az)
+            # move
+            self.run_async(self.module.move_altaz, alt, az)
 
     def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
         """Called when motion status of module changed.
@@ -170,6 +176,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # trigger GUI update
         self.signal_update_gui.emit()
 
+    @pyqtSlot(name='on_buttonSimbadQuery_clicked')
     def _query_simbad(self):
         """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
 
@@ -184,10 +191,13 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # always use first result
         for r in result:
             # set it
-            self.textTrackRA.setText(r['RA'])
-            self.textTrackDec.setText(r['DEC'])
-            self.textSimbadName.setText(r['MAIN_ID'].decode('utf-8'))
+            self.textMoveRA.setText(r['RA'])
+            self.textMoveDec.setText(r['DEC'])
 
+        # update destination
+        self._calc_dest_equatorial()
+
+    @pyqtSlot(name='on_buttonMpcQuery_clicked')
     def _query_mpc(self):
         """Takes the object name from the text box, queries Horizons, and fills the RA/Dec inputs with the result."""
 
@@ -205,25 +215,78 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.textTrackRA.setText(coord.ra.to_string(u.hour, sep=':'))
         self.textTrackDec.setText(coord.dec.to_string(sep=':'))
 
-    def _calc_track_alt_az(self):
-        """Called, whenever RA/Dec input changes. Calculates destination Alt/Az."""
+    def _show_dest_coords(self, ra: str = 'N/A', dec: str = 'N/A', alt: str = 'N/A', az: str = 'N/A'):
+        self.textDestRA.setText(ra if isinstance(ra, str) else ra.to_string(u.hour, sep=':'))
+        self.textDestDec.setText(dec if isinstance(dec, str) else dec.to_string(sep=':'))
+        self.textDestAlt.setText(alt if isinstance(alt, str) else '%.2f°' % alt.degree)
+        self.textDestAz.setText(az if isinstance(az, str) else '%.2f°' % az.degree)
 
-        # get ra and dec
-        ra = self.textTrackRA.text()
-        dec = self.textTrackDec.text()
+    @pyqtSlot(name='on_spinMoveAlt_editingFinished')
+    @pyqtSlot(name='on_spinMoveAz_editingFinished')
+    def _calc_dest_horizontal(self):
+        """Called, whenever Alt/Az input changes. Calculates destination."""
 
-        # parse it
+        # create SkyCoord
+        alt_az = SkyCoord(alt=self.spinMoveAlt.value() * u.deg, az=self.spinMoveAz.value() * u.deg, frame=AltAz,
+                          location=self.observer.location, obstime=Time.now())
+
+        # to ra/dec
+        ra_dec = alt_az.icrs
+
+        # display
+        self._show_dest_coords(ra_dec.ra, ra_dec.dec, alt_az.alt, alt_az.az)
+
+    @pyqtSlot(name='on_textMoveRA_editingFinished')
+    @pyqtSlot(name='on_textMoveDec_editingFinished')
+    def _calc_dest_equatorial(self):
+        """Called, whenever RA/Dec input changes. Calculates destination."""
+
+        # parse RA/Dec
         try:
-            ra_dec = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
+            ra_dec = SkyCoord(self.textMoveRA.text() + ' ' + self.textMoveDec.text(),
+                              frame=ICRS, unit=(u.hour, u.deg))
         except ValueError:
             # on error, show it
-            self.textTrackAlt.setText('N/A')
-            self.textTrackAz.setText('N/A')
+            self._show_dest_coords()
             return
 
         # to alt/az
         alt_az = self.observer.altaz(Time.now(), ra_dec)
 
         # display
-        self.textTrackAlt.setText('%.2f°' % alt_az.alt.degree)
-        self.textTrackAz.setText('%.2f°' % alt_az.az.degree)
+        self._show_dest_coords(ra_dec.ra, ra_dec.dec, alt_az.alt, alt_az.az)
+
+    @pyqtSlot(int, name='on_comboMoveType_currentIndexChanged')
+    def select_coord_type(self):
+        # get index
+        idx = self.comboMoveType.currentIndex()
+
+        # pages
+        pages = {
+            0: self.pageMoveEquatorial,
+            1: self.pageMoveHorizontal,
+            2: self.pageMoveSolarSystem
+        }
+
+        # destination coordinates?
+        coords = {
+            0: self._calc_dest_equatorial,
+            1: self._calc_dest_horizontal,
+            2: self._calc_dest_equatorial
+        }
+
+        # set page and visibility
+        self.stackedMove.setCurrentWidget(pages[idx])
+        coords[idx]()
+
+    @pyqtSlot(name='on_buttonInit_clicked')
+    def _init_telescope(self):
+        self.run_async(self.module.init)
+
+    @pyqtSlot(name='on_buttonPark_clicked')
+    def _park_telescope(self):
+        self.run_async(self.module.park)
+
+    @pyqtSlot(name='on_buttonStop_clicked')
+    def _stop_telescope(self):
+        self.run_async(lambda: self.module.stop_motion('ITelescope'))
