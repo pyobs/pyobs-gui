@@ -54,14 +54,14 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.butTrack.clicked.connect(self.move_ra_dec)
-        self.butMove.clicked.connect(self.move_alt_az)
-        self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
-        self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
-        self.textTrackRA.textChanged.connect(self._calc_track_alt_az)
-        self.textTrackDec.textChanged.connect(self._calc_track_alt_az)
-        self.buttonSimbadQuery.clicked.connect(self._query_simbad)
-        self.buttonMpcQuery.clicked.connect(self._query_mpc)
+        #self.butTrack.clicked.connect(self.move_ra_dec)
+        #self.butMove.clicked.connect(self.move_alt_az)
+        #self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
+        #self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
+        #self.textTrackRA.textChanged.connect(self._calc_track_alt_az)
+        #self.textTrackDec.textChanged.connect(self._calc_track_alt_az)
+        #self.buttonSimbadQuery.clicked.connect(self._query_simbad)
+        #self.buttonMpcQuery.clicked.connect(self._query_mpc)
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
