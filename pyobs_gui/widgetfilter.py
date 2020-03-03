@@ -1,4 +1,5 @@
-from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 import threading
 
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
@@ -22,18 +23,12 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.butSetFilter.clicked.connect(lambda: self.run_async(self.module.set_filter,
-                                                                 self.comboFilter.currentText()))
 
         # subscribe to events
         self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     def _init(self):
-        # get all filters
-        if isinstance(self.module, IFilters):
-            self.comboFilter.addItems(self.module.list_filters().wait())
-
         # get current filter
         self._motion_status = self.module.get_motion_status().wait()
         self._filter = self.module.get_filter().wait()
@@ -44,8 +39,8 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     def update_gui(self):
         # enable myself and set filter
         self.setEnabled(True)
-        self.labelCurStatus.setText(self._motion_status.name)
-        self.labelCurFilter.setText('' if self._filter is None else self._filter)
+        self.textStatus.setText(self._motion_status.name)
+        self.textFilter.setText('' if self._filter is None else self._filter)
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
         """Called when filter changed.
@@ -93,6 +88,16 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # signal GUI update
         self.signal_update_gui.emit()
+
+    @pyqtSlot(name='on_buttonSetFilter_clicked')
+    def _set_filter(self):
+        # get filters
+        filters = self.module.list_filters().wait()
+
+        # ask for value
+        new_value, ok = QtWidgets.QInputDialog.getItem(self, 'Set filter', 'New filter', filters, 0, False)
+        if ok:
+            self.run_async(self.module.set_filter, new_value)
 
 
 __all__ = ['WidgetFilter']
