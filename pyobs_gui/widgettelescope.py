@@ -14,7 +14,7 @@ from astroquery.mpc import MPC
 
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzMount, IEquatorialMount
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
@@ -40,6 +40,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._motion_status = IMotion.Status.UNKNOWN
         self._ra_dec = None
         self._alt_az = None
+        self._off_ra = None
+        self._off_dec = None
+        self._off_alt = None
+        self._off_az = None
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -54,14 +58,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        #self.butTrack.clicked.connect(self.move_ra_dec)
-        #self.butMove.clicked.connect(self.move_alt_az)
-        #self.butInit.clicked.connect(lambda: self.run_async(self.module.init))
-        #self.butPark.clicked.connect(lambda: self.run_async(self.module.park))
-        #self.textTrackRA.textChanged.connect(self._calc_track_alt_az)
-        #self.textTrackDec.textChanged.connect(self._calc_track_alt_az)
-        #self.buttonSimbadQuery.clicked.connect(self._query_simbad)
-        #self.buttonMpcQuery.clicked.connect(self._query_mpc)
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
@@ -80,30 +76,62 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     def _init(self):
         # get variables
         self._motion_status = self.module.get_motion_status().wait()
-        self._fetch_coordinates()
+        self._update()
         self.signal_update_gui.emit()
 
-    def _fetch_coordinates(self):
+    def _update(self):
+        now = Time.now()
+        
         # get RA/Dec
         try:
             ra, dec = self.module.get_radec().wait()
-            self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs')
+            self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs',
+                                    location=self.observer.location, obstime=now)
         except:
             self._ra_dec = None
 
         # get Alt/Az
         try:
             alt, az = self.module.get_altaz().wait()
-            self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz')
+            self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz',
+                                    location=self.observer.location, obstime=now)
         except:
             self._alt_az = None
 
-    def _update(self):
-        # get coordinates
-        self._fetch_coordinates()
+        # get offsets
+        self._off_ra, self._off_dec, self._off_alt, self._off_az = 'N/A', 'N/A', 'N/A', 'N/A'
+        if isinstance(self.module, IAltAzMount) and self._alt_az is not None:
+            # get offsets
+            self._off_alt, self._off_az = self.module.get_altaz_offsets().wait()
+
+            # convert to ra/dec
+            self._off_ra, self._off_dec = self._offset_altaz_to_radec(self._off_alt, self._off_az)
+
+        elif isinstance(self.module, IEquatorialMount) and self._ra_dec is not None:
+            # get offsets
+            self._off_ra, self._off_dec = self.module.get_radec_offsets().wait()
+
+            # convert to alt/az
+            self._off_alt, self._off_az = self._offset_radec_to_altaz(self._off_ra, self._off_dec)
 
         # signal GUI update
         self.signal_update_gui.emit()
+
+    def _offset_altaz_to_radec(self, alt, az):
+        # convert to ra/dec
+        p0 = self._alt_az.icrs
+        p1 = SkyCoord(alt=(self._alt_az.alt.degree + alt) * u.deg,
+                      az=(self._alt_az.az.degree + az) * u.deg, frame='altaz',
+                      location=self.observer.location, obstime=self._alt_az.obstime).icrs
+        return float(p1.ra.degree - p0.ra.degree), float(p1.dec.degree - p0.dec.degree)
+
+    def _offset_radec_to_altaz(self, ra, dec):
+        # convert to alt/az
+        p0 = self._ra_dec.transform_to(AltAz)
+        p1 = SkyCoord(ra=(self._ra_dec.ra.degree + ra) * u.deg,
+                      dec=(self._ra_dec.dec.degree + dec) * u.deg, frame='icrs',
+                      location=self.observer.location, obstime=self._ra_dec.obstime).transform_to(AltAz)
+        return float(p1.alt.degree - p0.alt.degree), float(p1.az.degree - p0.az.degree)
 
     def update_gui(self):
         # enable myself
@@ -131,6 +159,22 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         else:
             self.labelCurAlt.setText('N/A')
             self.labelCurAz.setText('N/A')
+
+        # offsets
+        self.textOffsetRA.setText('N/A' if self._off_ra is None else '%.2f"' % (self._off_ra * 3600.,))
+        self.textOffsetDec.setText('N/A' if self._off_dec is None else '%.2f"' % (self._off_dec * 3600.,))
+        self.textOffsetAlt.setText('N/A' if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.,))
+        self.textOffsetAz.setText('N/A' if self._off_az is None else '%.2f"' % (self._off_az * 3600.,))
+        radec_enabled = isinstance(self.module, IEquatorialMount)
+        self.buttonSetRaOffset.setVisible(radec_enabled)
+        self.buttonSetDecOffset.setVisible(radec_enabled)
+        self.buttonResetRaOffset.setVisible(radec_enabled)
+        self.buttonResetDecOffset.setVisible(radec_enabled)
+        altaz_enabled = isinstance(self.module, IAltAzMount)
+        self.buttonSetAltOffset.setVisible(altaz_enabled)
+        self.buttonSetAzOffset.setVisible(altaz_enabled)
+        self.buttonResetAltOffset.setVisible(altaz_enabled)
+        self.buttonResetAzOffset.setVisible(altaz_enabled)
 
     @pyqtSlot(name='on_buttonMove_clicked')
     def move(self):
@@ -290,3 +334,67 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     @pyqtSlot(name='on_buttonStop_clicked')
     def _stop_telescope(self):
         self.run_async(lambda: self.module.stop_motion('ITelescope'))
+
+    @pyqtSlot(name='on_buttonSetAltOffset_clicked')
+    @pyqtSlot(name='on_buttonResetAltOffset_clicked')
+    @pyqtSlot(name='on_buttonSetAzOffset_clicked')
+    @pyqtSlot(name='on_buttonResetAzOffset_clicked')
+    @pyqtSlot(name='on_buttonSetRaOffset_clicked')
+    @pyqtSlot(name='on_buttonResetRaOffset_clicked')
+    @pyqtSlot(name='on_buttonSetDecOffset_clicked')
+    @pyqtSlot(name='on_buttonResetDecOffset_clicked')
+    def _set_offset(self):
+        """Asks user for new offsets and sets it."""
+
+        # first all the reset buttons
+        if self.sender() == self.buttonResetAltOffset:
+            self.run_async(self.module.set_altaz_offsets, 0., self._off_az)
+        elif self.sender() == self.buttonResetAzOffset:
+            self.run_async(self.module.set_altaz_offsets, self._off_alt, 0.)
+        elif self.sender() == self.buttonResetRaOffset:
+            self.run_async(self.module.set_radec_offsets, 0., self._off_dec)
+        elif self.sender() == self.buttonResetDecOffset:
+            self.run_async(self.module.set_radec_offsets, self._off_ra, 0.)
+        else:
+            # now the sets, ask for value
+            new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, 0, 999)
+            if ok:
+                if self.sender() == self.buttonSetAltOffset:
+                    self.run_async(self.module.set_altaz_offsets, new_value / 3600., self._off_az)
+                elif self.sender() == self.buttonSetAzOffset:
+                    self.run_async(self.module.set_altaz_offsets, self._off_alt, new_value / 3600.)
+                elif self.sender() == self.buttonSetRaOffset:
+                    self.run_async(self.module.set_radec_offsets, new_value / 3600., self._off_dec)
+                elif self.sender() == self.buttonSetDecOffset:
+                    self.run_async(self.module.set_radec_offsets, self._off_ra, new_value / 3600.)
+
+    @pyqtSlot(name='on_buttonOffsetNorth_clicked')
+    @pyqtSlot(name='on_buttonOffsetSouth_clicked')
+    @pyqtSlot(name='on_buttonOffsetEast_clicked')
+    @pyqtSlot(name='on_buttonOffsetWest_clicked')
+    def _move_offset(self):
+        # get current offsets
+        off_ra, off_dec = self._off_ra, self._off_dec
+
+        # new offset
+        user_offset = self.spinOffset.value() / 3600.
+
+        # who send event?
+        if self.sender() == self.buttonOffsetNorth:
+            off_dec += user_offset
+        elif self.sender() == self.buttonOffsetSouth:
+            off_dec -= user_offset
+        elif self.sender() == self.buttonOffsetEast:
+            off_ra -= user_offset
+        elif self.sender() == self.buttonOffsetWest:
+            off_ra += user_offset
+
+        # move
+        if isinstance(self.module, IEquatorialMount):
+            self.run_async(self.module.set_radec_offsets, off_ra, off_dec)
+        elif isinstance(self.module, IAltAzMount):
+            off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
+            print(off_alt, off_az, type(off_alt))
+            self.run_async(self.module.set_altaz_offsets, off_alt, off_az)
+        else:
+            raise ValueError
