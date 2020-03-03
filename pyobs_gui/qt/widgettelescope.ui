@@ -41,7 +41,7 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout_5">
-          <property name="verticalSpacing">
+          <property name="spacing">
            <number>0</number>
           </property>
           <item row="0" column="0">

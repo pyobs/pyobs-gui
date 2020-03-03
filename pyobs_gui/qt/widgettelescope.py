@@ -33,7 +33,7 @@ class Ui_WidgetTelescope(object):
         self.line_3.setObjectName("line_3")
         self.verticalLayout.addWidget(self.line_3)
         self.gridLayout_5 = QtWidgets.QGridLayout()
-        self.gridLayout_5.setVerticalSpacing(0)
+        self.gridLayout_5.setSpacing(0)
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.buttonInit = QtWidgets.QPushButton(self.groupStatus)
         palette = QtGui.QPalette()
