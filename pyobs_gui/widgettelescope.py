@@ -394,7 +394,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.run_async(self.module.set_radec_offsets, off_ra, off_dec)
         elif isinstance(self.module, IAltAzMount):
             off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
-            print(off_alt, off_az, type(off_alt))
             self.run_async(self.module.set_altaz_offsets, off_alt, off_az)
         else:
             raise ValueError
