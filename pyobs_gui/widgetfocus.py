@@ -1,6 +1,6 @@
 import threading
 import logging
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 from pyobs.events import MotionStatusChangedEvent
 
@@ -31,6 +31,11 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
         self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
         self.buttonResetFocusOffset.clicked.connect(lambda: self.run_async(self.module.set_focus_offset, 0))
+
+        # button colors
+        self.colorize_button(self.butSetFocusBase, QtCore.Qt.green)
+        self.colorize_button(self.butSetFocusOffset, QtCore.Qt.green)
+        self.colorize_button(self.buttonResetFocusOffset, QtCore.Qt.yellow)
 
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
@@ -69,6 +74,10 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.labelCurFocusOffset.setText('' if self._focus_offset is None else '%.3f' % self._focus_offset)
         self.labelCurFocus.setText('' if self._focus is None or self._focus_offset is None
                                    else '%.3f' % (self._focus + self._focus_offset,))
+        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING, IMotion.Status.IDLE]
+        self.buttonResetFocusOffset.setEnabled(initialized)
+        self.butSetFocusOffset.setEnabled(initialized)
+        self.butSetFocusBase.setEnabled(initialized)
 
     def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
         """Called when motion status of module changed.

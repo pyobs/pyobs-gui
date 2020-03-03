@@ -1,7 +1,8 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 import threading
 
+from pyobs.comm import Comm
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
 from pyobs.interfaces import IFilters, IMotion
 from pyobs_gui.basewidget import BaseWidget
@@ -11,11 +12,11 @@ from .qt.widgetfilter import Ui_WidgetFilter
 class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, parent=None):
+    def __init__(self, module: IFilters, comm: Comm, parent=None):
         BaseWidget.__init__(self, parent=parent, update_func=self._update, update_interval=10)
         self.setupUi(self)
-        self.module = module    # type: IFilters
-        self.comm = comm        # type: Comm
+        self.module = module
+        self.comm = comm
 
         # variables
         self._filter = None
@@ -23,6 +24,9 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+
+        # button colors
+        self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
 
         # subscribe to events
         self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
@@ -41,6 +45,8 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
         self.textFilter.setText('' if self._filter is None else self._filter)
+        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING, IMotion.Status.IDLE]
+        self.buttonSetFilter.setEnabled(initialized)
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
         """Called when filter changed.

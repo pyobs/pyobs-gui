@@ -2,7 +2,7 @@ import threading
 
 import astroquery
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS, AltAz
 import astropy.units as u
@@ -56,6 +56,26 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         #self.widgetPlot.layout().addWidget(self.canvas)
         #self.first = True
 
+        # button colors
+        self.colorize_button(self.buttonInit, QtCore.Qt.green)
+        self.colorize_button(self.buttonPark, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonStop, QtCore.Qt.red)
+        self.colorize_button(self.buttonMove, QtCore.Qt.blue)
+        self.colorize_button(self.buttonOffsetEast, QtCore.Qt.blue)
+        self.colorize_button(self.buttonOffsetNorth, QtCore.Qt.blue)
+        self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.blue)
+        self.colorize_button(self.buttonOffsetWest, QtCore.Qt.blue)
+        self.colorize_button(self.buttonSetAltOffset, QtCore.Qt.green)
+        self.colorize_button(self.buttonSetAzOffset, QtCore.Qt.green)
+        self.colorize_button(self.buttonSetRaOffset, QtCore.Qt.green)
+        self.colorize_button(self.buttonSetDecOffset, QtCore.Qt.green)
+        self.colorize_button(self.buttonResetAltOffset, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonResetAzOffset, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonResetRaOffset, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonResetDecOffset, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonSimbadQuery, QtCore.Qt.green)
+        self.colorize_button(self.buttonMpcQuery, QtCore.Qt.green)
+
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
@@ -77,7 +97,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # get variables
         self._motion_status = self.module.get_motion_status().wait()
         self._update()
-        self.signal_update_gui.emit()
 
     def _update(self):
         now = Time.now()
@@ -140,13 +159,27 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # show motion status
         self.labelStatus.setText(self._motion_status.value.upper())
 
-        # plot
-        #if self.first:
-        #    self.plot.plot(self._ra_dec)
-        #    self.canvas.draw()
-        #    self.first = False
+        # (de)activate buttons
+        self.buttonInit.setEnabled(self._motion_status == IMotion.Status.PARKED)
+        self.buttonPark.setEnabled(self._motion_status not in [IMotion.Status.PARKED, IMotion.Status.ERROR,
+                                                               IMotion.Status.PARKING, IMotion.Status.INITIALIZING])
+        self.buttonStop.setEnabled(self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING])
+        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING, IMotion.Status.IDLE]
+        self.buttonMove.setEnabled(initialized)
+        self.buttonOffsetNorth.setEnabled(initialized)
+        self.buttonOffsetSouth.setEnabled(initialized)
+        self.buttonOffsetEast.setEnabled(initialized)
+        self.buttonOffsetWest.setEnabled(initialized)
+        self.buttonSetAltOffset.setEnabled(initialized)
+        self.buttonSetAzOffset.setEnabled(initialized)
+        self.buttonSetRaOffset.setEnabled(initialized)
+        self.buttonSetDecOffset.setEnabled(initialized)
+        self.buttonResetAltOffset.setEnabled(initialized)
+        self.buttonResetAzOffset.setEnabled(initialized)
+        self.buttonResetRaOffset.setEnabled(initialized)
+        self.buttonResetDecOffset.setEnabled(initialized)
 
-        # show them
+        # coordinates
         if self._ra_dec is not None:
             self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=':', precision=3))
             self.labelCurDec.setText(self._ra_dec.dec.to_string(unit=u.deg, sep=':', precision=3))
