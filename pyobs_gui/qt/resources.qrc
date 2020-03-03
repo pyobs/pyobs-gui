@@ -1,7 +1,13 @@
 <RCC>
   <qresource prefix="/">
-    <file>resources/Crystal_Clear_device_floppy_unmount.png</file>
+    <file>resources/search-solid.svg</file>
+    <file>resources/arrow-alt-circle-down-solid.svg</file>
+    <file>resources/arrow-alt-circle-left-solid.svg</file>
+    <file>resources/arrow-alt-circle-up-solid.svg</file>
+    <file>resources/arrow-alt-circle-right-solid.svg</file>
+    <file>resources/undo-solid.svg</file>
     <file>resources/Crystal_Clear_app_kfm_home.png</file>
+    <file>resources/edit-solid.svg</file>
     <file>resources/Crystal_Clear_device_camera.png</file>
     <file>resources/Crystal_Clear_app_terminal.png</file>
     <file>resources/Crystal_Clear_action_find.png</file>
