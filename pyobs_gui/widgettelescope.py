@@ -99,7 +99,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self._alt_az = None
 
         # get offsets
-        self._off_ra, self._off_dec, self._off_alt, self._off_az = 'N/A', 'N/A', 'N/A', 'N/A'
+        self._off_ra, self._off_dec, self._off_alt, self._off_az = None, None, None, None
         if isinstance(self.module, IAltAzMount) and self._alt_az is not None:
             # get offsets
             self._off_alt, self._off_az = self.module.get_altaz_offsets().wait()
