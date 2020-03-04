@@ -34,28 +34,33 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         Returns:
             Dictionary containing FITS headers.
         """
-        if self.checkAddHeaders.isChecked() and (namespaces is None or self.comm.name in namespaces):
-            # define basic headers
-            headers = {
-                'OBJECT': (self.textObject.text(), 'Observed object'),
-                'USER': (self.textUser.text(), 'Name of user')
-            }
 
-            # addition headers?
-            for row in range(self.tableAdditionalHeaders.rowCount()):
-                # get key and value
-                key = self.tableAdditionalHeaders.item(row, 0).text()
-                value = self.tableAdditionalHeaders.item(row, 1).text()
-
-                # add it
-                if len(key) > 0 and len(value) > 0:
-                    headers[key] = value
-
-            # return them
-            return headers
-
-        else:
+        # check sender
+        if 'sender' in kwargs and kwargs['sender'] != self.module.name:
             return {}
+
+        # don't want to send headers?
+        if not self.checkAddHeaders.isChecked():
+            return {}
+
+        # define basic headers
+        headers = {
+            'OBJECT': (self.textObject.text(), 'Observed object'),
+            'USER': (self.textUser.text(), 'Name of user')
+        }
+
+        # addition headers?
+        for row in range(self.tableAdditionalHeaders.rowCount()):
+            # get key and value
+            key = self.tableAdditionalHeaders.item(row, 0).text()
+            value = self.tableAdditionalHeaders.item(row, 1).text()
+
+            # add it
+            if len(key) > 0 and len(value) > 0:
+                headers[key] = value
+
+        # return them
+        return headers
 
     @pyqtSlot(name='on_buttonAddHeader_clicked')
     def add_header(self):
