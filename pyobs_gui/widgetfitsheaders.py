@@ -1,5 +1,6 @@
 import logging
 import os
+from PyQt5.QtCore import pyqtSlot
 
 from pyobs.interfaces import ICooling
 from pyobs_gui.basewidget import BaseWidget
@@ -34,10 +35,42 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
             Dictionary containing FITS headers.
         """
         if self.checkAddHeaders.isChecked() and (namespaces is None or self.comm.name in namespaces):
-            return {
+            # define basic headers
+            headers = {
                 'OBJECT': (self.textObject.text(), 'Observed object'),
-                'PROPID': (self.textProject.text(), 'Proposal ID'),
                 'USER': (self.textUser.text(), 'Name of user')
             }
+
+            # addition headers?
+            for row in range(self.tableAdditionalHeaders.rowCount()):
+                # get key and value
+                key = self.tableAdditionalHeaders.item(row, 0).text()
+                value = self.tableAdditionalHeaders.item(row, 1).text()
+
+                # add it
+                if len(key) > 0 and len(value) > 0:
+                    headers[key] = value
+
+            # return them
+            return headers
+
         else:
             return {}
+
+    @pyqtSlot(name='on_buttonAddHeader_clicked')
+    def add_header(self):
+        """Increase row count by 1."""
+        self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
+
+    @pyqtSlot(name='on_buttonDelHeader_clicked')
+    def del_header(self):
+        """Delete current row"""
+
+        # get row
+        row = self.tableAdditionalHeaders.currentRow()
+        if row == -1:
+            return
+
+        # delete it
+        self.tableAdditionalHeaders.removeRow(row)
+
