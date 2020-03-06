@@ -104,6 +104,7 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         QtWidgets.QWidget.__init__(self, parent)
         self.setupUi(self)
         self.comm = comm
+        self.command_number = 0
 
         # commands
         #self.command_model = None
@@ -235,36 +236,42 @@ class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
         raise ValueError('Invalid parameters.')
 
     def execute_command(self, command):
-        self._add_command_log('$ ' + command, 'blue')
+        # log command
+        self.command_number += 1
+        self._add_command_log('$ (#%d) %s' % (self.command_number, command), 'blue')
 
         # parse command
-        client, command, params = self._parse_command(command)
+        try:
+            client, command, params = self._parse_command(command)
+        except Exception as e:
+            self._add_command_log('(#%d): %s' % (self.command_number, str(e)), 'red')
+            return
 
         # get proxy
         proxy = self.comm[client]
 
         # execute command in new thread
-        thread = Thread(target=self._execute_command_async, args=(proxy, command, *params),
+        thread = Thread(target=self._execute_command_async, args=(proxy, command, self.command_number, *params),
                         name=client + '.' + command)
         thread.start()
 
-    def _execute_command_async(self, mod, command, *args):
+    def _execute_command_async(self, mod, command, no, *args):
         # execute command
         try:
             response = mod.execute(command, *args).wait()
         except ValueError as e:
-            log.exception('Something has gone wrong.')
-            self._add_command_log('Invalid parameter: %s' % str(e), 'red')
+            log.exception('(#%d): Something has gone wrong.' % no)
+            self._add_command_log('(#%d): Invalid parameter: %s' % (no, str(e)), 'red')
             return
         except RemoteException as e:
             if e:
-                self._add_command_log(traceback.format_exc(), 'red')
+                self._add_command_log('(#%d): %s' % (no, traceback.format_exc()), 'red')
             else:
-                self._add_command_log('Unknown Remote error', 'red')
+                self._add_command_log('(#%d): Unknown Remote error' % no, 'red')
             return
 
         # log response
-        self._add_command_log(pprint.pformat(response))
+        self._add_command_log('(#%d) %s' % (no, pprint.pformat(response)))
 
     def _update_docs(self):
         # get current input

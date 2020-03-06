@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pyobs-gui',
-    version='0.8',
+    version='0.9',
     description='GUI for pyobs',
     author='Tim-Oliver Husser',
     author_email='thusser@uni-goettingen.de',
@@ -18,6 +18,7 @@ setup(
         'PyQt5',
         'astropy',
         'aplpy',
-        'matplotlib'
+        'matplotlib',
+        'qfitsview'
     ]
 )

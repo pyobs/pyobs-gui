@@ -10,7 +10,7 @@ class GUI(PyObsModule, IFitsHeaderProvider):
         PyObsModule.__init__(self, *args, **kwargs)
         self._window = None
 
-    def run(self):
+    def main(self):
         # create app
         app = QtWidgets.QApplication([])
 
@@ -21,10 +21,13 @@ class GUI(PyObsModule, IFitsHeaderProvider):
         # run
         app.exec()
 
-    def get_fits_headers(self, *args, **kwargs) -> dict:
-        """Returns FITS header for the current status of the telescope.
+    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+        """Returns FITS header for the current status of this module.
+
+        Args:
+            namespaces: If given, only return FITS headers for the given namespaces.
 
         Returns:
             Dictionary containing FITS headers.
         """
-        return self._window.get_fits_headers()
+        return self._window.get_fits_headers(namespaces)

@@ -246,8 +246,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.listPages.takeItem(row)
                 break
 
-    def get_fits_headers(self) -> dict:
-        """Returns FITS header for the current status of the telescope.
+    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+        """Returns FITS header for the current status of this module.
+
+        Args:
+            namespaces: If given, only return FITS headers for the given namespaces.
 
         Returns:
             Dictionary containing FITS headers.
@@ -255,6 +258,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         hdr = {}
         for widget in self._widgets.values():
             if hasattr(widget, 'get_fits_headers'):
-                for k, v in widget.get_fits_headers().items():
+                for k, v in widget.get_fits_headers(namespaces, *args, **kwargs).items():
                     hdr[k] = v
         return hdr

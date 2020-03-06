@@ -1,7 +1,7 @@
 import threading
 import logging
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 
@@ -107,15 +107,11 @@ class BaseWidget(QtWidgets.QWidget):
     def enable_buttons(self, widgets, enable):
         [w.setEnabled(enable) for w in widgets]
 
-    def get_fits_headers(self) -> dict:
-        """Returns FITS header for the current status of the telescope.
+    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+        """Returns FITS header for the current status of this module.
 
-        Returns:
-            Dictionary containing FITS headers.
-        """
-
-    def get_fits_headers(self) -> dict:
-        """Returns FITS header for the current status of the telescope.
+        Args:
+            namespaces: If given, only return FITS headers for the given namespaces.
 
         Returns:
             Dictionary containing FITS headers.
@@ -125,3 +121,17 @@ class BaseWidget(QtWidgets.QWidget):
             for k, v in widget.get_fits_headers().items():
                 hdr[k] = v
         return hdr
+
+    def colorize_button(self, button, background, black_on_white: bool = True):
+        # get palette
+        pal = button.palette()
+
+        # change active colors
+        pal.setColor(QtGui.QPalette.Button, background)
+        pal.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.black if black_on_white else QtCore.Qt.white)
+
+        # change disabled colors
+        pal.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtCore.Qt.gray)
+
+        # set palette again
+        button.setPalette(pal)
