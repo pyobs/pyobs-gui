@@ -164,7 +164,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.buttonPark.setEnabled(self._motion_status not in [IMotion.Status.PARKED, IMotion.Status.ERROR,
                                                                IMotion.Status.PARKING, IMotion.Status.INITIALIZING])
         self.buttonStop.setEnabled(self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING])
-        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING, IMotion.Status.IDLE]
+        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING,
+                                              IMotion.Status.IDLE, IMotion.Status.POSITIONED]
         self.buttonMove.setEnabled(initialized)
         self.buttonOffsetNorth.setEnabled(initialized)
         self.buttonOffsetSouth.setEnabled(initialized)
