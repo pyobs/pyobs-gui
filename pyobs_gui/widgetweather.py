@@ -141,8 +141,11 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
                         layout.addWidget(widget)
 
             # set time
-            t = Time(self._current_weather['time'])
-            self._current_widgets['time'].set_value(t.strftime('%Y-%m-%d\n%H:%M:%S'))
+            if 'time' in self._current_weather and self._current_weather['time'] is not None:
+                t = Time(self._current_weather['time'])
+                self._current_widgets['time'].set_value(t.strftime('%Y-%m-%d\n%H:%M:%S'))
+            else:
+                self._current_widgets['time'].set_value('')
 
             # set values
             for sensor in AVERAGE_SENSOR_FIELDS:
