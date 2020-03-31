@@ -419,9 +419,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         elif self.sender() == self.buttonOffsetSouth:
             off_dec -= user_offset
         elif self.sender() == self.buttonOffsetEast:
-            off_ra -= user_offset
-        elif self.sender() == self.buttonOffsetWest:
             off_ra += user_offset
+        elif self.sender() == self.buttonOffsetWest:
+            off_ra -= user_offset
 
         # move
         if isinstance(self.module, IEquatorialMount):
