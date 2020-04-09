@@ -14,7 +14,7 @@ from astroquery.mpc import MPC
 
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzMount, IEquatorialMount
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzOffsets, IRaDecOffsets
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
@@ -119,14 +119,14 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # get offsets
         self._off_ra, self._off_dec, self._off_alt, self._off_az = None, None, None, None
-        if isinstance(self.module, IAltAzMount) and self._alt_az is not None:
+        if isinstance(self.module, IAltAzOffsets) and self._alt_az is not None:
             # get offsets
             self._off_alt, self._off_az = self.module.get_altaz_offsets().wait()
 
             # convert to ra/dec
             self._off_ra, self._off_dec = self._offset_altaz_to_radec(self._off_alt, self._off_az)
 
-        elif isinstance(self.module, IEquatorialMount) and self._ra_dec is not None:
+        elif isinstance(self.module, IRaDecOffsets) and self._ra_dec is not None:
             # get offsets
             self._off_ra, self._off_dec = self.module.get_radec_offsets().wait()
 
@@ -199,12 +199,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.textOffsetDec.setText('N/A' if self._off_dec is None else '%.2f"' % (self._off_dec * 3600.,))
         self.textOffsetAlt.setText('N/A' if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.,))
         self.textOffsetAz.setText('N/A' if self._off_az is None else '%.2f"' % (self._off_az * 3600.,))
-        radec_enabled = isinstance(self.module, IEquatorialMount)
+        radec_enabled = isinstance(self.module, IRaDecOffsets)
         self.buttonSetRaOffset.setVisible(radec_enabled)
         self.buttonSetDecOffset.setVisible(radec_enabled)
         self.buttonResetRaOffset.setVisible(radec_enabled)
         self.buttonResetDecOffset.setVisible(radec_enabled)
-        altaz_enabled = isinstance(self.module, IAltAzMount)
+        altaz_enabled = isinstance(self.module, IAltAzOffsets)
         self.buttonSetAltOffset.setVisible(altaz_enabled)
         self.buttonSetAzOffset.setVisible(altaz_enabled)
         self.buttonResetAltOffset.setVisible(altaz_enabled)
@@ -424,9 +424,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             off_ra -= user_offset
 
         # move
-        if isinstance(self.module, IEquatorialMount):
+        if isinstance(self.module, IRaDecOffsets):
             self.run_async(self.module.set_radec_offsets, off_ra, off_dec)
-        elif isinstance(self.module, IAltAzMount):
+        elif isinstance(self.module, IAltAzOffsets):
             off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
             self.run_async(self.module.set_altaz_offsets, off_alt, off_az)
         else:
