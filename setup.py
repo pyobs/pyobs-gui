@@ -15,7 +15,7 @@ setup(
         'astroquery',
         'astroplan',
         'colour',
-        'PyQt5',
+        'PyQt5==5.13',
         'astropy',
         'aplpy',
         'matplotlib',
