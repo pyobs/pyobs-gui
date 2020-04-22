@@ -36,7 +36,7 @@ class BaseWidget(QtWidgets.QWidget):
     def add_to_sidebar(self, widget):
         # if no layout exists on sidebar, create it
         if self.sidebar_layout is None:
-            self.sidebar_layout = QtWidgets.QVBoxLayout(self)
+            self.sidebar_layout = QtWidgets.QVBoxLayout()
             self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
             spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
             self.sidebar_layout.addItem(spacer_item)
