@@ -67,7 +67,7 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
                     self._widgets[key] = (label, widget)
 
                 # set value
-                self._widgets[key][1].setText('%.2f °C' % value)
+                self._widgets[key][1].setText('N/A' if value is None else '%.2f °C' % value)
 
             # now loop widgets and check, whether we need to delete some
             for key, (label, widget) in self._widgets.items():
