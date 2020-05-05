@@ -45,7 +45,8 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
         self.textFilter.setText('' if self._filter is None else self._filter)
-        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING, IMotion.Status.IDLE]
+        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING,
+                                              IMotion.Status.IDLE, IMotion.Status.POSITIONED]
         self.buttonSetFilter.setEnabled(initialized)
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):

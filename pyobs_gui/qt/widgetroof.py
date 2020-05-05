@@ -2,11 +2,13 @@
 
 # Form implementation generated from reading ui file 'widgetroof.ui'
 #
-# Created by: PyQt5 UI code generator 5.11.2
+# Created by: PyQt5 UI code generator 5.13.0
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_WidgetRoof(object):
     def setupUi(self, WidgetRoof):
@@ -20,11 +22,11 @@ class Ui_WidgetRoof(object):
         self.groupBox_2.setObjectName("groupBox_2")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.groupBox_2)
         self.gridLayout_2.setObjectName("gridLayout_2")
-        self.labelOpen = QtWidgets.QLineEdit(self.groupBox_2)
-        self.labelOpen.setAlignment(QtCore.Qt.AlignCenter)
-        self.labelOpen.setReadOnly(True)
-        self.labelOpen.setObjectName("labelOpen")
-        self.gridLayout_2.addWidget(self.labelOpen, 1, 1, 1, 1)
+        self.labelAzimuth = QtWidgets.QLineEdit(self.groupBox_2)
+        self.labelAzimuth.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelAzimuth.setReadOnly(True)
+        self.labelAzimuth.setObjectName("labelAzimuth")
+        self.gridLayout_2.addWidget(self.labelAzimuth, 1, 1, 1, 1)
         self.labelStatus = QtWidgets.QLineEdit(self.groupBox_2)
         self.labelStatus.setAlignment(QtCore.Qt.AlignCenter)
         self.labelStatus.setReadOnly(True)
@@ -83,6 +85,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
@@ -128,6 +133,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 42, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
@@ -173,6 +181,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
         self.buttonOpen.setPalette(palette)
         self.buttonOpen.setObjectName("buttonOpen")
         self.gridLayout_2.addWidget(self.buttonOpen, 2, 0, 1, 1)
@@ -223,6 +234,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
@@ -268,6 +282,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(127, 127, 63))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
@@ -313,6 +330,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
         self.buttonClose.setPalette(palette)
         self.buttonClose.setObjectName("buttonClose")
         self.gridLayout_2.addWidget(self.buttonClose, 2, 1, 1, 1)
@@ -363,6 +383,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Active, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.WindowText, brush)
@@ -408,6 +431,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Inactive, QtGui.QPalette.PlaceholderText, brush)
         brush = QtGui.QBrush(QtGui.QColor(85, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.WindowText, brush)
@@ -453,6 +479,9 @@ class Ui_WidgetRoof(object):
         brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.SolidPattern)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.ToolTipText, brush)
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0, 128))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
         self.buttonStop.setPalette(palette)
         self.buttonStop.setObjectName("buttonStop")
         self.gridLayout_2.addWidget(self.buttonStop, 3, 0, 1, 2)
@@ -474,8 +503,7 @@ class Ui_WidgetRoof(object):
         WidgetRoof.setWindowTitle(_translate("WidgetRoof", "Form"))
         self.groupBox_2.setTitle(_translate("WidgetRoof", "Status"))
         self.label_9.setText(_translate("WidgetRoof", "Status:"))
-        self.label_10.setText(_translate("WidgetRoof", "Open:"))
+        self.label_10.setText(_translate("WidgetRoof", "Azimuth:"))
         self.buttonOpen.setText(_translate("WidgetRoof", "Open"))
         self.buttonClose.setText(_translate("WidgetRoof", "Close"))
         self.buttonStop.setText(_translate("WidgetRoof", "Stop"))
-
