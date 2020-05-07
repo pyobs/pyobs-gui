@@ -74,7 +74,8 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.labelCurFocusOffset.setText('' if self._focus_offset is None else '%.3f' % self._focus_offset)
         self.labelCurFocus.setText('' if self._focus is None or self._focus_offset is None
                                    else '%.3f' % (self._focus + self._focus_offset,))
-        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING, IMotion.Status.IDLE]
+        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING,
+                                              IMotion.Status.IDLE, IMotion.Status.POSITIONED]
         self.buttonResetFocusOffset.setEnabled(initialized)
         self.butSetFocusOffset.setEnabled(initialized)
         self.butSetFocusBase.setEnabled(initialized)
