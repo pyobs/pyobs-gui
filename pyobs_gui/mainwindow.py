@@ -1,3 +1,4 @@
+import time
 from threading import Event
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -209,6 +210,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # get proxy
         proxy = self.comm[client]
 
+        # check mastermind
+        self._check_mastermind()
+
         # what do we have?
         if isinstance(proxy, ICamera):
             widget = WidgetCamera(proxy, self.comm, self.vfs)
@@ -234,15 +238,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # add it
         self._add_client(client, icon, widget)
 
-        # check mastermind
-        self._check_mastermind()
-
     def _client_disconnected(self, client: str):
         """Called, when a client disconnects.
 
         Args:
             client: Name of client.
         """
+
+        # check mastermind
+        self._check_mastermind()
 
         # update client list
         self._update_client_list()
@@ -266,9 +270,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if self.listPages.item(row).text() == client:
                 self.listPages.takeItem(row)
                 break
-
-        # check mastermind
-        self._check_mastermind()
 
     def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
         """Returns FITS header for the current status of this module.
