@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QLabel" name="labelMastermindWarning">
+     <widget class="QLabel" name="labelAutonomousWarning">
       <property name="palette">
        <palette>
         <active>
@@ -128,7 +128,7 @@
        <number>2</number>
       </property>
       <property name="text">
-       <string>!!! WARNING: active mastermind !!!</string>
+       <string>!!! WARNING: autonomous module(s) active !!!</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
