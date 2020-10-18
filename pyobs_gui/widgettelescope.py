@@ -100,7 +100,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
     def _update(self):
         now = Time.now()
-        
+
         # get RA/Dec
         try:
             ra, dec = self.module.get_radec().wait()
@@ -118,7 +118,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self._alt_az = None
 
         # get offsets
-        self._off_ra, self._off_dec, self._off_alt, self._off_az = None, None, None, None
         if isinstance(self.module, IAltAzOffsets) and self._alt_az is not None:
             # get offsets
             self._off_alt, self._off_az = self.module.get_altaz_offsets().wait()
@@ -132,6 +131,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
             # convert to alt/az
             self._off_alt, self._off_az = self._offset_radec_to_altaz(self._off_ra, self._off_dec)
+        else:
+            self._off_ra, self._off_dec, self._off_alt, self._off_az = None, None, None, None
 
         # signal GUI update
         self.signal_update_gui.emit()
