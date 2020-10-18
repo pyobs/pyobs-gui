@@ -1,3 +1,4 @@
+import time
 from threading import Event
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -8,7 +9,7 @@ from colour import Color
 from pyobs.events import LogEvent
 from pyobs.events.clientconnected import ClientConnectedEvent
 from pyobs.events.clientdisconnected import ClientDisconnectedEvent
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather
+from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
 from pyobs_gui.widgetcamera import WidgetCamera
@@ -32,10 +33,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.resize(1300, 800)
 
-        # store comm client
+        # store stuff
         self.comm = comm
         self.vfs = vfs
         self.observer = observer
+        self.mastermind_running = False
 
         # closing
         self.closing = Event()
@@ -53,6 +55,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log_model.rowsInserted.connect(lambda: QtCore.QTimer.singleShot(0, self.tableLog.scrollToBottom))
         self.log_model.rowsInserted.connect(self._resize_log_table)
         self.listClients.itemChanged.connect(self._log_client_changed)
+
+        # mastermind
+        self.labelAutonomousWarning.setVisible(False)
 
         # list of widgets
         self._widgets = {}
@@ -75,6 +80,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get clients
         self._update_client_list()
+        self._check_autonomous()
 
         # subscribe to events
         self.comm.register_event(LogEvent, self.process_log_entry)
@@ -182,6 +188,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # update proxy
         self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
 
+    def _check_autonomous(self):
+        """Checks, whether we got an autonomous module."""
+
+        # get all autonomous modules
+        clients = list(self.comm.clients_with_interface(IAutonomous))
+
+        # got any?
+        self.mastermind_running = len(clients) > 0
+        self.labelAutonomousWarning.setVisible(self.mastermind_running)
+
     def _client_connected(self, client: str):
         """Called when a new client connects.
 
@@ -194,6 +210,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # get proxy
         proxy = self.comm[client]
+
+        # check mastermind
+        self._check_autonomous()
 
         # what do we have?
         if isinstance(proxy, ICamera):
@@ -226,6 +245,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Args:
             client: Name of client.
         """
+
+        # check mastermind
+        self._check_autonomous()
 
         # update client list
         self._update_client_list()

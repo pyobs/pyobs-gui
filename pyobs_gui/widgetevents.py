@@ -113,11 +113,17 @@ class SendEventDialog(QtWidgets.QDialog):
                 else:
                     widget = QtWidgets.QLineEdit()
 
+                # create checkbox and layout
+                checkbox = QtWidgets.QCheckBox()
+                widget_layout = QtWidgets.QHBoxLayout()
+                widget_layout.addWidget(checkbox)
+                widget_layout.addWidget(widget)
+
                 # store widget
-                self._widgets[p] = widget
+                self._widgets[p] = (checkbox, widget)
 
                 # add to layout
-                layout.addRow(p, widget)
+                layout.addRow(p, widget_layout)
 
         # add dialog button box
         buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -130,11 +136,14 @@ class SendEventDialog(QtWidgets.QDialog):
 
         # collect values
         values = {}
-        for name, widget in self._widgets.items():
-            if isinstance(widget, QtWidgets.QLineEdit):
-                values[name] = widget.text()
+        for name, (checkbox, widget) in self._widgets.items():
+            if not checkbox.isChecked():
+                values[name] = None
             else:
-                values[name] = widget.value()
+                if isinstance(widget, QtWidgets.QLineEdit):
+                    values[name] = widget.text()
+                else:
+                    values[name] = widget.value()
 
         # create event and send it
         event = self._event(**values)
