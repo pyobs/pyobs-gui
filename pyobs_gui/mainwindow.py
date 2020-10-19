@@ -6,9 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
-from pyobs.events import LogEvent
-from pyobs.events.clientconnected import ClientConnectedEvent
-from pyobs.events.clientdisconnected import ClientDisconnectedEvent
+from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
@@ -72,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
 
         # create other nav buttons and views
-        for client_name in self.comm.clients:
+        for client_name in self.comm.modules:
             self._client_connected(client_name)
 
         # change page
@@ -84,8 +82,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # subscribe to events
         self.comm.register_event(LogEvent, self.process_log_entry)
-        self.comm.register_event(ClientConnectedEvent, lambda x, y: self.client_connected.emit(y))
-        self.comm.register_event(ClientDisconnectedEvent, lambda x, y: self.client_disconnected.emit(y))
+        self.comm.register_event(ModuleOpenedEvent, lambda x, y: self.client_connected.emit(y))
+        self.comm.register_event(ModuleClosedEvent, lambda x, y: self.client_disconnected.emit(y))
 
         # signals
         self.client_connected.connect(self._client_connected)
@@ -144,7 +142,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # add all clients to list
         self.listClients.clear()
-        for client_name in self.comm.clients:
+        for client_name in self.comm.modules:
             item = QtWidgets.QListWidgetItem(client_name)
             item.setCheckState(QtCore.Qt.Checked)
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
@@ -192,7 +190,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Checks, whether we got an autonomous module."""
 
         # get all autonomous modules
-        clients = list(self.comm.clients_with_interface(IAutonomous))
+        clients = list(self.comm.modules_with_interface(IAutonomous))
 
         # got any?
         self.mastermind_running = len(clients) > 0

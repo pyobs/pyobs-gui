@@ -35,7 +35,7 @@ class CommandModel(QtCore.QAbstractTableModel):
         # create model
         self.commands = []
         command_names = []
-        for client_name in comm.clients:
+        for client_name in comm.modules:
             # loop interfaces
             for interface in comm.get_interfaces(client_name):
                 # loop methods
