@@ -6,9 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
-from pyobs.events import LogEvent
-from pyobs.events.clientconnected import ClientConnectedEvent
-from pyobs.events.clientdisconnected import ClientDisconnectedEvent
+from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
@@ -84,8 +82,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # subscribe to events
         self.comm.register_event(LogEvent, self.process_log_entry)
-        self.comm.register_event(ClientConnectedEvent, lambda x, y: self.client_connected.emit(y))
-        self.comm.register_event(ClientDisconnectedEvent, lambda x, y: self.client_disconnected.emit(y))
+        self.comm.register_event(ModuleOpenedEvent, lambda x, y: self.client_connected.emit(y))
+        self.comm.register_event(ModuleClosedEvent, lambda x, y: self.client_disconnected.emit(y))
 
         # signals
         self.client_connected.connect(self._client_connected)
