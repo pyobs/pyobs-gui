@@ -102,6 +102,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             client: Name of client to add.
             icon: Icon for client in nav list.
             widget: Widget to add for client.
+            label: Label for icon.
 
         Returns:
 
@@ -143,6 +144,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # add all clients to list
         self.listClients.clear()
         for client_name in self.comm.clients:
+            # create item
             item = QtWidgets.QListWidgetItem(client_name)
             item.setCheckState(QtCore.Qt.Checked)
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
@@ -234,8 +236,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             return
 
+        # get label
+        label = proxy.label().wait()
+
         # add it
-        self._add_client(client, icon, widget)
+        self._add_client(label, icon, widget)
 
     def _client_disconnected(self, client: str):
         """Called, when a client disconnects.
