@@ -240,7 +240,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         label = proxy.label().wait()
 
         # add it
-        self._add_client(label, icon, widget)
+        self._add_client(client, icon, widget)
 
     def _client_disconnected(self, client: str):
         """Called, when a client disconnects.
