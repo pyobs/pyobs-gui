@@ -221,7 +221,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             # get ra and dec
             ra = self.textMoveRA.text()
             dec = self.textMoveDec.text()
-            coords = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
+            try:
+                coords = SkyCoord(ra + ' ' + dec, frame=ICRS, unit=(u.hour, u.deg))
+            except ValueError:
+                # could not create coordinates
+                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Invalid coordinates.')
+                return
 
             # start thread with move
             self.run_async(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
