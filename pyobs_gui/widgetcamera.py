@@ -290,7 +290,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             return
 
         # download image
-        self.image = self.vfs.download_image(event.filename)
+        self.image = self.vfs.read_image(event.filename)
         self.image_filename = event.filename
         self.new_image = True
 
