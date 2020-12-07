@@ -7,10 +7,7 @@ from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS, AltAz
 import astropy.units as u
 import logging
-
 from astroquery.exceptions import InvalidQueryError
-from astroquery.simbad import Simbad
-from astroquery.mpc import MPC
 
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
@@ -263,6 +260,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     @pyqtSlot(name='on_buttonSimbadQuery_clicked')
     def _query_simbad(self):
         """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
+        from astroquery.simbad import Simbad
 
         # query
         result = Simbad.query_object(self.textSimbadName.text())
@@ -284,6 +282,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     @pyqtSlot(name='on_buttonMpcQuery_clicked')
     def _query_mpc(self):
         """Takes the object name from the text box, queries Horizons, and fills the RA/Dec inputs with the result."""
+        from astroquery.mpc import MPC
 
         # query
         try:
