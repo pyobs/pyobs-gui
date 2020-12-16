@@ -132,18 +132,27 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
 
-        # get image type
-        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
-
         # set initial image count
         self.exposures_left = self.spinCount.value()
 
+        # start exposures
+        threading.Thread(target=self._expose_thread_func).start()
+
+    def _expose_thread_func(self):
+        # get image type
+        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
+
         # do exposure(s)
         exp_time = int(self.spinExpTime.value() * 1000)
-        self.module.expose(exp_time, image_type, self.exposures_left)
+        while self.exposures_left > 0:
+            # expose
+            self.module.expose(exp_time, image_type).wait()
 
-        # signal GUI update
-        self.signal_update_gui.emit()
+            # decrement number of exposures left
+            self.exposures_left -= 1
+
+            # signal GUI update
+            self.signal_update_gui.emit()
 
     def plot(self):
         """Show image."""
@@ -159,7 +168,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # got exposures left?
         if self.exposures_left > 1:
             # abort sequence
-            self.module.abort_sequence().wait()
+            self.exposures_left = 0
         else:
             self.module.abort().wait()
 
@@ -178,9 +187,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # reset
             self.exposure_time_left = 0
             self.exposure_progress = 0
-
-        # exposures to do
-        self.exposures_left = self.module.get_exposures_left().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -290,7 +296,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             return
 
         # download image
-        self.image = self.vfs.download_fits_image(event.filename)
+        self.image = self.vfs.read_image(event.filename)
         self.image_filename = event.filename
         self.new_image = True
 
