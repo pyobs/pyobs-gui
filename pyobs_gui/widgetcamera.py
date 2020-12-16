@@ -132,18 +132,27 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
 
-        # get image type
-        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
-
         # set initial image count
         self.exposures_left = self.spinCount.value()
 
-        # do exposure(s)
-        exp_time = int(self.spinExpTime.value() * 1000)
-        self.module.expose(exp_time, image_type, self.exposures_left)
+        # start exposures
+        threading.Thread(target=self._expose_thread_func).start()
 
-        # signal GUI update
-        self.signal_update_gui.emit()
+    def _expose_thread_func(self):
+        # get image type
+        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
+
+        # do exposure(s)
+        while self.exposures_left > 0:
+            # set exposure time and expose
+            self.module.set_exposure_time(self.spinExpTime.value()).wait()
+            self.module.expose(image_type).wait()
+
+            # decrement number of exposures left
+            self.exposures_left -= 1
+
+            # signal GUI update
+            self.signal_update_gui.emit()
 
     def plot(self):
         """Show image."""
@@ -159,7 +168,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # got exposures left?
         if self.exposures_left > 1:
             # abort sequence
-            self.module.abort_sequence().wait()
+            self.exposures_left = 0
         else:
             self.module.abort().wait()
 
@@ -178,9 +187,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # reset
             self.exposure_time_left = 0
             self.exposure_progress = 0
-
-        # exposures to do
-        self.exposures_left = self.module.get_exposures_left().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -208,7 +214,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             msg = 'IDLE'
         elif self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             self.progressExposure.setValue(self.exposure_progress)
-            msg = 'EXPOSING %.1fs' % (self.exposure_time_left / 1000.,)
+            msg = 'EXPOSING %.1fs' % self.exposure_time_left
         elif self.exposure_status == ICamera.ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
             msg = 'READOUT'
