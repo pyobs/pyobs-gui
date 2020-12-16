@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>183</width>
+        <width>188</width>
         <height>641</height>
        </rect>
       </property>
@@ -1301,7 +1301,7 @@
           <string>Save to...</string>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="resources.qrc">
            <normaloff>:/resources/Crystal_Clear_device_floppy_unmount.png</normaloff>:/resources/Crystal_Clear_device_floppy_unmount.png</iconset>
          </property>
          <property name="toolButtonStyle">
@@ -1318,28 +1318,6 @@
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>scrollArea</tabstop>
-  <tabstop>spinWindowLeft</tabstop>
-  <tabstop>spinWindowTop</tabstop>
-  <tabstop>spinWindowWidth</tabstop>
-  <tabstop>spinWindowHeight</tabstop>
-  <tabstop>butFullFrame</tabstop>
-  <tabstop>spinBinningX</tabstop>
-  <tabstop>spinBinningY</tabstop>
-  <tabstop>comboImageType</tabstop>
-  <tabstop>spinExpTime</tabstop>
-  <tabstop>spinCount</tabstop>
-  <tabstop>butExpose</tabstop>
-  <tabstop>butAbort</tabstop>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>checkAutoUpdate</tabstop>
-  <tabstop>checkAutoSave</tabstop>
-  <tabstop>textAutoSavePath</tabstop>
-  <tabstop>butAutoSave</tabstop>
-  <tabstop>butSaveTo</tabstop>
-  <tabstop>tableFitsHeader</tabstop>
- </tabstops>
  <resources>
   <include location="resources.qrc"/>
  </resources>

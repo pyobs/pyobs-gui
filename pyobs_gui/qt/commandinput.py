@@ -23,12 +23,10 @@ class CommandInput(QtWidgets.QLineEdit):
             self._history_index = 0
 
         elif event.key() == QtCore.Qt.Key_Up:
-            # history empty?
-            if len(self._history) > 0:
-                # get new history index
-                self._history_index = max(self._history_index - 1, -len(self._history))
-                # show text
-                self.setText(self._history[self._history_index])
+            # get new history index
+            self._history_index = max(self._history_index - 1, -len(self._history))
+            # show text
+            self.setText(self._history[self._history_index])
 
         elif event.key() == QtCore.Qt.Key_Down:
             # get new history index
