@@ -1,13 +1,13 @@
 from PyQt5 import QtWidgets
 
 from pyobs.interfaces import IFitsHeaderProvider
-from pyobs.modules import Module
+from pyobs.modules import PyObsModule
 from .mainwindow import MainWindow
 
 
-class GUI(Module, IFitsHeaderProvider):
+class GUI(PyObsModule, IFitsHeaderProvider):
     def __init__(self, *args, **kwargs):
-        Module.__init__(self, *args, **kwargs)
+        PyObsModule.__init__(self, *args, **kwargs)
         self._window = None
 
     def main(self):

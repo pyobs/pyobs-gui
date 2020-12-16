@@ -2,10 +2,9 @@
 
 # Form implementation generated from reading ui file 'widgetcamera.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.0
+# Created by: PyQt5 UI code generator 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
-
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -26,7 +25,7 @@ class Ui_WidgetCamera(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 183, 641))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 188, 641))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -503,25 +502,6 @@ class Ui_WidgetCamera(object):
         self.retranslateUi(WidgetCamera)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(WidgetCamera)
-        WidgetCamera.setTabOrder(self.scrollArea, self.spinWindowLeft)
-        WidgetCamera.setTabOrder(self.spinWindowLeft, self.spinWindowTop)
-        WidgetCamera.setTabOrder(self.spinWindowTop, self.spinWindowWidth)
-        WidgetCamera.setTabOrder(self.spinWindowWidth, self.spinWindowHeight)
-        WidgetCamera.setTabOrder(self.spinWindowHeight, self.butFullFrame)
-        WidgetCamera.setTabOrder(self.butFullFrame, self.spinBinningX)
-        WidgetCamera.setTabOrder(self.spinBinningX, self.spinBinningY)
-        WidgetCamera.setTabOrder(self.spinBinningY, self.comboImageType)
-        WidgetCamera.setTabOrder(self.comboImageType, self.spinExpTime)
-        WidgetCamera.setTabOrder(self.spinExpTime, self.spinCount)
-        WidgetCamera.setTabOrder(self.spinCount, self.butExpose)
-        WidgetCamera.setTabOrder(self.butExpose, self.butAbort)
-        WidgetCamera.setTabOrder(self.butAbort, self.tabWidget)
-        WidgetCamera.setTabOrder(self.tabWidget, self.checkAutoUpdate)
-        WidgetCamera.setTabOrder(self.checkAutoUpdate, self.checkAutoSave)
-        WidgetCamera.setTabOrder(self.checkAutoSave, self.textAutoSavePath)
-        WidgetCamera.setTabOrder(self.textAutoSavePath, self.butAutoSave)
-        WidgetCamera.setTabOrder(self.butAutoSave, self.butSaveTo)
-        WidgetCamera.setTabOrder(self.butSaveTo, self.tableFitsHeader)
 
     def retranslateUi(self, WidgetCamera):
         _translate = QtCore.QCoreApplication.translate
@@ -550,4 +530,6 @@ class Ui_WidgetCamera(object):
         self.checkAutoSave.setText(_translate("WidgetCamera", "Auto-save:"))
         self.butAutoSave.setText(_translate("WidgetCamera", "..."))
         self.butSaveTo.setText(_translate("WidgetCamera", "Save to..."))
+
+
 from . import resources_rc
