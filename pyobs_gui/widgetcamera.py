@@ -143,10 +143,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
 
         # do exposure(s)
-        exp_time = int(self.spinExpTime.value() * 1000)
         while self.exposures_left > 0:
-            # expose
-            self.module.expose(exp_time, image_type).wait()
+            # set exposure time and expose
+            self.module.set_exposure_time(self.spinExpTime.value()).wait()
+            self.module.expose(image_type).wait()
 
             # decrement number of exposures left
             self.exposures_left -= 1
@@ -214,7 +214,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             msg = 'IDLE'
         elif self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             self.progressExposure.setValue(self.exposure_progress)
-            msg = 'EXPOSING %.1fs' % (self.exposure_time_left / 1000.,)
+            msg = 'EXPOSING %.1fs' % self.exposure_time_left
         elif self.exposure_status == ICamera.ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
             msg = 'READOUT'
