@@ -6,7 +6,9 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures
+from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
+    ICameraExposureTime, IImageType
+from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
@@ -140,13 +142,16 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def _expose_thread_func(self):
         # get image type
-        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
+        image_type = ImageType(self.comboImageType.currentText().lower())
 
         # do exposure(s)
         while self.exposures_left > 0:
             # set exposure time and expose
-            self.module.set_exposure_time(self.spinExpTime.value()).wait()
-            self.module.expose(image_type).wait()
+            if isinstance(self.module, ICameraExposureTime):
+                self.module.set_exposure_time(self.spinExpTime.value()).wait()
+            if isinstance(self.module, IImageType):
+                self.module.set_image_type(image_type)
+            self.module.expose().wait()
 
             # decrement number of exposures left
             self.exposures_left -= 1
