@@ -6,7 +6,9 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures
+from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
+    ICameraExposureTime, IImageType
+from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
@@ -133,14 +135,22 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 return
 
         # get image type
-        image_type = ICamera.ImageType(self.comboImageType.currentText().lower())
+        image_type = ImageType(self.comboImageType.currentText().lower())
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
 
         # do exposure(s)
-        exp_time = int(self.spinExpTime.value() * 1000)
-        self.module.expose(exp_time, image_type, self.exposures_left)
+        while self.exposures_left > 0:
+            # set exposure time and expose
+            if isinstance(self.module, ICameraExposureTime):
+                self.module.set_exposure_time(self.spinExpTime.value()).wait()
+            if isinstance(self.module, IImageType):
+                self.module.set_image_type(image_type)
+            self.module.expose().wait()
+
+            # decrement number of exposures left
+            self.exposures_left -= 1
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -208,7 +218,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             msg = 'IDLE'
         elif self.exposure_status == ICamera.ExposureStatus.EXPOSING:
             self.progressExposure.setValue(self.exposure_progress)
-            msg = 'EXPOSING %.1fs' % (self.exposure_time_left / 1000.,)
+            msg = 'EXPOSING %.1fs' % self.exposure_time_left
         elif self.exposure_status == ICamera.ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
             msg = 'READOUT'
