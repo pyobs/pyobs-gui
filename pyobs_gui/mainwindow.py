@@ -6,7 +6,9 @@ from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
-from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
+from pyobs.events import LogEvent
+from pyobs.events.clientconnected import ClientConnectedEvent
+from pyobs.events.clientdisconnected import ClientDisconnectedEvent
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
@@ -82,8 +84,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # subscribe to events
         self.comm.register_event(LogEvent, self.process_log_entry)
-        self.comm.register_event(ModuleOpenedEvent, lambda x, y: self.client_connected.emit(y))
-        self.comm.register_event(ModuleClosedEvent, lambda x, y: self.client_disconnected.emit(y))
+        self.comm.register_event(ClientConnectedEvent, lambda x, y: self.client_connected.emit(y))
+        self.comm.register_event(ClientDisconnectedEvent, lambda x, y: self.client_disconnected.emit(y))
 
         # signals
         self.client_connected.connect(self._client_connected)
@@ -102,7 +104,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             client: Name of client to add.
             icon: Icon for client in nav list.
             widget: Widget to add for client.
-            label: Label for icon.
 
         Returns:
 
@@ -144,7 +145,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # add all clients to list
         self.listClients.clear()
         for client_name in self.comm.clients:
-            # create item
             item = QtWidgets.QListWidgetItem(client_name)
             item.setCheckState(QtCore.Qt.Checked)
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
@@ -235,9 +235,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         else:
             return
-
-        # get label
-        label = proxy.label().wait()
 
         # add it
         self._add_client(client, icon, widget)

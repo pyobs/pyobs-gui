@@ -134,15 +134,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
 
-        # set initial image count
-        self.exposures_left = self.spinCount.value()
-
-        # start exposures
-        threading.Thread(target=self._expose_thread_func).start()
-
-    def _expose_thread_func(self):
         # get image type
         image_type = ImageType(self.comboImageType.currentText().lower())
+
+        # set initial image count
+        self.exposures_left = self.spinCount.value()
 
         # do exposure(s)
         while self.exposures_left > 0:
@@ -156,8 +152,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # decrement number of exposures left
             self.exposures_left -= 1
 
-            # signal GUI update
-            self.signal_update_gui.emit()
+        # signal GUI update
+        self.signal_update_gui.emit()
 
     def plot(self):
         """Show image."""
@@ -173,7 +169,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # got exposures left?
         if self.exposures_left > 1:
             # abort sequence
-            self.exposures_left = 0
+            self.module.abort_sequence().wait()
         else:
             self.module.abort().wait()
 
@@ -192,6 +188,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # reset
             self.exposure_time_left = 0
             self.exposure_progress = 0
+
+        # exposures to do
+        self.exposures_left = self.module.get_exposures_left().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -301,7 +300,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             return
 
         # download image
-        self.image = self.vfs.read_image(event.filename)
+        self.image = self.vfs.download_fits_image(event.filename)
         self.image_filename = event.filename
         self.new_image = True
 
