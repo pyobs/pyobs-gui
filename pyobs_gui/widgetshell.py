@@ -60,7 +60,7 @@ class CommandModel(QtCore.QAbstractTableModel):
                             arg = param_name
 
                             # go a type?
-                            if param.annotation != inspect.Parameter.empty:
+                            if param.annotation != inspect.Parameter.empty and hasattr(param.annotation, '__name__'):
                                 arg += ': ' + param.annotation.__name__
 
                             # default value?
