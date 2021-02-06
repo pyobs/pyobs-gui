@@ -15,7 +15,7 @@ from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
-from qfitsview import QFitsView
+from qfitswidget import QFitsWidget
 from .qt.widgetcamera import Ui_WidgetCamera
 
 
@@ -55,7 +55,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        self.imageView = QFitsView()
+        self.imageView = QFitsWidget()
         self.imageLayout.addWidget(self.imageView)
 
         # set headers for fits header tab
