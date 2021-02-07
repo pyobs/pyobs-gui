@@ -103,10 +103,20 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # get image formats
         if isinstance(self.module, IImageFormat):
+            # get formats
             image_formats = [ImageFormat(f) for f in self.module.list_image_formats().wait()]
+
+            # set it
             self.comboImageFormat.clear()
-            self.comboImageFormat.addItems(list(image_formats.keys()))
-            self.comboImageFormat.setCurrentIndex(0)
+            self.comboImageFormat.addItems([f.name for f in image_formats])
+
+            # find default value
+            if ImageFormat.INT16 in image_formats:
+                self.comboImageFormat.setCurrentText('INT16')
+            elif ImageFormat.INT8 in image_formats:
+                self.comboImageFormat.setCurrentText('INT8')
+            else:
+                self.comboImageFormat.setCurrentIndex(0)
 
         # set full frame
         self.set_full_frame()
@@ -167,6 +177,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             except:
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
+
+        # set image format
+        if isinstance(self.module, IImageFormat):
+            image_format = ImageFormat[self.comboImageFormat.currentText()]
+            self.module.set_image_format(image_format)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
