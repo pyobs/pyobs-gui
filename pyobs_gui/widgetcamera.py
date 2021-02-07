@@ -96,9 +96,14 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # get binnings
         if isinstance(self.module, ICameraBinning):
-            binnings = ['1x1', '2x2', '3x3']
+            # get binnings
+            binnings = ['%dx%d' % (b, b) for b in self.module.list_binnings().wait()]
+
+            # set it
             self.comboBinning.clear()
             self.comboBinning.addItems(binnings)
+
+            # set default value
             self.comboBinning.setCurrentIndex(0)
 
         # get image formats
