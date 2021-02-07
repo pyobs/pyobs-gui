@@ -125,8 +125,17 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # set it
             self.spinWindowLeft.setValue(left)
             self.spinWindowTop.setValue(top)
-            self.spinWindowWidth.setValue(width / self.spinBinningX.value())
-            self.spinWindowHeight.setValue(height / self.spinBinningY.value())
+            self.spinWindowWidth.setValue(width / binning)
+            self.spinWindowHeight.setValue(height / binning)
+
+            # max values
+            self.spinWindowLeft.setMaximum(width / binning)
+            self.spinWindowTop.setMaximum(height / binning)
+            self.spinWindowWidth.setMaximum(width / binning)
+            self.spinWindowHeight.setMaximum(height / binning)
+
+    def binning_changed(self, binning):
+        self.set_full_frame()
 
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
