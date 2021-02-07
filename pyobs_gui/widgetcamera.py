@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
-    ICameraExposureTime, IImageType
-from pyobs.utils.enums import ImageType
+    ICameraExposureTime, IImageType, IImageFormat
+from pyobs.utils.enums import ImageType, ImageFormat
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
@@ -52,6 +52,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # hide groups, if necessary
         self.groupWindowing.setVisible(isinstance(self.module, ICameraWindow))
         self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
+        self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
@@ -64,6 +65,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # connect signals
         self.butFullFrame.clicked.connect(self.set_full_frame)
+        self.comboBinning.currentTextChanged.connect(self.binning_changed)
         self.comboImageType.currentTextChanged.connect(self.image_type_changed)
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
@@ -89,15 +91,36 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.add_to_sidebar(WidgetTemperatures(module, comm))
 
     def _init(self):
-        # get status and update gui
+        # get status
         self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
+
+        # get binnings
+        if isinstance(self.module, ICameraBinning):
+            binnings = ['1x1', '2x2', '3x3']
+            self.comboBinning.clear()
+            self.comboBinning.addItems(binnings)
+            self.comboBinning.setCurrentIndex(0)
+
+        # get image formats
+        if isinstance(self.module, IImageFormat):
+            image_formats = [ImageFormat(f) for f in self.module.list_image_formats().wait()]
+            self.comboImageFormat.clear()
+            self.comboImageFormat.addItems(list(image_formats.keys()))
+            self.comboImageFormat.setCurrentIndex(0)
+
+        # set full frame
         self.set_full_frame()
+
+        # update GUI
         self.signal_update_gui.emit()
 
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
             # get full frame
             left, top, width, height = self.module.get_full_frame().wait()
+
+            # get binning
+            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, ICameraBinning) else 1
 
             # set it
             self.spinWindowLeft.setValue(left)
@@ -115,21 +138,23 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     def expose(self):
         # set binning
         if isinstance(self.module, ICameraBinning):
-            binx, biny = self.spinBinningX.value(), self.spinBinningY.value()
+            binning = int(self.comboBinning.currentText()[0])
+            print(binning)
             try:
-                self.module.set_binning(binx, biny).wait()
+                self.module.set_binning(binning, binning).wait()
             except:
+                log.exception('bla')
                 QMessageBox.information(self, 'Error', 'Could not set binning.')
                 return
         else:
-            binx, biny = 1, 1
+            binning = 1
 
         # set window
         if isinstance(self.module, ICameraWindow):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                self.module.set_window(left, top, width * binx, height * biny).wait()
+                self.module.set_window(left, top, width * binning, height * binning).wait()
             except:
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return

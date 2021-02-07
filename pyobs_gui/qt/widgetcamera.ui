@@ -131,45 +131,43 @@
        <item>
         <widget class="QGroupBox" name="groupBinning">
          <property name="title">
-          <string>Binning:</string>
+          <string>Binning</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="spinBinningY">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>3</number>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>XxY:</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="spinBinningX">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>3</number>
-            </property>
-           </widget>
+           <widget class="QComboBox" name="comboBinning"/>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Y:</string>
-            </property>
-           </widget>
-          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupImageFormat">
+         <property name="title">
+          <string>Image format</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>X:</string>
+             <string>Format:</string>
             </property>
            </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboImageFormat"/>
           </item>
          </layout>
         </widget>
@@ -1325,8 +1323,6 @@
   <tabstop>spinWindowWidth</tabstop>
   <tabstop>spinWindowHeight</tabstop>
   <tabstop>butFullFrame</tabstop>
-  <tabstop>spinBinningX</tabstop>
-  <tabstop>spinBinningY</tabstop>
   <tabstop>comboImageType</tabstop>
   <tabstop>spinExpTime</tabstop>
   <tabstop>spinCount</tabstop>
