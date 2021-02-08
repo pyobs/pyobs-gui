@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
+    signal_new_image = pyqtSignal(NewImageEvent, str)
 
     def __init__(self, module, comm, vfs, parent=None):
         BaseWidget.__init__(self, parent=parent, update_func=self._update)
@@ -76,6 +77,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
         self.signal_update_gui.connect(self.update_gui)
+        self.signal_new_image.connect(self._on_new_image)
         self.butAutoSave.clicked.connect(self.select_autosave_path)
         self.butSaveTo.clicked.connect(self.save_image)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
@@ -169,7 +171,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # set binning
         if isinstance(self.module, ICameraBinning):
             binning = int(self.comboBinning.currentText()[0])
-            print(binning)
             try:
                 self.module.set_binning(binning, binning).wait()
             except:
@@ -206,15 +207,23 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # do exposure(s)
         while self.exposures_left > 0:
-            # set exposure time and expose
+            # set exposure time and image type
             if isinstance(self.module, ICameraExposureTime):
                 self.module.set_exposure_time(self.spinExpTime.value()).wait()
             if isinstance(self.module, IImageType):
                 self.module.set_image_type(image_type)
-            self.module.expose().wait()
+
+            # expose
+            broadcast = self.checkBroadcast.isChecked()
+            filename = self.module.expose(broadcast=broadcast).wait()
 
             # decrement number of exposures left
             self.exposures_left -= 1
+
+            # if we're not broadcasting the filename, we need to signal it manually
+            if not broadcast:
+                ev = NewImageEvent(filename, image_type)
+                self.signal_new_image.emit(ev, self.module.name)
 
             # signal GUI update
             self.signal_update_gui.emit()

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>967</width>
-    <height>657</height>
+    <width>1269</width>
+    <height>810</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,7 +34,7 @@
         <x>0</x>
         <y>0</y>
         <width>183</width>
-        <height>641</height>
+        <height>794</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -181,41 +181,7 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QLabel" name="labelExpTime">
-            <property name="text">
-             <string>ExpTime:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboImageType"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Count:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spinCount">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>9999</number>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelImageType">
-            <property name="text">
-             <string>Type:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="2">
+          <item row="4" column="0" colspan="2">
            <widget class="QPushButton" name="butExpose">
             <property name="palette">
              <palette>
@@ -664,7 +630,47 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="spinCount">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="spinExpTime">
+            <property name="suffix">
+             <string>s</string>
+            </property>
+            <property name="maximum">
+             <double>99999.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboImageType"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelImageType">
+            <property name="text">
+             <string>Type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelExpTime">
+            <property name="text">
+             <string>ExpTime:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
            <widget class="QPushButton" name="butAbort">
             <property name="palette">
              <palette>
@@ -1113,16 +1119,20 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="spinExpTime">
-            <property name="suffix">
-             <string>s</string>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Count:</string>
             </property>
-            <property name="maximum">
-             <double>99999.000000000000000</double>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="checkBroadcast">
+            <property name="text">
+             <string>Broadcast</string>
             </property>
-            <property name="value">
-             <double>1.000000000000000</double>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1328,14 +1338,15 @@
   <tabstop>comboImageType</tabstop>
   <tabstop>spinExpTime</tabstop>
   <tabstop>spinCount</tabstop>
+  <tabstop>checkBroadcast</tabstop>
   <tabstop>butExpose</tabstop>
   <tabstop>butAbort</tabstop>
-  <tabstop>tabWidget</tabstop>
   <tabstop>checkAutoUpdate</tabstop>
   <tabstop>checkAutoSave</tabstop>
   <tabstop>textAutoSavePath</tabstop>
   <tabstop>butAutoSave</tabstop>
   <tabstop>butSaveTo</tabstop>
+  <tabstop>tabWidget</tabstop>
   <tabstop>tableFitsHeader</tabstop>
  </tabstops>
  <resources>
