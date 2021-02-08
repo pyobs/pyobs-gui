@@ -97,7 +97,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # get binnings
         if isinstance(self.module, ICameraBinning):
             # get binnings
-            binnings = ['%dx%d' % (b, b) for b in self.module.list_binnings().wait()]
+            binnings = ['%dx%d' % tuple(binning) for binning in self.module.list_binnings().wait()]
 
             # set it
             self.comboBinning.clear()
