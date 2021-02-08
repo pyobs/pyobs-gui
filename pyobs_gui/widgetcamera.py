@@ -71,15 +71,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.tableFitsHeader.setHorizontalHeaderLabels(['Key', 'Value', 'Comment'])
 
         # connect signals
-        self.butFullFrame.clicked.connect(self.set_full_frame)
-        self.comboBinning.currentTextChanged.connect(self.binning_changed)
-        self.comboImageType.currentTextChanged.connect(self.image_type_changed)
-        self.butExpose.clicked.connect(self.expose)
-        self.butAbort.clicked.connect(self.abort)
         self.signal_update_gui.connect(self.update_gui)
         self.signal_new_image.connect(self._on_new_image)
-        self.butAutoSave.clicked.connect(self.select_autosave_path)
-        self.butSaveTo.clicked.connect(self.save_image)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
         # initial values
@@ -137,6 +130,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # update GUI
         self.signal_update_gui.emit()
 
+    @pyqtSlot(name='on_butFullFrame_clicked')
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
             # get full frame
@@ -157,6 +151,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinWindowWidth.setValue(width / binning)
             self.spinWindowHeight.setValue(height / binning)
 
+    @pyqtSlot(str, name='on_comboBinning_currentTextChanged')
     def binning_changed(self, binning):
         self.set_full_frame()
 
@@ -169,6 +164,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             if r == QMessageBox.No:
                 self.checkBroadcast.setChecked(True)
 
+    @pyqtSlot(str, name='on_comboImageType_currentTextChanged')
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
             self.spinExpTime.setValue(0)
@@ -176,6 +172,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.spinExpTime.setEnabled(True)
 
+    @pyqtSlot(name='on_butExpose_clicked')
     def expose(self):
         # set binning
         if isinstance(self.module, ICameraBinning):
@@ -240,7 +237,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     def plot(self):
         """Show image."""
         self.imageView.display(self.image)
-        
+
+    @pyqtSlot(name='on_butAbort_clicked')
     def abort(self):
         """Abort exposure."""
 
@@ -399,6 +397,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # update GUI
         self.signal_update_gui.emit()
 
+    @pyqtSlot(name='on_butAutoSave_clicked')
     def select_autosave_path(self):
         """Select path for auto-saving."""
 
@@ -411,6 +410,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.textAutoSavePath.clear()
 
+    @pyqtSlot(name='on_butSaveTo_clicked')
     def save_image(self):
         """Save image."""
 
