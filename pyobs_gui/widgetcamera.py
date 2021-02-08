@@ -145,17 +145,17 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # get binning
             binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, ICameraBinning) else 1
 
-            # set it
-            self.spinWindowLeft.setValue(left)
-            self.spinWindowTop.setValue(top)
-            self.spinWindowWidth.setValue(width / binning)
-            self.spinWindowHeight.setValue(height / binning)
-
             # max values
             self.spinWindowLeft.setMaximum(width / binning)
             self.spinWindowTop.setMaximum(height / binning)
             self.spinWindowWidth.setMaximum(width / binning)
             self.spinWindowHeight.setMaximum(height / binning)
+
+            # set it
+            self.spinWindowLeft.setValue(left)
+            self.spinWindowTop.setValue(top)
+            self.spinWindowWidth.setValue(width / binning)
+            self.spinWindowHeight.setValue(height / binning)
 
     def binning_changed(self, binning):
         self.set_full_frame()
