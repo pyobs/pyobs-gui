@@ -2,7 +2,7 @@ import logging
 import os
 import threading
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
@@ -159,6 +159,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def binning_changed(self, binning):
         self.set_full_frame()
+
+    @pyqtSlot(int, name='on_checkBroadcast_stateChanged')
+    def broadcast_changed(self, state):
+        if state == 0:
+            r = QMessageBox.question(self, 'pyobs', 'When disabling the broadcast, new images will not processed (and '
+                                                    'saved) within the pyobs network. Continue?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if r == QMessageBox.No:
+                self.checkBroadcast.setChecked(True)
 
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
