@@ -182,7 +182,7 @@
            <number>0</number>
           </property>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="labelExpTime">
             <property name="text">
              <string>ExpTime:</string>
             </property>
@@ -209,7 +209,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="labelImageType">
             <property name="text">
              <string>Type:</string>
             </property>
@@ -1323,6 +1323,8 @@
   <tabstop>spinWindowWidth</tabstop>
   <tabstop>spinWindowHeight</tabstop>
   <tabstop>butFullFrame</tabstop>
+  <tabstop>comboBinning</tabstop>
+  <tabstop>comboImageFormat</tabstop>
   <tabstop>comboImageType</tabstop>
   <tabstop>spinExpTime</tabstop>
   <tabstop>spinCount</tabstop>

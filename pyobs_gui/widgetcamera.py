@@ -54,6 +54,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
         self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
 
+        # and single controls
+        self.labelImageType.setVisible(isinstance(self.module, IImageType))
+        self.comboImageType.setVisible(isinstance(self.module, IImageType))
+        self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
         self.imageView = QFitsWidget()
