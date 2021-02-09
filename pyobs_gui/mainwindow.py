@@ -20,6 +20,29 @@ from pyobs_gui.widgetscript import WidgetScript
 from pyobs_gui.widgetweather import WidgetWeather
 
 
+class PagesListWidgetItem(QtWidgets.QListWidgetItem):
+    """ListWidgetItem for the pages list. Always sorts Shell and Events first"""
+    def __lt__(self, other):
+        """Compare two items."""
+
+        # special cases?
+        if self.text() == 'Shell':
+            # if self is 'Shell', it always goes first
+            return True
+        elif other.text() == 'Shell':
+            # if other is 'Shell', it always goes later
+            return False
+        elif self.text() == 'Events':
+            # if self is 'Events', it only goes first if other is not 'Shell'
+            return other.text() != 'Shell'
+        elif other.text() == 'Events':
+            # if other is 'Events', self always goes later, since case of 'Shell' as self has always been dealt with
+            return False
+        else:
+            # default case
+            return QtWidgets.QListWidgetItem.__lt__(self, other)
+
+
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     add_log = pyqtSignal(list)
     add_command_log = pyqtSignal(str)
@@ -109,12 +132,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # add list item
-        item = QtWidgets.QListWidgetItem()
+        item = PagesListWidgetItem()
         item.setIcon(icon)
         item.setText(client)
 
-        # add to list
+        # add to list and sort
         self.listPages.addItem(item)
+        self.listPages.sortItems()
 
         # add widget
         self.stackedWidget.addWidget(widget)
