@@ -60,10 +60,17 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
             self.run_async(setter, new_value)
 
     def _init(self):
-        # get current filter
-        self._focus = self.module.get_focus().wait()
-        self._focus_offset = self.module.get_focus_offset().wait()
-        self._motion_status = self.module.get_motion_status().wait()
+        # get status
+        try:
+            self._focus = self.module.get_focus().wait()
+            self._focus_offset = self.module.get_focus_offset().wait()
+            self._motion_status = self.module.get_motion_status().wait()
+        except:
+            self._focus = None
+            self._focus_offset = None
+            self._motion_status = IMotion.Status.UNKNOWN
+
+        # update GUI
         self.signal_update_gui.emit()
 
     def update_gui(self):
