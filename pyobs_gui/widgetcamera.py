@@ -1,7 +1,7 @@
 import logging
 import os
 import threading
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
@@ -9,6 +9,7 @@ from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
     ICameraExposureTime, IImageType, IImageFormat
 from pyobs.utils.enums import ImageType, ImageFormat
+from pyobs.utils.images import Image
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
@@ -20,6 +21,48 @@ from .qt.widgetcamera import Ui_WidgetCamera
 
 
 log = logging.getLogger(__name__)
+
+
+class DownloadThread(QtCore.QThread):
+    """Worker thread for downloading images."""
+
+    """Signal emitted when the image is downloaded."""
+    imageReady = pyqtSignal(Image, str)
+
+    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: str = None, *args, **kwargs):
+        """Init a new worker thread.
+
+        Args:
+            vfs: VFS to use for download
+            filename: File to download
+            autosave: Path for autosave or None.
+        """
+        QtCore.QThread.__init__(self, *args, **kwargs)
+        self.vfs = vfs
+        self.filename = filename
+        self.autosave = autosave
+
+    def run(self):
+        """Run method in thread."""
+
+        # download image
+        image = self.vfs.read_image(self.filename)
+
+        # auto save?
+        if self.autosave is not None:
+            # get path and check
+            path = self.autosave
+            if not os.path.exists(path):
+                log.warning('Invalid path for auto-saving.')
+
+            else:
+                # save image
+                filename = os.path.join(path, os.path.basename(self.image_filename.replace('.fits.gz', '.fits')))
+                log.info('Saving image as %s...', filename)
+                self.image.writeto(filename, overwrite=True)
+
+        # update GUI
+        self.imageReady.emit(image, self.filename)
 
 
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
@@ -42,6 +85,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposures_left = 0
         self.exposure_time_left = 0
         self.exposure_progress = 0
+        self.download_threads = []
 
         # set exposure types
         image_types = ['OBJECT', 'BIAS', 'DARK']
@@ -376,26 +420,32 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if not self.checkAutoUpdate.isChecked():
             return
 
-        # download image
-        self.image = self.vfs.read_image(event.filename)
-        self.image_filename = event.filename
+        # autosave?
+        autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
+
+        # create thread for download
+        thread = DownloadThread(self.vfs, event.filename, autosave)
+        thread.imageReady.connect(self._image_downloaded)
+        thread.start()
+
+        self.download_threads.append(thread)
+
+    def _image_downloaded(self, image, filename):
+        """Called, when image is downloaded.
+        """
+
+        # store image and filename
+        self.image = image
+        self.image_filename = filename
         self.new_image = True
 
-        # auto save?
-        if self.checkAutoSave.isChecked():
-            # get path and check
-            path = self.textAutoSavePath.text()
-            if not os.path.exists(path):
-                log.warning('Invalid path for auto-saving.')
+        # find finished threads and delete them
+        finished_threads = [t for t in self.download_threads if not t.isRunning()]
+        for t in finished_threads:
+            self.download_threads.remove(t)
 
-            else:
-                # save image
-                filename = os.path.join(path, os.path.basename(self.image_filename.replace('.fits.gz', '.fits')))
-                log.info('Saving image as %s...', filename)
-                self.image.writeto(filename, overwrite=True)
-
-        # update GUI
-        self.signal_update_gui.emit()
+        # show image
+        self.update_gui()
 
     @pyqtSlot(name='on_butAutoSave_clicked')
     def select_autosave_path(self):
