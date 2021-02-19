@@ -1,7 +1,7 @@
 import logging
 import os
 import threading
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
@@ -9,7 +9,7 @@ from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
     ICameraExposureTime, IImageType, IImageFormat
 from pyobs.utils.enums import ImageType, ImageFormat
-from pyobs.utils.images import Image
+from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
