@@ -57,9 +57,9 @@ class DownloadThread(QtCore.QThread):
 
             else:
                 # save image
-                filename = os.path.join(path, os.path.basename(self.image_filename.replace('.fits.gz', '.fits')))
+                filename = os.path.join(path, os.path.basename(self.filename.replace('.fits.gz', '.fits')))
                 log.info('Saving image as %s...', filename)
-                self.image.writeto(filename, overwrite=True)
+                image.writeto(filename, overwrite=True)
 
         # update GUI
         self.imageReady.emit(image, self.filename)
