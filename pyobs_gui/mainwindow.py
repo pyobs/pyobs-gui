@@ -18,6 +18,7 @@ from pyobs_gui.widgettelescope import WidgetTelescope
 from pyobs_gui.widgetfocus import WidgetFocus
 from pyobs_gui.widgetscript import WidgetScript
 from pyobs_gui.widgetweather import WidgetWeather
+from pyobs_gui.genericwidgets import GenericWidget
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
@@ -258,7 +259,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             widget = WidgetScript(proxy, self.comm)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         else:
-            return
+            widget = GenericWidget.create(proxy, self.comm)
+            if widget is None:
+                return
+            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
 
         # get label
         label = proxy.label().wait()
