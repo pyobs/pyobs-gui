@@ -75,8 +75,9 @@ class BaseWidget(QtWidgets.QWidget):
             try:
                 # call update function
                 self._update_func()
-            except:
-                pass
+            except Exception as e:
+                log.warning("Exception during GUIs update function: %s",
+                            str(e))
 
             # sleep a little
             self._update_thread_event.wait(self._update_interval)
