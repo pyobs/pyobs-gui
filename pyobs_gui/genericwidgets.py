@@ -2,6 +2,7 @@ import logging
 
 from PyQt5.QtCore import Qt
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import pyqtSignal
 
 from pyobs_gui.basewidget import BaseWidget
 
@@ -10,20 +11,55 @@ from pyobs.interfaces import IStoppable, IAltAz, IRaDec, ILatLon
 log = logging.getLogger(__name__)
 
 
+class QtToggleButtons(QtWidgets.QWidget):
+    toggled = pyqtSignal(bool)
+
+    def __init__(self):
+        super().__init__()
+
+        start = QtWidgets.QPushButton("Start")
+        start.setCheckable(True)
+        start.setAutoExclusive(True)
+        start.setChecked(False)
+        start.toggled.connect(self.toggled)
+        self.start = start
+
+        stop = QtWidgets.QPushButton("Stop")
+        stop.setCheckable(True)
+        stop.setAutoExclusive(True)
+        stop.setChecked(True)
+
+        lyt = QtWidgets.QHBoxLayout(self)
+        lyt.addWidget(start)
+        lyt.addWidget(stop)
+
+    def setChecked(self, ischecked):
+        self.start.setChecked(ischecked)
+
+
 class WidgetStoppable(QtWidgets.QWidget):
     """Simple widget for any Module implementing the IStoppable interface."""
     def __init__(self, module, comm, parent=None):
         super().__init__(parent=parent)
         self.module = module
 
-        # build GUI
-        layout = QtWidgets.QVBoxLayout(self)
-        self.running = QtWidgets.QCheckBox("Is running")
+        self.running = QtToggleButtons()
         self.running.toggled.connect(self.on_toggle)
+
+        self.state = QtWidgets.QLabel("State: Unknown")
+
+        # layout GUI
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.state)
         layout.addWidget(self.running)
 
     def _update(self):
-        self.running.setChecked(self.module.is_running().wait())
+        isrunning = self.module.is_running().wait()
+        self.running.setChecked(isrunning)
+        if isrunning:
+            self.state.setText("State: Running")
+        else:
+            self.state.setText("State: Stopped")
 
     def on_toggle(self, running):
         if running:
