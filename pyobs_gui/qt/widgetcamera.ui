@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>183</width>
+        <width>264</width>
         <height>794</height>
        </rect>
       </property>
@@ -640,19 +640,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="spinExpTime">
-            <property name="suffix">
-             <string>s</string>
-            </property>
-            <property name="maximum">
-             <double>99999.000000000000000</double>
-            </property>
-            <property name="value">
-             <double>1.000000000000000</double>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="comboImageType"/>
           </item>
@@ -1136,6 +1123,48 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,0">
+            <item>
+             <widget class="QDoubleSpinBox" name="spinExpTime">
+              <property name="suffix">
+               <string/>
+              </property>
+              <property name="decimals">
+               <number>3</number>
+              </property>
+              <property name="maximum">
+               <double>999.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>1.000000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboExpTimeUnit">
+              <property name="minimumContentsLength">
+               <number>2</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>s</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>ms</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>µs</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -1336,7 +1365,6 @@
   <tabstop>comboBinning</tabstop>
   <tabstop>comboImageFormat</tabstop>
   <tabstop>comboImageType</tabstop>
-  <tabstop>spinExpTime</tabstop>
   <tabstop>spinCount</tabstop>
   <tabstop>checkBroadcast</tabstop>
   <tabstop>butExpose</tabstop>

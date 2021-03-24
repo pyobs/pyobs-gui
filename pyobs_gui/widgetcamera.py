@@ -104,6 +104,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
         self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
         self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
@@ -257,9 +258,21 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # do exposure(s)
         while self.exposures_left > 0:
-            # set exposure time and image type
+            # set exposure time
             if isinstance(self.module, ICameraExposureTime):
-                self.module.set_exposure_time(self.spinExpTime.value()).wait()
+                # get exp_time
+                exp_time = self.spinExpTime.value()
+
+                # unit
+                if self.comboExpTimeUnit.currentText() == 'ms':
+                    exp_time /= 1e3
+                elif self.comboExpTimeUnit.currentText() == 'µs':
+                    exp_time /= 1e6
+
+                # set it
+                self.module.set_exposure_time(exp_time).wait()
+
+            # set image type
             if isinstance(self.module, IImageType):
                 self.module.set_image_type(image_type)
 
