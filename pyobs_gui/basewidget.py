@@ -66,7 +66,7 @@ class BaseWidget(QtWidgets.QWidget):
             self._update_thread_event.set()
 
         # wait for it
-        if self._update_thread is not None:
+        if self._update_thread.is_alive():
             self._update_thread.join()
 
     def _update_loop_thread(self):
