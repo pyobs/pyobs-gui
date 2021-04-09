@@ -1,5 +1,6 @@
 import threading
 import logging
+from typing import List, Dict, Tuple, Any
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -108,7 +109,7 @@ class BaseWidget(QtWidgets.QWidget):
     def enable_buttons(self, widgets, enable):
         [w.setEnabled(enable) for w in widgets]
 
-    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+    def get_fits_headers(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
