@@ -24,11 +24,11 @@ class BaseWidget(QtWidgets.QWidget):
         # update thread
         self._update_func = update_func
         self._update_interval = update_interval
-        self._update_thread = None
-        self._update_thread_event = None
+        self._update_thread = threading.Thread()
+        self._update_thread_event = threading.Event()
 
         # sidebar
-        self.sidebar_widgets = []
+        self.sidebar_widgets: List[BaseWidget] = []
         self.sidebar_layout = None
 
         # has it been initialized?
@@ -68,8 +68,6 @@ class BaseWidget(QtWidgets.QWidget):
         # wait for it
         if self._update_thread is not None:
             self._update_thread.join()
-            self._update_thread = None
-            self._update_thread_event = None
 
     def _update_loop_thread(self):
         while not self._update_thread_event.is_set():
