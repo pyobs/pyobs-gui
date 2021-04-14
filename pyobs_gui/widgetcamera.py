@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMessageBox
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
     ICameraExposureTime, IImageType, IImageFormat
-from pyobs.utils.enums import ImageType, ImageFormat
+from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
@@ -81,7 +81,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.image_filename = None
         self.image = None
         self.status = None
-        self.exposure_status = ICamera.ExposureStatus.IDLE
+        self.exposure_status = ExposureStatus.IDLE
         self.exposures_left = 0
         self.exposure_time_left = 0
         self.exposure_progress = 0
@@ -138,7 +138,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def _init(self):
         # get status
-        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
+        self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
 
         # get binnings
         if isinstance(self.module, ICameraBinning):
@@ -312,7 +312,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def _update(self):
         # are we exposing?
-        if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+        if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
             exposure_time_left = self.module.get_exposure_time_left()
             exposure_progress = self.module.get_exposure_progress()
@@ -336,8 +336,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.setEnabled(True)
 
         # enable/disable buttons
-        self.butExpose.setEnabled(self.exposure_status == ICamera.ExposureStatus.IDLE)
-        self.butAbort.setEnabled(self.exposure_status != ICamera.ExposureStatus.IDLE)
+        self.butExpose.setEnabled(self.exposure_status == ExposureStatus.IDLE)
+        self.butAbort.setEnabled(self.exposure_status != ExposureStatus.IDLE)
 
         # set abort text
         if self.exposures_left > 1:
@@ -347,13 +347,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # set progress
         msg = ''
-        if self.exposure_status == ICamera.ExposureStatus.IDLE:
+        if self.exposure_status == ExposureStatus.IDLE:
             self.progressExposure.setValue(0)
             msg = 'IDLE'
-        elif self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+        elif self.exposure_status == ExposureStatus.EXPOSING:
             self.progressExposure.setValue(self.exposure_progress)
             msg = 'EXPOSING %.1fs' % self.exposure_time_left
-        elif self.exposure_status == ICamera.ExposureStatus.READOUT:
+        elif self.exposure_status == ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
             msg = 'READOUT'
 
