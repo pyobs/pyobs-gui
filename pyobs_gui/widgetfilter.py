@@ -1,10 +1,9 @@
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-import threading
 
 from pyobs.comm import Comm
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
-from pyobs.interfaces import IFilters, IMotion
+from pyobs.interfaces import IFilters
 from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfilter import Ui_WidgetFilter
