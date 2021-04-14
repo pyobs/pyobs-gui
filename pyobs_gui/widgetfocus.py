@@ -5,6 +5,7 @@ from PyQt5.QtCore import pyqtSignal
 from pyobs.events import MotionStatusChangedEvent
 
 from pyobs.interfaces import IFocuser, IMotion
+from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfocus import Ui_WidgetFocus
 
@@ -24,7 +25,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # variables
         self._focus = None
         self._focus_offset = None
-        self._motion_status = IMotion.Status.UNKNOWN
+        self._motion_status = MotionStatus.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -68,7 +69,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         except:
             self._focus = None
             self._focus_offset = None
-            self._motion_status = IMotion.Status.UNKNOWN
+            self._motion_status = MotionStatus.UNKNOWN
 
         # update GUI
         self.signal_update_gui.emit()
@@ -81,8 +82,8 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.labelCurFocusOffset.setText('' if self._focus_offset is None else '%.3f' % self._focus_offset)
         self.labelCurFocus.setText('' if self._focus is None or self._focus_offset is None
                                    else '%.3f' % (self._focus + self._focus_offset,))
-        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING,
-                                              IMotion.Status.IDLE, IMotion.Status.POSITIONED]
+        initialized = self._motion_status in [MotionStatus.SLEWING, MotionStatus.TRACKING,
+                                              MotionStatus.IDLE, MotionStatus.POSITIONED]
         self.buttonResetFocusOffset.setEnabled(initialized)
         self.butSetFocusOffset.setEnabled(initialized)
         self.butSetFocusBase.setEnabled(initialized)

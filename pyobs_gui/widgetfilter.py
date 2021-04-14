@@ -5,6 +5,7 @@ import threading
 from pyobs.comm import Comm
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
 from pyobs.interfaces import IFilters, IMotion
+from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfilter import Ui_WidgetFilter
 
@@ -20,7 +21,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # variables
         self._filter = None
-        self._motion_status = IMotion.Status.UNKNOWN
+        self._motion_status = MotionStatus.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -45,8 +46,8 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
         self.textFilter.setText('' if self._filter is None else self._filter)
-        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING,
-                                              IMotion.Status.IDLE, IMotion.Status.POSITIONED]
+        initialized = self._motion_status in [MotionStatus.SLEWING, MotionStatus.TRACKING,
+                                              MotionStatus.IDLE, MotionStatus.POSITIONED]
         self.buttonSetFilter.setEnabled(initialized)
 
     def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
