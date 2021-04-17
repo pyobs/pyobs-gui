@@ -8,6 +8,8 @@ from .mainwindow import MainWindow
 
 
 class GUI(Module, IFitsHeaderProvider):
+    __module__ = 'pyobs_gui'
+
     def __init__(self, *args, **kwargs):
         Module.__init__(self, *args, **kwargs)
         self._window = None
