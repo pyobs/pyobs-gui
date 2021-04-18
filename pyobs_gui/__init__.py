@@ -1,8 +1,6 @@
 """
-GUI (pyobs_gui)
------------------------
-
 TODO: write doc
 """
+__title__ = 'GUI'
 
 from .gui import GUI
