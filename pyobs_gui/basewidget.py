@@ -1,5 +1,6 @@
 import threading
 import logging
+from typing import List, Dict, Tuple, Any
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -23,11 +24,11 @@ class BaseWidget(QtWidgets.QWidget):
         # update thread
         self._update_func = update_func
         self._update_interval = update_interval
-        self._update_thread = None
-        self._update_thread_event = None
+        self._update_thread = threading.Thread()
+        self._update_thread_event = threading.Event()
 
         # sidebar
-        self.sidebar_widgets = []
+        self.sidebar_widgets: List[BaseWidget] = []
         self.sidebar_layout = None
 
         # has it been initialized?
@@ -65,18 +66,17 @@ class BaseWidget(QtWidgets.QWidget):
             self._update_thread_event.set()
 
         # wait for it
-        if self._update_thread is not None:
+        if self._update_thread.is_alive():
             self._update_thread.join()
-            self._update_thread = None
-            self._update_thread_event = None
 
     def _update_loop_thread(self):
         while not self._update_thread_event.is_set():
             try:
                 # call update function
                 self._update_func()
-            except:
-                pass
+            except Exception as e:
+                log.warning("Exception during GUIs update function: %s",
+                            str(e))
 
             # sleep a little
             self._update_thread_event.wait(self._update_interval)
@@ -107,7 +107,7 @@ class BaseWidget(QtWidgets.QWidget):
     def enable_buttons(self, widgets, enable):
         [w.setEnabled(enable) for w in widgets]
 
-    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+    def get_fits_headers(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:

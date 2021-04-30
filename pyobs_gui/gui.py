@@ -1,3 +1,5 @@
+from typing import List, Dict, Tuple, Any
+
 from PyQt5 import QtWidgets
 
 from pyobs.interfaces import IFitsHeaderProvider
@@ -6,6 +8,8 @@ from .mainwindow import MainWindow
 
 
 class GUI(Module, IFitsHeaderProvider):
+    __module__ = 'pyobs_gui'
+
     def __init__(self, *args, **kwargs):
         Module.__init__(self, *args, **kwargs)
         self._window = None
@@ -21,7 +25,7 @@ class GUI(Module, IFitsHeaderProvider):
         # run
         app.exec()
 
-    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+    def get_fits_headers(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:

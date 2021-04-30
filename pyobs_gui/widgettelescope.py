@@ -12,6 +12,7 @@ from astroquery.exceptions import InvalidQueryError
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
 from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzOffsets, IRaDecOffsets
+from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgetfocus import WidgetFocus
@@ -34,7 +35,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.observer = observer  # type: Observer
 
         # variables
-        self._motion_status = IMotion.Status.UNKNOWN
+        self._motion_status = MotionStatus.UNKNOWN
         self._ra_dec = None
         self._alt_az = None
         self._off_ra = None
@@ -158,12 +159,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.labelStatus.setText(self._motion_status.value.upper())
 
         # (de)activate buttons
-        self.buttonInit.setEnabled(self._motion_status == IMotion.Status.PARKED)
-        self.buttonPark.setEnabled(self._motion_status not in [IMotion.Status.PARKED, IMotion.Status.ERROR,
-                                                               IMotion.Status.PARKING, IMotion.Status.INITIALIZING])
-        self.buttonStop.setEnabled(self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING])
-        initialized = self._motion_status in [IMotion.Status.SLEWING, IMotion.Status.TRACKING,
-                                              IMotion.Status.IDLE, IMotion.Status.POSITIONED]
+        self.buttonInit.setEnabled(self._motion_status == MotionStatus.PARKED)
+        self.buttonPark.setEnabled(self._motion_status not in [MotionStatus.PARKED, MotionStatus.ERROR,
+                                                               MotionStatus.PARKING, MotionStatus.INITIALIZING])
+        self.buttonStop.setEnabled(self._motion_status in [MotionStatus.SLEWING, MotionStatus.TRACKING])
+        initialized = self._motion_status in [MotionStatus.SLEWING, MotionStatus.TRACKING,
+                                              MotionStatus.IDLE, MotionStatus.POSITIONED]
         self.buttonMove.setEnabled(initialized)
         self.buttonOffsetNorth.setEnabled(initialized)
         self.buttonOffsetSouth.setEnabled(initialized)
@@ -396,7 +397,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.run_async(self.module.set_radec_offsets, self._off_ra, 0.)
         else:
             # now the sets, ask for value
-            new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, 0, 999)
+            new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, -999, 999)
             if ok:
                 if self.sender() == self.buttonSetAltOffset:
                     self.run_async(self.module.set_altaz_offsets, new_value / 3600., self._off_az)

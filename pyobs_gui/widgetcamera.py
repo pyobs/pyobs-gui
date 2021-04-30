@@ -1,14 +1,15 @@
 import logging
 import os
 import threading
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
-    ICameraExposureTime, IImageType
-from pyobs.utils.enums import ImageType
+    ICameraExposureTime, IImageType, IImageFormat
+from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
+from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
@@ -22,8 +23,51 @@ from .qt.widgetcamera import Ui_WidgetCamera
 log = logging.getLogger(__name__)
 
 
+class DownloadThread(QtCore.QThread):
+    """Worker thread for downloading images."""
+
+    """Signal emitted when the image is downloaded."""
+    imageReady = pyqtSignal(Image, str)
+
+    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: str = None, *args, **kwargs):
+        """Init a new worker thread.
+
+        Args:
+            vfs: VFS to use for download
+            filename: File to download
+            autosave: Path for autosave or None.
+        """
+        QtCore.QThread.__init__(self, *args, **kwargs)
+        self.vfs = vfs
+        self.filename = filename
+        self.autosave = autosave
+
+    def run(self):
+        """Run method in thread."""
+
+        # download image
+        image = self.vfs.read_image(self.filename)
+
+        # auto save?
+        if self.autosave is not None:
+            # get path and check
+            path = self.autosave
+            if not os.path.exists(path):
+                log.warning('Invalid path for auto-saving.')
+
+            else:
+                # save image
+                filename = os.path.join(path, os.path.basename(self.filename.replace('.fits.gz', '.fits')))
+                log.info('Saving image as %s...', filename)
+                image.writeto(filename, overwrite=True)
+
+        # update GUI
+        self.imageReady.emit(image, self.filename)
+
+
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
+    signal_new_image = pyqtSignal(NewImageEvent, str)
 
     def __init__(self, module, comm, vfs, parent=None):
         BaseWidget.__init__(self, parent=parent, update_func=self._update)
@@ -37,10 +81,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.image_filename = None
         self.image = None
         self.status = None
-        self.exposure_status = ICamera.ExposureStatus.IDLE
+        self.exposure_status = ExposureStatus.IDLE
         self.exposures_left = 0
         self.exposure_time_left = 0
         self.exposure_progress = 0
+        self.download_threads = []
 
         # set exposure types
         image_types = ['OBJECT', 'BIAS', 'DARK']
@@ -52,6 +97,14 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # hide groups, if necessary
         self.groupWindowing.setVisible(isinstance(self.module, ICameraWindow))
         self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
+        self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
+
+        # and single controls
+        self.labelImageType.setVisible(isinstance(self.module, IImageType))
+        self.comboImageType.setVisible(isinstance(self.module, IImageType))
+        self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
@@ -63,13 +116,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.tableFitsHeader.setHorizontalHeaderLabels(['Key', 'Value', 'Comment'])
 
         # connect signals
-        self.butFullFrame.clicked.connect(self.set_full_frame)
-        self.comboImageType.currentTextChanged.connect(self.image_type_changed)
-        self.butExpose.clicked.connect(self.expose)
-        self.butAbort.clicked.connect(self.abort)
         self.signal_update_gui.connect(self.update_gui)
-        self.butAutoSave.clicked.connect(self.select_autosave_path)
-        self.butSaveTo.clicked.connect(self.save_image)
+        self.signal_new_image.connect(self._on_new_image)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
         # initial values
@@ -89,22 +137,79 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.add_to_sidebar(WidgetTemperatures(module, comm))
 
     def _init(self):
-        # get status and update gui
-        self.exposure_status = ICamera.ExposureStatus(self.module.get_exposure_status().wait())
+        # get status
+        self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
+
+        # get binnings
+        if isinstance(self.module, ICameraBinning):
+            # get binnings
+            binnings = ['%dx%d' % tuple(binning) for binning in self.module.list_binnings().wait()]
+
+            # set it
+            self.comboBinning.clear()
+            self.comboBinning.addItems(binnings)
+
+            # set default value
+            self.comboBinning.setCurrentIndex(0)
+
+        # get image formats
+        if isinstance(self.module, IImageFormat):
+            # get formats
+            image_formats = [ImageFormat(f) for f in self.module.list_image_formats().wait()]
+
+            # set it
+            self.comboImageFormat.clear()
+            self.comboImageFormat.addItems([f.name for f in image_formats])
+
+            # find default value
+            if ImageFormat.INT16 in image_formats:
+                self.comboImageFormat.setCurrentText('INT16')
+            elif ImageFormat.INT8 in image_formats:
+                self.comboImageFormat.setCurrentText('INT8')
+            else:
+                self.comboImageFormat.setCurrentIndex(0)
+
+        # set full frame
         self.set_full_frame()
+
+        # update GUI
         self.signal_update_gui.emit()
 
+    @pyqtSlot(name='on_butFullFrame_clicked')
     def set_full_frame(self):
         if isinstance(self.module, ICameraWindow):
             # get full frame
             left, top, width, height = self.module.get_full_frame().wait()
 
+            # get binning
+            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, ICameraBinning) else 1
+
+            # max values
+            self.spinWindowLeft.setMaximum(width / binning)
+            self.spinWindowTop.setMaximum(height / binning)
+            self.spinWindowWidth.setMaximum(width / binning)
+            self.spinWindowHeight.setMaximum(height / binning)
+
             # set it
             self.spinWindowLeft.setValue(left)
             self.spinWindowTop.setValue(top)
-            self.spinWindowWidth.setValue(width / self.spinBinningX.value())
-            self.spinWindowHeight.setValue(height / self.spinBinningY.value())
+            self.spinWindowWidth.setValue(width / binning)
+            self.spinWindowHeight.setValue(height / binning)
 
+    @pyqtSlot(str, name='on_comboBinning_currentTextChanged')
+    def binning_changed(self, binning):
+        self.set_full_frame()
+
+    @pyqtSlot(int, name='on_checkBroadcast_stateChanged')
+    def broadcast_changed(self, state):
+        if state == 0:
+            r = QMessageBox.question(self, 'pyobs', 'When disabling the broadcast, new images will not processed (and '
+                                                    'saved) within the pyobs network. Continue?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if r == QMessageBox.No:
+                self.checkBroadcast.setChecked(True)
+
+    @pyqtSlot(str, name='on_comboImageType_currentTextChanged')
     def image_type_changed(self, image_type):
         if image_type == 'BIAS':
             self.spinExpTime.setValue(0)
@@ -112,27 +217,34 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.spinExpTime.setEnabled(True)
 
+    @pyqtSlot(name='on_butExpose_clicked')
     def expose(self):
         # set binning
         if isinstance(self.module, ICameraBinning):
-            binx, biny = self.spinBinningX.value(), self.spinBinningY.value()
+            binning = int(self.comboBinning.currentText()[0])
             try:
-                self.module.set_binning(binx, biny).wait()
+                self.module.set_binning(binning, binning).wait()
             except:
+                log.exception('bla')
                 QMessageBox.information(self, 'Error', 'Could not set binning.')
                 return
         else:
-            binx, biny = 1, 1
+            binning = 1
 
         # set window
         if isinstance(self.module, ICameraWindow):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                self.module.set_window(left, top, width * binx, height * biny).wait()
+                self.module.set_window(left, top, width * binning, height * binning).wait()
             except:
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
+
+        # set image format
+        if isinstance(self.module, IImageFormat):
+            image_format = ImageFormat[self.comboImageFormat.currentText()]
+            self.module.set_image_format(image_format)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
@@ -146,15 +258,35 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # do exposure(s)
         while self.exposures_left > 0:
-            # set exposure time and expose
+            # set exposure time
             if isinstance(self.module, ICameraExposureTime):
-                self.module.set_exposure_time(self.spinExpTime.value()).wait()
+                # get exp_time
+                exp_time = self.spinExpTime.value()
+
+                # unit
+                if self.comboExpTimeUnit.currentText() == 'ms':
+                    exp_time /= 1e3
+                elif self.comboExpTimeUnit.currentText() == 'µs':
+                    exp_time /= 1e6
+
+                # set it
+                self.module.set_exposure_time(exp_time).wait()
+
+            # set image type
             if isinstance(self.module, IImageType):
                 self.module.set_image_type(image_type)
-            self.module.expose().wait()
+
+            # expose
+            broadcast = self.checkBroadcast.isChecked()
+            filename = self.module.expose(broadcast=broadcast).wait()
 
             # decrement number of exposures left
             self.exposures_left -= 1
+
+            # if we're not broadcasting the filename, we need to signal it manually
+            if not broadcast:
+                ev = NewImageEvent(filename, image_type)
+                self.signal_new_image.emit(ev, self.module.name)
 
             # signal GUI update
             self.signal_update_gui.emit()
@@ -162,7 +294,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     def plot(self):
         """Show image."""
         self.imageView.display(self.image)
-        
+
+    @pyqtSlot(name='on_butAbort_clicked')
     def abort(self):
         """Abort exposure."""
 
@@ -179,7 +312,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def _update(self):
         # are we exposing?
-        if self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+        if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
             exposure_time_left = self.module.get_exposure_time_left()
             exposure_progress = self.module.get_exposure_progress()
@@ -203,8 +336,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.setEnabled(True)
 
         # enable/disable buttons
-        self.butExpose.setEnabled(self.exposure_status == ICamera.ExposureStatus.IDLE)
-        self.butAbort.setEnabled(self.exposure_status != ICamera.ExposureStatus.IDLE)
+        self.butExpose.setEnabled(self.exposure_status == ExposureStatus.IDLE)
+        self.butAbort.setEnabled(self.exposure_status != ExposureStatus.IDLE)
 
         # set abort text
         if self.exposures_left > 1:
@@ -214,13 +347,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # set progress
         msg = ''
-        if self.exposure_status == ICamera.ExposureStatus.IDLE:
+        if self.exposure_status == ExposureStatus.IDLE:
             self.progressExposure.setValue(0)
             msg = 'IDLE'
-        elif self.exposure_status == ICamera.ExposureStatus.EXPOSING:
+        elif self.exposure_status == ExposureStatus.EXPOSING:
             self.progressExposure.setValue(self.exposure_progress)
             msg = 'EXPOSING %.1fs' % self.exposure_time_left
-        elif self.exposure_status == ICamera.ExposureStatus.READOUT:
+        elif self.exposure_status == ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
             msg = 'READOUT'
 
@@ -300,27 +433,34 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if not self.checkAutoUpdate.isChecked():
             return
 
-        # download image
-        self.image = self.vfs.read_image(event.filename)
-        self.image_filename = event.filename
+        # autosave?
+        autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
+
+        # create thread for download
+        thread = DownloadThread(self.vfs, event.filename, autosave)
+        thread.imageReady.connect(self._image_downloaded)
+        thread.start()
+
+        self.download_threads.append(thread)
+
+    def _image_downloaded(self, image, filename):
+        """Called, when image is downloaded.
+        """
+
+        # store image and filename
+        self.image = image
+        self.image_filename = filename
         self.new_image = True
 
-        # auto save?
-        if self.checkAutoSave.isChecked():
-            # get path and check
-            path = self.textAutoSavePath.text()
-            if not os.path.exists(path):
-                log.warning('Invalid path for auto-saving.')
+        # find finished threads and delete them
+        finished_threads = [t for t in self.download_threads if not t.isRunning()]
+        for t in finished_threads:
+            self.download_threads.remove(t)
 
-            else:
-                # save image
-                filename = os.path.join(path, os.path.basename(self.image_filename.replace('.fits.gz', '.fits')))
-                log.info('Saving image as %s...', filename)
-                self.image.writeto(filename, overwrite=True)
+        # show image
+        self.update_gui()
 
-        # update GUI
-        self.signal_update_gui.emit()
-
+    @pyqtSlot(name='on_butAutoSave_clicked')
     def select_autosave_path(self):
         """Select path for auto-saving."""
 
@@ -333,6 +473,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.textAutoSavePath.clear()
 
+    @pyqtSlot(name='on_butSaveTo_clicked')
     def save_image(self):
         """Save image."""
 
