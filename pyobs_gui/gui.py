@@ -10,16 +10,26 @@ from .mainwindow import MainWindow
 class GUI(Module, IFitsHeaderProvider):
     __module__ = 'pyobs_gui'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, show_shell: bool = True, show_events: bool = True, *args, **kwargs):
+        """Inits a new GUI.
+
+        Args:
+            show_shell: Whether to show the shell page.
+            show_events: Whether to show the events page.
+        """
+
         Module.__init__(self, *args, **kwargs)
         self._window = None
+        self._show_shell = show_shell
+        self._show_events = show_events
 
     def main(self):
         # create app
         app = QtWidgets.QApplication([])
 
         # create and show window
-        self._window = MainWindow(self.comm, self.vfs, self.observer)
+        self._window = MainWindow(self.comm, self.vfs, self.observer,
+                                  show_shell=self._show_shell, show_events=self._show_events)
         self._window.show()
 
         # run

@@ -49,7 +49,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_connected = pyqtSignal(str)
     client_disconnected = pyqtSignal(str)
 
-    def __init__(self, comm, vfs, observer, log_latency=2, **kwargs):
+    def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True, **kwargs):
+        """Init window.
+
+        Args:
+            comm: Comm to use.
+            vfs: VFS to use.
+            observer: Observer to use.
+            show_shell: Whether to show shell page.
+            show_events: Whether to show events page.
+        """
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
@@ -84,13 +93,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._widgets = {}
         self._current_widget = None
 
-        # add shell nav button and view
-        self.shell = WidgetShell(self.comm)
-        self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+        # shell
+        if show_shell:
+            # add shell nav button and view
+            self.shell = WidgetShell(self.comm)
+            self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+        else:
+            self.shell = None
 
-        # add events nav button and view
-        self.events = WidgetEvents(self.comm)
-        self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+        # events
+        if show_events:
+            # add events nav button and view
+            self.events = WidgetEvents(self.comm)
+            self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+        else:
+            self.events = None
 
         # create other nav buttons and views
         for client_name in self.comm.clients:
@@ -174,8 +191,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
             self.listClients.addItem(item)
 
-        #
-        self.shell.update_client_list()
+        # update shell
+        if self.shell is not None:
+            self.shell.update_client_list()
 
     def process_log_entry(self, entry: LogEvent, sender: str):
         """Process a new log entry.
