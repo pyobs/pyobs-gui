@@ -49,7 +49,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_connected = pyqtSignal(str)
     client_disconnected = pyqtSignal(str)
 
-    def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True, **kwargs):
+    def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
+                 show_modules: list = None, **kwargs):
         """Init window.
 
         Args:
@@ -58,6 +59,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             observer: Observer to use.
             show_shell: Whether to show shell page.
             show_events: Whether to show events page.
+            show_modules: If not empty, show only listed modules.
         """
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
@@ -68,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.vfs = vfs
         self.observer = observer
         self.mastermind_running = False
+        self.show_modules = show_modules
 
         # closing
         self.closing = Event()
@@ -246,6 +249,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Args:
             client: Name of client.
         """
+
+        # ignore it?
+        if self.show_modules is not None and client not in self.show_modules:
+            return
 
         # update client list
         self._update_client_list()
