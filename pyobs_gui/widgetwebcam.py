@@ -1,10 +1,13 @@
 import logging
+from urllib.parse import urlparse
+
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
-from pyobs.interfaces import ICamera
-from pyobs.vfs import VirtualFileSystem
+from pyobs.comm import Comm
+from pyobs.interfaces import ICamera, IWebcam
+from pyobs.vfs import VirtualFileSystem, HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
 
@@ -28,13 +31,16 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class WidgetWebcam(BaseWidget):
-    def __init__(self, module, comm, vfs, parent=None):
+    def __init__(self, module: IWebcam, comm: Comm, vfs: VirtualFileSystem, parent=None):
         BaseWidget.__init__(self, parent=parent)
 
         # store
-        self.module = module    # type: ICamera
-        self.comm = comm        # type: Comm
-        self.vfs = vfs          # type: VirtualFileSystem
+        self.module = module
+        self.comm = comm
+        self.vfs = vfs
+        self.host = None
+        self.port = None
+        self.path = None
 
         # set up ui
         layout = QtWidgets.QVBoxLayout()
@@ -44,23 +50,49 @@ class WidgetWebcam(BaseWidget):
 
         # init buffer
         self.buffer = b''
+
+        # socket
         self.socket = QTcpSocket()
+        self.socket.readyRead.connect(self._received_data)
+
+    def _init(self):
+        # get video stream URL and open it
+        video_path = self.module.get_video().wait()
+        video_file = self.vfs.open_file(video_path, 'r')
+
+        # we heed a HttpFile
+        if not isinstance(video_file, HttpFile):
+            log.error('VFS path to video of module %s must be an HttpFile.', self.module.name)
+            return
+
+        # analyse URL
+        o = urlparse(video_file.url)
+
+        # scheme must be http
+        # TODO: how to do HTTPS?
+        if o.scheme != 'http':
+            log.error('URL scheme to video of module %s must be HTTP.', self.module.name)
+            return
+
+        # get info
+        (self.host, self.port) = tuple(o.netloc.split(':')) if ':' in o.netloc else (o.netloc, 80)
+        self.path = o.path
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
-        # connect socket
-        self.socket.connectToHost("localhost", 37077)
-        self.socket.readyRead.connect(self._received_data)
-        self.socket.write(b'GET /video.mjpg HTTP/1.1\r\n\r\n')
-
         # call base
         BaseWidget.showEvent(self, event)
 
-    def hideEvent(self, event: QtGui.QHideEvent) -> None:
-        # disconnect socket
-        self.socket.disconnect()
+        # connect socket
+        if self.host is not None:
+            self.socket.connectToHost(self.host, int(self.port))
+            self.socket.write(b'GET %s HTTP/1.1\r\n\r\n' % bytes(self.path, 'UTF-8'))
 
+    def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # call base
         BaseWidget.hideEvent(self, event)
+
+        # disconnect socket
+        self.socket.disconnectFromHost()
 
     def _received_data(self):
         boundary = b'--jpgboundary\r\n'
