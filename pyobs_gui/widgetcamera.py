@@ -185,16 +185,16 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, ICameraBinning) else 1
 
             # max values
-            self.spinWindowLeft.setMaximum(width / binning)
-            self.spinWindowTop.setMaximum(height / binning)
-            self.spinWindowWidth.setMaximum(width / binning)
-            self.spinWindowHeight.setMaximum(height / binning)
+            self.spinWindowLeft.setMaximum(int(width / binning))
+            self.spinWindowTop.setMaximum(int(height / binning))
+            self.spinWindowWidth.setMaximum(int(width / binning))
+            self.spinWindowHeight.setMaximum(int(height / binning))
 
             # set it
             self.spinWindowLeft.setValue(left)
             self.spinWindowTop.setValue(top)
-            self.spinWindowWidth.setValue(width / binning)
-            self.spinWindowHeight.setValue(height / binning)
+            self.spinWindowWidth.setValue(int(width / binning))
+            self.spinWindowHeight.setValue(int(height / binning))
 
     @pyqtSlot(str, name='on_comboBinning_currentTextChanged')
     def binning_changed(self, binning):
@@ -351,7 +351,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.progressExposure.setValue(0)
             msg = 'IDLE'
         elif self.exposure_status == ExposureStatus.EXPOSING:
-            self.progressExposure.setValue(self.exposure_progress)
+            self.progressExposure.setValue(int(self.exposure_progress))
             msg = 'EXPOSING %.1fs' % self.exposure_time_left
         elif self.exposure_status == ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
