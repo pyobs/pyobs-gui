@@ -18,7 +18,7 @@ from pyobs_gui.widgettelescope import WidgetTelescope
 from pyobs_gui.widgetfocus import WidgetFocus
 from pyobs_gui.widgetscript import WidgetScript
 from pyobs_gui.widgetweather import WidgetWeather
-from pyobs_gui.widgetwebcam import WidgetWebcam
+from pyobs_gui.widgetvideo import WidgetVideo
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
@@ -284,7 +284,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             widget = WidgetScript(proxy, self.comm)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         elif isinstance(proxy, IVideo):
-            widget = WidgetWebcam(proxy, self.comm, self.vfs)
+            widget = WidgetVideo(proxy, self.comm, self.vfs)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         else:
             return

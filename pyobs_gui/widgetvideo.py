@@ -30,7 +30,7 @@ class ScaledLabel(QtWidgets.QLabel):
             self.setPixmap(self._pixmap)
 
 
-class WidgetWebcam(BaseWidget):
+class WidgetVideo(BaseWidget):
     def __init__(self, module: IVideo, comm: Comm, vfs: VirtualFileSystem, parent=None):
         BaseWidget.__init__(self, parent=parent)
 
