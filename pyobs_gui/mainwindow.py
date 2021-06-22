@@ -7,7 +7,7 @@ from astropy.time import Time
 from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IWebcam
+from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IVideo
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
 from pyobs_gui.widgetcamera import WidgetCamera
@@ -283,7 +283,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif isinstance(proxy, IScriptRunner):
             widget = WidgetScript(proxy, self.comm)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IWebcam):
+        elif isinstance(proxy, IVideo):
             widget = WidgetWebcam(proxy, self.comm, self.vfs)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         else:

@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
 from pyobs.comm import Comm
-from pyobs.interfaces import ICamera, IWebcam
+from pyobs.interfaces import ICamera, IVideo
 from pyobs.vfs import VirtualFileSystem, HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
@@ -31,7 +31,7 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class WidgetWebcam(BaseWidget):
-    def __init__(self, module: IWebcam, comm: Comm, vfs: VirtualFileSystem, parent=None):
+    def __init__(self, module: IVideo, comm: Comm, vfs: VirtualFileSystem, parent=None):
         BaseWidget.__init__(self, parent=parent)
 
         # store
