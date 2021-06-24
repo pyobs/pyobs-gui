@@ -5,9 +5,10 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
+from pyobs.comm import Comm
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
-    ICameraExposureTime, IImageType, IImageFormat
+    ICameraExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
@@ -69,12 +70,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
     signal_new_image = pyqtSignal(NewImageEvent, str)
 
-    def __init__(self, module, comm, vfs, parent=None):
+    def __init__(self, module: IImageGrabber, comm: Comm, vfs: VirtualFileSystem, parent=None):
         BaseWidget.__init__(self, parent=parent, update_func=self._update)
         self.setupUi(self)
-        self.module = module    # type: ICamera
-        self.comm = comm        # type: Comm
-        self.vfs = vfs          # type: VirtualFileSystem
+        self.module = module
+        self.comm = comm
+        self.vfs = vfs
 
         # variables
         self.new_image = False
@@ -105,6 +106,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
         self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
         self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
@@ -138,7 +140,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     def _init(self):
         # get status
-        self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
+        if isinstance(self.module, ICamera):
+            self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
 
         # get binnings
         if isinstance(self.module, ICameraBinning):
