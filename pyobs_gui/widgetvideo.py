@@ -10,6 +10,8 @@ from pyobs.interfaces import ICamera, IVideo
 from pyobs.vfs import VirtualFileSystem, HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
+from .qt.widgetvideo import Ui_WidgetVideo
+from .widgetcamera import WidgetCamera
 
 log = logging.getLogger(__name__)
 
@@ -30,9 +32,10 @@ class ScaledLabel(QtWidgets.QLabel):
             self.setPixmap(self._pixmap)
 
 
-class WidgetVideo(BaseWidget):
+class WidgetVideo(BaseWidget, Ui_WidgetVideo):
     def __init__(self, module: IVideo, comm: Comm, vfs: VirtualFileSystem, parent=None):
         BaseWidget.__init__(self, parent=parent)
+        self.setupUi(self)
 
         # store
         self.module = module
@@ -42,11 +45,13 @@ class WidgetVideo(BaseWidget):
         self.port = None
         self.path = None
 
-        # set up ui
-        layout = QtWidgets.QVBoxLayout()
-        self.setLayout(layout)
-        self.video = ScaledLabel()
-        layout.addWidget(self.video)
+        # add live view
+        self.widgetLiveView = ScaledLabel()
+        self.tabLiveView.layout().addWidget(self.widgetLiveView)
+
+        # add camera widget
+        self.widgetCamera = WidgetCamera(module, comm, vfs)
+        self.tabFitsImage.layout().addWidget(self.widgetCamera)
 
         # init buffer
         self.buffer = b''
@@ -56,6 +61,9 @@ class WidgetVideo(BaseWidget):
         self.socket.readyRead.connect(self._received_data)
 
     def _init(self):
+        # init camera widget
+        self.widgetCamera._init()
+
         # get video stream URL and open it
         video_path = self.module.get_video().wait()
         video_file = self.vfs.open_file(video_path, 'r')
@@ -113,4 +121,7 @@ class WidgetVideo(BaseWidget):
             # to pixmap and show it
             qp = QPixmap()
             qp.loadFromData(image_data)
-            self.video.setPixmap(qp)
+            self.widgetLiveView.setPixmap(qp)
+
+
+__all__ = ['WidgetVideo']
