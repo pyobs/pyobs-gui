@@ -11,7 +11,7 @@ from pyobs.vfs import VirtualFileSystem, HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
 from .qt.widgetvideo import Ui_WidgetVideo
-from .widgetcamera import WidgetCamera
+from .widgetimagegrabber import WidgetImageGrabber
 
 log = logging.getLogger(__name__)
 
@@ -50,8 +50,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.tabLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetCamera = WidgetCamera(module, comm, vfs)
-        self.tabFitsImage.layout().addWidget(self.widgetCamera)
+        self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
+        self.tabFitsImage.layout().addWidget(self.widgetImageGrabber)
 
         # init buffer
         self.buffer = b''
@@ -61,9 +61,6 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.socket.readyRead.connect(self._received_data)
 
     def _init(self):
-        # init camera widget
-        self.widgetCamera._init()
-
         # get video stream URL and open it
         video_path = self.module.get_video().wait()
         video_file = self.vfs.open_file(video_path, 'r')
