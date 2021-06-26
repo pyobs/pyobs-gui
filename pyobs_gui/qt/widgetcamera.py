@@ -460,9 +460,13 @@ class Ui_WidgetCamera(object):
         self.verticalLayout.addWidget(self.labelExposuresLeft)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.horizontalLayout_2.addWidget(self.scrollArea)
-        self.widget = QtWidgets.QWidget(WidgetCamera)
-        self.widget.setObjectName("widget")
-        self.horizontalLayout_2.addWidget(self.widget)
+        self.frameImageGrabber = QtWidgets.QWidget(WidgetCamera)
+        self.frameImageGrabber.setObjectName("frameImageGrabber")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.frameImageGrabber)
+        self.verticalLayout_2.setContentsMargins(-1, 0, 0, 0)
+        self.verticalLayout_2.setSpacing(0)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_2.addWidget(self.frameImageGrabber)
         self.widgetSidebar = QtWidgets.QWidget(WidgetCamera)
         self.widgetSidebar.setObjectName("widgetSidebar")
         self.horizontalLayout_2.addWidget(self.widgetSidebar)
@@ -508,4 +512,4 @@ class Ui_WidgetCamera(object):
         self.comboExpTimeUnit.setItemText(2, _translate("WidgetCamera", "µs"))
         self.labelStatus.setText(_translate("WidgetCamera", "IDLE"))
         self.labelExposuresLeft.setText(_translate("WidgetCamera", "IDLE"))
-import resources_rc
+from . import resources_rc

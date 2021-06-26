@@ -19,7 +19,7 @@ from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
 from qfitswidget import QFitsWidget
 from .qt.widgetcamera import Ui_WidgetCamera
-
+from .widgetimagegrabber import WidgetImageGrabber
 
 log = logging.getLogger(__name__)
 
@@ -88,6 +88,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposure_progress = 0
         self.download_threads = []
 
+        # image grabber
+        self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
+        self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
+
         # set exposure types
         image_types = ['OBJECT', 'BIAS', 'DARK']
         self.comboImageType.addItems(image_types)
@@ -108,26 +112,14 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
         self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
-        # add image panel
-        self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        self.imageView = QFitsWidget()
-        self.imageLayout.addWidget(self.imageView)
-
-        # set headers for fits header tab
-        self.tableFitsHeader.setColumnCount(3)
-        self.tableFitsHeader.setHorizontalHeaderLabels(['Key', 'Value', 'Comment'])
-
-        # connect signals
-        self.signal_update_gui.connect(self.update_gui)
-        self.signal_new_image.connect(self._on_new_image)
-        self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
-
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
+        # connect signals
+        self.signal_update_gui.connect(self.update_gui)
+
         # subscribe to events
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
-        self.comm.register_event(NewImageEvent, self._on_new_image)
 
         # fill sidebar
         self.add_to_sidebar(WidgetFitsHeaders(module, comm))
@@ -281,15 +273,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            filename = self.module.grab_image(broadcast=broadcast).wait()
+            filename = self.widgetImageGrabber.grab_image(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
-
-            # if we're not broadcasting the filename, we need to signal it manually
-            if not broadcast:
-                ev = NewImageEvent(filename, image_type)
-                self.signal_new_image.emit(ev, self.module.name)
 
             # signal GUI update
             self.signal_update_gui.emit()
@@ -419,78 +406,3 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # trigger GUI update
         self.signal_update_gui.emit()
-
-    def _on_new_image(self, event: NewImageEvent, sender: str):
-        """Called when new image is ready.
-
-        Args:
-            event: Status change event.
-            sender: Name of sender.
-        """
-
-        # ignore events from wrong sender
-        if sender != self.module.name:
-            return
-
-        # don't update?
-        if not self.checkAutoUpdate.isChecked():
-            return
-
-        # autosave?
-        autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
-
-        # create thread for download
-        thread = DownloadThread(self.vfs, event.filename, autosave)
-        thread.imageReady.connect(self._image_downloaded)
-        thread.start()
-
-        self.download_threads.append(thread)
-
-    def _image_downloaded(self, image, filename):
-        """Called, when image is downloaded.
-        """
-
-        # store image and filename
-        self.image = image
-        self.image_filename = filename
-        self.new_image = True
-
-        # find finished threads and delete them
-        finished_threads = [t for t in self.download_threads if not t.isRunning()]
-        for t in finished_threads:
-            self.download_threads.remove(t)
-
-        # show image
-        self.update_gui()
-
-    @pyqtSlot(name='on_butAutoSave_clicked')
-    def select_autosave_path(self):
-        """Select path for auto-saving."""
-
-        # ask for path
-        path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")
-
-        # set it
-        if path:
-            self.textAutoSavePath.setText(path)
-        else:
-            self.textAutoSavePath.clear()
-
-    @pyqtSlot(name='on_butSaveTo_clicked')
-    def save_image(self):
-        """Save image."""
-
-        # no image?
-        if self.image is None:
-            return
-
-        # get initial filename
-        init_filename = os.path.basename(self.image_filename).replace('.fits.gz', '.fits')
-
-        # ask for filename
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save image", init_filename,
-                                                            "FITS Files (*.fits *.fits.gz)")
-
-        # save
-        if filename:
-            self.image.writeto(filename, overwrite=True)

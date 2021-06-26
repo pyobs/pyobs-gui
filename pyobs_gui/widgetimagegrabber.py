@@ -71,7 +71,7 @@ class WidgetImageGrabber(BaseWidget, Ui_WidgetImageGrabber):
     signal_new_image = pyqtSignal(NewImageEvent, str)
 
     def __init__(self, module: IImageGrabber, comm: Comm, vfs: VirtualFileSystem, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+        BaseWidget.__init__(self, parent=parent)
         self.setupUi(self)
         self.module = module
         self.comm = comm
@@ -109,9 +109,10 @@ class WidgetImageGrabber(BaseWidget, Ui_WidgetImageGrabber):
         # subscribe to events
         self.comm.register_event(NewImageEvent, self._on_new_image)
 
-    def grab_image(self, image_type: ImageType):
+    def grab_image(self, broadcast: bool, image_type: ImageType):
+        """Grab image. Must be called from a thread."""
+
         # expose
-        broadcast = self.checkBroadcast.isChecked()
         filename = self.module.grab_image(broadcast=broadcast).wait()
 
         # decrement number of exposures left
