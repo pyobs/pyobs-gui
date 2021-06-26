@@ -47,7 +47,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # add live view
         self.widgetLiveView = ScaledLabel()
-        self.tabLiveView.layout().addWidget(self.widgetLiveView)
+        self.frameImageGrabber.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
         self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
