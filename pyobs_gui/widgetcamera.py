@@ -273,7 +273,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            filename = self.widgetImageGrabber.grab_image(broadcast, image_type)
+            self.widgetImageGrabber.grab_image(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
