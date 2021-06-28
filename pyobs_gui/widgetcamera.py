@@ -93,7 +93,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
         # set exposure types
-        image_types = ['OBJECT', 'BIAS', 'DARK']
+        image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
 
         # before first update, disable mys

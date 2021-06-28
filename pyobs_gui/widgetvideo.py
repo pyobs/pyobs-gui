@@ -3,7 +3,7 @@ import threading
 from urllib.parse import urlparse
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
@@ -36,6 +36,8 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class WidgetVideo(BaseWidget, Ui_WidgetVideo):
+    signal_update_gui = pyqtSignal()
+
     def __init__(self, module: IVideo, comm: Comm, vfs: VirtualFileSystem, parent=None):
         BaseWidget.__init__(self, parent=parent)
         self.setupUi(self)
@@ -57,6 +59,12 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
+        # connect signals
+        self.signal_update_gui.connect(self.update_gui)
+
+        # before first update, disable mys
+        self.setEnabled(False)
+
         # init buffer
         self.buffer = b''
 
@@ -65,14 +73,18 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.socket.readyRead.connect(self._received_data)
 
         # set exposure types
-        image_types = ['OBJECT', 'BIAS', 'DARK']
+        image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
+        self.comboImageType.setCurrentText('OBJECT')
 
         # hide single controls, if necessary
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
         self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
         self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+
+        # initial values
+        self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
     def _init(self):
         # get video stream URL and open it
@@ -101,6 +113,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         if isinstance(self.module, ICameraExposureTime):
             self.spinExpTime.setValue(self.module.get_exposure_time().wait())
 
+        # update GUI
+        self.signal_update_gui.emit()
+
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         # call base
         BaseWidget.showEvent(self, event)
@@ -116,6 +131,21 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # disconnect socket
         self.socket.disconnectFromHost()
+
+    def update_gui(self):
+        """Update the GUI."""
+
+        # enable myself
+        self.setEnabled(True)
+
+        # enable/disable buttons
+        self.buttonAbort.setEnabled(self.exposures_left > 0)
+
+        # exposures left
+        if self.exposures_left > 0:
+            self.labelExposuresLeft.setText('%d exposure(s) left' % self.exposures_left)
+        else:
+            self.labelExposuresLeft.setText('')
 
     def _received_data(self):
         boundary = b'--jpgboundary\r\n'
@@ -148,6 +178,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # set initial image count
         self.exposures_left = self.spinCount.value()
 
+        # signal GUI update
+        self.signal_update_gui.emit()
+
         # start exposures
         threading.Thread(target=self._expose_thread_func).start()
 
@@ -167,6 +200,13 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
             # decrement number of exposures left
             self.exposures_left -= 1
+
+            # signal GUI update
+            self.signal_update_gui.emit()
+
+    @pyqtSlot(name='on_buttonAbort_clicked')
+    def abort_sequence(self):
+        self.exposures_left = 0
 
     @pyqtSlot(float, name='on_spinExpTime_valueChanged')
     def exposure_time_changed(self):
