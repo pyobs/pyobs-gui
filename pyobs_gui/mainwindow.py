@@ -7,7 +7,7 @@ from astropy.time import Time
 from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous
+from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IVideo
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
 from pyobs_gui.widgetcamera import WidgetCamera
@@ -18,6 +18,7 @@ from pyobs_gui.widgettelescope import WidgetTelescope
 from pyobs_gui.widgetfocus import WidgetFocus
 from pyobs_gui.widgetscript import WidgetScript
 from pyobs_gui.widgetweather import WidgetWeather
+from pyobs_gui.widgetvideo import WidgetVideo
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
@@ -49,7 +50,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_connected = pyqtSignal(str)
     client_disconnected = pyqtSignal(str)
 
-    def __init__(self, comm, vfs, observer, log_latency=2, **kwargs):
+    def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
+                 show_modules: list = None, **kwargs):
+        """Init window.
+
+        Args:
+            comm: Comm to use.
+            vfs: VFS to use.
+            observer: Observer to use.
+            show_shell: Whether to show shell page.
+            show_events: Whether to show events page.
+            show_modules: If not empty, show only listed modules.
+        """
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
@@ -59,6 +71,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.vfs = vfs
         self.observer = observer
         self.mastermind_running = False
+        self.show_modules = show_modules
 
         # closing
         self.closing = Event()
@@ -84,13 +97,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._widgets = {}
         self._current_widget = None
 
-        # add shell nav button and view
-        self.shell = WidgetShell(self.comm)
-        self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+        # shell
+        if show_shell:
+            # add shell nav button and view
+            self.shell = WidgetShell(self.comm)
+            self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+        else:
+            self.shell = None
 
-        # add events nav button and view
-        self.events = WidgetEvents(self.comm)
-        self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+        # events
+        if show_events:
+            # add events nav button and view
+            self.events = WidgetEvents(self.comm)
+            self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+        else:
+            self.events = None
 
         # create other nav buttons and views
         for client_name in self.comm.clients:
@@ -174,8 +195,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
             self.listClients.addItem(item)
 
-        #
-        self.shell.update_client_list()
+        # update shell
+        if self.shell is not None:
+            self.shell.update_client_list()
 
     def process_log_entry(self, entry: LogEvent, sender: str):
         """Process a new log entry.
@@ -229,6 +251,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             client: Name of client.
         """
 
+        # ignore it?
+        if self.show_modules is not None and client not in self.show_modules:
+            return
+
         # update client list
         self._update_client_list()
 
@@ -257,6 +283,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif isinstance(proxy, IScriptRunner):
             widget = WidgetScript(proxy, self.comm)
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
+        elif isinstance(proxy, IVideo):
+            widget = WidgetVideo(proxy, self.comm, self.vfs)
+            icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         else:
             return
 
