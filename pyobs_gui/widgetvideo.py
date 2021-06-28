@@ -1,17 +1,20 @@
 import logging
+import threading
 from urllib.parse import urlparse
 
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
 from pyobs.comm import Comm
-from pyobs.interfaces import ICamera, IVideo
+from pyobs.interfaces import ICamera, IVideo, IImageFormat, IImageType, ICameraExposureTime
+from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import VirtualFileSystem, HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
 from .qt.widgetvideo import Ui_WidgetVideo
-from .widgetcamera import WidgetCamera
+from .widgetimagegrabber import WidgetImageGrabber
 
 log = logging.getLogger(__name__)
 
@@ -44,14 +47,15 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.host = None
         self.port = None
         self.path = None
+        self.exposures_left = 0
 
         # add live view
         self.widgetLiveView = ScaledLabel()
-        self.tabLiveView.layout().addWidget(self.widgetLiveView)
+        self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetCamera = WidgetCamera(module, comm, vfs)
-        self.tabFitsImage.layout().addWidget(self.widgetCamera)
+        self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
+        self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
         # init buffer
         self.buffer = b''
@@ -60,10 +64,18 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.socket = QTcpSocket()
         self.socket.readyRead.connect(self._received_data)
 
-    def _init(self):
-        # init camera widget
-        self.widgetCamera._init()
+        # set exposure types
+        image_types = ['OBJECT', 'BIAS', 'DARK']
+        self.comboImageType.addItems(image_types)
 
+        # hide single controls, if necessary
+        self.labelImageType.setVisible(isinstance(self.module, IImageType))
+        self.comboImageType.setVisible(isinstance(self.module, IImageType))
+        self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
+
+    def _init(self):
         # get video stream URL and open it
         video_path = self.module.get_video().wait()
         video_file = self.vfs.open_file(video_path, 'r')
@@ -122,6 +134,36 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             qp = QPixmap()
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
+
+    @pyqtSlot(name='on_buttonGrabImage_clicked')
+    def grab_image(self):
+        # set image format
+        if isinstance(self.module, IImageFormat):
+            image_format = ImageFormat[self.comboImageFormat.currentText()]
+            self.module.set_image_format(image_format)
+
+        # set initial image count
+        self.exposures_left = self.spinCount.value()
+
+        # start exposures
+        threading.Thread(target=self._expose_thread_func).start()
+
+    def _expose_thread_func(self):
+        # get image type
+        image_type = ImageType(self.comboImageType.currentText().lower())
+
+        # do exposure(s)
+        while self.exposures_left > 0:
+            # set image type
+            if isinstance(self.module, IImageType):
+                self.module.set_image_type(image_type)
+
+            # expose
+            broadcast = self.checkBroadcast.isChecked()
+            self.widgetImageGrabber.grab_image(broadcast, image_type)
+
+            # decrement number of exposures left
+            self.exposures_left -= 1
 
 
 __all__ = ['WidgetVideo']
