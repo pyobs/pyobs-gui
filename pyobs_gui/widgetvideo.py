@@ -73,7 +73,6 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
         self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
         self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
-        self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
 
     def _init(self):
         # get video stream URL and open it
@@ -97,6 +96,10 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # get info
         (self.host, self.port) = tuple(o.netloc.split(':')) if ':' in o.netloc else (o.netloc, 80)
         self.path = o.path
+
+        # get initial values
+        if isinstance(self.module, ICameraExposureTime):
+            self.spinExpTime.setValue(self.module.get_exposure_time().wait())
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         # call base
@@ -164,6 +167,15 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
             # decrement number of exposures left
             self.exposures_left -= 1
+
+    @pyqtSlot(float, name='on_spinExpTime_valueChanged')
+    def exposure_time_changed(self):
+        # get exp_time
+        exp_time = self.spinExpTime.value()
+
+        # set it
+        if isinstance(self.module, ICameraExposureTime):
+            self.module.set_exposure_time(exp_time)
 
 
 __all__ = ['WidgetVideo']
