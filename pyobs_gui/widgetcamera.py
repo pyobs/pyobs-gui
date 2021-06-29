@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.comm import Comm
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, IBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
+from pyobs.interfaces import ICamera, IBinning, IWindow, ICooling, IFilters, ITemperatures, \
     IExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.images import Image
@@ -100,7 +100,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.setEnabled(False)
 
         # hide groups, if necessary
-        self.groupWindowing.setVisible(isinstance(self.module, ICameraWindow))
+        self.groupWindowing.setVisible(isinstance(self.module, IWindow))
         self.groupBinning.setVisible(isinstance(self.module, IBinning))
         self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
 
@@ -172,7 +172,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     @pyqtSlot(name='on_butFullFrame_clicked')
     def set_full_frame(self):
-        if isinstance(self.module, ICameraWindow):
+        if isinstance(self.module, IWindow):
             # get full frame
             left, top, width, height = self.module.get_full_frame().wait()
 
@@ -227,7 +227,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             binning = 1
 
         # set window
-        if isinstance(self.module, ICameraWindow):
+        if isinstance(self.module, IWindow):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
