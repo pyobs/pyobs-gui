@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.comm import Comm
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
+from pyobs.interfaces import ICamera, IBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
     ICameraExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.images import Image
@@ -101,7 +101,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # hide groups, if necessary
         self.groupWindowing.setVisible(isinstance(self.module, ICameraWindow))
-        self.groupBinning.setVisible(isinstance(self.module, ICameraBinning))
+        self.groupBinning.setVisible(isinstance(self.module, IBinning))
         self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
 
         # and single controls
@@ -136,7 +136,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
 
         # get binnings
-        if isinstance(self.module, ICameraBinning):
+        if isinstance(self.module, IBinning):
             # get binnings
             binnings = ['%dx%d' % tuple(binning) for binning in self.module.list_binnings().wait()]
 
@@ -177,7 +177,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             left, top, width, height = self.module.get_full_frame().wait()
 
             # get binning
-            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, ICameraBinning) else 1
+            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinning) else 1
 
             # max values
             self.spinWindowLeft.setMaximum(int(width / binning))
@@ -215,7 +215,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     @pyqtSlot(name='on_butExpose_clicked')
     def expose(self):
         # set binning
-        if isinstance(self.module, ICameraBinning):
+        if isinstance(self.module, IBinning):
             binning = int(self.comboBinning.currentText()[0])
             try:
                 self.module.set_binning(binning, binning).wait()
