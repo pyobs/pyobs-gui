@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMessageBox
 from pyobs.comm import Comm
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import ICamera, IBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
-    ICameraExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
+    IExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
@@ -107,9 +107,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # and single controls
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
-        self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.comboExpTimeUnit.setVisible(isinstance(self.module, IExposureTime))
         self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
         # initial values
@@ -254,7 +254,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # do exposure(s)
         while self.exposures_left > 0:
             # set exposure time
-            if isinstance(self.module, ICameraExposureTime):
+            if isinstance(self.module, IExposureTime):
                 # get exp_time
                 exp_time = self.spinExpTime.value()
 

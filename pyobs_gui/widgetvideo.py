@@ -8,7 +8,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
 from pyobs.comm import Comm
-from pyobs.interfaces import ICamera, IVideo, IImageFormat, IImageType, ICameraExposureTime
+from pyobs.interfaces import ICamera, IVideo, IImageFormat, IImageType, IExposureTime
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import VirtualFileSystem, HttpFile
 from pyobs_gui.basewidget import BaseWidget
@@ -80,8 +80,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # hide single controls, if necessary
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
@@ -110,7 +110,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.path = o.path
 
         # get initial values
-        if isinstance(self.module, ICameraExposureTime):
+        if isinstance(self.module, IExposureTime):
             self.spinExpTime.setValue(self.module.get_exposure_time().wait())
 
         # update GUI
@@ -214,7 +214,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         exp_time = self.spinExpTime.value()
 
         # set it
-        if isinstance(self.module, ICameraExposureTime):
+        if isinstance(self.module, IExposureTime):
             self.module.set_exposure_time(exp_time)
 
 
