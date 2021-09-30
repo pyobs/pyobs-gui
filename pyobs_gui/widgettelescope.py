@@ -81,6 +81,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
 
+        # offsets
+        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IRaDecOffsets))
+        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IAltAzOffsets))
+
         # plot
         #self.figure = plt.figure()
         #self.plot = VisPlot(self.figure, self.environment)
@@ -102,10 +106,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.colorize_button(self.buttonSetAzOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonSetRaOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonSetDecOffset, QtCore.Qt.green)
-        self.colorize_button(self.buttonResetAltOffset, QtCore.Qt.yellow)
-        self.colorize_button(self.buttonResetAzOffset, QtCore.Qt.yellow)
-        self.colorize_button(self.buttonResetRaOffset, QtCore.Qt.yellow)
-        self.colorize_button(self.buttonResetDecOffset, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonResetHorizontalOffsets, QtCore.Qt.yellow)
+        self.colorize_button(self.buttonResetEquatorialOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonSimbadQuery, QtCore.Qt.green)
         self.colorize_button(self.buttonMpcQuery, QtCore.Qt.green)
 
@@ -209,10 +211,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.buttonSetAzOffset.setEnabled(initialized)
         self.buttonSetRaOffset.setEnabled(initialized)
         self.buttonSetDecOffset.setEnabled(initialized)
-        self.buttonResetAltOffset.setEnabled(initialized)
-        self.buttonResetAzOffset.setEnabled(initialized)
-        self.buttonResetRaOffset.setEnabled(initialized)
-        self.buttonResetDecOffset.setEnabled(initialized)
+        self.buttonResetHorizontalOffsets.setEnabled(initialized)
+        self.buttonResetEquatorialOffsets.setEnabled(initialized)
 
         # coordinates
         if self._ra_dec is not None:
@@ -229,20 +229,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.labelCurAz.setText('N/A')
 
         # offsets
-        self.textOffsetRA.setText('N/A' if self._off_ra is None else '%.2f"' % (self._off_ra * 3600.,))
-        self.textOffsetDec.setText('N/A' if self._off_dec is None else '%.2f"' % (self._off_dec * 3600.,))
-        self.textOffsetAlt.setText('N/A' if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.,))
-        self.textOffsetAz.setText('N/A' if self._off_az is None else '%.2f"' % (self._off_az * 3600.,))
-        radec_enabled = isinstance(self.module, IRaDecOffsets)
-        self.buttonSetRaOffset.setVisible(radec_enabled)
-        self.buttonSetDecOffset.setVisible(radec_enabled)
-        self.buttonResetRaOffset.setVisible(radec_enabled)
-        self.buttonResetDecOffset.setVisible(radec_enabled)
-        altaz_enabled = isinstance(self.module, IAltAzOffsets)
-        self.buttonSetAltOffset.setVisible(altaz_enabled)
-        self.buttonSetAzOffset.setVisible(altaz_enabled)
-        self.buttonResetAltOffset.setVisible(altaz_enabled)
-        self.buttonResetAzOffset.setVisible(altaz_enabled)
+        if isinstance(self.module, IRaDecOffsets):
+            self.textOffsetRA.setText('N/A' if self._off_ra is None else '%.2f"' % (self._off_ra * 3600.,))
+            self.textOffsetDec.setText('N/A' if self._off_dec is None else '%.2f"' % (self._off_dec * 3600.,))
+        if isinstance(self.module, IAltAzOffsets):
+            self.textOffsetAlt.setText('N/A' if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.,))
+            self.textOffsetAz.setText('N/A' if self._off_az is None else '%.2f"' % (self._off_az * 3600.,))
 
     @pyqtSlot(name='on_buttonMove_clicked')
     def move(self):
@@ -411,25 +403,20 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.run_async(lambda: self.module.stop_motion('ITelescope'))
 
     @pyqtSlot(name='on_buttonSetAltOffset_clicked')
-    @pyqtSlot(name='on_buttonResetAltOffset_clicked')
+    @pyqtSlot(name='on_buttonSetAltOffset_clicked')
     @pyqtSlot(name='on_buttonSetAzOffset_clicked')
-    @pyqtSlot(name='on_buttonResetAzOffset_clicked')
     @pyqtSlot(name='on_buttonSetRaOffset_clicked')
-    @pyqtSlot(name='on_buttonResetRaOffset_clicked')
     @pyqtSlot(name='on_buttonSetDecOffset_clicked')
-    @pyqtSlot(name='on_buttonResetDecOffset_clicked')
+    @pyqtSlot(name='on_buttonResetHorizontalOffsets_clicked')
+    @pyqtSlot(name='on_buttonResetEquatorialOffsets_clicked')
     def _set_offset(self):
         """Asks user for new offsets and sets it."""
 
         # first all the reset buttons
-        if self.sender() == self.buttonResetAltOffset:
-            self.run_async(self.module.set_altaz_offsets, 0., self._off_az)
-        elif self.sender() == self.buttonResetAzOffset:
-            self.run_async(self.module.set_altaz_offsets, self._off_alt, 0.)
-        elif self.sender() == self.buttonResetRaOffset:
-            self.run_async(self.module.set_radec_offsets, 0., self._off_dec)
-        elif self.sender() == self.buttonResetDecOffset:
-            self.run_async(self.module.set_radec_offsets, self._off_ra, 0.)
+        if self.sender() == self.buttonResetHorizontalOffsets:
+            self.run_async(self.module.set_altaz_offsets, 0., 0)
+        elif self.sender() == self.buttonResetEquatorialOffsets:
+            self.run_async(self.module.set_altaz_offsets, 0, 0.)
         else:
             # now the sets, ask for value
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, -999, 999)
