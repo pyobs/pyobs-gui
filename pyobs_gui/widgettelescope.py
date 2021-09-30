@@ -238,11 +238,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
     @pyqtSlot(name='on_buttonMove_clicked')
     def move(self):
-        # coordinate type
-        coord_type = self.comboMoveType.currentIndex()
+        # get coordinate system
+        text = self.comboMoveType.currentText()
+        coord = COORDS(text)
 
         # what do we do?
-        if coord_type == 0:
+        if coord == COORDS.EQUITORIAL:
             # get ra and dec
             ra = self.textMoveRA.text()
             dec = self.textMoveDec.text()
@@ -254,15 +255,32 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 return
 
             # start thread with move
-            self.run_async(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
+            if isinstance(self.module, IRaDec):
+                self.run_async(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
+            else:
+                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support equatorial coordinates.')
 
-        elif coord_type == 1:
+        elif coord == COORDS.HORIZONTAL:
             # get alt and az
             alt = self.spinMoveAlt.value()
             az = self.spinMoveAz.value()
 
             # move
-            self.run_async(self.module.move_altaz, alt, az)
+            if isinstance(self.module, IAltAz):
+                self.run_async(self.module.move_altaz, alt, az)
+            else:
+                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support horizontal coordinates.')
+
+        elif coord == COORDS.HELIOPROJECTIVE:
+            # get mu and psi
+            mu = self.spinMoveMu.value()
+            psi = self.spinMovePsi.value()
+
+            # move
+            if isinstance(self.module, IMuPsi):
+                self.run_async(self.module.move_mupsi, mu, psi)
+            else:
+                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support helioprojective coordinates.')
 
     def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
         """Called when motion status of module changed.
