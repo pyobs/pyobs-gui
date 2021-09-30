@@ -1,4 +1,5 @@
 import threading
+from enum import Enum
 
 import astroquery
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
@@ -11,7 +12,8 @@ from astroquery.exceptions import InvalidQueryError
 
 from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzOffsets, IRaDecOffsets
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzOffsets, IRaDecOffsets, \
+    IRaDec, IAltAz, IMuPsi
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
@@ -22,6 +24,13 @@ from .basewidget import BaseWidget
 
 
 log = logging.getLogger(__name__)
+
+
+class COORDS(Enum):
+    EQUITORIAL = 'Equitorial'
+    HORIZONTAL = 'Horizontal'
+    SOLAR_SYSTEM = 'Solar System'
+    HELIOPROJECTIVE = 'Helioprojective'
 
 
 class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
@@ -45,6 +54,32 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # before first update, disable mys
         self.setEnabled(False)
+
+        # move widgets
+        self._MOVE_WIDGETS = {
+            COORDS.EQUITORIAL: self.pageMoveEquatorial,
+            COORDS.HORIZONTAL: self.pageMoveHorizontal,
+            COORDS.HELIOPROJECTIVE: self.pageMoveHelioprojective,
+            COORDS.SOLAR_SYSTEM: self.pageMoveSolarSystem
+        }
+
+        # calculate dest coordinates
+        self._DEST_CALC = {
+            COORDS.EQUITORIAL: self._calc_dest_equatorial,
+            COORDS.HORIZONTAL: self._calc_dest_horizontal,
+            COORDS.HELIOPROJECTIVE: self._calc_dest_helioprojective,
+            COORDS.SOLAR_SYSTEM: self._calc_dest_solar_system
+        }
+
+        # add coord types
+        if isinstance(self.module, IRaDec):
+            self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
+        if isinstance(self.module, IAltAz):
+            self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
+        if isinstance(self.module, IMuPsi):
+            self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE.value)
+        if self.comboMoveType.count() > 0:
+            self.comboMoveType.setCurrentIndex(0)
 
         # plot
         #self.figure = plt.figure()
@@ -340,28 +375,28 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # display
         self._show_dest_coords(ra_dec.ra, ra_dec.dec, alt_az.alt, alt_az.az)
 
+    @pyqtSlot(name='on_textMoveMu_editingFinished')
+    @pyqtSlot(name='on_textMovePsi_editingFinished')
+    def _calc_dest_helioprojective(self):
+        # get sun
+        sun = self.observer.sun_altaz(Time.now())
+        sun_radec = sun.icrs
+
+        # display
+        self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
+
+    def _calc_dest_solar_system(self):
+        pass
+
     @pyqtSlot(int, name='on_comboMoveType_currentIndexChanged')
     def select_coord_type(self):
-        # get index
-        idx = self.comboMoveType.currentIndex()
-
-        # pages
-        pages = {
-            0: self.pageMoveEquatorial,
-            1: self.pageMoveHorizontal,
-            2: self.pageMoveSolarSystem
-        }
-
-        # destination coordinates?
-        coords = {
-            0: self._calc_dest_equatorial,
-            1: self._calc_dest_horizontal,
-            2: self._calc_dest_equatorial
-        }
+        # get coordinate system
+        text = self.comboMoveType.currentText()
+        coord = COORDS(text)
 
         # set page and visibility
-        self.stackedMove.setCurrentWidget(pages[idx])
-        coords[idx]()
+        self.stackedMove.setCurrentWidget(self._MOVE_WIDGETS[coord])
+        self._DEST_CALC[coord]()
 
     @pyqtSlot(name='on_buttonInit_clicked')
     def _init_telescope(self):
