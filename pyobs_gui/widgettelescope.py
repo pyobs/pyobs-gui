@@ -421,7 +421,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.run_async(lambda: self.module.stop_motion('ITelescope'))
 
     @pyqtSlot(name='on_buttonSetAltOffset_clicked')
-    @pyqtSlot(name='on_buttonSetAltOffset_clicked')
     @pyqtSlot(name='on_buttonSetAzOffset_clicked')
     @pyqtSlot(name='on_buttonSetRaOffset_clicked')
     @pyqtSlot(name='on_buttonSetDecOffset_clicked')
