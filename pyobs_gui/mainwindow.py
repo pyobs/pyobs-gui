@@ -9,11 +9,36 @@ from colour import Color
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IVideo
 from pyobs.object import create_object
-from pyobs_gui.basewidget import BaseWidget
-from pyobs_gui.qt.mainwindow import Ui_MainWindow
-from pyobs_gui.logmodel import LogModel, LogModelProxy
-from pyobs_gui.widgetevents import WidgetEvents
-from pyobs_gui.widgetshell import WidgetShell
+from .basewidget import BaseWidget
+from .widgetcamera import WidgetCamera
+from .widgettelescope import WidgetTelescope
+from .widgetfocus import WidgetFocus
+from .widgetweather import WidgetWeather
+from .widgetvideo import WidgetVideo
+from .qt.mainwindow import Ui_MainWindow
+from .logmodel import LogModel, LogModelProxy
+from .widgetevents import WidgetEvents
+from .widgetroof import WidgetRoof
+from .widgetshell import WidgetShell
+
+
+DEFAULT_WIDGETS = {
+    ICamera: WidgetCamera,
+    ITelescope: WidgetTelescope,
+    IRoof: WidgetRoof,
+    IFocuser: WidgetFocus,
+    IWeather: WidgetWeather,
+    IVideo: WidgetVideo
+}
+
+DEFAULT_ICONS = {
+    ICamera: ":/resources/Crystal_Clear_device_camera.png",
+    ITelescope: ":/resources/Crystal_Clear_action_find.png",
+    IRoof: ":/resources/Crystal_Clear_app_kfm_home.png",
+    IFocuser: ":/resources/Crystal_Clear_app_demo.png",
+    IWeather: ":/resources/Crystal_Clear_app_demo.png",
+    IVideo: ":/resources/Crystal_Clear_device_camera.png"
+}
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
@@ -276,27 +301,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._check_autonomous()
 
         # what do we have?
-        if isinstance(proxy, ICamera):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetCamera'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
-        elif isinstance(proxy, ITelescope):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetTelescope'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_action_find.png")
-        elif isinstance(proxy, IRoof):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetRoof'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_kfm_home.png")
-        elif isinstance(proxy, IFocuser):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetFocus'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IWeather):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetWeather'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IScriptRunner):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetScript'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IVideo):
-            widget = self.create_widget({'class': 'pyobs_gui.WidgetVideo'}, modules=[proxy])
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
+        for interface, klass in DEFAULT_WIDGETS.items():
+            if isinstance(proxy, interface):
+                widget = self.create_widget(klass, modules=[proxy])
+                icon = QtGui.QIcon(DEFAULT_ICONS[interface])
+                break
         else:
             return
 
