@@ -14,11 +14,12 @@ log = logging.getLogger(__name__)
 class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update, update_interval=10)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
-        self.module = module    # type: ITemperatures
-        self.comm = comm        # type: Comm
+
+        # get module
+        self.module = self.get_module_by_interface(ITemperatures)
 
         # status
         self._temps = None

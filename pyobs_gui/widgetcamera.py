@@ -70,12 +70,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = pyqtSignal()
     signal_new_image = pyqtSignal(NewImageEvent, str)
 
-    def __init__(self, module: IImageGrabber, comm: Comm, vfs: VirtualFileSystem, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
-        self.module = module
-        self.comm = comm
-        self.vfs = vfs
+
+        # get module
+        self.module = self.get_module_by_interface(ICamera)
 
         # variables
         self.new_image = False
@@ -89,7 +89,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.download_threads = []
 
         # image grabber
-        self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
+        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, modules=[self.module])
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
         # set exposure types
@@ -122,13 +122,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
-        self.add_to_sidebar(WidgetFitsHeaders(module, comm))
+        self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, modules=self.modules))
         if isinstance(self.module, IFilters):
-            self.add_to_sidebar(WidgetFilter(module, comm))
+            self.add_to_sidebar(self.create_widget(WidgetFilter, modules=self.modules))
         if isinstance(self.module, ICooling):
-            self.add_to_sidebar(WidgetCooling(module, comm))
+            self.add_to_sidebar(self.create_widget(WidgetCooling, modules=self.modules))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(WidgetTemperatures(module, comm))
+            self.add_to_sidebar(self.create_widget(WidgetTemperatures, modules=self.modules))
 
     def _init(self):
         # get status

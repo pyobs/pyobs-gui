@@ -1,6 +1,6 @@
-import time
 from threading import Event
 import os
+from typing import Union
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
@@ -8,17 +8,12 @@ from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IVideo
+from pyobs.object import create_object
+from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.qt.mainwindow import Ui_MainWindow
 from pyobs_gui.logmodel import LogModel, LogModelProxy
-from pyobs_gui.widgetcamera import WidgetCamera
 from pyobs_gui.widgetevents import WidgetEvents
-from pyobs_gui.widgetroof import WidgetRoof
 from pyobs_gui.widgetshell import WidgetShell
-from pyobs_gui.widgettelescope import WidgetTelescope
-from pyobs_gui.widgetfocus import WidgetFocus
-from pyobs_gui.widgetscript import WidgetScript
-from pyobs_gui.widgetweather import WidgetWeather
-from pyobs_gui.widgetvideo import WidgetVideo
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
@@ -100,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # shell
         if show_shell:
             # add shell nav button and view
-            self.shell = WidgetShell(self.comm)
+            self.shell = self.create_widget(WidgetShell)
             self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
         else:
             self.shell = None
@@ -244,6 +239,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.mastermind_running = len(clients) > 0
         self.labelAutonomousWarning.setVisible(self.mastermind_running)
 
+    def create_widget(self, config: Union[dict, type], **kwargs) -> BaseWidget:
+        """Creates new widget.
+
+        Args:
+            config: Config to create widget from.
+
+        Returns:
+            New widget.
+        """
+        if isinstance(config, dict):
+            return create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        elif isinstance(config, type):
+            return config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        else:
+            raise ValueError('Wrong type.')
+
     def _client_connected(self, client: str):
         """Called when a new client connects.
 
@@ -266,25 +277,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # what do we have?
         if isinstance(proxy, ICamera):
-            widget = WidgetCamera(proxy, self.comm, self.vfs)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetCamera'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         elif isinstance(proxy, ITelescope):
-            widget = WidgetTelescope(proxy, self.comm, self.observer)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetTelescope'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_action_find.png")
         elif isinstance(proxy, IRoof):
-            widget = WidgetRoof(proxy, self.comm, self.observer)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetRoof'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_kfm_home.png")
         elif isinstance(proxy, IFocuser):
-            widget = WidgetFocus(proxy, self.comm)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetFocus'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         elif isinstance(proxy, IWeather):
-            widget = WidgetWeather(proxy, self.comm)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetWeather'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         elif isinstance(proxy, IScriptRunner):
-            widget = WidgetScript(proxy, self.comm)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetScript'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
         elif isinstance(proxy, IVideo):
-            widget = WidgetVideo(proxy, self.comm, self.vfs)
+            widget = self.create_widget({'class': 'pyobs_gui.WidgetVideo'}, modules=[proxy])
             icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
         else:
             return

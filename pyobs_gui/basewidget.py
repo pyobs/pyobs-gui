@@ -1,21 +1,36 @@
+from __future__ import annotations
 import threading
 import logging
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Union, TypeVar, Type
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
+from astroplan import Observer
 
+from pyobs.comm import Comm
+from pyobs.object import create_object
+from pyobs.vfs import VirtualFileSystem
 
 log = logging.getLogger(__name__)
+
+
+WidgetClass = TypeVar('WidgetClass')
 
 
 class BaseWidget(QtWidgets.QWidget):
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
-    def __init__(self, update_func=None, update_interval: float = 1, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, *args, **kwargs)
+    def __init__(self, modules: list = None, vfs: Union[VirtualFileSystem, dict] = None, comm: Comm = None,
+                 observer: Observer = None, update_func=None, update_interval: float = 1):
+        QtWidgets.QWidget.__init__(self)
+
+        # store
+        self.modules = [] if modules is None else modules
+        self.vfs = vfs
+        self.comm = comm
+        self.observer = observer
 
         # signals
         self._show_error.connect(self.show_error)
@@ -33,6 +48,29 @@ class BaseWidget(QtWidgets.QWidget):
 
         # has it been initialized?
         self._initialized = False
+
+    def create_widget(self, config: Union[dict, type], **kwargs) -> BaseWidget:
+        """Creates new widget.
+
+        Args:
+            config: Config to create widget from.
+
+        Returns:
+            New widget.
+        """
+        if isinstance(config, dict):
+            return create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        elif isinstance(config, type):
+            return config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        else:
+            raise ValueError('Wrong type.')
+
+    def get_module_by_interface(self, interface: Type[WidgetClass]) -> WidgetClass:
+        """Returns first module that implements given interface."""
+        for m in self.modules:
+            if isinstance(m, interface):
+                return m
+        raise ValueError('No module found.')
 
     def add_to_sidebar(self, widget):
         # if no layout exists on sidebar, create it

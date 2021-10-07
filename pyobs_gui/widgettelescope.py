@@ -1,18 +1,13 @@
-import threading
 from enum import Enum
-
-import astroquery
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5 import QtWidgets, QtCore, QtGui
-from astroplan import Observer
+from PyQt5 import QtWidgets, QtCore
 from astropy.coordinates import SkyCoord, ICRS, AltAz
 import astropy.units as u
 import logging
 from astroquery.exceptions import InvalidQueryError
 
-from pyobs.comm import Comm
 from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IMotion, IAltAzOffsets, IRaDecOffsets, \
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IAltAzOffsets, IRaDecOffsets, \
     IRaDec, IAltAz, IMuPsi
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
@@ -36,12 +31,12 @@ class COORDS(Enum):
 class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, observer, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
-        self.module = module    # type: (ITelescope, IFilters, IFocuser)
-        self.comm = comm  # type: Comm
-        self.observer = observer  # type: Observer
+
+        # get module
+        self.module = self.get_module_by_interface(ITelescope)
 
         # variables
         self._motion_status = MotionStatus.UNKNOWN
@@ -119,11 +114,11 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # fill sidebar
         if isinstance(self.module, IFilters):
-            self.add_to_sidebar(WidgetFilter(module, comm))
+            self.add_to_sidebar(self.create_widget(WidgetFilter, modules=self.modules))
         if isinstance(self.module, IFocuser):
-            self.add_to_sidebar(WidgetFocus(module, comm))
+            self.add_to_sidebar(self.create_widget(WidgetFocus, modules=self.modules))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(WidgetTemperatures(module, comm))
+            self.add_to_sidebar(self.create_widget(WidgetTemperatures, modules=self.modules))
 
         # init coord type
         self.select_coord_type()

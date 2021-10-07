@@ -63,12 +63,12 @@ class WidgetImageGrabber(BaseWidget, Ui_WidgetImageGrabber):
     signal_update_gui = pyqtSignal()
     signal_new_image = pyqtSignal(NewImageEvent, str)
 
-    def __init__(self, module: IImageGrabber, comm: Comm, vfs: VirtualFileSystem, parent=None):
-        BaseWidget.__init__(self, parent=parent)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
-        self.module = module
-        self.comm = comm
-        self.vfs = vfs
+
+        # get module
+        self.module = self.get_module_by_interface(IImageGrabber)
 
         # variables
         self.new_image = False

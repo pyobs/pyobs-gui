@@ -38,14 +38,14 @@ class ScaledLabel(QtWidgets.QLabel):
 class WidgetVideo(BaseWidget, Ui_WidgetVideo):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module: IVideo, comm: Comm, vfs: VirtualFileSystem, parent=None):
-        BaseWidget.__init__(self, parent=parent)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
+        # get module
+        self.module = self.get_module_by_interface(IVideo)
+
         # store
-        self.module = module
-        self.comm = comm
-        self.vfs = vfs
         self.host = None
         self.port = None
         self.path = None
@@ -56,7 +56,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
+        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, modules=[self.module])
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
         # connect signals
