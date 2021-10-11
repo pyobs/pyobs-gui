@@ -10,13 +10,15 @@ from .mainwindow import MainWindow
 class GUI(Module, IFitsHeaderProvider):
     __module__ = 'pyobs_gui'
 
-    def __init__(self, show_shell: bool = True, show_events: bool = True, show_modules: list = None, *args, **kwargs):
+    def __init__(self, show_shell: bool = True, show_events: bool = True, show_modules: list = None,
+                 widgets: list = None, *args, **kwargs):
         """Inits a new GUI.
 
         Args:
             show_shell: Whether to show the shell page.
             show_events: Whether to show the events page.
             show_modules: If not empty, show only listed modules.
+            widgets: List of custom widgets.
         """
 
         Module.__init__(self, *args, **kwargs)
@@ -24,6 +26,7 @@ class GUI(Module, IFitsHeaderProvider):
         self._show_shell = show_shell
         self._show_events = show_events
         self._show_modules = show_modules
+        self._widgets = widgets
 
     def main(self):
         # create app
@@ -32,7 +35,7 @@ class GUI(Module, IFitsHeaderProvider):
         # create and show window
         self._window = MainWindow(self.comm, self.vfs, self.observer,
                                   show_shell=self._show_shell, show_events=self._show_events,
-                                  show_modules=self._show_modules)
+                                  show_modules=self._show_modules, widgets=self._widgets)
         self._window.show()
 
         # run

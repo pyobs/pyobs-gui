@@ -71,7 +71,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_disconnected = pyqtSignal(str)
 
     def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
-                 show_modules: list = None, **kwargs):
+                 show_modules: list = None, widgets: list = None, **kwargs):
         """Init window.
 
         Args:
@@ -81,6 +81,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             show_shell: Whether to show shell page.
             show_events: Whether to show events page.
             show_modules: If not empty, show only listed modules.
+            widgets: List of custom widgets.
         """
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
@@ -92,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.observer = observer
         self.mastermind_running = False
         self.show_modules = show_modules
+        self.custom_widgets = [] if widgets is None else widgets
 
         # closing
         self.closing = Event()
@@ -301,12 +303,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._check_autonomous()
 
         # what do we have?
+        widget, icon = None, None
         for interface, klass in DEFAULT_WIDGETS.items():
             if isinstance(proxy, interface):
                 widget = self.create_widget(klass, modules=[proxy])
                 icon = QtGui.QIcon(DEFAULT_ICONS[interface])
                 break
-        else:
+
+        # look at custom widgets
+        for cw in self.custom_widgets:
+            if cw['module'] == client:
+                widget = self.create_widget(cw['widget'], modules=[proxy])
+                icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
+
+        # still nothing?
+        if widget is None:
             return
 
         # get label
