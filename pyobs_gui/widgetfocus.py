@@ -20,9 +20,6 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(IFocuser)
-
         # variables
         self._focus = None
         self._focus_offset = None

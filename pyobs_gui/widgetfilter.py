@@ -16,9 +16,6 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(IFilters)
-
         # variables
         self._filter = None
         self._motion_status = MotionStatus.UNKNOWN

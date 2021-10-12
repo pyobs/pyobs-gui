@@ -42,9 +42,6 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(IVideo)
-
         # store
         self.host = None
         self.port = None
@@ -56,7 +53,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, modules=[self.module])
+        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, module=self.module)
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
         # connect signals

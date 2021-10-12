@@ -87,9 +87,6 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(IWeather)
-
         # weather info
         self._current_weather = {}
         self._current_sensors = []

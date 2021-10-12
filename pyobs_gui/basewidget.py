@@ -22,12 +22,12 @@ class BaseWidget(QtWidgets.QWidget):
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
-    def __init__(self, modules: list = None, vfs: Union[VirtualFileSystem, dict] = None, comm: Comm = None,
+    def __init__(self, module = None, vfs: Union[VirtualFileSystem, dict] = None, comm: Comm = None,
                  observer: Observer = None, update_func=None, update_interval: float = 1):
         QtWidgets.QWidget.__init__(self)
 
         # store
-        self.modules = [] if modules is None else modules
+        self.module = module
         self.vfs = vfs
         self.comm = comm
         self.observer = observer
@@ -64,13 +64,6 @@ class BaseWidget(QtWidgets.QWidget):
             return config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
         else:
             raise ValueError('Wrong type.')
-
-    def get_module_by_interface(self, interface: Type[WidgetClass]) -> WidgetClass:
-        """Returns first module that implements given interface."""
-        for m in self.modules:
-            if isinstance(m, interface):
-                return m
-        raise ValueError('No module found.')
 
     def add_to_sidebar(self, widget):
         # if no layout exists on sidebar, create it

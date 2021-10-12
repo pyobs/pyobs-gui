@@ -67,9 +67,6 @@ class WidgetImageGrabber(BaseWidget, Ui_WidgetImageGrabber):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(IImageGrabber)
-
         # variables
         self.new_image = False
         self.image_filename = None

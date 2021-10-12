@@ -15,9 +15,6 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(ICooling)
-
         # this only works in Linux
         try:
             # set current username

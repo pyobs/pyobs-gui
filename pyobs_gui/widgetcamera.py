@@ -74,9 +74,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(ICamera)
-
         # variables
         self.new_image = False
         self.image_filename = None
@@ -89,7 +86,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.download_threads = []
 
         # image grabber
-        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, modules=[self.module])
+        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, module=self.module)
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
 
         # set exposure types
@@ -122,13 +119,13 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
-        self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, modules=self.modules))
+        self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, module=self.module))
         if isinstance(self.module, IFilters):
-            self.add_to_sidebar(self.create_widget(WidgetFilter, modules=self.modules))
+            self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
         if isinstance(self.module, ICooling):
-            self.add_to_sidebar(self.create_widget(WidgetCooling, modules=self.modules))
+            self.add_to_sidebar(self.create_widget(WidgetCooling, module=self.module))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(self.create_widget(WidgetTemperatures, modules=self.modules))
+            self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
     def _init(self):
         # get status

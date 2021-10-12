@@ -16,9 +16,6 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(ICooling)
-
         # status
         self._status = None
 

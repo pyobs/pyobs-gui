@@ -12,9 +12,6 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(IRoof)
-
         # status
         self.motion_status = None
         self.azimuth = None

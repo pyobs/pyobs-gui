@@ -35,9 +35,6 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(ITelescope)
-
         # variables
         self._motion_status = MotionStatus.UNKNOWN
         self._ra_dec = None
@@ -114,11 +111,11 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # fill sidebar
         if isinstance(self.module, IFilters):
-            self.add_to_sidebar(self.create_widget(WidgetFilter, modules=self.modules))
+            self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
         if isinstance(self.module, IFocuser):
-            self.add_to_sidebar(self.create_widget(WidgetFocus, modules=self.modules))
+            self.add_to_sidebar(self.create_widget(WidgetFocus, module=self.module))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(self.create_widget(WidgetTemperatures, modules=self.modules))
+            self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
         # init coord type
         self.select_coord_type()

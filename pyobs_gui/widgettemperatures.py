@@ -18,9 +18,6 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
-        # get module
-        self.module = self.get_module_by_interface(ITemperatures)
-
         # status
         self._temps = None
 

@@ -306,14 +306,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         widget, icon = None, None
         for interface, klass in DEFAULT_WIDGETS.items():
             if isinstance(proxy, interface):
-                widget = self.create_widget(klass, modules=[proxy])
+                widget = self.create_widget(klass, module=proxy)
                 icon = QtGui.QIcon(DEFAULT_ICONS[interface])
                 break
 
         # look at custom widgets
         for cw in self.custom_widgets:
             if cw['module'] == client:
-                widget = self.create_widget(cw['widget'], modules=[proxy])
+                widget = self.create_widget(cw['widget'], module=proxy)
                 icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
 
         # still nothing?
