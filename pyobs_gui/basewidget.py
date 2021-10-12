@@ -22,7 +22,7 @@ class BaseWidget(QtWidgets.QWidget):
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
-    def __init__(self, module = None, vfs: Union[VirtualFileSystem, dict] = None, comm: Comm = None,
+    def __init__(self, module=None, vfs: Union[VirtualFileSystem, dict] = None, comm: Comm = None,
                  observer: Observer = None, update_func=None, update_interval: float = 1):
         QtWidgets.QWidget.__init__(self)
 
