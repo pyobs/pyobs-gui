@@ -7,8 +7,8 @@ import logging
 from astroquery.exceptions import InvalidQueryError
 
 from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IAltAzOffsets, IRaDecOffsets, \
-    IRaDec, IAltAz, ICoordsHGS
+from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IOffsetsAltAz, IOffsetsRaDec, \
+    IPointingRaDec, IPointingAltAz, IPointingHGS
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
@@ -64,18 +64,18 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         }
 
         # add coord types
-        if isinstance(self.module, IRaDec):
+        if isinstance(self.module, IPointingRaDec):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
-        if isinstance(self.module, IAltAz):
+        if isinstance(self.module, IPointingAltAz):
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if isinstance(self.module, ICoordsHGS):
+        if isinstance(self.module, IPointingHGS):
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
 
         # offsets
-        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IRaDecOffsets))
-        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IAltAzOffsets))
+        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IOffsetsRaDec))
+        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IOffsetsAltAz))
 
         # plot
         #self.figure = plt.figure()
@@ -145,14 +145,14 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self._alt_az = None
 
         # get offsets
-        if isinstance(self.module, IAltAzOffsets) and self._alt_az is not None:
+        if isinstance(self.module, IOffsetsAltAz) and self._alt_az is not None:
             # get offsets
             self._off_alt, self._off_az = self.module.get_altaz_offsets().wait()
 
             # convert to ra/dec
             self._off_ra, self._off_dec = self._offset_altaz_to_radec(self._off_alt, self._off_az)
 
-        elif isinstance(self.module, IRaDecOffsets) and self._ra_dec is not None:
+        elif isinstance(self.module, IOffsetsRaDec) and self._ra_dec is not None:
             # get offsets
             self._off_ra, self._off_dec = self.module.get_radec_offsets().wait()
 
@@ -221,10 +221,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.labelCurAz.setText('N/A')
 
         # offsets
-        if isinstance(self.module, IRaDecOffsets):
+        if isinstance(self.module, IOffsetsRaDec):
             self.textOffsetRA.setText('N/A' if self._off_ra is None else '%.2f"' % (self._off_ra * 3600.,))
             self.textOffsetDec.setText('N/A' if self._off_dec is None else '%.2f"' % (self._off_dec * 3600.,))
-        if isinstance(self.module, IAltAzOffsets):
+        if isinstance(self.module, IOffsetsAltAz):
             self.textOffsetAlt.setText('N/A' if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.,))
             self.textOffsetAz.setText('N/A' if self._off_az is None else '%.2f"' % (self._off_az * 3600.,))
 
@@ -247,7 +247,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 return
 
             # start thread with move
-            if isinstance(self.module, IRaDec):
+            if isinstance(self.module, IPointingRaDec):
                 self.run_async(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support equatorial coordinates.')
@@ -258,7 +258,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             az = self.spinMoveAz.value()
 
             # move
-            if isinstance(self.module, IAltAz):
+            if isinstance(self.module, IPointingAltAz):
                 self.run_async(self.module.move_altaz, alt, az)
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support horizontal coordinates.')
@@ -269,7 +269,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             psi = self.spinMovePsi.value()
 
             # move
-            if isinstance(self.module, ICoordsHGS):
+            if isinstance(self.module, IPointingHGS):
                 self.run_async(self.module.move_hgs_lon_lat, mu, psi)
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support helioprojective coordinates.')
@@ -461,9 +461,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             off_ra -= user_offset
 
         # move
-        if isinstance(self.module, IRaDecOffsets):
+        if isinstance(self.module, IOffsetsRaDec):
             self.run_async(self.module.set_radec_offsets, off_ra, off_dec)
-        elif isinstance(self.module, IAltAzOffsets):
+        elif isinstance(self.module, IOffsetsAltAz):
             off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
             self.run_async(self.module.set_altaz_offsets, off_alt, off_az)
         else:
