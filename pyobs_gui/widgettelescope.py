@@ -8,7 +8,7 @@ from astroquery.exceptions import InvalidQueryError
 
 from pyobs.events import MotionStatusChangedEvent
 from pyobs.interfaces import ITelescope, IFilters, IFocuser, ITemperatures, IAltAzOffsets, IRaDecOffsets, \
-    IRaDec, IAltAz, IMuPsi
+    IRaDec, IAltAz, ICoordsHGS
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
@@ -25,7 +25,7 @@ class COORDS(Enum):
     EQUITORIAL = 'Equitorial'
     HORIZONTAL = 'Horizontal'
     SOLAR_SYSTEM = 'Solar System'
-    HELIOPROJECTIVE = 'Helioprojective'
+    HELIOGRAPHIC_STONYHURST = 'Heliographic Stonyhurst'
 
 
 class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
@@ -51,7 +51,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._MOVE_WIDGETS = {
             COORDS.EQUITORIAL: self.pageMoveEquatorial,
             COORDS.HORIZONTAL: self.pageMoveHorizontal,
-            COORDS.HELIOPROJECTIVE: self.pageMoveHelioprojective,
+            COORDS.HELIOGRAPHIC_STONYHURST: self.pageMoveHeliographicStonyhurst,
             COORDS.SOLAR_SYSTEM: self.pageMoveSolarSystem
         }
 
@@ -59,7 +59,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self._DEST_CALC = {
             COORDS.EQUITORIAL: self._calc_dest_equatorial,
             COORDS.HORIZONTAL: self._calc_dest_horizontal,
-            COORDS.HELIOPROJECTIVE: self._calc_dest_helioprojective,
+            COORDS.HELIOGRAPHIC_STONYHURST: self._calc_dest_heliographic_stonyhurst,
             COORDS.SOLAR_SYSTEM: self._calc_dest_solar_system
         }
 
@@ -68,8 +68,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
         if isinstance(self.module, IAltAz):
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if isinstance(self.module, IMuPsi):
-            self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE.value)
+        if isinstance(self.module, ICoordsHGS):
+            self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
 
@@ -269,8 +269,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             psi = self.spinMovePsi.value()
 
             # move
-            if isinstance(self.module, IMuPsi):
-                self.run_async(self.module.move_mupsi, mu, psi)
+            if isinstance(self.module, ICoordsHGS):
+                self.run_async(self.module.move_hgs_lon_lat, mu, psi)
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support helioprojective coordinates.')
 
@@ -377,9 +377,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # display
         self._show_dest_coords(ra_dec.ra, ra_dec.dec, alt_az.alt, alt_az.az)
 
-    @pyqtSlot(name='on_textMoveMu_editingFinished')
-    @pyqtSlot(name='on_textMovePsi_editingFinished')
-    def _calc_dest_helioprojective(self):
+    @pyqtSlot(name='on_spinMoveHGSLat_valueChanged')
+    @pyqtSlot(name='on_spinMoveHGSLat_valueChanged')
+    def _calc_dest_heliographic_stonyhurst(self):
         # get sun
         sun = self.observer.sun_altaz(Time.now())
         sun_radec = sun.icrs
