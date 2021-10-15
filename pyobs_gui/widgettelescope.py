@@ -147,14 +147,14 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # get offsets
         if isinstance(self.module, IOffsetsAltAz) and self._alt_az is not None:
             # get offsets
-            self._off_alt, self._off_az = self.module.get_altaz_offsets().wait()
+            self._off_alt, self._off_az = self.module.get_offsets_altaz().wait()
 
             # convert to ra/dec
             self._off_ra, self._off_dec = self._offset_altaz_to_radec(self._off_alt, self._off_az)
 
         elif isinstance(self.module, IOffsetsRaDec) and self._ra_dec is not None:
             # get offsets
-            self._off_ra, self._off_dec = self.module.get_radec_offsets().wait()
+            self._off_ra, self._off_dec = self.module.get_offsets_radec().wait()
 
             # convert to alt/az
             self._off_alt, self._off_az = self._offset_radec_to_altaz(self._off_ra, self._off_dec)
@@ -423,21 +423,21 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # first all the reset buttons
         if self.sender() == self.buttonResetHorizontalOffsets:
-            self.run_async(self.module.set_altaz_offsets, 0., 0)
+            self.run_async(self.module.set_offsets_altaz, 0., 0)
         elif self.sender() == self.buttonResetEquatorialOffsets:
-            self.run_async(self.module.set_altaz_offsets, 0, 0.)
+            self.run_async(self.module.set_offsets_altaz, 0, 0.)
         else:
             # now the sets, ask for value
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, -9999, 9999)
             if ok:
                 if self.sender() == self.buttonSetAltOffset:
-                    self.run_async(self.module.set_altaz_offsets, new_value / 3600., self._off_az)
+                    self.run_async(self.module.set_offsets_altaz, new_value / 3600., self._off_az)
                 elif self.sender() == self.buttonSetAzOffset:
-                    self.run_async(self.module.set_altaz_offsets, self._off_alt, new_value / 3600.)
+                    self.run_async(self.module.set_offsets_altaz, self._off_alt, new_value / 3600.)
                 elif self.sender() == self.buttonSetRaOffset:
-                    self.run_async(self.module.set_radec_offsets, new_value / 3600., self._off_dec)
+                    self.run_async(self.module.set_offsets_radec, new_value / 3600., self._off_dec)
                 elif self.sender() == self.buttonSetDecOffset:
-                    self.run_async(self.module.set_radec_offsets, self._off_ra, new_value / 3600.)
+                    self.run_async(self.module.set_offsets_radec, self._off_ra, new_value / 3600.)
 
     @pyqtSlot(name='on_buttonOffsetNorth_clicked')
     @pyqtSlot(name='on_buttonOffsetSouth_clicked')
@@ -462,9 +462,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # move
         if isinstance(self.module, IOffsetsRaDec):
-            self.run_async(self.module.set_radec_offsets, off_ra, off_dec)
+            self.run_async(self.module.set_offsets_radec, off_ra, off_dec)
         elif isinstance(self.module, IOffsetsAltAz):
             off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
-            self.run_async(self.module.set_altaz_offsets, off_alt, off_az)
+            self.run_async(self.module.set_offsets_altaz, off_alt, off_az)
         else:
             raise ValueError
