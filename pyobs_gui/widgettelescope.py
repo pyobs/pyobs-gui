@@ -263,16 +263,16 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support horizontal coordinates.')
 
-        elif coord == COORDS.HELIOPROJECTIVE:
+        elif coord == COORDS.HELIOGRAPHIC_STONYHURST:
             # get mu and psi
-            mu = self.spinMoveMu.value()
-            psi = self.spinMovePsi.value()
+            lon = self.spinMoveHGSLon.value()
+            lat = self.spinMoveHGSLat.value()
 
             # move
             if isinstance(self.module, IPointingHGS):
-                self.run_async(self.module.move_hgs_lon_lat, mu, psi)
+                self.run_async(self.module.move_hgs_lon_lat, lon, lat)
             else:
-                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support helioprojective coordinates.')
+                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support stonyhurst coordinates.')
 
     def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
         """Called when motion status of module changed.
