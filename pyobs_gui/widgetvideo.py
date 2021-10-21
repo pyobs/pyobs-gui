@@ -7,10 +7,9 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
-from pyobs.comm import Comm
-from pyobs.interfaces import ICamera, IVideo, IImageFormat, IImageType, IExposureTime
+from pyobs.interfaces.proxies import IExposureTimeProxy, IImageTypeProxy, IImageFormatProxy
 from pyobs.utils.enums import ImageFormat, ImageType
-from pyobs.vfs import VirtualFileSystem, HttpFile
+from pyobs.vfs import HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
 from .qt.widgetvideo import Ui_WidgetVideo
@@ -75,10 +74,10 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.comboImageType.setCurrentText('OBJECT')
 
         # hide single controls, if necessary
-        self.labelImageType.setVisible(isinstance(self.module, IImageType))
-        self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.labelImageType.setVisible(isinstance(self.module, IImageTypeProxy))
+        self.comboImageType.setVisible(isinstance(self.module, IImageTypeProxy))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
@@ -107,7 +106,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.path = o.path
 
         # get initial values
-        if isinstance(self.module, IExposureTime):
+        if isinstance(self.module, IExposureTimeProxy):
             self.spinExpTime.setValue(self.module.get_exposure_time().wait())
 
         # update GUI
@@ -168,7 +167,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
     @pyqtSlot(name='on_buttonGrabImage_clicked')
     def grab_image(self):
         # set image format
-        if isinstance(self.module, IImageFormat):
+        if isinstance(self.module, IImageFormatProxy):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             self.module.set_image_format(image_format)
 
@@ -188,7 +187,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # do exposure(s)
         while self.exposures_left > 0:
             # set image type
-            if isinstance(self.module, IImageType):
+            if isinstance(self.module, IImageTypeProxy):
                 self.module.set_image_type(image_type)
 
             # expose
@@ -211,7 +210,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         exp_time = self.spinExpTime.value()
 
         # set it
-        if isinstance(self.module, IExposureTime):
+        if isinstance(self.module, IExposureTimeProxy):
             self.module.set_exposure_time(exp_time)
 
 

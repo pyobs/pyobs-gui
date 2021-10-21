@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal
 
-from pyobs.interfaces import IRoof, IDome
+from pyobs.interfaces.proxies import IDomeProxy
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetroof import Ui_WidgetRoof
 
@@ -32,7 +32,7 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         self.motion_status = self.module.get_motion_status().wait()
 
         # azimuth
-        if isinstance(self.module, IDome):
+        if isinstance(self.module, IDomeProxy):
             _, self.azimuth = self.module.get_altaz().wait()
 
         # signal GUI update
