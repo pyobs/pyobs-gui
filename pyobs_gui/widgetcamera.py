@@ -5,10 +5,9 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
-from pyobs.comm import Comm
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, IBinning, IWindow, ICooling, IFilters, ITemperatures, \
-    IExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
+from pyobs.interfaces.proxies import IAbortableProxy, IExposureTimeProxy, IImageTypeProxy, IImageFormatProxy, \
+    IBinningProxy, IWindowProxy, IFiltersProxy, ICoolingProxy, ITemperaturesProxy, ICameraProxy
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
@@ -17,7 +16,6 @@ from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
-from qfitswidget import QFitsWidget
 from .qt.widgetcamera import Ui_WidgetCamera
 from .widgetimagegrabber import WidgetImageGrabber
 
@@ -97,17 +95,17 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.setEnabled(False)
 
         # hide groups, if necessary
-        self.groupWindowing.setVisible(isinstance(self.module, IWindow))
-        self.groupBinning.setVisible(isinstance(self.module, IBinning))
-        self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
+        self.groupWindowing.setVisible(isinstance(self.module, IWindowProxy))
+        self.groupBinning.setVisible(isinstance(self.module, IBinningProxy))
+        self.groupImageFormat.setVisible(isinstance(self.module, IImageFormatProxy))
 
         # and single controls
-        self.labelImageType.setVisible(isinstance(self.module, IImageType))
-        self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
-        self.comboExpTimeUnit.setVisible(isinstance(self.module, IExposureTime))
-        self.butAbort.setVisible(isinstance(self.module, IAbortable))
+        self.labelImageType.setVisible(isinstance(self.module, IImageTypeProxy))
+        self.comboImageType.setVisible(isinstance(self.module, IImageTypeProxy))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.comboExpTimeUnit.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.butAbort.setVisible(isinstance(self.module, IAbortableProxy))
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
@@ -120,20 +118,20 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # fill sidebar
         self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, module=self.module))
-        if isinstance(self.module, IFilters):
+        if isinstance(self.module, IFiltersProxy):
             self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
-        if isinstance(self.module, ICooling):
+        if isinstance(self.module, ICoolingProxy):
             self.add_to_sidebar(self.create_widget(WidgetCooling, module=self.module))
-        if isinstance(self.module, ITemperatures):
+        if isinstance(self.module, ITemperaturesProxy):
             self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
     def _init(self):
         # get status
-        if isinstance(self.module, ICamera):
+        if isinstance(self.module, ICameraProxy):
             self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
 
         # get binnings
-        if isinstance(self.module, IBinning):
+        if isinstance(self.module, IBinningProxy):
             # get binnings
             binnings = ['%dx%d' % tuple(binning) for binning in self.module.list_binnings().wait()]
 
@@ -145,7 +143,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.comboBinning.setCurrentIndex(0)
 
         # get image formats
-        if isinstance(self.module, IImageFormat):
+        if isinstance(self.module, IImageFormatProxy):
             # get formats
             image_formats = [ImageFormat(f) for f in self.module.list_image_formats().wait()]
 
@@ -169,12 +167,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
     @pyqtSlot(name='on_butFullFrame_clicked')
     def set_full_frame(self):
-        if isinstance(self.module, IWindow):
+        if isinstance(self.module, IWindowProxy):
             # get full frame
             left, top, width, height = self.module.get_full_frame().wait()
 
             # get binning
-            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinning) else 1
+            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinningProxy) else 1
 
             # max values
             self.spinWindowLeft.setMaximum(int(width / binning))
@@ -212,7 +210,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     @pyqtSlot(name='on_butExpose_clicked')
     def expose(self):
         # set binning
-        if isinstance(self.module, IBinning):
+        if isinstance(self.module, IBinningProxy):
             binning = int(self.comboBinning.currentText()[0])
             try:
                 self.module.set_binning(binning, binning).wait()
@@ -224,7 +222,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             binning = 1
 
         # set window
-        if isinstance(self.module, IWindow):
+        if isinstance(self.module, IWindowProxy):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
@@ -234,7 +232,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 return
 
         # set image format
-        if isinstance(self.module, IImageFormat):
+        if isinstance(self.module, IImageFormatProxy):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             self.module.set_image_format(image_format)
 
@@ -251,7 +249,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # do exposure(s)
         while self.exposures_left > 0:
             # set exposure time
-            if isinstance(self.module, IExposureTime):
+            if isinstance(self.module, IExposureTimeProxy):
                 # get exp_time
                 exp_time = self.spinExpTime.value()
 
@@ -265,7 +263,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 self.module.set_exposure_time(exp_time).wait()
 
             # set image type
-            if isinstance(self.module, IImageType):
+            if isinstance(self.module, IImageTypeProxy):
                 self.module.set_image_type(image_type)
 
             # expose

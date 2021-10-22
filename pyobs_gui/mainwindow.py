@@ -7,7 +7,8 @@ from astropy.time import Time
 from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IVideo
+from pyobs.interfaces.proxies import ICameraProxy, ITelescopeProxy, IRoofProxy, IFocuserProxy, IWeatherProxy, \
+    IVideoProxy, IAutonomousProxy
 from pyobs.object import create_object
 from .basewidget import BaseWidget
 from .widgetcamera import WidgetCamera
@@ -23,21 +24,21 @@ from .widgetshell import WidgetShell
 
 
 DEFAULT_WIDGETS = {
-    ICamera: WidgetCamera,
-    ITelescope: WidgetTelescope,
-    IRoof: WidgetRoof,
-    IFocuser: WidgetFocus,
-    IWeather: WidgetWeather,
-    IVideo: WidgetVideo
+    ICameraProxy: WidgetCamera,
+    ITelescopeProxy: WidgetTelescope,
+    IRoofProxy: WidgetRoof,
+    IFocuserProxy: WidgetFocus,
+    IWeatherProxy: WidgetWeather,
+    IVideoProxy: WidgetVideo
 }
 
 DEFAULT_ICONS = {
-    ICamera: ":/resources/Crystal_Clear_device_camera.png",
-    ITelescope: ":/resources/Crystal_Clear_action_find.png",
-    IRoof: ":/resources/Crystal_Clear_app_kfm_home.png",
-    IFocuser: ":/resources/Crystal_Clear_app_demo.png",
-    IWeather: ":/resources/Crystal_Clear_app_demo.png",
-    IVideo: ":/resources/Crystal_Clear_device_camera.png"
+    ICameraProxy: ":/resources/Crystal_Clear_device_camera.png",
+    ITelescopeProxy: ":/resources/Crystal_Clear_action_find.png",
+    IRoofProxy: ":/resources/Crystal_Clear_app_kfm_home.png",
+    IFocuserProxy: ":/resources/Crystal_Clear_app_demo.png",
+    IWeatherProxy: ":/resources/Crystal_Clear_app_demo.png",
+    IVideoProxy: ":/resources/Crystal_Clear_device_camera.png"
 }
 
 
@@ -260,7 +261,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Checks, whether we got an autonomous module."""
 
         # get all autonomous modules
-        clients = list(self.comm.clients_with_interface(IAutonomous))
+        clients = list(self.comm.clients_with_interface(IAutonomousProxy))
 
         # got any?
         self.mastermind_running = len(clients) > 0
