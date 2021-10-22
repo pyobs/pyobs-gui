@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 
@@ -6,8 +6,8 @@ from PyQt5 import QtCore, QtWidgets, QtGui
 class CommandInput(QtWidgets.QLineEdit):  # type: ignore
     commandExecuted = QtCore.pyqtSignal(str)
 
-    def __init__(self) -> None:
-        QtWidgets.QLineEdit.__init__(self)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
         self._history: List[str] = []
         self._history_index = 0
 

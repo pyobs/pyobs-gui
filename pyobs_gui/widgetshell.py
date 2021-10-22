@@ -101,8 +101,8 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
     add_command_log = pyqtSignal(str)
     show_help = pyqtSignal(str)
 
-    def __init__(self, **kwargs):
-        BaseWidget.__init__(self, **kwargs)
+    def __init__(self, *args, **kwargs):
+        BaseWidget.__init__(self, *args, **kwargs)
         self.setupUi(self)
         self.command_number = 0
 

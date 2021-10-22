@@ -27,8 +27,8 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
 
     def __init__(self, module: Optional['Module'] = None, comm: Optional[Comm] = None,
                  observer: Optional[Observer] = None, vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-                 update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1):
-        QtWidgets.QWidget.__init__(self)
+                 update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1, *args, **kwargs):
+        QtWidgets.QWidget.__init__(self, *args, **kwargs)
 
         # store
         self.module = module
