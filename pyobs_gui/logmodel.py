@@ -1,19 +1,21 @@
+from typing import Any
+
 from colour import Color
 from PyQt5 import QtCore, QtGui
 
 
-class LogModel(QtCore.QAbstractTableModel):
-    def __init__(self, *args):
+class LogModel(QtCore.QAbstractTableModel):  # type: ignore
+    def __init__(self, *args: Any):
         QtCore.QAbstractTableModel.__init__(self, *args)
         self._entries = []
 
-    def rowCount(self, parent=None, *args, **kwargs):
+    def rowCount(self, parent: Any = None, *args: Any, **kwargs: Any) -> int:
         return len(self._entries)
 
-    def columnCount(self, parent=None, *args, **kwargs):
+    def columnCount(self, parent: Any = None, *args: Any, **kwargs: Any) -> int:
         return 5
 
-    def data(self, index: QtCore.QModelIndex, role=None):
+    def data(self, index: QtCore.QModelIndex, role: Any = None) -> Any:
         if role == QtCore.Qt.DisplayRole:
             # data to display
             d = self._entries[index.row()][index.column()]
@@ -35,26 +37,26 @@ class LogModel(QtCore.QAbstractTableModel):
 
         return QtCore.QVariant()
 
-    def headerData(self, section: int, orientation, role=None):
+    def headerData(self, section: int, orientation: Any, role: Any = None) -> Any:
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
             return ['Time', 'Source', 'Level', 'File', 'Message'][section]
         return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
 
     @QtCore.pyqtSlot(list)
-    def add_entry(self, entry):
+    def add_entry(self, entry: Any) -> None:
         self.beginInsertRows(QtCore.QModelIndex(), len(self._entries), len(self._entries))
         self._entries.append(entry)
         self.endInsertRows()
 
 
-class LogModelProxy(QtCore.QSortFilterProxyModel):
-    def __init__(self, *args):
+class LogModelProxy(QtCore.QSortFilterProxyModel):  # type: ignore
+    def __init__(self, *args: Any):
         QtCore.QSortFilterProxyModel.__init__(self, *args)
         self.setDynamicSortFilter(True)
         self.sort(0)
-        self._filter_source = []
+        self._filter_source: List[str] = []
 
-    def filterAcceptsRow(self, row: int, parent: QtCore.QModelIndex):
+    def filterAcceptsRow(self, row: int, parent: QtCore.QModelIndex) -> bool:
         # check sender
         index = self.sourceModel().index(row, 1, parent)
         sender = str(self.sourceModel().data(index, role=QtCore.Qt.DisplayRole))
@@ -64,7 +66,7 @@ class LogModelProxy(QtCore.QSortFilterProxyModel):
         # show it
         return True
 
-    def filter_source(self, source: str, show: bool):
+    def filter_source(self, source: str, show: bool) -> None:
         if show and source in self._filter_source:
             self._filter_source.remove(source)
             self.invalidateFilter()

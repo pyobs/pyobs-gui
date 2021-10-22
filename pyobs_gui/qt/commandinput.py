@@ -1,15 +1,17 @@
+from typing import List
+
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 
-class CommandInput(QtWidgets.QLineEdit):
+class CommandInput(QtWidgets.QLineEdit):  # type: ignore
     commandExecuted = QtCore.pyqtSignal(str)
 
-    def __init__(self, *args, **kwargs):
-        QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
-        self._history = []
+    def __init__(self) -> None:
+        QtWidgets.QLineEdit.__init__(self)
+        self._history: List[str] = []
         self._history_index = 0
 
-    def keyPressEvent(self, event: QtGui.QKeyEvent):
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         if event.key() == QtCore.Qt.Key_Return:
             # get command
             cmd = str(self.text())

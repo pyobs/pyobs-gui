@@ -1,6 +1,8 @@
 import logging
 import os
 import threading
+from typing import Any
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
@@ -19,16 +21,17 @@ from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
 from .qt.widgetcamera import Ui_WidgetCamera
 from .widgetimagegrabber import WidgetImageGrabber
 
+
 log = logging.getLogger(__name__)
 
 
-class DownloadThread(QtCore.QThread):
+class DownloadThread(QtCore.QThread):  # type: ignore
     """Worker thread for downloading images."""
 
     """Signal emitted when the image is downloaded."""
     imageReady = pyqtSignal(Image, str)
 
-    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: str = None, *args, **kwargs):
+    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: str = None, *args: Any, **kwargs: Any):
         """Init a new worker thread.
 
         Args:
@@ -41,7 +44,7 @@ class DownloadThread(QtCore.QThread):
         self.filename = filename
         self.autosave = autosave
 
-    def run(self):
+    def run(self) -> None:
         """Run method in thread."""
 
         # download image
