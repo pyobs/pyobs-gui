@@ -31,7 +31,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
                 ctor = getattr(cls, '__init__')
                 sig = inspect.signature(ctor)
                 params = [] if len(sig.parameters) < 2 else \
-                    [p.name for p in sig.parameters.values() if str(p) != 'self']
+                    [p.name for p in sig.parameters.values() if p.name not in ['self', 'args', 'kwargs']]
 
                 # build name
                 name = '%s (%s)' % (cls.__name__, ', '.join(params))
@@ -100,7 +100,7 @@ class SendEventDialog(QtWidgets.QDialog):
         # add input for every param
         self._widgets = {}
         for p in sig.parameters:
-            if p != 'self':
+            if p not in ['self', 'args', 'kwargs']:
                 # create widget
                 if sig.parameters[p].annotation == int:
                     widget = QtWidgets.QSpinBox()
