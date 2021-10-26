@@ -321,9 +321,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if widget is None:
             return
 
-        # get label
-        label = proxy.label().wait()
-
         # add it
         self._add_client(client, icon, widget)
 
