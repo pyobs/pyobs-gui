@@ -1,10 +1,13 @@
 from enum import Enum
+
+import numpy as np
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5 import QtWidgets, QtCore
-from astropy.coordinates import SkyCoord, ICRS, AltAz
+from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun
 import astropy.units as u
 import logging
 from astroquery.exceptions import InvalidQueryError
+import astropy.constants
 
 from pyobs.events import MotionStatusChangedEvent
 from pyobs.interfaces.proxies import IPointingRaDecProxy, IPointingAltAzProxy, IPointingHGSProxy, IOffsetsRaDecProxy, \
@@ -26,6 +29,7 @@ class COORDS(Enum):
     HORIZONTAL = 'Horizontal'
     SOLAR_SYSTEM = 'Solar System'
     HELIOGRAPHIC_STONYHURST = 'Heliographic Stonyhurst'
+    HELIOPROJECTIVE_RADIAL = 'Helioprojective Radial'
 
 
 class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
@@ -52,6 +56,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             COORDS.EQUITORIAL: self.pageMoveEquatorial,
             COORDS.HORIZONTAL: self.pageMoveHorizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self.pageMoveHeliographicStonyhurst,
+            COORDS.HELIOPROJECTIVE_RADIAL: self.pageMoveHelioprojectiveRadial,
             COORDS.SOLAR_SYSTEM: self.pageMoveSolarSystem
         }
 
@@ -60,6 +65,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             COORDS.EQUITORIAL: self._calc_dest_equatorial,
             COORDS.HORIZONTAL: self._calc_dest_horizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self._calc_dest_heliographic_stonyhurst,
+            COORDS.HELIOPROJECTIVE_RADIAL: self._calc_dest_helioprojective_radial,
             COORDS.SOLAR_SYSTEM: self._calc_dest_solar_system
         }
 
@@ -70,6 +76,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
         if isinstance(self.module, IPointingHGSProxy):
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
+            self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
 
@@ -264,9 +271,34 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support horizontal coordinates.')
 
         elif coord == COORDS.HELIOGRAPHIC_STONYHURST:
-            # get mu and psi
+            # get lat and lon
             lon = self.spinMoveHGSLon.value()
             lat = self.spinMoveHGSLat.value()
+
+            # move
+            if isinstance(self.module, IPointingHGSProxy):
+                self.run_async(self.module.move_hgs_lon_lat, lon, lat)
+            else:
+                QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support stonyhurst coordinates.')
+
+        elif coord == COORDS.HELIOPROJECTIVE_RADIAL:
+            # get mu and psi
+            mu = self.spinMoveHelioprojectiveRadialMu.value()
+            psi = self.spinMoveHelioprojectiveRadialPsi.value()
+
+            # to stonyhurst lat/lon
+            alpha = np.arccos(mu)
+            dsun = get_sun(Time.now()).distance  # distance earth <-> sun
+            rsun = astropy.constants.R_sun  # radius of sun
+
+            # get the angle between target and the line between earth and sun
+            # from the triangle defined by the distance between earth and sun, the
+            # distance between target and sun and the angle included by them
+            theta = np.arctan(rsun * np.sin(alpha) / (dsun - (rsun * mu)))
+
+            # calculate helio projective cartesian coordinates
+            lon = float((-theta * np.sin(psi)).value)
+            lat = float((theta * np.cos(psi)).value)
 
             # move
             if isinstance(self.module, IPointingHGSProxy):
@@ -380,6 +412,16 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     @pyqtSlot(name='on_spinMoveHGSLat_valueChanged')
     @pyqtSlot(name='on_spinMoveHGSLat_valueChanged')
     def _calc_dest_heliographic_stonyhurst(self):
+        # get sun
+        sun = self.observer.sun_altaz(Time.now())
+        sun_radec = sun.icrs
+
+        # display
+        self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
+
+    @pyqtSlot(name='on_spinMoveHelioprojectiveRadialMu_valueChanged')
+    @pyqtSlot(name='on_spinMoveHelioprojectiveRadialPsi_valueChanged')
+    def _calc_dest_helioprojective_radial(self):
         # get sun
         sun = self.observer.sun_altaz(Time.now())
         sun_radec = sun.icrs

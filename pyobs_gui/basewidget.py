@@ -8,7 +8,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
 from astroplan import Observer
 
-from pyobs.comm import Comm
+from pyobs.comm import Comm, Proxy
 from pyobs.object import create_object
 from pyobs.vfs import VirtualFileSystem
 if TYPE_CHECKING:
@@ -25,9 +25,10 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
-    def __init__(self, module: Optional['Module'] = None, comm: Optional[Comm] = None,
+    def __init__(self, module: Optional[Proxy] = None, comm: Optional[Comm] = None,
                  observer: Optional[Observer] = None, vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-                 update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1, *args, **kwargs):
+                 update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1,
+                 *args: Any, **kwargs: Any):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
 
         # store
