@@ -11,6 +11,7 @@ from enum import Enum
 import logging
 
 from pyobs.comm import RemoteException
+from .basewidget import BaseWidget
 from .qt.widgetshell import Ui_WidgetShell
 
 
@@ -96,14 +97,13 @@ class CommandModel(QtCore.QAbstractTableModel):
             return self.commands[index.row()][index.column()]
 
 
-class WidgetShell(QtWidgets.QWidget, Ui_WidgetShell):
+class WidgetShell(BaseWidget, Ui_WidgetShell):
     add_command_log = pyqtSignal(str)
     show_help = pyqtSignal(str)
 
-    def __init__(self, comm, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+    def __init__(self, *args, **kwargs):
+        BaseWidget.__init__(self, *args, **kwargs)
         self.setupUi(self)
-        self.comm = comm
         self.command_number = 0
 
         # commands

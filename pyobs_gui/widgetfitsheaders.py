@@ -11,11 +11,9 @@ log = logging.getLogger(__name__)
 
 
 class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
-    def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent=parent)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
-        self.module = module    # type: ICooling
-        self.comm = comm        # type: Comm
 
         # this only works in Linux
         try:

@@ -1,9 +1,6 @@
-import threading
 from PyQt5.QtCore import pyqtSignal
-from astroplan import Observer
 
-from pyobs.comm import Comm
-from pyobs.interfaces import IRoof, IDome
+from pyobs.interfaces.proxies import IDomeProxy
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetroof import Ui_WidgetRoof
 
@@ -11,12 +8,9 @@ from .qt.widgetroof import Ui_WidgetRoof
 class WidgetRoof(BaseWidget, Ui_WidgetRoof):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module: IRoof, comm: Comm, observer: Observer, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
-        self.module = module
-        self.comm = comm
-        self.observer = observer
 
         # status
         self.motion_status = None
@@ -38,7 +32,7 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         self.motion_status = self.module.get_motion_status().wait()
 
         # azimuth
-        if isinstance(self.module, IDome):
+        if isinstance(self.module, IDomeProxy):
             _, self.azimuth = self.module.get_altaz().wait()
 
         # signal GUI update

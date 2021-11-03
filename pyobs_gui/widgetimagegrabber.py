@@ -3,22 +3,15 @@ import os
 import threading
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QMessageBox
 
 from pyobs.comm import Comm
-from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
-from pyobs.interfaces import ICamera, ICameraBinning, ICameraWindow, ICooling, IFilters, ITemperatures, \
-    ICameraExposureTime, IImageType, IImageFormat, IImageGrabber, IAbortable
-from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
+from pyobs.events import  NewImageEvent
+from pyobs.interfaces import IImageGrabber
+from pyobs.utils.enums import ImageType, ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
-from pyobs_gui.widgetcooling import WidgetCooling
-from pyobs_gui.widgetfilter import WidgetFilter
-from pyobs_gui.widgettemperatures import WidgetTemperatures
-from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
 from qfitswidget import QFitsWidget
-from .qt.widgetcamera import Ui_WidgetCamera
 from .qt.widgetimagegrabber import Ui_WidgetImageGrabber
 
 log = logging.getLogger(__name__)
@@ -70,12 +63,9 @@ class WidgetImageGrabber(BaseWidget, Ui_WidgetImageGrabber):
     signal_update_gui = pyqtSignal()
     signal_new_image = pyqtSignal(NewImageEvent, str)
 
-    def __init__(self, module: IImageGrabber, comm: Comm, vfs: VirtualFileSystem, parent=None):
-        BaseWidget.__init__(self, parent=parent)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
-        self.module = module
-        self.comm = comm
-        self.vfs = vfs
 
         # variables
         self.new_image = False

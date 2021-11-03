@@ -12,11 +12,9 @@ log = logging.getLogger(__name__)
 class WidgetCooling(BaseWidget, Ui_WidgetCooling):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
-        self.module = module    # type: ICooling
-        self.comm = comm        # type: Comm
 
         # status
         self._status = None

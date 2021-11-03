@@ -62,7 +62,7 @@ class VisPlot:
         ax.set_yticks([20, 45, 60], (70, 45, 30))
 
         # plot tracks and store handle
-        ax.plot(np.deg2rad(az), abs(90. - alt), linewidth=2, ls='-', c='r')
+        ax.plot_cartesian(np.deg2rad(az), abs(90. - alt), linewidth=2, ls='-', c='r')
 
         # steps are 15min; 4 steps for 1hr
         for i in range(len(x)):
@@ -70,4 +70,4 @@ class VisPlot:
                 continue
 
             # plot it
-            ax.plot(np.deg2rad(az[i]), abs(90. - alt[i]), marker='+', mew=2., ms=6, ls='None', color='r')
+            ax.plot_cartesian(np.deg2rad(az[i]), abs(90. - alt[i]), marker='+', mew=2., ms=6, ls='None', color='r')

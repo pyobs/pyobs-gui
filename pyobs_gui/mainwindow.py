@@ -1,24 +1,45 @@
-import time
 from threading import Event
 import os
+from typing import Union
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IScriptRunner, IWeather, IAutonomous, IVideo
-from pyobs_gui.qt.mainwindow import Ui_MainWindow
-from pyobs_gui.logmodel import LogModel, LogModelProxy
-from pyobs_gui.widgetcamera import WidgetCamera
-from pyobs_gui.widgetevents import WidgetEvents
-from pyobs_gui.widgetroof import WidgetRoof
-from pyobs_gui.widgetshell import WidgetShell
-from pyobs_gui.widgettelescope import WidgetTelescope
-from pyobs_gui.widgetfocus import WidgetFocus
-from pyobs_gui.widgetscript import WidgetScript
-from pyobs_gui.widgetweather import WidgetWeather
-from pyobs_gui.widgetvideo import WidgetVideo
+from pyobs.interfaces.proxies import ICameraProxy, ITelescopeProxy, IRoofProxy, IFocuserProxy, IWeatherProxy, \
+    IVideoProxy, IAutonomousProxy
+from pyobs.object import create_object
+from .basewidget import BaseWidget
+from .widgetcamera import WidgetCamera
+from .widgettelescope import WidgetTelescope
+from .widgetfocus import WidgetFocus
+from .widgetweather import WidgetWeather
+from .widgetvideo import WidgetVideo
+from .qt.mainwindow import Ui_MainWindow
+from .logmodel import LogModel, LogModelProxy
+from .widgetevents import WidgetEvents
+from .widgetroof import WidgetRoof
+from .widgetshell import WidgetShell
+
+
+DEFAULT_WIDGETS = {
+    ICameraProxy: WidgetCamera,
+    ITelescopeProxy: WidgetTelescope,
+    IRoofProxy: WidgetRoof,
+    IFocuserProxy: WidgetFocus,
+    IWeatherProxy: WidgetWeather,
+    IVideoProxy: WidgetVideo
+}
+
+DEFAULT_ICONS = {
+    ICameraProxy: ":/resources/Crystal_Clear_device_camera.png",
+    ITelescopeProxy: ":/resources/Crystal_Clear_action_find.png",
+    IRoofProxy: ":/resources/Crystal_Clear_app_kfm_home.png",
+    IFocuserProxy: ":/resources/Crystal_Clear_app_demo.png",
+    IWeatherProxy: ":/resources/Crystal_Clear_app_demo.png",
+    IVideoProxy: ":/resources/Crystal_Clear_device_camera.png"
+}
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
@@ -51,7 +72,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_disconnected = pyqtSignal(str)
 
     def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
-                 show_modules: list = None, **kwargs):
+                 show_modules: list = None, widgets: list = None, **kwargs):
         """Init window.
 
         Args:
@@ -61,6 +82,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             show_shell: Whether to show shell page.
             show_events: Whether to show events page.
             show_modules: If not empty, show only listed modules.
+            widgets: List of custom widgets.
         """
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
@@ -72,6 +94,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.observer = observer
         self.mastermind_running = False
         self.show_modules = show_modules
+        self.custom_widgets = [] if widgets is None else widgets
 
         # closing
         self.closing = Event()
@@ -100,7 +123,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # shell
         if show_shell:
             # add shell nav button and view
-            self.shell = WidgetShell(self.comm)
+            self.shell = self.create_widget(WidgetShell)
             self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
         else:
             self.shell = None
@@ -238,11 +261,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """Checks, whether we got an autonomous module."""
 
         # get all autonomous modules
-        clients = list(self.comm.clients_with_interface(IAutonomous))
+        clients = list(self.comm.clients_with_interface(IAutonomousProxy))
 
         # got any?
         self.mastermind_running = len(clients) > 0
         self.labelAutonomousWarning.setVisible(self.mastermind_running)
+
+    def create_widget(self, config: Union[dict, type], **kwargs) -> BaseWidget:
+        """Creates new widget.
+
+        Args:
+            config: Config to create widget from.
+
+        Returns:
+            New widget.
+        """
+        if isinstance(config, dict):
+            return create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        elif isinstance(config, type):
+            return config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        else:
+            raise ValueError('Wrong type.')
 
     def _client_connected(self, client: str):
         """Called when a new client connects.
@@ -265,32 +304,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._check_autonomous()
 
         # what do we have?
-        if isinstance(proxy, ICamera):
-            widget = WidgetCamera(proxy, self.comm, self.vfs)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
-        elif isinstance(proxy, ITelescope):
-            widget = WidgetTelescope(proxy, self.comm, self.observer)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_action_find.png")
-        elif isinstance(proxy, IRoof):
-            widget = WidgetRoof(proxy, self.comm, self.observer)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_kfm_home.png")
-        elif isinstance(proxy, IFocuser):
-            widget = WidgetFocus(proxy, self.comm)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IWeather):
-            widget = WidgetWeather(proxy, self.comm)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IScriptRunner):
-            widget = WidgetScript(proxy, self.comm)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png")
-        elif isinstance(proxy, IVideo):
-            widget = WidgetVideo(proxy, self.comm, self.vfs)
-            icon = QtGui.QIcon(":/resources/Crystal_Clear_device_camera.png")
-        else:
-            return
+        widget, icon = None, None
+        for interface, klass in DEFAULT_WIDGETS.items():
+            if isinstance(proxy, interface):
+                widget = self.create_widget(klass, module=proxy)
+                icon = QtGui.QIcon(DEFAULT_ICONS[interface])
+                break
 
-        # get label
-        label = proxy.label().wait()
+        # look at custom widgets
+        for cw in self.custom_widgets:
+            if cw['module'] == client:
+                widget = self.create_widget(cw['widget'], module=proxy)
+                icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
+
+        # still nothing?
+        if widget is None:
+            return
 
         # add it
         self._add_client(client, icon, widget)

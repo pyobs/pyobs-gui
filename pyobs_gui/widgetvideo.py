@@ -3,14 +3,13 @@ import threading
 from urllib.parse import urlparse
 
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
-from pyobs.comm import Comm
-from pyobs.interfaces import ICamera, IVideo, IImageFormat, IImageType, ICameraExposureTime
+from pyobs.interfaces.proxies import IExposureTimeProxy, IImageTypeProxy, IImageFormatProxy
 from pyobs.utils.enums import ImageFormat, ImageType
-from pyobs.vfs import VirtualFileSystem, HttpFile
+from pyobs.vfs import HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
 from .qt.widgetvideo import Ui_WidgetVideo
@@ -36,14 +35,13 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class WidgetVideo(BaseWidget, Ui_WidgetVideo):
-    def __init__(self, module: IVideo, comm: Comm, vfs: VirtualFileSystem, parent=None):
-        BaseWidget.__init__(self, parent=parent)
+    signal_update_gui = pyqtSignal()
+
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
         # store
-        self.module = module
-        self.comm = comm
-        self.vfs = vfs
         self.host = None
         self.port = None
         self.path = None
@@ -54,8 +52,14 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetImageGrabber = WidgetImageGrabber(module, comm, vfs)
+        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, module=self.module)
         self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
+
+        # connect signals
+        self.signal_update_gui.connect(self.update_gui)
+
+        # before first update, disable mys
+        self.setEnabled(False)
 
         # init buffer
         self.buffer = b''
@@ -65,15 +69,18 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.socket.readyRead.connect(self._received_data)
 
         # set exposure types
-        image_types = ['OBJECT', 'BIAS', 'DARK']
+        image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
+        self.comboImageType.setCurrentText('OBJECT')
 
         # hide single controls, if necessary
-        self.labelImageType.setVisible(isinstance(self.module, IImageType))
-        self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, ICameraExposureTime))
-        self.comboExpTimeUnit.setVisible(isinstance(self.module, ICameraExposureTime))
+        self.labelImageType.setVisible(isinstance(self.module, IImageTypeProxy))
+        self.comboImageType.setVisible(isinstance(self.module, IImageTypeProxy))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+
+        # initial values
+        self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
     def _init(self):
         # get video stream URL and open it
@@ -98,6 +105,13 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         (self.host, self.port) = tuple(o.netloc.split(':')) if ':' in o.netloc else (o.netloc, 80)
         self.path = o.path
 
+        # get initial values
+        if isinstance(self.module, IExposureTimeProxy):
+            self.spinExpTime.setValue(self.module.get_exposure_time().wait())
+
+        # update GUI
+        self.signal_update_gui.emit()
+
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         # call base
         BaseWidget.showEvent(self, event)
@@ -113,6 +127,21 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # disconnect socket
         self.socket.disconnectFromHost()
+
+    def update_gui(self):
+        """Update the GUI."""
+
+        # enable myself
+        self.setEnabled(True)
+
+        # enable/disable buttons
+        self.buttonAbort.setEnabled(self.exposures_left > 0)
+
+        # exposures left
+        if self.exposures_left > 0:
+            self.labelExposuresLeft.setText('%d exposure(s) left' % self.exposures_left)
+        else:
+            self.labelExposuresLeft.setText('')
 
     def _received_data(self):
         boundary = b'--jpgboundary\r\n'
@@ -138,12 +167,15 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
     @pyqtSlot(name='on_buttonGrabImage_clicked')
     def grab_image(self):
         # set image format
-        if isinstance(self.module, IImageFormat):
+        if isinstance(self.module, IImageFormatProxy):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             self.module.set_image_format(image_format)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
+
+        # signal GUI update
+        self.signal_update_gui.emit()
 
         # start exposures
         threading.Thread(target=self._expose_thread_func).start()
@@ -155,7 +187,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # do exposure(s)
         while self.exposures_left > 0:
             # set image type
-            if isinstance(self.module, IImageType):
+            if isinstance(self.module, IImageTypeProxy):
                 self.module.set_image_type(image_type)
 
             # expose
@@ -164,6 +196,22 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
             # decrement number of exposures left
             self.exposures_left -= 1
+
+            # signal GUI update
+            self.signal_update_gui.emit()
+
+    @pyqtSlot(name='on_buttonAbort_clicked')
+    def abort_sequence(self):
+        self.exposures_left = 0
+
+    @pyqtSlot(float, name='on_spinExpTime_valueChanged')
+    def exposure_time_changed(self):
+        # get exp_time
+        exp_time = self.spinExpTime.value()
+
+        # set it
+        if isinstance(self.module, IExposureTimeProxy):
+            self.module.set_exposure_time(exp_time)
 
 
 __all__ = ['WidgetVideo']

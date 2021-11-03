@@ -16,11 +16,9 @@ log = logging.getLogger(__name__)
 class WidgetFocus(BaseWidget, Ui_WidgetFocus):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, module, comm, parent=None):
-        BaseWidget.__init__(self, parent=parent, update_func=self._update, update_interval=5)
+    def __init__(self, **kwargs):
+        BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
         self.setupUi(self)
-        self.module = module    # type: IFocuser
-        self.comm = comm        # type: Comm
 
         # variables
         self._focus = None

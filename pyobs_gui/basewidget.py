@@ -1,21 +1,41 @@
+from __future__ import annotations
 import threading
 import logging
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Union, TypeVar, Type, Optional, Callable, TYPE_CHECKING
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QMessageBox
+from astroplan import Observer
+
+from pyobs.comm import Comm, Proxy
+from pyobs.object import create_object
+from pyobs.vfs import VirtualFileSystem
+if TYPE_CHECKING:
+    from pyobs.modules import Module
 
 
 log = logging.getLogger(__name__)
 
 
-class BaseWidget(QtWidgets.QWidget):
+WidgetClass = TypeVar('WidgetClass')
+
+
+class BaseWidget(QtWidgets.QWidget):  # type: ignore
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
-    def __init__(self, update_func=None, update_interval: float = 1, *args, **kwargs):
+    def __init__(self, module: Optional[Proxy] = None, comm: Optional[Comm] = None,
+                 observer: Optional[Observer] = None, vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+                 update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1,
+                 *args: Any, **kwargs: Any):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
+
+        # store
+        self.module = module
+        self.vfs = vfs
+        self.comm = comm
+        self.observer = observer
 
         # signals
         self._show_error.connect(self.show_error)
@@ -34,7 +54,29 @@ class BaseWidget(QtWidgets.QWidget):
         # has it been initialized?
         self._initialized = False
 
-    def add_to_sidebar(self, widget):
+    def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> BaseWidget:
+        """Creates new widget.
+
+        Args:
+            config: Config to create widget from.
+
+        Returns:
+            New widget.
+        """
+        if isinstance(config, dict):
+            widget = create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        elif isinstance(config, type):
+            widget = config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        else:
+            raise ValueError('Wrong type.')
+
+        # check and return widget
+        if isinstance(widget, BaseWidget):
+            return widget
+        else:
+            raise ValueError('Invalid widget.')
+
+    def add_to_sidebar(self, widget: BaseWidget) -> None:
         # if no layout exists on sidebar, create it
         if self.sidebar_layout is None:
             self.sidebar_layout = QtWidgets.QVBoxLayout()
@@ -69,7 +111,7 @@ class BaseWidget(QtWidgets.QWidget):
         if self._update_thread.is_alive():
             self._update_thread.join()
 
-    def _update_loop_thread(self):
+    def _update_loop_thread(self) -> None:
         while not self._update_thread_event.is_set():
             try:
                 # call update function
@@ -81,10 +123,10 @@ class BaseWidget(QtWidgets.QWidget):
             # sleep a little
             self._update_thread_event.wait(self._update_interval)
 
-    def run_async(self, method, *args, **kwargs):
+    def run_async(self, method: Any, *args: Any, **kwargs: Any) -> None:
         threading.Thread(target=self._async_thread, args=(method, *args), kwargs=kwargs).start()
 
-    def _async_thread(self, method, *args,  disable=None, **kwargs):
+    def _async_thread(self, method: Any, *args: Any, disable: Any = None, **kwargs: Any) -> None:
         # make disable an empty list or a list of widgets
         disable = [] if disable is None else [disable] if not hasattr(disable, '__iter__') else disable
 
@@ -101,13 +143,13 @@ class BaseWidget(QtWidgets.QWidget):
             # enable widgets
             self._enable_buttons.emit(disable, True)
 
-    def show_error(self, message):
+    def show_error(self, message: str) -> Any:
         QMessageBox.warning(self, 'Error', message)
 
-    def enable_buttons(self, widgets, enable):
+    def enable_buttons(self, widgets: List[QtWidgets.QWidget], enable: bool) -> None:
         [w.setEnabled(enable) for w in widgets]
 
-    def get_fits_headers(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -122,7 +164,7 @@ class BaseWidget(QtWidgets.QWidget):
                 hdr[k] = v
         return hdr
 
-    def colorize_button(self, button, background, black_on_white: bool = True):
+    def colorize_button(self, button: Any, background: Any, black_on_white: bool = True) -> None:
         # get palette
         pal = button.palette()
 
