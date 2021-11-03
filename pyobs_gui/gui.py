@@ -2,12 +2,12 @@ from typing import List, Dict, Tuple, Any
 
 from PyQt5 import QtWidgets
 
-from pyobs.interfaces import IFitsHeaderProvider
+from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
 from .mainwindow import MainWindow
 
 
-class GUI(Module, IFitsHeaderProvider):
+class GUI(Module, IFitsHeaderBefore):
     __module__ = 'pyobs_gui'
 
     def __init__(self, show_shell: bool = True, show_events: bool = True, show_modules: list = None,
@@ -41,7 +41,7 @@ class GUI(Module, IFitsHeaderProvider):
         # run
         app.exec()
 
-    def get_fits_headers(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_header_before(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
