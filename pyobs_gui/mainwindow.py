@@ -1,3 +1,4 @@
+import threading
 from threading import Event
 import os
 from typing import Union, Optional, List, Any
@@ -96,6 +97,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.mastermind_running = False
         self.show_modules = show_modules
         self.custom_widgets = [] if widgets is None else widgets
+        self.client_lock = threading.Lock()
 
         # closing
         self.closing = Event()
@@ -307,43 +309,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             client: Name of client.
         """
 
-        # ignore it?
-        if self.show_modules is not None and client not in self.show_modules:
-            return
+        with self.client_lock:
+            # ignore it?
+            if self.show_modules is not None and client not in self.show_modules:
+                return
 
-        # does client exist already?
-        if client in self._widgets:
-            return
+            # does client exist already?
+            if client in self._widgets:
+                return
 
-        # update client list
-        self._update_client_list()
+            # update client list
+            self._update_client_list()
 
-        # get proxy
-        proxy = self.comm[client]
+            # get proxy
+            proxy = self.comm[client]
 
-        # check mastermind
-        self._check_warnings()
+            # check mastermind
+            self._check_warnings()
 
-        # what do we have?
-        widget, icon = None, None
-        for interface, klass in DEFAULT_WIDGETS.items():
-            if isinstance(proxy, interface):
-                widget = self.create_widget(klass, module=proxy)
-                icon = QtGui.QIcon(DEFAULT_ICONS[interface])
-                break
+            # what do we have?
+            widget, icon = None, None
+            for interface, klass in DEFAULT_WIDGETS.items():
+                if isinstance(proxy, interface):
+                    widget = self.create_widget(klass, module=proxy)
+                    icon = QtGui.QIcon(DEFAULT_ICONS[interface])
+                    break
 
-        # look at custom widgets
-        for cw in self.custom_widgets:
-            if cw['module'] == client:
-                widget = self.create_widget(cw['widget'], module=proxy)
-                icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
+            # look at custom widgets
+            for cw in self.custom_widgets:
+                if cw['module'] == client:
+                    widget = self.create_widget(cw['widget'], module=proxy)
+                    icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
 
-        # still nothing?
-        if widget is None:
-            return
+            # still nothing?
+            if widget is None:
+                return
 
-        # add it
-        self._add_client(client, icon, widget)
+            # add it
+            self._add_client(client, icon, widget)
 
     def _client_disconnected(self, client: str) -> None:
         """Called, when a client disconnects.
@@ -352,31 +355,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             client: Name of client.
         """
 
-        # check mastermind
-        self._check_warnings()
+        with self.client_lock:
+            # check mastermind
+            self._check_warnings()
 
-        # update client list
-        self._update_client_list()
+            # update client list
+            self._update_client_list()
 
-        # not in list?
-        if client not in self._widgets:
-            return
+            # not in list?
+            if client not in self._widgets:
+                return
 
-        # get widget
-        widget = self._widgets[client]
+            # get widget
+            widget = self._widgets[client]
 
-        # is current?
-        if self.stackedWidget.currentWidget() == widget:
-            self._current_widget = None
+            # is current?
+            if self.stackedWidget.currentWidget() == widget:
+                self._current_widget = None
 
-        # remove widget
-        self.stackedWidget.removeWidget(widget)
+            # remove widget
+            self.stackedWidget.removeWidget(widget)
 
-        # find item in nav list and remove it
-        for row in range(self.listPages.count()):
-            if self.listPages.item(row).text() == client:
-                self.listPages.takeItem(row)
-                break
+            # find item in nav list and remove it
+            for row in range(self.listPages.count()):
+                if self.listPages.item(row).text() == client:
+                    self.listPages.takeItem(row)
+                    break
+
+            # remove from dict
+            del self._widgets[client]
 
     def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
         """Returns FITS header for the current status of this module.
