@@ -138,10 +138,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.events = None
 
-        # create other nav buttons and views
-        for client_name in self.comm.clients:
-            self._client_connected(client_name)
-
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
 
@@ -157,6 +153,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # signals
         self.client_connected.connect(self._client_connected)
         self.client_disconnected.connect(self._client_disconnected)
+
+        # create other nav buttons and views
+        for client_name in self.comm.clients:
+            self._client_connected(client_name)
 
         # add timer for checking warnings
         self._warning_timer = QtCore.QTimer()
@@ -309,6 +309,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # ignore it?
         if self.show_modules is not None and client not in self.show_modules:
+            return
+
+        # does client exist already?
+        if client in self._widgets:
             return
 
         # update client list
