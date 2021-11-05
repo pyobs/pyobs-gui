@@ -10,7 +10,7 @@ from colour import Color
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IAutonomous, IWeather
 from pyobs.interfaces.proxies import ICameraProxy, ITelescopeProxy, IRoofProxy, IFocuserProxy, IWeatherProxy, \
-    IVideoProxy, IAutonomousProxy
+    IVideoProxy, IAutonomousProxy, ISpectrographProxy
 from pyobs.object import create_object
 from .basewidget import BaseWidget
 from .widgetcamera import WidgetCamera
@@ -23,6 +23,7 @@ from .logmodel import LogModel, LogModelProxy
 from .widgetevents import WidgetEvents
 from .widgetroof import WidgetRoof
 from .widgetshell import WidgetShell
+from .widgetspectrograph import WidgetSpectrograph
 
 
 DEFAULT_WIDGETS = {
@@ -31,7 +32,8 @@ DEFAULT_WIDGETS = {
     IRoofProxy: WidgetRoof,
     IFocuserProxy: WidgetFocus,
     IWeatherProxy: WidgetWeather,
-    IVideoProxy: WidgetVideo
+    IVideoProxy: WidgetVideo,
+    ISpectrographProxy: WidgetSpectrograph
 }
 
 DEFAULT_ICONS = {
@@ -40,7 +42,8 @@ DEFAULT_ICONS = {
     IRoofProxy: ":/resources/Crystal_Clear_app_kfm_home.png",
     IFocuserProxy: ":/resources/Crystal_Clear_app_demo.png",
     IWeatherProxy: ":/resources/Crystal_Clear_app_demo.png",
-    IVideoProxy: ":/resources/Crystal_Clear_device_camera.png"
+    IVideoProxy: ":/resources/Crystal_Clear_device_camera.png",
+    ISpectrographProxy: ":/resources/Crystal_Clear_device_camera.png"
 }
 
 
