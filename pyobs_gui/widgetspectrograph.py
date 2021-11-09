@@ -140,16 +140,16 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            exposure_time_left = self.module.get_exposure_time_left()
+            #exposure_time_left = self.module.get_exposure_time_left()
             exposure_progress = self.module.get_exposure_progress()
 
             # fetch results
-            self.exposure_time_left = exposure_time_left.wait()
+            #self.exposure_time_left = exposure_time_left.wait()
             self.exposure_progress = exposure_progress.wait()
 
         else:
             # reset
-            self.exposure_time_left = 0
+            #self.exposure_time_left = 0
             self.exposure_progress = 0
 
         # signal GUI update
