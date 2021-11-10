@@ -9,7 +9,7 @@ from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
-from pyobs.events import ExposureStatusChangedEvent, Event
+from pyobs.events import ExposureStatusChangedEvent, Event, NewSpectrumEvent
 from pyobs.interfaces.proxies import IAbortableProxy, ISpectrographProxy
 from pyobs.utils.enums import ExposureStatus
 from pyobs.images import Image
@@ -85,6 +85,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
 
         # subscribe to events
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        self.comm.register_event(NewSpectrumEvent, self._on_new_spectrum)
 
     def _init(self) -> None:
         # get status
@@ -105,10 +106,20 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        self.spectrum_filename = self.module.grab_spectrum(broadcast).wait()
+        filename = self.module.grab_spectrum(broadcast).wait()
 
+        # download
+        self._download_spectrum(filename)
+
+    def _on_new_spectrum(self, ev: Event, sender: str) -> bool:
+        if isinstance(ev, NewSpectrumEvent):
+            self._download_spectrum(ev.filename)
+        return True
+
+    def _download_spectrum(self, filename: str) -> None:
         # download it
         self.new_spectrum = True
+        self.spectrum_filename = filename
         self.spectrum = self.vfs.read_fits(self.spectrum_filename)
 
         # signal GUI update
