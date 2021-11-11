@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>WidgetImageGrabber</class>
- <widget class="QWidget" name="WidgetImageGrabber">
+ <class>WidgetDataDisplay</class>
+ <widget class="QWidget" name="WidgetDataDisplay">
   <property name="geometry">
    <rect>
     <x>0</x>
