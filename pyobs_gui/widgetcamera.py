@@ -19,8 +19,7 @@ from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
 from .qt.widgetcamera import Ui_WidgetCamera
-from .widgetimagegrabber import WidgetImageGrabber
-
+from .widgetdatadisplay import WidgetDataDisplay
 
 log = logging.getLogger(__name__)
 
@@ -43,9 +42,9 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposure_time_left = 0
         self.exposure_progress = 0
 
-        # image grabber
-        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, module=self.module)
-        self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
+        # data display
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        self.frameDataDisplay.layout().addWidget(self.widgetDataDisplay)
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
@@ -228,7 +227,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            self.widgetImageGrabber.grab_image(broadcast, image_type)
+            self.widgetDataDisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1

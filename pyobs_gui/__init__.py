@@ -5,7 +5,7 @@ __title__ = 'GUI'
 
 from .gui import GUI
 from .widgetcamera import WidgetCamera
-from .widgetimagegrabber import WidgetImageGrabber
+from .widgetdatadisplay import WidgetDataDisplay
 from .widgetcooling import WidgetCooling
 from .widgetshell import WidgetShell
 from .widgetvideo import WidgetVideo

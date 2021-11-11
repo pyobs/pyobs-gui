@@ -15,38 +15,12 @@ from pyobs.utils.enums import ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
+from .widgetdatadisplay import WidgetDataDisplay
 
 from .qt.widgetspectrograph import Ui_WidgetSpectrograph
 
 
 log = logging.getLogger(__name__)
-
-
-class DownloadThread(QtCore.QThread):  # type: ignore
-    """Worker thread for downloading images."""
-
-    """Signal emitted when the spectrum is downloaded."""
-    spectrumReady = pyqtSignal(Image, str)
-
-    def __init__(self, vfs: VirtualFileSystem, filename: str, *args: Any, **kwargs: Any):
-        """Init a new worker thread.
-
-        Args:
-            vfs: VFS to use for download
-            filename: File to download
-        """
-        QtCore.QThread.__init__(self, *args, **kwargs)
-        self.vfs = vfs
-        self.filename = filename
-
-    def run(self) -> None:
-        """Run method in thread."""
-
-        # download spectrum
-        spectrum = self.vfs.read_fits(self.filename)
-
-        # update GUI
-        self.spectrumReady.emit(spectrum, self.filename)
 
 
 class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
@@ -62,17 +36,10 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.spectrum: Optional[fits.PrimaryHDU] = None
         self.status = None
         self.exposure_status = ExposureStatus.IDLE
-        self.download_threads: List[DownloadThread] = []
 
-        # figure
-        self.figure, self.ax = plt.subplots()
-
-        # image grabber
-        layout = self.framePlot.layout()
-        self.canvas = FigureCanvas(self.figure)
-        self.plotTools = NavigationToolbar2QT(self.canvas, self.framePlot)
-        layout.addWidget(self.plotTools)
-        layout.addWidget(self.canvas)
+        # data display
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        self.framePlot.layout().addWidget(self.widgetDataDisplay)
 
         # before first update, disable myself
         self.setEnabled(False)
@@ -85,7 +52,6 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
 
         # subscribe to events
         self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
-        self.comm.register_event(NewSpectrumEvent, self._on_new_spectrum)
 
     def _init(self) -> None:
         # get status
@@ -96,7 +62,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.signal_update_gui.emit()
 
     @pyqtSlot(name='on_butExpose_clicked')
-    def expose(self) -> None:
+    def grab_spectrum(self):
         # start exposures
         threading.Thread(target=self._expose_thread_func).start()
 
@@ -106,40 +72,10 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        filename = self.module.grab_spectrum(broadcast).wait()
-
-        # download
-        self._download_spectrum(filename)
-
-    def _on_new_spectrum(self, ev: Event, sender: str) -> bool:
-        if isinstance(ev, NewSpectrumEvent):
-            self._download_spectrum(ev.filename)
-        return True
-
-    def _download_spectrum(self, filename: str) -> None:
-        # download it
-        self.new_spectrum = True
-        self.spectrum_filename = filename
-        self.spectrum = self.vfs.read_fits(self.spectrum_filename)
+        self.widgetDataDisplay.grab_data(broadcast)
 
         # signal GUI update
         self.signal_update_gui.emit()
-
-    def plot(self) -> None:
-        """Show image."""
-
-        # get header and data
-        hdr = self.spectrum[0].header
-        data = self.spectrum[0].data
-
-        # build wavelength array
-        wave = np.arange(hdr['CRVAL1'], hdr['CRVAL1'] + hdr['CDELT1'] * hdr['NAXIS1'], hdr['CDELT1'])
-
-        # plot it
-        self.figure.delaxes(self.ax)
-        self.ax = self.figure.add_subplot(111)
-        self.ax.plot(wave, data)
-        self.canvas.draw()
 
     @pyqtSlot(name='on_butAbort_clicked')
     def abort(self) -> None:

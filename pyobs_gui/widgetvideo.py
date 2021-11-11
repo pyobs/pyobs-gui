@@ -13,7 +13,7 @@ from pyobs.vfs import HttpFile
 from pyobs_gui.basewidget import BaseWidget
 
 from .qt.widgetvideo import Ui_WidgetVideo
-from .widgetimagegrabber import WidgetImageGrabber
+from .widgetdatadisplay import WidgetDataDisplay
 
 log = logging.getLogger(__name__)
 
@@ -52,8 +52,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, module=self.module)
-        self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -192,7 +192,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            self.widgetImageGrabber.grab_image(broadcast, image_type)
+            self.widgetDataDisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
