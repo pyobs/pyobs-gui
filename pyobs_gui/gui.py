@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 
 from PyQt5 import QtWidgets
 
@@ -11,7 +11,7 @@ class GUI(Module, IFitsHeaderBefore):
     __module__ = 'pyobs_gui'
 
     def __init__(self, show_shell: bool = True, show_events: bool = True, show_modules: list = None,
-                 widgets: list = None, *args, **kwargs):
+                 widgets: list = None, sidebar: Optional[List] = None, *args, **kwargs):
         """Inits a new GUI.
 
         Args:
@@ -19,6 +19,7 @@ class GUI(Module, IFitsHeaderBefore):
             show_events: Whether to show the events page.
             show_modules: If not empty, show only listed modules.
             widgets: List of custom widgets.
+            sidebar: List of custom sidebar widgets.
         """
 
         Module.__init__(self, *args, **kwargs)
@@ -26,7 +27,8 @@ class GUI(Module, IFitsHeaderBefore):
         self._show_shell = show_shell
         self._show_events = show_events
         self._show_modules = show_modules
-        self._widgets = widgets
+        self._custom_widgets = widgets
+        self._custom_sidebar_widgets = sidebar
 
     def main(self):
         # create app
@@ -35,7 +37,8 @@ class GUI(Module, IFitsHeaderBefore):
         # create and show window
         self._window = MainWindow(self.comm, self.vfs, self.observer,
                                   show_shell=self._show_shell, show_events=self._show_events,
-                                  show_modules=self._show_modules, widgets=self._widgets)
+                                  show_modules=self._show_modules, widgets=self._custom_widgets,
+                                  sidebar=self._custom_sidebar_widgets)
         self._window.show()
 
         # run

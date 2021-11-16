@@ -77,7 +77,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     client_disconnected = pyqtSignal(str)
 
     def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
-                 show_modules: Optional[List[str]] = None, widgets: Optional[List] = None, **kwargs: Any):
+                 show_modules: Optional[List[str]] = None, widgets: Optional[List] = None,
+                 sidebar: Optional[List] = None, **kwargs: Any):
         """Init window.
 
         Args:
@@ -88,6 +89,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             show_events: Whether to show events page.
             show_modules: If not empty, show only listed modules.
             widgets: List of custom widgets.
+            sidebar: List of custom widgets for the sidebar.
         """
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
@@ -100,6 +102,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.mastermind_running = False
         self.show_modules = show_modules
         self.custom_widgets = [] if widgets is None else widgets
+        self.custom_sidebar_widgets = [] if sidebar is None else sidebar
         self.client_lock = threading.Lock()
 
         # closing
@@ -347,6 +350,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # still nothing?
             if widget is None:
                 return
+
+            # custom sidebar?
+            for csw in self.custom_sidebar_widgets:
+                if csw['module'] == client:
+                    widget.add_to_sidebar(self.create_widget(csw['widget'], module=proxy))
 
             # add it
             self._add_client(client, icon, widget)
