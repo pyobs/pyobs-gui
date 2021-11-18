@@ -467,7 +467,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if self.sender() == self.buttonResetHorizontalOffsets:
             self.run_async(self.module.set_offsets_altaz, 0., 0)
         elif self.sender() == self.buttonResetEquatorialOffsets:
-            self.run_async(self.module.set_offsets_altaz, 0, 0.)
+            self.run_async(self.module.set_offsets_radec, 0, 0.)
         else:
             # now the sets, ask for value
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, -9999, 9999)

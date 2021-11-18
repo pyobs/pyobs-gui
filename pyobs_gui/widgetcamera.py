@@ -19,52 +19,9 @@ from pyobs_gui.widgetfilter import WidgetFilter
 from pyobs_gui.widgettemperatures import WidgetTemperatures
 from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
 from .qt.widgetcamera import Ui_WidgetCamera
-from .widgetimagegrabber import WidgetImageGrabber
-
+from .widgetdatadisplay import WidgetDataDisplay
 
 log = logging.getLogger(__name__)
-
-
-class DownloadThread(QtCore.QThread):  # type: ignore
-    """Worker thread for downloading images."""
-
-    """Signal emitted when the image is downloaded."""
-    imageReady = pyqtSignal(Image, str)
-
-    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: str = None, *args: Any, **kwargs: Any):
-        """Init a new worker thread.
-
-        Args:
-            vfs: VFS to use for download
-            filename: File to download
-            autosave: Path for autosave or None.
-        """
-        QtCore.QThread.__init__(self, *args, **kwargs)
-        self.vfs = vfs
-        self.filename = filename
-        self.autosave = autosave
-
-    def run(self) -> None:
-        """Run method in thread."""
-
-        # download image
-        image = self.vfs.read_image(self.filename)
-
-        # auto save?
-        if self.autosave is not None:
-            # get path and check
-            path = self.autosave
-            if not os.path.exists(path):
-                log.warning('Invalid path for auto-saving.')
-
-            else:
-                # save image
-                filename = os.path.join(path, os.path.basename(self.filename.replace('.fits.gz', '.fits')))
-                log.info('Saving image as %s...', filename)
-                image.writeto(filename, overwrite=True)
-
-        # update GUI
-        self.imageReady.emit(image, self.filename)
 
 
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
@@ -84,11 +41,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposures_left = 0
         self.exposure_time_left = 0
         self.exposure_progress = 0
-        self.download_threads = []
 
-        # image grabber
-        self.widgetImageGrabber = self.create_widget(WidgetImageGrabber, module=self.module)
-        self.frameImageGrabber.layout().addWidget(self.widgetImageGrabber)
+        # data display
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        self.frameDataDisplay.layout().addWidget(self.widgetDataDisplay)
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
@@ -271,7 +227,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            self.widgetImageGrabber.grab_image(broadcast, image_type)
+            self.widgetDataDisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
