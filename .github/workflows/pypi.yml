@@ -8,18 +8,31 @@ jobs:
     name: Build and publish package to PyPI
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@master
-      - name: Set up Python 3.7
+      - uses: actions/checkout@v2
+      - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
-      - name: Install wheel
-        run: python3 -m pip install --user --upgrade setuptools wheel
-      - name: Build a binary wheel and a source tarball
-        run: python3 setup.py sdist bdist_wheel
-      - name: Publish distribution to PyPI
-        if: startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
+          python-version: "3.7"
+      - name: Install poetry
+        run: |
+          curl -fsS -o get-poetry.py https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          python get-poetry.py -y
+      - name: Configure poetry
+        run: $HOME/.poetry/bin/poetry config virtualenvs.in-project true
+      - name: Set up cache
+        uses: actions/cache@v1
+        id: cache
         with:
-          password: ${{ secrets.pypi_password }}
-          ignore_dev_requirements: "yes"
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Ensure cache is healthy
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: $HOME/.poetry/bin/poetry run pip --version >/dev/null 2>&1 || rm -rf .venv
+      - name: Install Dependencies
+        run: $HOME/.poetry/bin/poetry install
+      - name: Publish
+        env:
+          PYPI_TOKEN: ${{ secrets.pypi_password }}
+        run: |
+          $HOME/.poetry/bin/poetry config pypi-token.pypi $PYPI_TOKEN
+          $HOME/.poetry/bin/poetry publish --build
