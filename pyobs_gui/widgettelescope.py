@@ -108,7 +108,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.colorize_button(self.buttonResetHorizontalOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonResetEquatorialOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonSimbadQuery, QtCore.Qt.green)
-        self.colorize_button(self.buttonMpcQuery, QtCore.Qt.green)
+        self.colorize_button(self.buttonHorizonsQuery, QtCore.Qt.green)
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -332,6 +332,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
         from astroquery.simbad import Simbad
 
+        # clear solar system
+        self.comboSolarSystemBody.setCurrentText('')
+
         # query
         result = Simbad.query_object(self.textSimbadName.text())
 
@@ -347,19 +350,50 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.textMoveDec.setText(r['DEC'])
 
         # update destination
-        self._calc_dest_equatorial()
+        self._calc_dest_equatorial(clear=False)
 
-    @pyqtSlot(name='on_buttonMpcQuery_clicked')
-    def _query_mpc(self):
+    @pyqtSlot(str, name='on_comboSolarSystemBody_currentTextChanged')
+    def _select_solar_system(self, body: str):
+        """Set RA/Dec for selected solar system body."""
+        from astropy.coordinates import solar_system_ephemeris, get_body
+
+        # nothing?
+        if body == '':
+            return
+
+        # clear simbad
+        self.textSimbadName.clear()
+
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        with solar_system_ephemeris.set('builtin'):
+            # get coordinates
+            body = get_body(body, Time.now(), self.observer.location)
+        QtWidgets.QApplication.restoreOverrideCursor()
+
+        # set them
+        self.textMoveRA.setText(body.ra.to_string(unit=u.hour, sep=' ', precision=2))
+        self.textMoveDec.setText(body.dec.to_string(sep=' ', precision=2))
+
+        # update destination
+        self._calc_dest_equatorial(clear=False)
+
+    @pyqtSlot(name='on_buttonHorizonsQuery_clicked')
+    def _query_horizons(self):
         """Takes the object name from the text box, queries Horizons, and fills the RA/Dec inputs with the result."""
-        from astroquery.mpc import MPC
+        from astroquery.jplhorizons import Horizons
 
         # query
         try:
-            result = MPC.get_ephemeris(self.textMpcName.text(), location=self.observer.location)
+            obj = Horizons(id=self.textHorizonsName.text(), location=self.observer.location, epochs=Time.now())
+            #result = MPC.get_ephemeris(, location=self.observer.location)
         except InvalidQueryError:
             QtWidgets.QMessageBox.critical(self, 'MPC', 'No result found')
             return
+
+        print(obj)
+        print(obj.uri)
+        print(obj.ephemerides())
+        return
 
         # to coordinates
         coord = SkyCoord.guess_from_table(result)[0]
@@ -391,8 +425,13 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
     @pyqtSlot(name='on_textMoveRA_editingFinished')
     @pyqtSlot(name='on_textMoveDec_editingFinished')
-    def _calc_dest_equatorial(self):
+    def _calc_dest_equatorial(self, clear: bool = True):
         """Called, whenever RA/Dec input changes. Calculates destination."""
+
+        # reset fields
+        if clear:
+            self.textSimbadName.clear()
+            self.comboSolarSystemBody.setCurrentText('')
 
         # parse RA/Dec
         try:
