@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 class COORDS(Enum):
     EQUITORIAL = 'Equitorial'
     HORIZONTAL = 'Horizontal'
-    SOLAR_SYSTEM = 'Solar System'
+    ORBIT_ELEMENTS = 'Orbit Elements'
     HELIOGRAPHIC_STONYHURST = 'Heliographic Stonyhurst'
     HELIOPROJECTIVE_RADIAL = 'Helioprojective Radial'
 
@@ -57,7 +57,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             COORDS.HORIZONTAL: self.pageMoveHorizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self.pageMoveHeliographicStonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self.pageMoveHelioprojectiveRadial,
-            COORDS.SOLAR_SYSTEM: self.pageMoveSolarSystem
+            COORDS.ORBIT_ELEMENTS: self.pageMoveOrbitElements
         }
 
         # calculate dest coordinates
@@ -66,12 +66,13 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             COORDS.HORIZONTAL: self._calc_dest_horizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self._calc_dest_heliographic_stonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self._calc_dest_helioprojective_radial,
-            COORDS.SOLAR_SYSTEM: self._calc_dest_solar_system
+            COORDS.ORBIT_ELEMENTS: self._calc_dest_orbit_elements
         }
 
         # add coord types
         if isinstance(self.module, IPointingRaDecProxy):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
+            #self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
         if isinstance(self.module, IPointingAltAzProxy):
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
         if isinstance(self.module, IPointingHGSProxy):
@@ -108,6 +109,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.colorize_button(self.buttonResetHorizontalOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonResetEquatorialOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonSimbadQuery, QtCore.Qt.green)
+        self.colorize_button(self.buttonJplHorizonsQuery, QtCore.Qt.green)
         self.colorize_button(self.buttonHorizonsQuery, QtCore.Qt.green)
 
         # connect signals
@@ -332,11 +334,18 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
         from astroquery.simbad import Simbad
 
-        # clear solar system
+        # clear solar system and JPL Horizons
         self.comboSolarSystemBody.setCurrentText('')
+        self.textJplHorizonsName.clear()
+
+        # wait cursor
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
         # query
         result = Simbad.query_object(self.textSimbadName.text())
+
+        # restore cursor
+        QtWidgets.QApplication.restoreOverrideCursor()
 
         # check it
         if result is None:
@@ -352,6 +361,44 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # update destination
         self._calc_dest_equatorial(clear=False)
 
+    @pyqtSlot(name='on_buttonJplHorizonsQuery_clicked')
+    def _query_jpl_horizons(self):
+        """Takes the object name from the text box, queries JPL Horizons, and fills the RA/Dec inputs with the result."""
+        from astroquery.jplhorizons import Horizons
+
+        # clear solar system and simbad
+        self.comboSolarSystemBody.setCurrentText('')
+        self.textSimbadName.clear()
+
+        # wait cursor
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+
+        # query
+        try:
+            # query
+            obj = Horizons(id=self.textJplHorizonsName.text(), location=None, epochs=Time.now().jd)
+
+            # get ephemerides
+            eph = obj.ephemerides()
+
+        except InvalidQueryError:
+            QtWidgets.QMessageBox.critical(self, 'JPL Horizons', 'No result found')
+            return
+        except ValueError:
+            QtWidgets.QMessageBox.critical(self, 'JPL Horizons', 'Invalid result')
+            return
+        finally:
+            # restore cursor
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+        # always use first result
+        coord = SkyCoord(eph['RA'][0] * u.deg, eph['DEC'][0] * u.deg, frame='icrs')
+        self.textMoveRA.setText(coord.ra.to_string(unit=u.hour, sep=' '))
+        self.textMoveDec.setText(coord.dec.to_string(sep=' '))
+
+        # update destination
+        self._calc_dest_equatorial(clear=False)
+
     @pyqtSlot(str, name='on_comboSolarSystemBody_currentTextChanged')
     def _select_solar_system(self, body: str):
         """Set RA/Dec for selected solar system body."""
@@ -361,8 +408,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if body == '':
             return
 
-        # clear simbad
+        # clear simbad and JPL
         self.textSimbadName.clear()
+        self.textJplHorizonsName.clear()
 
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         with solar_system_ephemeris.set('builtin'):
@@ -384,7 +432,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # query
         try:
-            obj = Horizons(id=self.textHorizonsName.text(), location=self.observer.location, epochs=Time.now())
+            obj = Horizons(id=self.textHorizonsName.text(), location=None, epochs=Time.now().jd)
             #result = MPC.get_ephemeris(, location=self.observer.location)
         except InvalidQueryError:
             QtWidgets.QMessageBox.critical(self, 'MPC', 'No result found')
@@ -392,7 +440,21 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         print(obj)
         print(obj.uri)
-        print(obj.ephemerides())
+        try:
+            eph = obj.elements()
+        except ValueError:
+            pass
+        print(eph)
+        print(eph.columns)
+        print(obj.uri)
+
+        self.spinOrbitElementsEcc.setValue(eph['e'][0])
+        self.spinOrbitElementsIncl.setValue(eph['incl'][0])
+        self.spinOrbitElementsSemiMajorAxis.setValue(eph['a'][0])
+        self.spinOrbitElementsMA.setValue(eph['M'][0])
+        self.spinOrbitElementsOmega.setValue(eph['Omega'][0])
+        self.spinOrbitElementsPerifocus.setValue(eph['w'][0])
+        self.spinOrbitElementsEpoch.setValue(eph['datetime_jd'][0])
         return
 
         # to coordinates
@@ -432,6 +494,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if clear:
             self.textSimbadName.clear()
             self.comboSolarSystemBody.setCurrentText('')
+            self.textJplHorizonsName.clear()
 
         # parse RA/Dec
         try:
@@ -468,7 +531,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # display
         self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
 
-    def _calc_dest_solar_system(self):
+    def _calc_dest_orbit_elements(self):
         pass
 
     @pyqtSlot(int, name='on_comboMoveType_currentIndexChanged')
