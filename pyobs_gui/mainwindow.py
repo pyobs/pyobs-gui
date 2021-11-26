@@ -118,7 +118,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.log_proxy = LogModelProxy()
         self.log_proxy.setSourceModel(self.log_model)
         self.tableLog.setModel(self.log_proxy)
-        self.log_model.rowsInserted.connect(lambda: QtCore.QTimer.singleShot(0, self.tableLog.scrollToBottom))
+        self.log_model.rowsInserted.connect(self.log_entry_added)
         self.log_model.rowsInserted.connect(self._resize_log_table)
         self.listClients.itemChanged.connect(self._log_client_changed)
 
@@ -411,3 +411,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 for k, v in widget.get_fits_headers(namespaces, *args, **kwargs).items():
                     hdr[k] = v
         return hdr
+
+    def log_entry_added(self):
+        """Triggered, whenever a new log item has been added."""
+        sb = self.tableLog.verticalScrollBar()
+        if sb.maximum() == sb.value():
+            self.tableLog.scrollToBottom()
