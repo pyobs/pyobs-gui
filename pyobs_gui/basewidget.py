@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import threading
 import logging
+from collections import Coroutine
 from typing import List, Dict, Tuple, Any, Union, TypeVar, Type, Optional, Callable, TYPE_CHECKING
 
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -79,19 +80,15 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         # run updater
-        print('SHOW', self, self._update_func)
         asyncio.create_task(self._showEvent(event))
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:
-        print('show', self._update_func)
-        print(self._initialized, hasattr(self, '_init'))
         if self._initialized is False and hasattr(self, '_init'):
             await self._init()
             self._initialized = True
 
         if self._update_func:
             # start update thread
-            print('create task')
             self._update_task = asyncio.create_task(self._update_loop_thread())
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
@@ -100,7 +97,6 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             self._update_task.cancel()
 
     async def _update_loop_thread(self) -> None:
-        print('update')
         while True:
             try:
                 # call update function
@@ -115,10 +111,11 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             except Exception as e:
                 log.warning("Exception during GUIs update function: %s", str(e))
 
-    def run_async(self, method: Any, *args: Any, **kwargs: Any) -> None:
-        threading.Thread(target=self._async_thread, args=(method, *args), kwargs=kwargs).start()
+    def run_background(self, method: Callable[[...], Coroutine], *args: Any, **kwargs: Any) -> None:
+        asyncio.create_task(self._background_task(method, *args, **kwargs))
 
-    def _async_thread(self, method: Any, *args: Any, disable: Any = None, **kwargs: Any) -> None:
+    async def _background_task(self, method: Callable[[...], Coroutine], *args: Any, disable: Any = None,
+                               **kwargs: Any) -> None:
         # make disable an empty list or a list of widgets
         disable = [] if disable is None else [disable] if not hasattr(disable, '__iter__') else disable
 
@@ -127,7 +124,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
 
         # call method
         try:
-            method(*args, **kwargs).wait()
+            await method(*args, **kwargs)
         except Exception as e:
             log.exception("error")
             self._show_error.emit(str(e))

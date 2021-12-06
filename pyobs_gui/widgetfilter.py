@@ -1,3 +1,5 @@
+import asyncio
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
@@ -34,10 +36,10 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
         await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
-    def _init(self):
+    async def _init(self):
         # get current filter
-        self._motion_status = self.module.get_motion_status().wait()
-        self._filter = self.module.get_filter().wait()
+        self._motion_status = await self.module.get_motion_status()
+        self._filter = await self.module.get_filter()
 
         # update gui
         self.signal_update_gui.emit()
@@ -90,23 +92,26 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # trigger GUI update
         self.signal_update_gui.emit()
 
-    def _update(self):
+    async def _update(self):
         # get filter and motion status
-        self._filter = self.module.get_filter().wait()
-        self._motion_status = self.module.get_motion_status().wait()
+        self._filter = await self.module.get_filter()
+        self._motion_status = await self.module.get_motion_status()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_buttonSetFilter_clicked')
-    def _set_filter(self):
+    #@pyqtSlot(name='on_buttonSetFilter_clicked')
+    def on_buttonSetFilter_clicked(self):
+        asyncio.create_task(self._set_filter())
+
+    async def _set_filter(self):
         # get filters
-        filters = self.module.list_filters().wait()
+        filters = await self.module.list_filters()
 
         # ask for value
         new_value, ok = QtWidgets.QInputDialog.getItem(self, 'Set filter', 'New filter', filters, 0, False)
         if ok:
-            self.run_async(self.module.set_filter, new_value)
+            self.run_background(self.module.set_filter, new_value)
 
 
 __all__ = ['WidgetFilter']

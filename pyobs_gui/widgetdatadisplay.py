@@ -14,7 +14,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IImageGrabber, ISpectrograph
-from pyobs.interfaces.proxies import IImageGrabberProxy, ISpectrographProxy
+from pyobs.interfaces import IImageGrabber, ISpectrograph
 from pyobs.utils.enums import ImageType, ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
@@ -88,10 +88,10 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        if isinstance(self.module, IImageGrabberProxy):
+        if isinstance(self.module, IImageGrabber):
             self.imageView = QFitsWidget()
             self.imageLayout.addWidget(self.imageView)
-        elif isinstance(self.module, ISpectrographProxy):
+        elif isinstance(self.module, ISpectrograph):
             self.figure, self.ax = plt.subplots()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
@@ -121,18 +121,18 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         """Grab data. Must be called from a thread."""
 
         # expose
-        if isinstance(self.module, IImageGrabberProxy):
-            filename = await self.module.grab_image(broadcast=broadcast).wait()
-        elif isinstance(self.module, ISpectrographProxy):
-            filename = await self.module.grab_spectrum(broadcast=broadcast).wait()
+        if isinstance(self.module, IImageGrabber):
+            filename = await self.module.grab_image(broadcast=broadcast)
+        elif isinstance(self.module, ISpectrograph):
+            filename = await self.module.grab_spectrum(broadcast=broadcast)
         else:
             raise ValueError('Unknown type')
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(self.module, IImageGrabberProxy):
+            if isinstance(self.module, IImageGrabber):
                 self.signal_new_data.emit(NewImageEvent(filename, image_type), self.module.name)
-            elif isinstance(self.module, ISpectrographProxy):
+            elif isinstance(self.module, ISpectrograph):
                 self.signal_new_data.emit(NewSpectrumEvent(filename), self.module.name)
             else:
                 raise ValueError('Unknown type')
@@ -142,9 +142,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
     def plot(self) -> None:
         """Show data."""
-        if isinstance(self.module, IImageGrabberProxy):
+        if isinstance(self.module, IImageGrabber):
             self.imageView.display(self.data[0])
-        elif isinstance(self.module, ISpectrographProxy):
+        elif isinstance(self.module, ISpectrograph):
             self._plot_spectrum()
 
     def _plot_spectrum(self) -> None:

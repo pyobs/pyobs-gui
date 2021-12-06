@@ -1,3 +1,4 @@
+import asyncio
 import threading
 from threading import Event
 import os
@@ -9,8 +10,7 @@ from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IAutonomous, IWeather
-from pyobs.interfaces.proxies import ICameraProxy, ITelescopeProxy, IRoofProxy, IFocuserProxy, IWeatherProxy, \
-    IVideoProxy, IAutonomousProxy, ISpectrographProxy
+from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IWeather, IVideo, IAutonomous, ISpectrograph
 from pyobs.object import create_object
 from .basewidget import BaseWidget
 from .widgetcamera import WidgetCamera
@@ -28,23 +28,23 @@ from .widgetspectrograph import WidgetSpectrograph
 
 
 DEFAULT_WIDGETS = {
-    ICameraProxy: WidgetCamera,
-    ITelescopeProxy: WidgetTelescope,
-    IRoofProxy: WidgetRoof,
-    IFocuserProxy: WidgetFocus,
-    IWeatherProxy: WidgetWeather,
-    IVideoProxy: WidgetVideo,
-    ISpectrographProxy: WidgetSpectrograph
+    ICamera: WidgetCamera,
+    ITelescope: WidgetTelescope,
+    IRoof: WidgetRoof,
+    IFocuser: WidgetFocus,
+    IWeather: WidgetWeather,
+    IVideo: WidgetVideo,
+    ISpectrograph: WidgetSpectrograph
 }
 
 DEFAULT_ICONS = {
-    ICameraProxy: ":/resources/Crystal_Clear_device_camera.png",
-    ITelescopeProxy: ":/resources/Crystal_Clear_action_find.png",
-    IRoofProxy: ":/resources/Crystal_Clear_app_kfm_home.png",
-    IFocuserProxy: ":/resources/Crystal_Clear_app_demo.png",
-    IWeatherProxy: ":/resources/Crystal_Clear_app_demo.png",
-    IVideoProxy: ":/resources/Crystal_Clear_device_camera.png",
-    ISpectrographProxy: ":/resources/Crystal_Clear_device_camera.png"
+    ICamera: ":/resources/Crystal_Clear_device_camera.png",
+    ITelescope: ":/resources/Crystal_Clear_action_find.png",
+    IRoof: ":/resources/Crystal_Clear_app_kfm_home.png",
+    IFocuser: ":/resources/Crystal_Clear_app_demo.png",
+    IWeather: ":/resources/Crystal_Clear_app_demo.png",
+    IVideo: ":/resources/Crystal_Clear_device_camera.png",
+    ISpectrograph: ":/resources/Crystal_Clear_device_camera.png"
 }
 
 
@@ -74,8 +74,6 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
 class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
     add_log = pyqtSignal(list)
     add_command_log = pyqtSignal(str)
-    client_connected = pyqtSignal(str)
-    client_disconnected = pyqtSignal(str)
 
     def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
                  show_modules: Optional[List[str]] = None, widgets: Optional[List] = None,
@@ -159,24 +157,20 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # get clients
         self._update_client_list()
-        self._check_warnings()
+        await self._check_warnings()
 
         # subscribe to events
         await self.comm.register_event(LogEvent, self.process_log_entry)
-        await self.comm.register_event(ModuleOpenedEvent, lambda x, y: self.client_connected.emit(y))
-        await self.comm.register_event(ModuleClosedEvent, lambda x, y: self.client_disconnected.emit(y))
-
-        # signals
-        self.client_connected.connect(self._client_connected)
-        self.client_disconnected.connect(self._client_disconnected)
+        await self.comm.register_event(ModuleOpenedEvent, lambda x, y: self._client_connected(y))
+        await self.comm.register_event(ModuleClosedEvent, lambda x, y: self._client_disconnected(y))
 
         # create other nav buttons and views
         for client_name in self.comm.clients:
-            self._client_connected(client_name)
+            await self._client_connected(client_name)
 
         # add timer for checking warnings
         self._warning_timer = QtCore.QTimer()
-        self._warning_timer.timeout.connect(self._check_warnings)
+        self._warning_timer.timeout.connect(lambda: asyncio.create_task(self._check_warnings()))
         self._warning_timer.start(5000)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -281,7 +275,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # update proxy
         self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
 
-    def _check_warnings(self) -> None:
+    async def _check_warnings(self) -> None:
         """Checks, whether we got an autonomous module."""
         # get all autonomous modules
         autonomous_clients = list(self.comm.clients_with_interface(IAutonomous))
@@ -295,12 +289,12 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         if len(weather_clients) > 0:
             # found one or more, just take the first one
             weather = self.comm.proxy(weather_clients[0])
-            self.labelWeatherWarning.setVisible(not weather.is_running().wait())
+            await self.labelWeatherWarning.setVisible(not weather.is_running())
         else:
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)
 
-    def _client_connected(self, client: str) -> None:
+    async def _client_connected(self, client: str) -> None:
         """Called when a new client connects.
 
         Args:
@@ -323,7 +317,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             proxy = self.comm[client]
 
             # check mastermind
-            self._check_warnings()
+            await self._check_warnings()
 
             # what do we have?
             widget, icon = None, None
@@ -351,7 +345,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             # add it
             self._add_client(client, icon, widget)
 
-    def _client_disconnected(self, client: str) -> None:
+    async def _client_disconnected(self, client: str) -> None:
         """Called, when a client disconnects.
 
         Args:

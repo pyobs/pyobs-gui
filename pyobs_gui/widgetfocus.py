@@ -29,7 +29,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.signal_update_gui.connect(self.update_gui)
         self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
         self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
-        self.buttonResetFocusOffset.clicked.connect(lambda: self.run_async(self.module.set_focus_offset, 0))
+        self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(self.module.set_focus_offset, 0))
 
         # button colors
         self.colorize_button(self.butSetFocusBase, QtCore.Qt.green)
@@ -60,14 +60,14 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # ask for value
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, title, 'New value', value, minval, maxval, 2)
         if ok:
-            self.run_async(setter, new_value)
+            self.run_background(setter, new_value)
 
-    def _init(self):
+    async def _init(self):
         # get status
         try:
-            self._focus = self.module.get_focus().wait()
-            self._focus_offset = self.module.get_focus_offset().wait()
-            self._motion_status = self.module.get_motion_status().wait()
+            self._focus = await self.module.get_focus()
+            self._focus_offset = await self.module.get_focus_offset()
+            self._motion_status = await self.module.get_motion_status()
         except:
             self._focus = None
             self._focus_offset = None
@@ -111,11 +111,11 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # trigger GUI update
         self.signal_update_gui.emit()
 
-    def _update(self):
+    async def _update(self):
         # get focus and motion status
-        self._focus = self.module.get_focus().wait()
-        self._focus_offset = self.module.get_focus_offset().wait()
-        self._motion_status = self.module.get_motion_status().wait()
+        self._focus = await self.module.get_focus()
+        self._focus_offset = await self.module.get_focus_offset()
+        self._motion_status = await self.module.get_motion_status()
 
         # signal GUI update
         self.signal_update_gui.emit()

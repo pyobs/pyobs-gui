@@ -98,11 +98,11 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    def _update(self):
+    async def _update(self):
         """Update values from weather module."""
 
         # get current weather
-        self._current_weather = self.module.get_current_weather().wait()
+        self._current_weather = await self.module.get_current_weather()
 
         # signal GUI update
         self.signal_update_gui.emit()

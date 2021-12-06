@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
-from pyobs.interfaces.proxies import IExposureTimeProxy, IImageTypeProxy, IImageFormatProxy
+from pyobs.interfaces import IExposureTime, IImageType, IImageFormat
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile
 from pyobs_gui.basewidget import BaseWidget
@@ -74,17 +74,17 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.comboImageType.setCurrentText('OBJECT')
 
         # hide single controls, if necessary
-        self.labelImageType.setVisible(isinstance(self.module, IImageTypeProxy))
-        self.comboImageType.setVisible(isinstance(self.module, IImageTypeProxy))
-        self.labelExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
-        self.spinExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.labelImageType.setVisible(isinstance(self.module, IImageType))
+        self.comboImageType.setVisible(isinstance(self.module, IImageType))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
-    def _init(self):
+    async def _init(self):
         # get video stream URL and open it
-        video_path = self.module.get_video().wait()
+        video_path = await self.module.get_video()
         video_file = self.vfs.open_file(video_path, 'r')
 
         # we heed a HttpFile
@@ -106,8 +106,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.path = o.path
 
         # get initial values
-        if isinstance(self.module, IExposureTimeProxy):
-            self.spinExpTime.setValue(self.module.get_exposure_time().wait())
+        if isinstance(self.module, IExposureTime):
+            self.spinExpTime.setValue(await self.module.get_exposure_time())
 
         # update GUI
         self.signal_update_gui.emit()
@@ -167,7 +167,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
     @pyqtSlot(name='on_buttonGrabImage_clicked')
     def grab_image(self):
         # set image format
-        if isinstance(self.module, IImageFormatProxy):
+        if isinstance(self.module, IImageFormat):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             self.module.set_image_format(image_format)
 
@@ -187,7 +187,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # do exposure(s)
         while self.exposures_left > 0:
             # set image type
-            if isinstance(self.module, IImageTypeProxy):
+            if isinstance(self.module, IImageType):
                 self.module.set_image_type(image_type)
 
             # expose
@@ -210,7 +210,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         exp_time = self.spinExpTime.value()
 
         # set it
-        if isinstance(self.module, IExposureTimeProxy):
+        if isinstance(self.module, IExposureTime):
             self.module.set_exposure_time(exp_time)
 
 

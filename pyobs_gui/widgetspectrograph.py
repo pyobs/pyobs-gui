@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from typing import Any, List, Optional
@@ -10,7 +11,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
 from pyobs.events import ExposureStatusChangedEvent, Event, NewSpectrumEvent
-from pyobs.interfaces.proxies import IAbortableProxy, ISpectrographProxy
+from pyobs.interfaces import IAbortable, ISpectrograph
 from pyobs.utils.enums import ExposureStatus
 from pyobs.images import Image
 from pyobs.vfs import VirtualFileSystem
@@ -45,7 +46,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.setEnabled(False)
 
         # hide single controls
-        self.butAbort.setVisible(isinstance(self.module, IAbortableProxy))
+        self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -57,10 +58,10 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
-    def _init(self) -> None:
+    async def _init(self) -> None:
         # get status
-        if isinstance(self.module, ISpectrographProxy):
-            self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
+        if isinstance(self.module, ISpectrograph):
+            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
 
         # update GUI
         self.signal_update_gui.emit()
@@ -71,7 +72,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         threading.Thread(target=self._expose_thread_func).start()
 
     def _expose_thread_func(self) -> None:
-        if not isinstance(self.module, ISpectrographProxy):
+        if not isinstance(self.module, ISpectrograph):
             return
 
         # expose
@@ -81,22 +82,21 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_butAbort_clicked')
-    def abort(self) -> None:
-        """Abort exposure."""
-        if isinstance(self, ISpectrographProxy):
-            self.module.abort().wait()
+    #@pyqtSlot(name='on_butAbort_clicked')
+    def on_butAbort_clicked(self):
+        asyncio.create_task(self.abort())
 
-    def _update(self) -> None:
+    async def abort(self) -> None:
+        """Abort exposure."""
+        if isinstance(self, ISpectrograph):
+            await self.module.abort()
+
+    async def _update(self) -> None:
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            #exposure_time_left = self.module.get_exposure_time_left()
-            exposure_progress = self.module.get_exposure_progress()
-
-            # fetch results
-            #self.exposure_time_left = exposure_time_left.wait()
-            self.exposure_progress = exposure_progress.wait()
+            #self.exposure_time_left = await self.module.get_exposure_time_left()
+            self.exposure_progress = await self.module.get_exposure_progress()
 
         else:
             # reset

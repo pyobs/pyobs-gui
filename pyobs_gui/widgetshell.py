@@ -255,10 +255,10 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
                         name=client + '.' + command)
         thread.start()
 
-    def _execute_command_async(self, mod, command, no, *args):
+    async def _execute_command_async(self, mod, command, no, *args):
         # execute command
         try:
-            response = mod.execute(command, *args).wait()
+            response = await mod.execute(command, *args)
         except ValueError as e:
             log.exception('(#%d): Something has gone wrong.' % no)
             self._add_command_log('(#%d): Invalid parameter: %s' % (no, str(e)), 'red')
