@@ -146,6 +146,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.events = None
 
+    async def open(self):
+        """Open module."""
+
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
 
@@ -154,9 +157,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._check_warnings()
 
         # subscribe to events
-        self.comm.register_event(LogEvent, self.process_log_entry)
-        self.comm.register_event(ModuleOpenedEvent, lambda x, y: self.client_connected.emit(y))
-        self.comm.register_event(ModuleClosedEvent, lambda x, y: self.client_disconnected.emit(y))
+        await self.comm.register_event(LogEvent, self.process_log_entry)
+        await self.comm.register_event(ModuleOpenedEvent, lambda x, y: self.client_connected.emit(y))
+        await self.comm.register_event(ModuleClosedEvent, lambda x, y: self.client_disconnected.emit(y))
 
         # signals
         self.client_connected.connect(self._client_connected)

@@ -54,6 +54,10 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
         # has it been initialized?
         self._initialized = False
 
+    async def open(self):
+        """Async open method."""
+        pass
+
     def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> BaseWidget:
         """Creates new widget.
 

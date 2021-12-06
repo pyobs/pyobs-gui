@@ -11,6 +11,7 @@ colour = "^0.1"
 PyQt5 = "^5.13"
 matplotlib = "^3.4"
 qfitswidget = "^0.8"
+qasync = "^0.22"
 
 [tool.poetry.dev-dependencies]
 
