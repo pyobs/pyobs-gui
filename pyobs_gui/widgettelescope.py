@@ -115,8 +115,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
+
         # subscribe to events
-        self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
+        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
         # fill sidebar
         if isinstance(self.module, IFiltersProxy):

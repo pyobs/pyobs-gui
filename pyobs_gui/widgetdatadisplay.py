@@ -109,18 +109,22 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.signal_new_data.connect(self._on_new_data)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
-        # subscribe to events
-        self.comm.register_event(NewImageEvent, self._on_new_data)
-        self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
 
-    def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
+        # subscribe to events
+        await self.comm.register_event(NewImageEvent, self._on_new_data)
+        await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+
+    async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data. Must be called from a thread."""
 
         # expose
         if isinstance(self.module, IImageGrabberProxy):
-            filename = self.module.grab_image(broadcast=broadcast).wait()
+            filename = await self.module.grab_image(broadcast=broadcast).wait()
         elif isinstance(self.module, ISpectrographProxy):
-            filename = self.module.grab_spectrum(broadcast=broadcast).wait()
+            filename = await self.module.grab_spectrum(broadcast=broadcast).wait()
         else:
             raise ValueError('Unknown type')
 

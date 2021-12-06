@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import threading
@@ -72,8 +73,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
+
         # subscribe to events
-        self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
         self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, module=self.module))
@@ -84,15 +89,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ITemperaturesProxy):
             self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
-    def _init(self):
+    async def _init(self):
         # get status
         if isinstance(self.module, ICameraProxy):
-            self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
+            self.exposure_status = ExposureStatus(await self.module.get_exposure_status().wait())
 
         # get binnings
         if isinstance(self.module, IBinningProxy):
             # get binnings
-            binnings = ['%dx%d' % tuple(binning) for binning in self.module.list_binnings().wait()]
+            binnings = ['%dx%d' % tuple(binning) for binning in await self.module.list_binnings().wait()]
 
             # set it
             self.comboBinning.clear()
@@ -104,7 +109,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # get image formats
         if isinstance(self.module, IImageFormatProxy):
             # get formats
-            image_formats = [ImageFormat(f) for f in self.module.list_image_formats().wait()]
+            image_formats = [ImageFormat(f) for f in await self.module.list_image_formats().wait()]
 
             # set it
             self.comboImageFormat.clear()
@@ -119,16 +124,20 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 self.comboImageFormat.setCurrentIndex(0)
 
         # set full frame
-        self.set_full_frame()
+        await self.set_full_frame()
 
         # update GUI
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_butFullFrame_clicked')
-    def set_full_frame(self):
+    #@pyqtSlot(name='on_butFullFrame_clicked')
+    def on_butFullFrame_clicked(self):
+        asyncio.create_task(self.set_full_frame())
+
+    async def set_full_frame(self):
         if isinstance(self.module, IWindowProxy):
             # get full frame
-            left, top, width, height = self.module.get_full_frame().wait()
+            left, top, width, height = await self.module.get_full_frame().wait()
+            print(left, top, width, height)
 
             # get binning
             binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinningProxy) else 1
@@ -140,14 +149,16 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinWindowHeight.setMaximum(int(height / binning))
 
             # set it
-            self.spinWindowLeft.setValue(left)
+            self.spinWindowLeft.setValue(left)            # create event for update thread to close
+            self._update_thread_event = threading.Event()
+
             self.spinWindowTop.setValue(top)
             self.spinWindowWidth.setValue(int(width / binning))
             self.spinWindowHeight.setValue(int(height / binning))
 
     @pyqtSlot(str, name='on_comboBinning_currentTextChanged')
     def binning_changed(self, binning):
-        self.set_full_frame()
+        self.on_butFullFrame_clicked()
 
     @pyqtSlot(int, name='on_checkBroadcast_stateChanged')
     def broadcast_changed(self, state):
@@ -166,13 +177,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.spinExpTime.setEnabled(True)
 
-    @pyqtSlot(name='on_butExpose_clicked')
-    def expose(self):
+    def on_butExpose_clicked(self):
+        asyncio.create_task(self.expose())
+
+    async def expose(self):
         # set binning
         if isinstance(self.module, IBinningProxy):
             binning = int(self.comboBinning.currentText()[0])
             try:
-                self.module.set_binning(binning, binning).wait()
+                await self.module.set_binning(binning, binning).wait()
             except:
                 log.exception('bla')
                 QMessageBox.information(self, 'Error', 'Could not set binning.')
@@ -185,7 +198,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                self.module.set_window(left, top, width * binning, height * binning).wait()
+                await self.module.set_window(left, top, width * binning, height * binning).wait()
             except:
                 QMessageBox.information(self, 'Error', 'Could not set window.')
                 return
@@ -198,10 +211,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # set initial image count
         self.exposures_left = self.spinCount.value()
 
-        # start exposures
-        threading.Thread(target=self._expose_thread_func).start()
-
-    def _expose_thread_func(self):
         # get image type
         image_type = ImageType(self.comboImageType.currentText().lower())
 
@@ -219,7 +228,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                     exp_time /= 1e6
 
                 # set it
-                self.module.set_exposure_time(exp_time).wait()
+                await self.module.set_exposure_time(exp_time).wait()
 
             # set image type
             if isinstance(self.module, IImageTypeProxy):
@@ -227,7 +236,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            self.widgetDataDisplay.grab_data(broadcast, image_type)
+            await self.widgetDataDisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
@@ -254,16 +263,16 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.module.abort().wait()
 
-    def _update(self):
+    async def _update(self):
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            exposure_time_left = self.module.get_exposure_time_left()
-            exposure_progress = self.module.get_exposure_progress()
+            exposure_time_left = await self.module.get_exposure_time_left()
+            exposure_progress = await self.module.get_exposure_progress()
 
             # fetch results
-            self.exposure_time_left = exposure_time_left.wait()
-            self.exposure_progress = exposure_progress.wait()
+            self.exposure_time_left = await exposure_time_left.wait()
+            self.exposure_progress = await exposure_progress.wait()
 
         else:
             # reset

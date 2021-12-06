@@ -14,6 +14,7 @@ from pyobs.interfaces.proxies import ICameraProxy, ITelescopeProxy, IRoofProxy, 
 from pyobs.object import create_object
 from .basewidget import BaseWidget
 from .widgetcamera import WidgetCamera
+from .widgetsmixin import WidgetsMixin
 from .widgettelescope import WidgetTelescope
 from .widgetfocus import WidgetFocus
 from .widgetweather import WidgetWeather
@@ -70,7 +71,7 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
             return QtWidgets.QListWidgetItem.__lt__(self, other)
 
 
-class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
     add_log = pyqtSignal(list)
     add_command_log = pyqtSignal(str)
     client_connected = pyqtSignal(str)
@@ -92,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             sidebar: List of custom widgets for the sidebar.
         """
         QtWidgets.QMainWindow.__init__(self)
+        WidgetsMixin.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
 
@@ -148,6 +150,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     async def open(self):
         """Open module."""
+
+        # open widgets
+        await WidgetsMixin.open(self)
 
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
@@ -294,22 +299,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)
-
-    def create_widget(self, config: Union[dict, type], **kwargs) -> BaseWidget:
-        """Creates new widget.
-
-        Args:
-            config: Config to create widget from.
-
-        Returns:
-            New widget.
-        """
-        if isinstance(config, dict):
-            return create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
-        elif isinstance(config, type):
-            return config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
-        else:
-            raise ValueError('Wrong type.')
 
     def _client_connected(self, client: str) -> None:
         """Called when a new client connects.

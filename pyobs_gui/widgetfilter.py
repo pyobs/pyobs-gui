@@ -26,9 +26,13 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # button colors
         self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
 
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
+
         # subscribe to events
-        self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
-        self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
+        await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
+        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     def _init(self):
         # get current filter

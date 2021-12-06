@@ -23,9 +23,9 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
         self.signal_update_gui.connect(self.update_gui)
         self.buttonApply.clicked.connect(self.set_cooling)
 
-    def _update(self):
+    async def _update(self):
         # get status
-        self._status = self.module.get_cooling_status().wait()
+        self._status = await self.module.get_cooling_status().wait()
 
         # signal GUI update
         self.signal_update_gui.emit()

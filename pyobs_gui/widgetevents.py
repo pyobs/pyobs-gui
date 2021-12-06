@@ -21,11 +21,14 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
 
+    async def open(self):
+        """Open widget."""
+
         # loop all event types
         for name, cls in pyobs.events.__dict__.items():
             if isinstance(cls, type):
                 # register event
-                self.comm.register_event(cls, self._handle_event)
+                await self.comm.register_event(cls, self._handle_event)
 
                 # get c'tor
                 ctor = getattr(cls, '__init__')

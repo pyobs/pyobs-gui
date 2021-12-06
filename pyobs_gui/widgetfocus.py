@@ -36,6 +36,10 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.colorize_button(self.butSetFocusOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonResetFocusOffset, QtCore.Qt.yellow)
 
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
+
         # subscribe to events
         self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 

@@ -50,8 +50,12 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
+
         # subscribe to events
-        self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
     def _init(self) -> None:
         # get status

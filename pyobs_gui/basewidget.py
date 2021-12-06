@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import asyncio
 import threading
 import logging
 from typing import List, Dict, Tuple, Any, Union, TypeVar, Type, Optional, Callable, TYPE_CHECKING
@@ -10,9 +12,13 @@ from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
 from pyobs.object import create_object
+from pyobs.utils.parallel import event_wait
 from pyobs.vfs import VirtualFileSystem
 if TYPE_CHECKING:
     from pyobs.modules import Module
+
+
+from .widgetsmixin import WidgetsMixin
 
 
 log = logging.getLogger(__name__)
@@ -21,7 +27,7 @@ log = logging.getLogger(__name__)
 WidgetClass = TypeVar('WidgetClass')
 
 
-class BaseWidget(QtWidgets.QWidget):  # type: ignore
+class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
     _show_error = pyqtSignal(str)
     _enable_buttons = pyqtSignal(list, bool)
 
@@ -30,6 +36,7 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
                  update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1,
                  *args: Any, **kwargs: Any):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
+        WidgetsMixin.__init__(self)
 
         # store
         self.module = module
@@ -44,8 +51,7 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
         # update thread
         self._update_func = update_func
         self._update_interval = update_interval
-        self._update_thread = threading.Thread()
-        self._update_thread_event = threading.Event()
+        self._update_task: Optional[asyncio.Task] = None
 
         # sidebar
         self.sidebar_widgets: List[BaseWidget] = []
@@ -56,29 +62,7 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
 
     async def open(self):
         """Async open method."""
-        pass
-
-    def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> BaseWidget:
-        """Creates new widget.
-
-        Args:
-            config: Config to create widget from.
-
-        Returns:
-            New widget.
-        """
-        if isinstance(config, dict):
-            widget = create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
-        elif isinstance(config, type):
-            widget = config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
-        else:
-            raise ValueError('Wrong type.')
-
-        # check and return widget
-        if isinstance(widget, BaseWidget):
-            return widget
-        else:
-            raise ValueError('Invalid widget.')
+        await WidgetsMixin.open(self)
 
     def add_to_sidebar(self, widget: BaseWidget) -> None:
         # if no layout exists on sidebar, create it
@@ -94,38 +78,42 @@ class BaseWidget(QtWidgets.QWidget):  # type: ignore
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
+        # run updater
+        print('SHOW', self, self._update_func)
+        asyncio.create_task(self._showEvent(event))
+
+    async def _showEvent(self, event: QtGui.QShowEvent) -> None:
+        print('show', self._update_func)
+        print(self._initialized, hasattr(self, '_init'))
         if self._initialized is False and hasattr(self, '_init'):
-            self._init()
+            await self._init()
             self._initialized = True
 
         if self._update_func:
-            # create event for update thread to close
-            self._update_thread_event = threading.Event()
-
             # start update thread
-            self._update_thread = threading.Thread(target=self._update_loop_thread)
-            self._update_thread.start()
+            print('create task')
+            self._update_task = asyncio.create_task(self._update_loop_thread())
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # stop thread
-        if self._update_thread_event is not None:
-            self._update_thread_event.set()
+        if self._update_task is not None:
+            self._update_task.cancel()
 
-        # wait for it
-        if self._update_thread.is_alive():
-            self._update_thread.join()
-
-    def _update_loop_thread(self) -> None:
-        while not self._update_thread_event.is_set():
+    async def _update_loop_thread(self) -> None:
+        print('update')
+        while True:
             try:
                 # call update function
-                self._update_func()
-            except Exception as e:
-                log.warning("Exception during GUIs update function: %s",
-                            str(e))
+                await self._update_func()
 
-            # sleep a little
-            self._update_thread_event.wait(self._update_interval)
+                # sleep a little
+                await asyncio.sleep(1)
+
+            except asyncio.CancelledError:
+                return
+
+            except Exception as e:
+                log.warning("Exception during GUIs update function: %s", str(e))
 
     def run_async(self, method: Any, *args: Any, **kwargs: Any) -> None:
         threading.Thread(target=self._async_thread, args=(method, *args), kwargs=kwargs).start()
