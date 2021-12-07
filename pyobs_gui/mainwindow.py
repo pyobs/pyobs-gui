@@ -104,6 +104,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.custom_widgets = [] if widgets is None else widgets
         self.custom_sidebar_widgets = [] if sidebar is None else sidebar
         self.client_lock = threading.Lock()
+        self.show_shell = show_shell
+        self.show_events = show_events
 
         # closing
         self.closing = Event()
@@ -130,27 +132,27 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self._widgets = {}
         self._current_widget = None
 
-        # shell
-        if show_shell:
-            # add shell nav button and view
-            self.shell = self.create_widget(WidgetShell)
-            self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
-        else:
-            self.shell = None
-
-        # events
-        if show_events:
-            # add events nav button and view
-            self.events = WidgetEvents(self.comm)
-            self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
-        else:
-            self.events = None
-
     async def open(self):
         """Open module."""
 
         # open widgets
         await WidgetsMixin.open(self)
+
+        # shell
+        if self.show_shell:
+            # add shell nav button and view
+            self.shell = self.create_widget(WidgetShell)
+            await self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+        else:
+            self.shell = None
+
+        # events
+        if self.show_events:
+            # add events nav button and view
+            self.events = WidgetEvents(self.comm)
+            await self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+        else:
+            self.events = None
 
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
@@ -179,7 +181,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # get current widget
         widget = self.stackedWidget.currentWidget()
 
-    def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget) -> None:
+    async def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget) -> None:
         """
 
         Args:
@@ -201,7 +203,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.listPages.addItem(item)
         self.listPages.sortItems()
 
-        # add widget
+        # open and add widget
+        await widget.open()
         self.stackedWidget.addWidget(widget)
 
         # store
@@ -343,7 +346,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
                     widget.add_to_sidebar(self.create_widget(csw['widget'], module=proxy))
 
             # add it
-            self._add_client(client, icon, widget)
+            await self._add_client(client, icon, widget)
 
     async def _client_disconnected(self, client: str) -> None:
         """Called, when a client disconnects.
@@ -354,7 +357,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         with self.client_lock:
             # check mastermind
-            self._check_warnings()
+            await self._check_warnings()
 
             # update client list
             self._update_client_list()
