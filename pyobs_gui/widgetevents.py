@@ -42,7 +42,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
                 # add to combo
                 self.comboEvent.addItem(name, cls)
 
-    def _handle_event(self, event: pyobs.events.Event, sender: str):
+    async def _handle_event(self, event: pyobs.events.Event, sender: str):
         """Handle any incoming event.
 
         Args:
