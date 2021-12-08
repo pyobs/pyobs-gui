@@ -1,5 +1,5 @@
+import asyncio
 import logging
-import threading
 from urllib.parse import urlparse
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -178,9 +178,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.signal_update_gui.emit()
 
         # start exposures
-        threading.Thread(target=self._expose_thread_func).start()
+        asyncio.create_task(self._expose_thread_func())
 
-    def _expose_thread_func(self):
+    async def _expose_thread_func(self):
         # get image type
         image_type = ImageType(self.comboImageType.currentText().lower())
 
@@ -188,11 +188,11 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         while self.exposures_left > 0:
             # set image type
             if isinstance(self.module, IImageType):
-                self.module.set_image_type(image_type)
+                await self.module.set_image_type(image_type)
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            self.widgetDataDisplay.grab_data(broadcast, image_type)
+            await self.widgetDataDisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
@@ -211,7 +211,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # set it
         if isinstance(self.module, IExposureTime):
-            self.module.set_exposure_time(exp_time)
+            asyncio.create_task(self.module.set_exposure_time(exp_time))
 
 
 __all__ = ['WidgetVideo']

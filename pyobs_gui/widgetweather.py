@@ -1,12 +1,7 @@
-import threading
-
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from astroplan import Observer
+from PyQt5.QtCore import pyqtSignal
 import logging
 
-from pyobs.comm import Comm
-from pyobs.interfaces import IWeather
 from pyobs.utils.time import Time
 from .qt.widgetweather import Ui_widgetWeather
 from .basewidget import BaseWidget

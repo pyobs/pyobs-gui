@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import threading
 import logging
 from collections import Coroutine
-from typing import List, Dict, Tuple, Any, Union, TypeVar, Type, Optional, Callable, TYPE_CHECKING
+from typing import List, Dict, Tuple, Any, Union, TypeVar, Optional, Callable, TYPE_CHECKING
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -12,8 +11,6 @@ from PyQt5.QtWidgets import QMessageBox
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
-from pyobs.object import create_object
-from pyobs.utils.parallel import event_wait
 from pyobs.vfs import VirtualFileSystem
 if TYPE_CHECKING:
     from pyobs.modules import Module

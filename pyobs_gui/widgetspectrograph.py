@@ -1,20 +1,12 @@
 import asyncio
 import logging
-import threading
-from typing import Any, List, Optional
-import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from typing import Optional
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from astropy.io import fits
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
 
-from pyobs.events import ExposureStatusChangedEvent, Event, NewSpectrumEvent
+from pyobs.events import ExposureStatusChangedEvent, Event
 from pyobs.interfaces import IAbortable, ISpectrograph
 from pyobs.utils.enums import ExposureStatus
-from pyobs.images import Image
-from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from .widgetdatadisplay import WidgetDataDisplay
 
@@ -68,28 +60,21 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
 
     @pyqtSlot(name='on_butExpose_clicked')
     def grab_spectrum(self):
-        # start exposures
-        threading.Thread(target=self._expose_thread_func).start()
-
-    def _expose_thread_func(self) -> None:
         if not isinstance(self.module, ISpectrograph):
             return
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        self.widgetDataDisplay.grab_data(broadcast)
+        asyncio.create_task(self.widgetDataDisplay.grab_data(broadcast))
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    #@pyqtSlot(name='on_butAbort_clicked')
-    def on_butAbort_clicked(self):
-        asyncio.create_task(self.abort())
-
-    async def abort(self) -> None:
+    @pyqtSlot(name='on_butAbort_clicked')
+    def abort(self):
         """Abort exposure."""
         if isinstance(self, ISpectrograph):
-            await self.module.abort()
+            asyncio.create_task(self.module.abort())
 
     async def _update(self) -> None:
         # are we exposing?

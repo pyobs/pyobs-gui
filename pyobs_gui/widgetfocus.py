@@ -1,10 +1,8 @@
-import threading
 import logging
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 from pyobs.events import MotionStatusChangedEvent
 
-from pyobs.interfaces import IFocuser, IMotion
 from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetfocus import Ui_WidgetFocus
@@ -41,7 +39,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         await BaseWidget.open(self)
 
         # subscribe to events
-        self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
+        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     def _set_focus(self, offset: bool = False):
         """Asks user for new focus (offset) and sets it.

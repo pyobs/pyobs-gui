@@ -1,7 +1,5 @@
 import logging
 import os
-import threading
-from enum import Enum
 from typing import Any, Optional, List
 
 import numpy as np
@@ -14,9 +12,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IImageGrabber, ISpectrograph
-from pyobs.interfaces import IImageGrabber, ISpectrograph
-from pyobs.utils.enums import ImageType, ExposureStatus
-from pyobs.images import Image
+from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from qfitswidget import QFitsWidget
@@ -81,7 +77,6 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.data_filename: Optional[str] = None
         self.data: Optional[fits.HDUList] = None
         self.download_threads: List[DownloadThread] = []
-        self.lock = threading.RLock()
 
         # before first update, disable mys
         self.setEnabled(False)

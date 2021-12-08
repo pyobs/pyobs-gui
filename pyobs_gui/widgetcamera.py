@@ -1,10 +1,7 @@
 import asyncio
 import logging
 import os
-import threading
-from typing import Any
-
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
@@ -12,8 +9,6 @@ from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
 from pyobs.interfaces import IAbortable, IExposureTime, IImageType, IImageFormat, \
     IBinning, IWindow, IFilters, ICooling, ITemperatures, ICamera
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
-from pyobs.images import Image
-from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from pyobs_gui.widgetcooling import WidgetCooling
 from pyobs_gui.widgetfilter import WidgetFilter
@@ -129,8 +124,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # update GUI
         self.signal_update_gui.emit()
 
-    #@pyqtSlot(name='on_butFullFrame_clicked')
-    def on_butFullFrame_clicked(self):
+    @pyqtSlot(name='on_butFullFrame_clicked')
+    def _set_full_frame(self):
         asyncio.create_task(self.set_full_frame())
 
     async def set_full_frame(self):
@@ -149,7 +144,6 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
             # set it
             self.spinWindowLeft.setValue(left)            # create event for update thread to close
-            self._update_thread_event = threading.Event()
 
             self.spinWindowTop.setValue(top)
             self.spinWindowWidth.setValue(int(width / binning))
@@ -176,7 +170,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.spinExpTime.setEnabled(True)
 
-    def on_butExpose_clicked(self):
+    @pyqtSlot(name='on_butExpose_clicked')
+    def _expose(self):
         asyncio.create_task(self.expose())
 
     async def expose(self):
@@ -247,8 +242,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         """Show image."""
         self.imageView.display(self.image)
 
-    #@pyqtSlot(name='on_butAbort_clicked')
-    def on_butAbort_clicked(self):
+    @pyqtSlot(name='on_butAbort_clicked')
+    def _abort(self):
         asyncio.create_task(self.abort())
 
     async def abort(self):
@@ -350,7 +345,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.tableFitsHeader.resizeColumnToContents(0)
         self.tableFitsHeader.resizeColumnToContents(1)
 
-    def _on_exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str):
+    async def _on_exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str) -> bool:
         """Called when exposure status of module changed.
 
         Args:
@@ -360,10 +355,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
 
         # ignore events from wrong sender
         if sender != self.module.name:
-            return
+            return False
 
         # store new status
         self.exposure_status = event.current
 
         # trigger GUI update
         self.signal_update_gui.emit()
+        return True

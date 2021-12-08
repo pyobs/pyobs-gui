@@ -1,6 +1,4 @@
 import asyncio
-import threading
-from threading import Event
 import os
 from typing import Union, Optional, List, Any
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -103,12 +101,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.show_modules = show_modules
         self.custom_widgets = [] if widgets is None else widgets
         self.custom_sidebar_widgets = [] if sidebar is None else sidebar
-        self.client_lock = threading.Lock()
         self.show_shell = show_shell
         self.show_events = show_events
-
-        # closing
-        self.closing = Event()
 
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
@@ -304,49 +298,48 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             client: Name of client.
         """
 
-        with self.client_lock:
-            # ignore it?
-            if self.show_modules is not None and client not in self.show_modules:
-                return
+        # ignore it?
+        if self.show_modules is not None and client not in self.show_modules:
+            return
 
-            # does client exist already?
-            if client in self._widgets:
-                return
+        # does client exist already?
+        if client in self._widgets:
+            return
 
-            # update client list
-            self._update_client_list()
+        # update client list
+        self._update_client_list()
 
-            # get proxy
-            proxy = self.comm[client]
+        # get proxy
+        proxy = self.comm[client]
 
-            # check mastermind
-            await self._check_warnings()
+        # what do we have?
+        widget, icon = None, None
+        for interface, klass in DEFAULT_WIDGETS.items():
+            if isinstance(proxy, interface):
+                widget = self.create_widget(klass, module=proxy)
+                icon = QtGui.QIcon(DEFAULT_ICONS[interface])
+                break
 
-            # what do we have?
-            widget, icon = None, None
-            for interface, klass in DEFAULT_WIDGETS.items():
-                if isinstance(proxy, interface):
-                    widget = self.create_widget(klass, module=proxy)
-                    icon = QtGui.QIcon(DEFAULT_ICONS[interface])
-                    break
+        # look at custom widgets
+        for cw in self.custom_widgets:
+            if cw['module'] == client:
+                widget = self.create_widget(cw['widget'], module=proxy)
+                icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
 
-            # look at custom widgets
-            for cw in self.custom_widgets:
-                if cw['module'] == client:
-                    widget = self.create_widget(cw['widget'], module=proxy)
-                    icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
+        # still nothing?
+        if widget is None:
+            return
 
-            # still nothing?
-            if widget is None:
-                return
+        # custom sidebar?
+        for csw in self.custom_sidebar_widgets:
+            if csw['module'] == client:
+                widget.add_to_sidebar(self.create_widget(csw['widget'], module=proxy))
 
-            # custom sidebar?
-            for csw in self.custom_sidebar_widgets:
-                if csw['module'] == client:
-                    widget.add_to_sidebar(self.create_widget(csw['widget'], module=proxy))
+        # add it
+        await self._add_client(client, icon, widget)
 
-            # add it
-            await self._add_client(client, icon, widget)
+        # check mastermind
+        await self._check_warnings()
 
     async def _client_disconnected(self, client: str) -> None:
         """Called, when a client disconnects.

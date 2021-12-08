@@ -50,7 +50,7 @@ class GUI(Module, IFitsHeaderBefore):
         await self._window.open()
         self._window.show()
 
-    def get_fits_header_before(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
+    async def get_fits_header_before(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
