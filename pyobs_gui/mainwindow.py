@@ -348,35 +348,34 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             client: Name of client.
         """
 
-        with self.client_lock:
-            # check mastermind
-            await self._check_warnings()
+        # update client list
+        self._update_client_list()
 
-            # update client list
-            self._update_client_list()
+        # not in list?
+        if client not in self._widgets:
+            return
 
-            # not in list?
-            if client not in self._widgets:
-                return
+        # get widget
+        widget = self._widgets[client]
 
-            # get widget
-            widget = self._widgets[client]
+        # is current?
+        if self.stackedWidget.currentWidget() == widget:
+            self._current_widget = None
 
-            # is current?
-            if self.stackedWidget.currentWidget() == widget:
-                self._current_widget = None
+        # remove widget
+        self.stackedWidget.removeWidget(widget)
 
-            # remove widget
-            self.stackedWidget.removeWidget(widget)
+        # find item in nav list and remove it
+        for row in range(self.listPages.count()):
+            if self.listPages.item(row).text() == client:
+                self.listPages.takeItem(row)
+                break
 
-            # find item in nav list and remove it
-            for row in range(self.listPages.count()):
-                if self.listPages.item(row).text() == client:
-                    self.listPages.takeItem(row)
-                    break
+        # remove from dict
+        del self._widgets[client]
 
-            # remove from dict
-            del self._widgets[client]
+        # check mastermind
+        await self._check_warnings()
 
     def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
         """Returns FITS header for the current status of this module.
