@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from typing import Any, Optional, List
@@ -45,7 +46,8 @@ class DownloadThread(QtCore.QThread):
         """Run method in thread."""
 
         # download data
-        data = self.vfs.read_fits(self.filename)
+        # we're in a new thread, so we can just start a new loop
+        data = asyncio.run(self.vfs.read_fits(self.filename))
 
         # auto save?
         if self.autosave is not None:
