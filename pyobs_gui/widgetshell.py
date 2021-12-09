@@ -35,10 +35,14 @@ class CommandModel(QtCore.QAbstractTableModel):
 
         # create model
         self.commands = []
+        self.comm = comm
+
+    async def init(self) -> None:
+        self.commands = []
         command_names = []
-        for client_name in comm.clients:
+        for client_name in self.comm.clients:
             # loop interfaces
-            for interface in comm.get_interfaces(client_name):
+            for interface in await self.comm.get_interfaces(client_name):
                 # loop methods
                 for method_name, member in inspect.getmembers(interface):
                     # not a method?
@@ -107,7 +111,6 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self.command_number = 0
 
         # commands
-        #self.command_model = None
         self.command_model = CommandModel(self.comm)
 
         self.command_regexp = re.compile(r'(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)')
@@ -140,6 +143,10 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self.add_command_log.connect(self.textCommandLog.append)
         self.textCommandInput.commandExecuted.connect(self.execute_command)
         self.textCommandInput.textChanged.connect(self._update_docs)
+
+    async def open(self) -> None:
+        """Open module."""
+        await self.command_model.init()
 
     def _add_command_log(self, msg, color=None):
         if color is not None:
@@ -251,7 +258,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             return
 
         # get proxy
-        proxy = self.comm[client]
+        proxy = await self.comm.proxy(client)
 
         # execute command
         try:

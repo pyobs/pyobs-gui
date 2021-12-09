@@ -1,16 +1,13 @@
 import asyncio
 import os
-from typing import Union, Optional, List, Any
+from typing import Optional, List, Any
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
-from pyobs.interfaces import IAutonomous, IWeather
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IWeather, IVideo, IAutonomous, ISpectrograph
-from pyobs.object import create_object
-from .basewidget import BaseWidget
 from .widgetcamera import WidgetCamera
 from .widgetsmixin import WidgetsMixin
 from .widgettelescope import WidgetTelescope
@@ -275,14 +272,14 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
     async def _check_warnings(self) -> None:
         """Checks, whether we got an autonomous module."""
         # get all autonomous modules
-        autonomous_clients = list(self.comm.clients_with_interface(IAutonomous))
+        autonomous_clients = await self.comm.clients_with_interface(IAutonomous)
 
         # got any?
         self.mastermind_running = len(autonomous_clients) > 0
         self.labelAutonomousWarning.setVisible(self.mastermind_running)
 
         # get weather modules
-        weather_clients = list(self.comm.clients_with_interface(IWeather))
+        weather_clients = await self.comm.clients_with_interface(IWeather)
         if len(weather_clients) > 0:
             # found one or more, just take the first one
             weather = self.comm.proxy(weather_clients[0])
@@ -310,7 +307,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self._update_client_list()
 
         # get proxy
-        proxy = self.comm[client]
+        proxy = await self.comm.proxy(client)
 
         # what do we have?
         widget, icon = None, None
