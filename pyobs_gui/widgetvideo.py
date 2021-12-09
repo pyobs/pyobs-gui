@@ -112,9 +112,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # update GUI
         self.signal_update_gui.emit()
 
-    def showEvent(self, event: QtGui.QShowEvent) -> None:
+    async def _showEvent(self, event: QtGui.QShowEvent) -> None:
         # call base
-        BaseWidget.showEvent(self, event)
+        await BaseWidget._showEvent(self, event)
 
         # connect socket
         if self.host is not None:
