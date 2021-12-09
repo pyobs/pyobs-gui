@@ -22,53 +22,8 @@ from .qt.widgetdatadisplay import Ui_WidgetDataDisplay
 log = logging.getLogger(__name__)
 
 
-class DownloadThread(QtCore.QThread):
-    """Worker thread for downloading data."""
-
-    """Signal emitted when the data is downloaded."""
-    dataReady = pyqtSignal(fits.HDUList, str)
-
-    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: Optional[str] = None,
-                 *args: Any, **kwargs: Any):
-        """Init a new worker thread.
-
-        Args:
-            vfs: VFS to use for download
-            filename: File to download
-            autosave: Path for autosave or None.
-        """
-        QtCore.QThread.__init__(self, *args, **kwargs)
-        self.vfs = vfs
-        self.filename = filename
-        self.autosave = autosave
-
-    def run(self) -> None:
-        """Run method in thread."""
-
-        # download data
-        # we're in a new thread, so we can just start a new loop
-        data = asyncio.run(self.vfs.read_fits(self.filename))
-
-        # auto save?
-        if self.autosave is not None:
-            # get path and check
-            path = self.autosave
-            if not os.path.exists(path):
-                log.warning('Invalid path for auto-saving.')
-
-            else:
-                # save image
-                filename = os.path.join(path, os.path.basename(self.filename.replace('.fits.gz', '.fits')))
-                log.info('Saving image as %s...', filename)
-                data.writeto(filename, overwrite=True)
-
-        # update GUI
-        self.dataReady.emit(data, self.filename)
-
-
 class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
     signal_update_gui = pyqtSignal()
-    signal_new_data = pyqtSignal(Event, str)
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -78,7 +33,6 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.new_data = False
         self.data_filename: Optional[str] = None
         self.data: Optional[fits.HDUList] = None
-        self.download_threads: List[DownloadThread] = []
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -103,7 +57,6 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.signal_new_data.connect(self._on_new_data)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
     async def open(self):
@@ -197,7 +150,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.tableFitsHeader.resizeColumnToContents(0)
         self.tableFitsHeader.resizeColumnToContents(1)
 
-    def _on_new_data(self, event: Event, sender: str) -> bool:
+    async def _on_new_data(self, event: Event, sender: str) -> bool:
         """Called when new image is ready.
 
         Args:
@@ -209,6 +162,10 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         if sender != self.module.name:
             return False
 
+        # wrong type
+        if not isinstance(event, NewImageEvent) and not isinstance(event, NewSpectrumEvent):
+            return False
+
         # don't update?
         if not self.checkAutoUpdate.isChecked():
             return False
@@ -216,31 +173,31 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # autosave?
         autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
 
-        # create thread for download
-        thread = DownloadThread(self.vfs, event.filename, autosave)
-        thread.dataReady.connect(self._data_downloaded)
-        thread.start()
+        # download data
+        data = await self.vfs.read_fits(event.filename)
 
-        # add thread and finish
-        self.download_threads.append(thread)
-        return True
+        # auto save?
+        if autosave is not None:
+            # get path and check
+            if not os.path.exists(autosave):
+                log.warning('Invalid path for auto-saving.')
 
-    def _data_downloaded(self, data: fits.HDUList, filename: str) -> None:
-        """Called, when data is downloaded.
-        """
+            else:
+                # save image
+                filename = os.path.join(autosave, os.path.basename(event.filename.replace('.fits.gz', '.fits')))
+                log.info('Saving image as %s...', filename)
+                data.writeto(filename, overwrite=True)
 
         # store image and filename
         self.data = data
-        self.data_filename = filename
+        self.data_filename = event.filename
         self.new_data = True
-
-        # find finished threads and delete them
-        finished_threads = [t for t in self.download_threads if not t.isRunning()]
-        for t in finished_threads:
-            self.download_threads.remove(t)
 
         # show image
         self.update_gui()
+
+        # finish
+        return True
 
     @pyqtSlot(name='on_butAutoSave_clicked')
     def select_autosave_path(self) -> None:
