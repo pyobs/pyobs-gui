@@ -282,8 +282,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         weather_clients = await self.comm.clients_with_interface(IWeather)
         if len(weather_clients) > 0:
             # found one or more, just take the first one
-            weather = self.comm.proxy(weather_clients[0])
-            await self.labelWeatherWarning.setVisible(not weather.is_running())
+            weather = await self.comm.proxy(weather_clients[0])
+            self.labelWeatherWarning.setVisible(not await weather.is_running())
         else:
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)
