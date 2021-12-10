@@ -76,7 +76,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
-        # run updater
+        # run in loop
         asyncio.create_task(self._showEvent(event))
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:
@@ -89,6 +89,10 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             self._update_task = asyncio.create_task(self._update_loop_thread())
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
+        # run in loop
+        asyncio.create_task(self._hideEvent(event))
+
+    async def _hideEvent(self, event: QtGui.QHideEvent) -> None:
         # stop thread
         if self._update_task is not None:
             self._update_task.cancel()
