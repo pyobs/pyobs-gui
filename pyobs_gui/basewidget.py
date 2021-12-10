@@ -92,6 +92,10 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         # stop thread
         if self._update_task is not None:
             self._update_task.cancel()
+            try:
+                await self._update_task
+            except asyncio.CancelledError:
+                pass
 
     async def _update_loop_thread(self) -> None:
         while True:
