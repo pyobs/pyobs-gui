@@ -81,9 +81,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
             if isinstance(self.module, IImageGrabber):
-                self.signal_new_data.emit(NewImageEvent(filename, image_type), self.module.name)
+                await self._on_new_data(NewImageEvent(filename, image_type), self.module.name)
             elif isinstance(self.module, ISpectrograph):
-                self.signal_new_data.emit(NewSpectrumEvent(filename), self.module.name)
+                await self._on_new_data(NewSpectrumEvent(filename), self.module.name)
             else:
                 raise ValueError('Unknown type')
 
