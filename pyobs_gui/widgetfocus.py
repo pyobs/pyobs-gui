@@ -1,7 +1,7 @@
 import logging
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
-from pyobs.events import MotionStatusChangedEvent
+from pyobs.events import MotionStatusChangedEvent, Event
 
 from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
@@ -88,7 +88,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.butSetFocusOffset.setEnabled(initialized)
         self.butSetFocusBase.setEnabled(initialized)
 
-    def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
+    async def _on_motion_status_changed(self, event: Event, sender: str) -> bool:
         """Called when motion status of module changed.
 
         Args:
@@ -97,8 +97,8 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
-            return
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+            return False
 
         # store new status
         if 'IFocuser' in event.interfaces:
@@ -108,6 +108,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+        return True
 
     async def _update(self):
         # get focus and motion status

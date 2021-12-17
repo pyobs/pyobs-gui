@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from pyobs.comm import Comm
-from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent
+from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFilters
 from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
@@ -53,7 +53,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
                                               MotionStatus.IDLE, MotionStatus.POSITIONED]
         self.buttonSetFilter.setEnabled(initialized)
 
-    def _on_filter_changed(self, event: FilterChangedEvent, sender: str):
+    async def _on_filter_changed(self, event: Event, sender: str) -> bool:
         """Called when filter changed.
 
         Args:
@@ -62,16 +62,17 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
-            return
+        if sender != self.module.name or not isinstance(event, FilterChangedEvent):
+            return False
 
         # store new filter
         self._filter = event.filter
 
         # trigger GUI update
         self.signal_update_gui.emit()
+        return True
 
-    def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
+    async def _on_motion_status_changed(self, event: Event, sender: str) -> bool:
         """Called when motion status of module changed.
 
         Args:
@@ -80,8 +81,8 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
-            return
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+            return False
 
         # store new status
         if 'IFilters' in event.interfaces:
@@ -91,6 +92,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+        return True
 
     async def _update(self):
         # get filter and motion status

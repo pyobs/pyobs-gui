@@ -10,7 +10,7 @@ import logging
 from astroquery.exceptions import InvalidQueryError
 import astropy.constants
 
-from pyobs.events import MotionStatusChangedEvent
+from pyobs.events import MotionStatusChangedEvent, Event
 from pyobs.interfaces import IPointingRaDec, IPointingAltAz, IPointingHGS, IOffsetsRaDec, \
     IOffsetsAltAz, IFilters, IFocuser, ITemperatures
 from pyobs.utils.enums import MotionStatus
@@ -313,7 +313,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support stonyhurst coordinates.')
 
-    def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
+    async def _on_motion_status_changed(self, event: Event, sender: str):
         """Called when motion status of module changed.
 
         Args:
@@ -322,8 +322,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
-            return
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+            return False
 
         # store new status
         if 'ITelescope' in event.interfaces:
@@ -333,6 +333,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+        return True
 
     @pyqtSlot(name='on_buttonSimbadQuery_clicked')
     def _query_simbad(self):

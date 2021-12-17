@@ -128,7 +128,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
             # reset
             self.new_spectrum = False
 
-    def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
+    async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
         """Called when exposure status of module changed.
 
         Args:

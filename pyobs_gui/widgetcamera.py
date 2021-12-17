@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QMessageBox
 
-from pyobs.events import ExposureStatusChangedEvent, NewImageEvent
+from pyobs.events import ExposureStatusChangedEvent, NewImageEvent, Event
 from pyobs.interfaces import IAbortable, IExposureTime, IImageType, IImageFormat, \
     IBinning, IWindow, IFilters, ICooling, ITemperatures, ICamera
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
@@ -345,7 +345,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.tableFitsHeader.resizeColumnToContents(0)
         self.tableFitsHeader.resizeColumnToContents(1)
 
-    async def _on_exposure_status_changed(self, event: ExposureStatusChangedEvent, sender: str) -> bool:
+    async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
         """Called when exposure status of module changed.
 
         Args:
@@ -354,7 +354,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
+        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status

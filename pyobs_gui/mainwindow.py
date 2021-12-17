@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 from astropy.time import Time
 from colour import Color
 
-from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent
+from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IWeather, IVideo, IAutonomous, ISpectrograph
 from .widgetcamera import WidgetCamera
 from .widgetsmixin import WidgetsMixin
@@ -233,13 +233,15 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         if self.shell is not None:
             self.shell.update_client_list()
 
-    def process_log_entry(self, entry: LogEvent, sender: str) -> bool:
+    async def process_log_entry(self, entry: Event, sender: str) -> bool:
         """Process a new log entry.
 
         Args:
             entry: The log event.
             sender: Name of sender.
         """
+        if not isinstance(entry, LogEvent):
+            return False
 
         # date
         time = Time(entry.time, format='unix')
