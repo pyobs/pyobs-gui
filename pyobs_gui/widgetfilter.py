@@ -1,4 +1,5 @@
 import asyncio
+from typing import List, Any
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
@@ -14,12 +15,13 @@ from .qt.widgetfilter import Ui_WidgetFilter
 class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
         # variables
         self._filter = None
+        self._filters: List[str] = []
         self._motion_status = MotionStatus.UNKNOWN
 
         # connect signals
@@ -28,7 +30,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # button colors
         self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
 
-    async def open(self):
+    async def open(self) -> None:
         """Open widget."""
         await BaseWidget.open(self)
 
@@ -36,15 +38,16 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
         await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
-    async def _init(self):
+    async def _init(self) -> None:
         # get current filter
         self._motion_status = await self.module.get_motion_status()
         self._filter = await self.module.get_filter()
+        self._filters = await self.module.list_filters()
 
         # update gui
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
@@ -94,7 +97,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         self.signal_update_gui.emit()
         return True
 
-    async def _update(self):
+    async def _update(self) -> None:
         # get filter and motion status
         self._filter = await self.module.get_filter()
         self._motion_status = await self.module.get_motion_status()
@@ -102,16 +105,10 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    #@pyqtSlot(name='on_buttonSetFilter_clicked')
-    def on_buttonSetFilter_clicked(self):
-        asyncio.create_task(self._set_filter())
-
-    async def _set_filter(self):
-        # get filters
-        filters = await self.module.list_filters()
-
+    @pyqtSlot(name='on_buttonSetFilter_clicked')
+    def set_filter(self) -> None:
         # ask for value
-        new_value, ok = QtWidgets.QInputDialog.getItem(self, 'Set filter', 'New filter', filters, 0, False)
+        new_value, ok = QtWidgets.QInputDialog.getItem(self, 'Set filter', 'New filter', self._filters, 0, False)
         if ok:
             self.run_background(self.module.set_filter, new_value)
 
