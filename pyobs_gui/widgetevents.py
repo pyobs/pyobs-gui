@@ -1,10 +1,11 @@
+import asyncio
 from datetime import datetime
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
 from pyobs.comm import RemoteException
-from pyobs.events import LogEvent
+from pyobs.events import LogEvent, Event
 from pyobs_gui.qt.widgetevents import Ui_WidgetEvents
 
 
@@ -150,7 +151,7 @@ class SendEventDialog(QtWidgets.QDialog):
 
         # create event and send it
         event = self._event(**values)
-        self._comm.send_event(event)
+        asyncio.create_task(self._comm.send_event(event))
 
         # accept dialog
         self.accept()
