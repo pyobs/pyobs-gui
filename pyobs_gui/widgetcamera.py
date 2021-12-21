@@ -143,8 +143,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinWindowHeight.setMaximum(int(height / binning))
 
             # set it
-            self.spinWindowLeft.setValue(left)            # create event for update thread to close
-
+            self.spinWindowLeft.setValue(left)
             self.spinWindowTop.setValue(top)
             self.spinWindowWidth.setValue(int(width / binning))
             self.spinWindowHeight.setValue(int(height / binning))

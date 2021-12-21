@@ -260,7 +260,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Invalid coordinates.')
                 return
 
-            # start thread with move
+            # start task with move
             if isinstance(self.module, IPointingRaDec):
                 self.run_background(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
             else:

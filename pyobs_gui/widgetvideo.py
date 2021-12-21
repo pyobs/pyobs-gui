@@ -178,9 +178,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.signal_update_gui.emit()
 
         # start exposures
-        asyncio.create_task(self._expose_thread_func())
+        asyncio.create_task(self._expose_task_func())
 
-    async def _expose_thread_func(self):
+    async def _expose_task_func(self):
         # get image type
         image_type = ImageType(self.comboImageType.currentText().lower())
 

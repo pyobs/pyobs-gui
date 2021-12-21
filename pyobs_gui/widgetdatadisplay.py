@@ -68,7 +68,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
 
     async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
-        """Grab data. Must be called from a thread."""
+        """Grab data."""
 
         # expose
         if isinstance(self.module, IImageGrabber):

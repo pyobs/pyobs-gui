@@ -46,7 +46,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         self._show_error.connect(self.show_error)
         self._enable_buttons.connect(self.enable_buttons)
 
-        # update thread
+        # update
         self._update_func = update_func
         self._update_interval = update_interval
         self._update_task: Optional[asyncio.Task] = None
@@ -58,7 +58,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         # has it been initialized?
         self._initialized = False
 
-    async def open(self):
+    async def open(self) -> None:
         """Async open method."""
         await WidgetsMixin.open(self)
 
@@ -85,15 +85,15 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             self._initialized = True
 
         if self._update_func:
-            # start update thread
-            self._update_task = asyncio.create_task(self._update_loop_thread())
+            # start update task
+            self._update_task = asyncio.create_task(self._update_loop())
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # run in loop
         asyncio.create_task(self._hideEvent(event))
 
     async def _hideEvent(self, event: QtGui.QHideEvent) -> None:
-        # stop thread
+        # stop task
         if self._update_task is not None:
             self._update_task.cancel()
             try:
@@ -101,7 +101,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             except asyncio.CancelledError:
                 pass
 
-    async def _update_loop_thread(self) -> None:
+    async def _update_loop(self) -> None:
         while True:
             try:
                 # call update function
