@@ -145,7 +145,8 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
                 f = sensor['field']
                 if f in current_sensors:
                     format = '%d' if f == 'rain' else '%.2f'
-                    self._current_widgets[f].set_value(format % cur[f]['value'])
+                    s = 'N/A' if cur[f]['value'] is None else format % cur[f]['value']
+                    self._current_widgets[f].set_value(s)
                     self._current_widgets[f].set_good(cur[f]['good'])
 
             # store it
