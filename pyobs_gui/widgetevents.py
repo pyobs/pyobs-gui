@@ -1,10 +1,11 @@
+import asyncio
 from datetime import datetime
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
 from pyobs.comm import RemoteException
-from pyobs.events import LogEvent
+from pyobs.events import LogEvent, Event
 from pyobs_gui.qt.widgetevents import Ui_WidgetEvents
 
 
@@ -21,11 +22,14 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
 
+    async def open(self):
+        """Open widget."""
+
         # loop all event types
         for name, cls in pyobs.events.__dict__.items():
             if isinstance(cls, type):
                 # register event
-                self.comm.register_event(cls, self._handle_event)
+                await self.comm.register_event(cls, self._handle_event)
 
                 # get c'tor
                 ctor = getattr(cls, '__init__')
@@ -39,7 +43,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
                 # add to combo
                 self.comboEvent.addItem(name, cls)
 
-    def _handle_event(self, event: pyobs.events.Event, sender: str):
+    async def _handle_event(self, event: pyobs.events.Event, sender: str):
         """Handle any incoming event.
 
         Args:
@@ -147,7 +151,7 @@ class SendEventDialog(QtWidgets.QDialog):
 
         # create event and send it
         event = self._event(**values)
-        self._comm.send_event(event)
+        asyncio.create_task(self._comm.send_event(event))
 
         # accept dialog
         self.accept()

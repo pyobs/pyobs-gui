@@ -27,9 +27,9 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    def _update(self):
+    async def _update(self):
         # get temps
-        self._temps = self.module.get_temperatures().wait()
+        self._temps = await self.module.get_temperatures()
 
         # signal GUI update
         self.signal_update_gui.emit()

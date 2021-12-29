@@ -1,19 +1,12 @@
+import asyncio
 import logging
-import threading
-from typing import Any, List, Optional
-import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from typing import Optional
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from astropy.io import fits
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import matplotlib.pyplot as plt
 
-from pyobs.events import ExposureStatusChangedEvent, Event, NewSpectrumEvent
-from pyobs.interfaces.proxies import IAbortableProxy, ISpectrographProxy
+from pyobs.events import ExposureStatusChangedEvent, Event
+from pyobs.interfaces import IAbortable, ISpectrograph
 from pyobs.utils.enums import ExposureStatus
-from pyobs.images import Image
-from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from .widgetdatadisplay import WidgetDataDisplay
 
@@ -45,54 +38,50 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.setEnabled(False)
 
         # hide single controls
-        self.butAbort.setVisible(isinstance(self.module, IAbortableProxy))
+        self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-        # subscribe to events
-        self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
 
-    def _init(self) -> None:
+        # subscribe to events
+        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+
+    async def _init(self) -> None:
         # get status
-        if isinstance(self.module, ISpectrographProxy):
-            self.exposure_status = ExposureStatus(self.module.get_exposure_status().wait())
+        if isinstance(self.module, ISpectrograph):
+            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
 
         # update GUI
         self.signal_update_gui.emit()
 
     @pyqtSlot(name='on_butExpose_clicked')
     def grab_spectrum(self):
-        # start exposures
-        threading.Thread(target=self._expose_thread_func).start()
-
-    def _expose_thread_func(self) -> None:
-        if not isinstance(self.module, ISpectrographProxy):
+        if not isinstance(self.module, ISpectrograph):
             return
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        self.widgetDataDisplay.grab_data(broadcast)
+        asyncio.create_task(self.widgetDataDisplay.grab_data(broadcast))
 
         # signal GUI update
         self.signal_update_gui.emit()
 
     @pyqtSlot(name='on_butAbort_clicked')
-    def abort(self) -> None:
+    def abort(self):
         """Abort exposure."""
-        if isinstance(self, ISpectrographProxy):
-            self.module.abort().wait()
+        if isinstance(self, ISpectrograph):
+            asyncio.create_task(self.module.abort())
 
-    def _update(self) -> None:
+    async def _update(self) -> None:
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            #exposure_time_left = self.module.get_exposure_time_left()
-            exposure_progress = self.module.get_exposure_progress()
-
-            # fetch results
-            #self.exposure_time_left = exposure_time_left.wait()
-            self.exposure_progress = exposure_progress.wait()
+            #self.exposure_time_left = await self.module.get_exposure_time_left()
+            self.exposure_progress = await self.module.get_exposure_progress()
 
         else:
             # reset
@@ -139,7 +128,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
             # reset
             self.new_spectrum = False
 
-    def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
+    async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
         """Called when exposure status of module changed.
 
         Args:

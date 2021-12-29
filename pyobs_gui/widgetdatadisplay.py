@@ -1,7 +1,6 @@
+import asyncio
 import logging
 import os
-import threading
-from enum import Enum
 from typing import Any, Optional, List
 
 import numpy as np
@@ -14,9 +13,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IImageGrabber, ISpectrograph
-from pyobs.interfaces.proxies import IImageGrabberProxy, ISpectrographProxy
-from pyobs.utils.enums import ImageType, ExposureStatus
-from pyobs.images import Image
+from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from pyobs_gui.basewidget import BaseWidget
 from qfitswidget import QFitsWidget
@@ -25,52 +22,8 @@ from .qt.widgetdatadisplay import Ui_WidgetDataDisplay
 log = logging.getLogger(__name__)
 
 
-class DownloadThread(QtCore.QThread):
-    """Worker thread for downloading data."""
-
-    """Signal emitted when the data is downloaded."""
-    dataReady = pyqtSignal(fits.HDUList, str)
-
-    def __init__(self, vfs: VirtualFileSystem, filename: str, autosave: Optional[str] = None,
-                 *args: Any, **kwargs: Any):
-        """Init a new worker thread.
-
-        Args:
-            vfs: VFS to use for download
-            filename: File to download
-            autosave: Path for autosave or None.
-        """
-        QtCore.QThread.__init__(self, *args, **kwargs)
-        self.vfs = vfs
-        self.filename = filename
-        self.autosave = autosave
-
-    def run(self) -> None:
-        """Run method in thread."""
-
-        # download data
-        data = self.vfs.read_fits(self.filename)
-
-        # auto save?
-        if self.autosave is not None:
-            # get path and check
-            path = self.autosave
-            if not os.path.exists(path):
-                log.warning('Invalid path for auto-saving.')
-
-            else:
-                # save image
-                filename = os.path.join(path, os.path.basename(self.filename.replace('.fits.gz', '.fits')))
-                log.info('Saving image as %s...', filename)
-                data.writeto(filename, overwrite=True)
-
-        # update GUI
-        self.dataReady.emit(data, self.filename)
-
-
 class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
     signal_update_gui = pyqtSignal()
-    signal_new_data = pyqtSignal(Event, str)
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -80,18 +33,16 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.new_data = False
         self.data_filename: Optional[str] = None
         self.data: Optional[fits.HDUList] = None
-        self.download_threads: List[DownloadThread] = []
-        self.lock = threading.RLock()
 
         # before first update, disable mys
         self.setEnabled(False)
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        if isinstance(self.module, IImageGrabberProxy):
+        if isinstance(self.module, IImageGrabber):
             self.imageView = QFitsWidget()
             self.imageLayout.addWidget(self.imageView)
-        elif isinstance(self.module, ISpectrographProxy):
+        elif isinstance(self.module, ISpectrograph):
             self.figure, self.ax = plt.subplots()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
@@ -106,30 +57,33 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.signal_new_data.connect(self._on_new_data)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
-        # subscribe to events
-        self.comm.register_event(NewImageEvent, self._on_new_data)
-        self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
 
-    def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
-        """Grab data. Must be called from a thread."""
+        # subscribe to events
+        await self.comm.register_event(NewImageEvent, self._on_new_data)
+        await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+
+    async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
+        """Grab data."""
 
         # expose
-        if isinstance(self.module, IImageGrabberProxy):
-            filename = self.module.grab_image(broadcast=broadcast).wait()
-        elif isinstance(self.module, ISpectrographProxy):
-            filename = self.module.grab_spectrum(broadcast=broadcast).wait()
+        if isinstance(self.module, IImageGrabber):
+            filename = await self.module.grab_image(broadcast=broadcast)
+        elif isinstance(self.module, ISpectrograph):
+            filename = await self.module.grab_spectrum(broadcast=broadcast)
         else:
             raise ValueError('Unknown type')
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(self.module, IImageGrabberProxy):
-                self.signal_new_data.emit(NewImageEvent(filename, image_type), self.module.name)
-            elif isinstance(self.module, ISpectrographProxy):
-                self.signal_new_data.emit(NewSpectrumEvent(filename), self.module.name)
+            if isinstance(self.module, IImageGrabber):
+                await self._on_new_data(NewImageEvent(filename, image_type), self.module.name)
+            elif isinstance(self.module, ISpectrograph):
+                await self._on_new_data(NewSpectrumEvent(filename), self.module.name)
             else:
                 raise ValueError('Unknown type')
 
@@ -138,9 +92,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
     def plot(self) -> None:
         """Show data."""
-        if isinstance(self.module, IImageGrabberProxy):
+        if isinstance(self.module, IImageGrabber):
             self.imageView.display(self.data[0])
-        elif isinstance(self.module, ISpectrographProxy):
+        elif isinstance(self.module, ISpectrograph):
             self._plot_spectrum()
 
     def _plot_spectrum(self) -> None:
@@ -196,7 +150,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.tableFitsHeader.resizeColumnToContents(0)
         self.tableFitsHeader.resizeColumnToContents(1)
 
-    def _on_new_data(self, event: Event, sender: str) -> bool:
+    async def _on_new_data(self, event: Event, sender: str) -> bool:
         """Called when new image is ready.
 
         Args:
@@ -208,6 +162,10 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         if sender != self.module.name:
             return False
 
+        # wrong type
+        if not isinstance(event, NewImageEvent) and not isinstance(event, NewSpectrumEvent):
+            return False
+
         # don't update?
         if not self.checkAutoUpdate.isChecked():
             return False
@@ -215,31 +173,31 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # autosave?
         autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
 
-        # create thread for download
-        thread = DownloadThread(self.vfs, event.filename, autosave)
-        thread.dataReady.connect(self._data_downloaded)
-        thread.start()
+        # download data
+        data = await self.vfs.read_fits(event.filename)
 
-        # add thread and finish
-        self.download_threads.append(thread)
-        return True
+        # auto save?
+        if autosave is not None:
+            # get path and check
+            if not os.path.exists(autosave):
+                log.warning('Invalid path for auto-saving.')
 
-    def _data_downloaded(self, data: fits.HDUList, filename: str) -> None:
-        """Called, when data is downloaded.
-        """
+            else:
+                # save image
+                filename = os.path.join(autosave, os.path.basename(event.filename.replace('.fits.gz', '.fits')))
+                log.info('Saving image as %s...', filename)
+                data.writeto(filename, overwrite=True)
 
         # store image and filename
         self.data = data
-        self.data_filename = filename
+        self.data_filename = event.filename
         self.new_data = True
-
-        # find finished threads and delete them
-        finished_threads = [t for t in self.download_threads if not t.isRunning()]
-        for t in finished_threads:
-            self.download_threads.remove(t)
 
         # show image
         self.update_gui()
+
+        # finish
+        return True
 
     @pyqtSlot(name='on_butAutoSave_clicked')
     def select_autosave_path(self) -> None:

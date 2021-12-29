@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum
 
 import numpy as np
@@ -9,9 +10,9 @@ import logging
 from astroquery.exceptions import InvalidQueryError
 import astropy.constants
 
-from pyobs.events import MotionStatusChangedEvent
-from pyobs.interfaces.proxies import IPointingRaDecProxy, IPointingAltAzProxy, IPointingHGSProxy, IOffsetsRaDecProxy, \
-    IOffsetsAltAzProxy, IFiltersProxy, IFocuserProxy, ITemperaturesProxy
+from pyobs.events import MotionStatusChangedEvent, Event
+from pyobs.interfaces import IPointingRaDec, IPointingAltAz, IPointingHGS, IOffsetsRaDec, \
+    IOffsetsAltAz, IFilters, IFocuser, ITemperatures
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
 from pyobs_gui.widgetfilter import WidgetFilter
@@ -27,7 +28,7 @@ log = logging.getLogger(__name__)
 class COORDS(Enum):
     EQUITORIAL = 'Equitorial'
     HORIZONTAL = 'Horizontal'
-    SOLAR_SYSTEM = 'Solar System'
+    ORBIT_ELEMENTS = 'Orbit Elements'
     HELIOGRAPHIC_STONYHURST = 'Heliographic Stonyhurst'
     HELIOPROJECTIVE_RADIAL = 'Helioprojective Radial'
 
@@ -57,7 +58,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             COORDS.HORIZONTAL: self.pageMoveHorizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self.pageMoveHeliographicStonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self.pageMoveHelioprojectiveRadial,
-            COORDS.SOLAR_SYSTEM: self.pageMoveSolarSystem
+            COORDS.ORBIT_ELEMENTS: self.pageMoveOrbitElements
         }
 
         # calculate dest coordinates
@@ -66,23 +67,24 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             COORDS.HORIZONTAL: self._calc_dest_horizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self._calc_dest_heliographic_stonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self._calc_dest_helioprojective_radial,
-            COORDS.SOLAR_SYSTEM: self._calc_dest_solar_system
+            COORDS.ORBIT_ELEMENTS: self._calc_dest_orbit_elements
         }
 
         # add coord types
-        if isinstance(self.module, IPointingRaDecProxy):
+        if isinstance(self.module, IPointingRaDec):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
-        if isinstance(self.module, IPointingAltAzProxy):
+            #self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
+        if isinstance(self.module, IPointingAltAz):
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if isinstance(self.module, IPointingHGSProxy):
+        if isinstance(self.module, IPointingHGS):
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
 
         # offsets
-        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IOffsetsRaDecProxy))
-        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IOffsetsAltAzProxy))
+        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IOffsetsRaDec))
+        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IOffsetsAltAz))
 
         # plot
         #self.figure = plt.figure()
@@ -108,36 +110,41 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         self.colorize_button(self.buttonResetHorizontalOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonResetEquatorialOffsets, QtCore.Qt.yellow)
         self.colorize_button(self.buttonSimbadQuery, QtCore.Qt.green)
+        self.colorize_button(self.buttonJplHorizonsQuery, QtCore.Qt.green)
         self.colorize_button(self.buttonHorizonsQuery, QtCore.Qt.green)
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
+    async def open(self):
+        """Open widget."""
+        await BaseWidget.open(self)
+
         # subscribe to events
-        self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
+        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
         # fill sidebar
-        if isinstance(self.module, IFiltersProxy):
+        if isinstance(self.module, IFilters):
             self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
-        if isinstance(self.module, IFocuserProxy):
+        if isinstance(self.module, IFocuser):
             self.add_to_sidebar(self.create_widget(WidgetFocus, module=self.module))
-        if isinstance(self.module, ITemperaturesProxy):
+        if isinstance(self.module, ITemperatures):
             self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
         # init coord type
         self.select_coord_type()
 
-    def _init(self):
+    async def _init(self):
         # get variables
-        self._motion_status = self.module.get_motion_status().wait()
-        self._update()
+        self._motion_status = await self.module.get_motion_status()
+        await self._update()
 
-    def _update(self):
+    async def _update(self):
         now = Time.now()
 
         # get RA/Dec
         try:
-            ra, dec = self.module.get_radec().wait()
+            ra, dec = await self.module.get_radec()
             self._ra_dec = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame='icrs',
                                     location=self.observer.location, obstime=now)
         except:
@@ -145,23 +152,23 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # get Alt/Az
         try:
-            alt, az = self.module.get_altaz().wait()
+            alt, az = await self.module.get_altaz()
             self._alt_az = SkyCoord(alt=alt * u.deg, az=az * u.deg, frame='altaz',
                                     location=self.observer.location, obstime=now)
         except:
             self._alt_az = None
 
         # get offsets
-        if isinstance(self.module, IOffsetsAltAzProxy) and self._alt_az is not None:
+        if isinstance(self.module, IOffsetsAltAz) and self._alt_az is not None:
             # get offsets
-            self._off_alt, self._off_az = self.module.get_offsets_altaz().wait()
+            self._off_alt, self._off_az = await self.module.get_offsets_altaz()
 
             # convert to ra/dec
             self._off_ra, self._off_dec = self._offset_altaz_to_radec(self._off_alt, self._off_az)
 
-        elif isinstance(self.module, IOffsetsRaDecProxy) and self._ra_dec is not None:
+        elif isinstance(self.module, IOffsetsRaDec) and self._ra_dec is not None:
             # get offsets
-            self._off_ra, self._off_dec = self.module.get_offsets_radec().wait()
+            self._off_ra, self._off_dec = await self.module.get_offsets_radec()
 
             # convert to alt/az
             self._off_alt, self._off_az = self._offset_radec_to_altaz(self._off_ra, self._off_dec)
@@ -228,15 +235,15 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             self.labelCurAz.setText('N/A')
 
         # offsets
-        if isinstance(self.module, IOffsetsRaDecProxy):
+        if isinstance(self.module, IOffsetsRaDec):
             self.textOffsetRA.setText('N/A' if self._off_ra is None else '%.2f"' % (self._off_ra * 3600.,))
             self.textOffsetDec.setText('N/A' if self._off_dec is None else '%.2f"' % (self._off_dec * 3600.,))
-        if isinstance(self.module, IOffsetsAltAzProxy):
+        if isinstance(self.module, IOffsetsAltAz):
             self.textOffsetAlt.setText('N/A' if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.,))
             self.textOffsetAz.setText('N/A' if self._off_az is None else '%.2f"' % (self._off_az * 3600.,))
 
     @pyqtSlot(name='on_buttonMove_clicked')
-    def move(self):
+    def move(self) -> None:
         # get coordinate system
         text = self.comboMoveType.currentText()
         coord = COORDS(text)
@@ -253,9 +260,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Invalid coordinates.')
                 return
 
-            # start thread with move
-            if isinstance(self.module, IPointingRaDecProxy):
-                self.run_async(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
+            # start task with move
+            if isinstance(self.module, IPointingRaDec):
+                self.run_background(self.module.move_radec, float(coords.ra.degree), float(coords.dec.degree))
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support equatorial coordinates.')
 
@@ -265,8 +272,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             az = self.spinMoveAz.value()
 
             # move
-            if isinstance(self.module, IPointingAltAzProxy):
-                self.run_async(self.module.move_altaz, alt, az)
+            if isinstance(self.module, IPointingAltAz):
+                self.run_background(self.module.move_altaz, alt, az)
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support horizontal coordinates.')
 
@@ -276,8 +283,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             lat = self.spinMoveHGSLat.value()
 
             # move
-            if isinstance(self.module, IPointingHGSProxy):
-                self.run_async(self.module.move_hgs_lon_lat, lon, lat)
+            if isinstance(self.module, IPointingHGS):
+                self.run_background(self.module.move_hgs_lon_lat, lon, lat)
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support stonyhurst coordinates.')
 
@@ -301,12 +308,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             lat = float((theta * np.cos(psi)).value)
 
             # move
-            if isinstance(self.module, IPointingHGSProxy):
-                self.run_async(self.module.move_hgs_lon_lat, lon, lat)
+            if isinstance(self.module, IPointingHGS):
+                self.run_background(self.module.move_hgs_lon_lat, lon, lat)
             else:
                 QtWidgets.QMessageBox.critical(self, 'pyobs', 'Telescope does not support stonyhurst coordinates.')
 
-    def _on_motion_status_changed(self, event: MotionStatusChangedEvent, sender: str):
+    async def _on_motion_status_changed(self, event: Event, sender: str):
         """Called when motion status of module changed.
 
         Args:
@@ -315,8 +322,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
-            return
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+            return False
 
         # store new status
         if 'ITelescope' in event.interfaces:
@@ -326,17 +333,25 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # trigger GUI update
         self.signal_update_gui.emit()
+        return True
 
     @pyqtSlot(name='on_buttonSimbadQuery_clicked')
     def _query_simbad(self):
         """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
         from astroquery.simbad import Simbad
 
-        # clear solar system
+        # clear solar system and JPL Horizons
         self.comboSolarSystemBody.setCurrentText('')
+        self.textJplHorizonsName.clear()
+
+        # wait cursor
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
         # query
         result = Simbad.query_object(self.textSimbadName.text())
+
+        # restore cursor
+        QtWidgets.QApplication.restoreOverrideCursor()
 
         # check it
         if result is None:
@@ -352,6 +367,44 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # update destination
         self._calc_dest_equatorial(clear=False)
 
+    @pyqtSlot(name='on_buttonJplHorizonsQuery_clicked')
+    def _query_jpl_horizons(self):
+        """Takes the object name from the text box, queries JPL Horizons, and fills the RA/Dec inputs with the result."""
+        from astroquery.jplhorizons import Horizons
+
+        # clear solar system and simbad
+        self.comboSolarSystemBody.setCurrentText('')
+        self.textSimbadName.clear()
+
+        # wait cursor
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+
+        # query
+        try:
+            # query
+            obj = Horizons(id=self.textJplHorizonsName.text(), location=None, epochs=Time.now().jd)
+
+            # get ephemerides
+            eph = obj.ephemerides()
+
+        except InvalidQueryError:
+            QtWidgets.QMessageBox.critical(self, 'JPL Horizons', 'No result found')
+            return
+        except ValueError:
+            QtWidgets.QMessageBox.critical(self, 'JPL Horizons', 'Invalid result')
+            return
+        finally:
+            # restore cursor
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+        # always use first result
+        coord = SkyCoord(eph['RA'][0] * u.deg, eph['DEC'][0] * u.deg, frame='icrs')
+        self.textMoveRA.setText(coord.ra.to_string(unit=u.hour, sep=' '))
+        self.textMoveDec.setText(coord.dec.to_string(sep=' '))
+
+        # update destination
+        self._calc_dest_equatorial(clear=False)
+
     @pyqtSlot(str, name='on_comboSolarSystemBody_currentTextChanged')
     def _select_solar_system(self, body: str):
         """Set RA/Dec for selected solar system body."""
@@ -361,8 +414,9 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if body == '':
             return
 
-        # clear simbad
+        # clear simbad and JPL
         self.textSimbadName.clear()
+        self.textJplHorizonsName.clear()
 
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         with solar_system_ephemeris.set('builtin'):
@@ -384,7 +438,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # query
         try:
-            obj = Horizons(id=self.textHorizonsName.text(), location=self.observer.location, epochs=Time.now())
+            obj = Horizons(id=self.textHorizonsName.text(), location=None, epochs=Time.now().jd)
             #result = MPC.get_ephemeris(, location=self.observer.location)
         except InvalidQueryError:
             QtWidgets.QMessageBox.critical(self, 'MPC', 'No result found')
@@ -392,7 +446,21 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         print(obj)
         print(obj.uri)
-        print(obj.ephemerides())
+        try:
+            eph = obj.elements()
+        except ValueError:
+            pass
+        print(eph)
+        print(eph.columns)
+        print(obj.uri)
+
+        self.spinOrbitElementsEcc.setValue(eph['e'][0])
+        self.spinOrbitElementsIncl.setValue(eph['incl'][0])
+        self.spinOrbitElementsSemiMajorAxis.setValue(eph['a'][0])
+        self.spinOrbitElementsMA.setValue(eph['M'][0])
+        self.spinOrbitElementsOmega.setValue(eph['Omega'][0])
+        self.spinOrbitElementsPerifocus.setValue(eph['w'][0])
+        self.spinOrbitElementsEpoch.setValue(eph['datetime_jd'][0])
         return
 
         # to coordinates
@@ -432,6 +500,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         if clear:
             self.textSimbadName.clear()
             self.comboSolarSystemBody.setCurrentText('')
+            self.textJplHorizonsName.clear()
 
         # parse RA/Dec
         try:
@@ -468,7 +537,7 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # display
         self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
 
-    def _calc_dest_solar_system(self):
+    def _calc_dest_orbit_elements(self):
         pass
 
     @pyqtSlot(int, name='on_comboMoveType_currentIndexChanged')
@@ -483,15 +552,15 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
     @pyqtSlot(name='on_buttonInit_clicked')
     def _init_telescope(self):
-        self.run_async(self.module.init)
+        self.run_background(self.module.init)
 
     @pyqtSlot(name='on_buttonPark_clicked')
     def _park_telescope(self):
-        self.run_async(self.module.park)
+        self.run_background(self.module.park)
 
     @pyqtSlot(name='on_buttonStop_clicked')
     def _stop_telescope(self):
-        self.run_async(lambda: self.module.stop_motion('ITelescope'))
+        self.run_background(lambda: self.module.stop_motion('ITelescope'))
 
     @pyqtSlot(name='on_buttonSetAltOffset_clicked')
     @pyqtSlot(name='on_buttonSetAzOffset_clicked')
@@ -504,21 +573,21 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
 
         # first all the reset buttons
         if self.sender() == self.buttonResetHorizontalOffsets:
-            self.run_async(self.module.set_offsets_altaz, 0., 0)
+            self.run_background(self.module.set_offsets_altaz, 0., 0)
         elif self.sender() == self.buttonResetEquatorialOffsets:
-            self.run_async(self.module.set_offsets_radec, 0, 0.)
+            self.run_background(self.module.set_offsets_radec, 0, 0.)
         else:
             # now the sets, ask for value
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, 'Set offset', 'New offset ["]', 0, -9999, 9999)
             if ok:
                 if self.sender() == self.buttonSetAltOffset:
-                    self.run_async(self.module.set_offsets_altaz, new_value / 3600., self._off_az)
+                    self.run_background(self.module.set_offsets_altaz, new_value / 3600., self._off_az)
                 elif self.sender() == self.buttonSetAzOffset:
-                    self.run_async(self.module.set_offsets_altaz, self._off_alt, new_value / 3600.)
+                    self.run_background(self.module.set_offsets_altaz, self._off_alt, new_value / 3600.)
                 elif self.sender() == self.buttonSetRaOffset:
-                    self.run_async(self.module.set_offsets_radec, new_value / 3600., self._off_dec)
+                    self.run_background(self.module.set_offsets_radec, new_value / 3600., self._off_dec)
                 elif self.sender() == self.buttonSetDecOffset:
-                    self.run_async(self.module.set_offsets_radec, self._off_ra, new_value / 3600.)
+                    self.run_background(self.module.set_offsets_radec, self._off_ra, new_value / 3600.)
 
     @pyqtSlot(name='on_buttonOffsetNorth_clicked')
     @pyqtSlot(name='on_buttonOffsetSouth_clicked')
@@ -542,10 +611,10 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             off_ra -= user_offset
 
         # move
-        if isinstance(self.module, IOffsetsRaDecProxy):
-            self.run_async(self.module.set_offsets_radec, off_ra, off_dec)
-        elif isinstance(self.module, IOffsetsAltAzProxy):
+        if isinstance(self.module, IOffsetsRaDec):
+            self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
+        elif isinstance(self.module, IOffsetsAltAz):
             off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
-            self.run_async(self.module.set_offsets_altaz, off_alt, off_az)
+            self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
         else:
             raise ValueError

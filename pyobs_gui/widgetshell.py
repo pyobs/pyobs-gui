@@ -1,7 +1,7 @@
+import asyncio
 import pprint
 import traceback
 from io import BytesIO
-from threading import Thread
 import re
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -35,10 +35,14 @@ class CommandModel(QtCore.QAbstractTableModel):
 
         # create model
         self.commands = []
+        self.comm = comm
+
+    async def init(self) -> None:
+        self.commands = []
         command_names = []
-        for client_name in comm.clients:
+        for client_name in self.comm.clients:
             # loop interfaces
-            for interface in comm.get_interfaces(client_name):
+            for interface in await self.comm.get_interfaces(client_name):
                 # loop methods
                 for method_name, member in inspect.getmembers(interface):
                     # not a method?
@@ -107,7 +111,6 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self.command_number = 0
 
         # commands
-        #self.command_model = None
         self.command_model = CommandModel(self.comm)
 
         self.command_regexp = re.compile(r'(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)')
@@ -140,6 +143,10 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self.add_command_log.connect(self.textCommandLog.append)
         self.textCommandInput.commandExecuted.connect(self.execute_command)
         self.textCommandInput.textChanged.connect(self._update_docs)
+
+    async def open(self) -> None:
+        """Open module."""
+        await self.command_model.init()
 
     def _add_command_log(self, msg, color=None):
         if color is not None:
@@ -236,6 +243,9 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         raise ValueError('Invalid parameters.')
 
     def execute_command(self, command):
+        asyncio.create_task(self._execute_command(command))
+
+    async def _execute_command(self, command):
         # log command
         self.command_number += 1
         self._add_command_log('$ (#%d) %s' % (self.command_number, command), 'blue')
@@ -248,30 +258,24 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             return
 
         # get proxy
-        proxy = self.comm[client]
+        proxy = await self.comm.proxy(client)
 
-        # execute command in new thread
-        thread = Thread(target=self._execute_command_async, args=(proxy, command, self.command_number, *params),
-                        name=client + '.' + command)
-        thread.start()
-
-    def _execute_command_async(self, mod, command, no, *args):
         # execute command
         try:
-            response = mod.execute(command, *args).wait()
+            response = await proxy.execute(command, *params)
         except ValueError as e:
-            log.exception('(#%d): Something has gone wrong.' % no)
-            self._add_command_log('(#%d): Invalid parameter: %s' % (no, str(e)), 'red')
+            log.exception('(#%d): Something has gone wrong.' % self.command_number)
+            self._add_command_log('(#%d): Invalid parameter: %s' % (self.command_number, str(e)), 'red')
             return
         except RemoteException as e:
             if e:
-                self._add_command_log('(#%d): %s' % (no, traceback.format_exc()), 'red')
+                self._add_command_log('(#%d): %s' % (self.command_number, traceback.format_exc()), 'red')
             else:
-                self._add_command_log('(#%d): Unknown Remote error' % no, 'red')
+                self._add_command_log('(#%d): Unknown Remote error' % self.command_number, 'red')
             return
 
         # log response
-        self._add_command_log('(#%d) %s' % (no, pprint.pformat(response)))
+        self._add_command_log('(#%d) %s' % (self.command_number, pprint.pformat(response)))
 
     def _update_docs(self):
         # get current input

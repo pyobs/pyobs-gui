@@ -1,5 +1,5 @@
+import asyncio
 import logging
-import threading
 from urllib.parse import urlparse
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -7,7 +7,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtNetwork import QTcpSocket
 
-from pyobs.interfaces.proxies import IExposureTimeProxy, IImageTypeProxy, IImageFormatProxy
+from pyobs.interfaces import IExposureTime, IImageType, IImageFormat
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile
 from pyobs_gui.basewidget import BaseWidget
@@ -74,17 +74,17 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.comboImageType.setCurrentText('OBJECT')
 
         # hide single controls, if necessary
-        self.labelImageType.setVisible(isinstance(self.module, IImageTypeProxy))
-        self.comboImageType.setVisible(isinstance(self.module, IImageTypeProxy))
-        self.labelExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
-        self.spinExpTime.setVisible(isinstance(self.module, IExposureTimeProxy))
+        self.labelImageType.setVisible(isinstance(self.module, IImageType))
+        self.comboImageType.setVisible(isinstance(self.module, IImageType))
+        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
 
-    def _init(self):
+    async def _init(self):
         # get video stream URL and open it
-        video_path = self.module.get_video().wait()
+        video_path = await self.module.get_video()
         video_file = self.vfs.open_file(video_path, 'r')
 
         # we heed a HttpFile
@@ -106,15 +106,15 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.path = o.path
 
         # get initial values
-        if isinstance(self.module, IExposureTimeProxy):
-            self.spinExpTime.setValue(self.module.get_exposure_time().wait())
+        if isinstance(self.module, IExposureTime):
+            self.spinExpTime.setValue(await self.module.get_exposure_time())
 
         # update GUI
         self.signal_update_gui.emit()
 
-    def showEvent(self, event: QtGui.QShowEvent) -> None:
+    async def _showEvent(self, event: QtGui.QShowEvent) -> None:
         # call base
-        BaseWidget.showEvent(self, event)
+        await BaseWidget._showEvent(self, event)
 
         # connect socket
         if self.host is not None:
@@ -167,7 +167,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
     @pyqtSlot(name='on_buttonGrabImage_clicked')
     def grab_image(self):
         # set image format
-        if isinstance(self.module, IImageFormatProxy):
+        if isinstance(self.module, IImageFormat):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             self.module.set_image_format(image_format)
 
@@ -178,21 +178,21 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.signal_update_gui.emit()
 
         # start exposures
-        threading.Thread(target=self._expose_thread_func).start()
+        asyncio.create_task(self._expose_task_func())
 
-    def _expose_thread_func(self):
+    async def _expose_task_func(self):
         # get image type
         image_type = ImageType(self.comboImageType.currentText().lower())
 
         # do exposure(s)
         while self.exposures_left > 0:
             # set image type
-            if isinstance(self.module, IImageTypeProxy):
-                self.module.set_image_type(image_type)
+            if isinstance(self.module, IImageType):
+                await self.module.set_image_type(image_type)
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            self.widgetDataDisplay.grab_data(broadcast, image_type)
+            await self.widgetDataDisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
@@ -210,8 +210,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         exp_time = self.spinExpTime.value()
 
         # set it
-        if isinstance(self.module, IExposureTimeProxy):
-            self.module.set_exposure_time(exp_time)
+        if isinstance(self.module, IExposureTime):
+            asyncio.create_task(self.module.set_exposure_time(exp_time))
 
 
 __all__ = ['WidgetVideo']

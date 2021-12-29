@@ -1,12 +1,7 @@
-import threading
-
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from astroplan import Observer
+from PyQt5.QtCore import pyqtSignal
 import logging
 
-from pyobs.comm import Comm
-from pyobs.interfaces import IWeather
 from pyobs.utils.time import Time
 from .qt.widgetweather import Ui_widgetWeather
 from .basewidget import BaseWidget
@@ -98,11 +93,11 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    def _update(self):
+    async def _update(self):
         """Update values from weather module."""
 
         # get current weather
-        self._current_weather = self.module.get_current_weather().wait()
+        self._current_weather = await self.module.get_current_weather()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -150,7 +145,8 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
                 f = sensor['field']
                 if f in current_sensors:
                     format = '%d' if f == 'rain' else '%.2f'
-                    self._current_widgets[f].set_value(format % cur[f]['value'])
+                    s = 'N/A' if cur[f]['value'] is None else format % cur[f]['value']
+                    self._current_widgets[f].set_value(s)
                     self._current_widgets[f].set_good(cur[f]['good'])
 
             # store it

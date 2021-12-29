@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal
 
-from pyobs.interfaces.proxies import IDomeProxy
+from pyobs.interfaces import IDome
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetroof import Ui_WidgetRoof
 
@@ -17,23 +17,23 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         self.azimuth = None
 
         # connect signals
-        self.buttonOpen.clicked.connect(lambda: self.run_async(self.module.init))
-        self.buttonClose.clicked.connect(lambda: self.run_async(self.module.park))
-        self.buttonStop.clicked.connect(lambda: self.run_async(self.module.stop_motion))
+        self.buttonOpen.clicked.connect(lambda: self.run_background(self.module.init))
+        self.buttonClose.clicked.connect(lambda: self.run_background(self.module.park))
+        self.buttonStop.clicked.connect(lambda: self.run_background(self.module.stop_motion))
         self.signal_update_gui.connect(self.update_gui)
 
-    def _init(self):
+    async def _init(self):
         # get status and update gui
-        self.motion_status = self.module.get_motion_status().wait()
+        self.motion_status = await self.module.get_motion_status()
         self.signal_update_gui.emit()
 
-    def _update(self):
+    async def _update(self):
         # motion status
-        self.motion_status = self.module.get_motion_status().wait()
+        self.motion_status = await self.module.get_motion_status()
 
         # azimuth
-        if isinstance(self.module, IDomeProxy):
-            _, self.azimuth = self.module.get_altaz().wait()
+        if isinstance(self.module, IDome):
+            _, self.azimuth = await self.module.get_altaz()
 
         # signal GUI update
         self.signal_update_gui.emit()

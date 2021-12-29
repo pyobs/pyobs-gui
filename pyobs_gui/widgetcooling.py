@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from PyQt5.QtCore import pyqtSignal
 
@@ -21,11 +22,10 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.buttonApply.clicked.connect(self.set_cooling)
 
-    def _update(self):
+    async def _update(self):
         # get status
-        self._status = self.module.get_cooling_status().wait()
+        self._status = await self.module.get_cooling_status()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -46,10 +46,13 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
                 self.labelStatus.setText('N/A' if power is None else 'OFF')
                 self.labelPower.clear()
 
-    def set_cooling(self):
+    def on_buttonApply_clicked(self):
+        asyncio.create_task(self.set_cooling())
+
+    async def set_cooling(self):
         # get enabeld and setpoint temperature
         enabled = self.checkEnabled.isChecked()
         temp = self.spinSetPoint.value()
 
         # send it
-        self.module.set_cooling(enabled, temp).wait()
+        await self.module.set_cooling(enabled, temp)
