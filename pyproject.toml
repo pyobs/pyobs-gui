@@ -12,10 +12,11 @@ PyQt5 = "^5.13"
 matplotlib = "^3.4"
 qfitswidget = "^0.8"
 qasync = "^0.22"
-black = "^21.12b0"
-pre-commit = "^2.16.0"
 
 [tool.poetry.dev-dependencies]
+black = "^21.12b0"
+pre-commit = "^2.16.0"
+PyQt5-stubs = "^5.15.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
