@@ -12,6 +12,8 @@ PyQt5 = "^5.13"
 matplotlib = "^3.4"
 qfitswidget = "^0.8"
 qasync = "^0.22"
+black = "^21.12b0"
+pre-commit = "^2.16.0"
 
 [tool.poetry.dev-dependencies]
 
