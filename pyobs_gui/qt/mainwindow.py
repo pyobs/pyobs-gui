@@ -112,7 +112,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.listPages = QtWidgets.QListWidget(self.layoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.listPages.sizePolicy().hasHeightForWidth())
@@ -153,7 +155,9 @@ class Ui_MainWindow(object):
         self.tableLog.verticalHeader().setDefaultSectionSize(20)
         self.tableLog.verticalHeader().setMinimumSectionSize(20)
         self.listClients = QtWidgets.QListWidget(self.splitterClients)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.listClients.sizePolicy().hasHeightForWidth())
@@ -171,6 +175,12 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "pyobs GUI"))
-        self.labelAutonomousWarning.setText(_translate("MainWindow", "!!! WARNING: autonomous module(s) active !!!"))
-        self.labelWeatherWarning.setText(_translate("MainWindow", "!!! WARNING: weather module disabled !!!"))
+        self.labelAutonomousWarning.setText(
+            _translate("MainWindow", "!!! WARNING: autonomous module(s) active !!!")
+        )
+        self.labelWeatherWarning.setText(
+            _translate("MainWindow", "!!! WARNING: weather module disabled !!!")
+        )
+
+
 from . import resources_rc

@@ -42,7 +42,9 @@ class Ui_WidgetVideo(object):
         self.labelExpTime.setObjectName("labelExpTime")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.labelExpTime)
         self.verticalLayout_2.addWidget(self.groupExposure)
-        spacerItem = QtWidgets.QSpacerItem(20, 340, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 340, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_2.addItem(spacerItem)
         self.horizontalLayout.addWidget(self.frame)
         self.frameLiveView = QtWidgets.QWidget(self.tabLiveView)
@@ -384,7 +386,9 @@ class Ui_WidgetVideo(object):
         self.buttonAbort.setObjectName("buttonAbort")
         self.gridLayout_5.addWidget(self.buttonAbort, 4, 0, 1, 2)
         self.verticalLayout.addWidget(self.groupExposure_2)
-        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem1)
         self.labelExposuresLeft = QtWidgets.QLabel(self.frame_2)
         self.labelExposuresLeft.setAlignment(QtCore.Qt.AlignCenter)
@@ -410,7 +414,10 @@ class Ui_WidgetVideo(object):
         self.groupExposure.setTitle(_translate("WidgetVideo", "Exposure"))
         self.spinExpTime.setSuffix(_translate("WidgetVideo", " s"))
         self.labelExpTime.setText(_translate("WidgetVideo", "ExpTime:"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLiveView), _translate("WidgetVideo", "Live View"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tabLiveView),
+            _translate("WidgetVideo", "Live View"),
+        )
         self.groupExposure_2.setTitle(_translate("WidgetVideo", "Exposure"))
         self.labelImageType.setText(_translate("WidgetVideo", "Type:"))
         self.label_9.setText(_translate("WidgetVideo", "Count:"))
@@ -418,4 +425,7 @@ class Ui_WidgetVideo(object):
         self.buttonGrabImage.setText(_translate("WidgetVideo", "Grab image"))
         self.buttonAbort.setText(_translate("WidgetVideo", "Abort sequence"))
         self.labelExposuresLeft.setText(_translate("WidgetVideo", "IDLE"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsImage), _translate("WidgetVideo", "FITS Image"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tabFitsImage),
+            _translate("WidgetVideo", "FITS Image"),
+        )

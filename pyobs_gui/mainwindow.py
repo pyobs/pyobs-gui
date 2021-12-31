@@ -7,7 +7,16 @@ from astropy.time import Time
 from colour import Color
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
-from pyobs.interfaces import ICamera, ITelescope, IRoof, IFocuser, IWeather, IVideo, IAutonomous, ISpectrograph
+from pyobs.interfaces import (
+    ICamera,
+    ITelescope,
+    IRoof,
+    IFocuser,
+    IWeather,
+    IVideo,
+    IAutonomous,
+    ISpectrograph,
+)
 from .widgetcamera import WidgetCamera
 from .widgetsmixin import WidgetsMixin
 from .widgettelescope import WidgetTelescope
@@ -29,7 +38,7 @@ DEFAULT_WIDGETS = {
     IFocuser: WidgetFocus,
     IWeather: WidgetWeather,
     IVideo: WidgetVideo,
-    ISpectrograph: WidgetSpectrograph
+    ISpectrograph: WidgetSpectrograph,
 }
 
 DEFAULT_ICONS = {
@@ -39,26 +48,27 @@ DEFAULT_ICONS = {
     IFocuser: ":/resources/Crystal_Clear_app_demo.png",
     IWeather: ":/resources/Crystal_Clear_app_demo.png",
     IVideo: ":/resources/Crystal_Clear_device_camera.png",
-    ISpectrograph: ":/resources/Crystal_Clear_device_camera.png"
+    ISpectrograph: ":/resources/Crystal_Clear_device_camera.png",
 }
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
     """ListWidgetItem for the pages list. Always sorts Shell and Events first"""
+
     def __lt__(self, other: QtWidgets.QListWidgetItem) -> bool:
         """Compare two items."""
 
         # special cases?
-        if self.text() == 'Shell':
+        if self.text() == "Shell":
             # if self is 'Shell', it always goes first
             return True
-        elif other.text() == 'Shell':
+        elif other.text() == "Shell":
             # if other is 'Shell', it always goes later
             return False
-        elif self.text() == 'Events':
+        elif self.text() == "Events":
             # if self is 'Events', it only goes first if other is not 'Shell'
-            return other.text() != 'Shell'
-        elif other.text() == 'Events':
+            return other.text() != "Shell"
+        elif other.text() == "Events":
             # if other is 'Events', self always goes later, since case of 'Shell' as self has always been dealt with
             return False
         else:
@@ -70,9 +80,18 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
     add_log = pyqtSignal(list)
     add_command_log = pyqtSignal(str)
 
-    def __init__(self, comm, vfs, observer, show_shell: bool = True, show_events: bool = True,
-                 show_modules: Optional[List[str]] = None, widgets: Optional[List] = None,
-                 sidebar: Optional[List] = None, **kwargs: Any):
+    def __init__(
+        self,
+        comm,
+        vfs,
+        observer,
+        show_shell: bool = True,
+        show_events: bool = True,
+        show_modules: Optional[List[str]] = None,
+        widgets: Optional[List] = None,
+        sidebar: Optional[List] = None,
+        **kwargs: Any
+    ):
         """Init window.
 
         Args:
@@ -133,7 +152,11 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         if self.show_shell:
             # add shell nav button and view
             self.shell = self.create_widget(WidgetShell)
-            await self._add_client('Shell', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell)
+            await self._add_client(
+                "Shell",
+                QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"),
+                self.shell,
+            )
         else:
             self.shell = None
 
@@ -141,7 +164,11 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         if self.show_events:
             # add events nav button and view
             self.events = WidgetEvents(self.comm)
-            await self._add_client('Events', QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.events)
+            await self._add_client(
+                "Events",
+                QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"),
+                self.events,
+            )
         else:
             self.events = None
 
@@ -154,8 +181,12 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # subscribe to events
         await self.comm.register_event(LogEvent, self.process_log_entry)
-        await self.comm.register_event(ModuleOpenedEvent, lambda x, y: self._client_connected(y))
-        await self.comm.register_event(ModuleClosedEvent, lambda x, y: self._client_disconnected(y))
+        await self.comm.register_event(
+            ModuleOpenedEvent, lambda x, y: self._client_connected(y)
+        )
+        await self.comm.register_event(
+            ModuleClosedEvent, lambda x, y: self._client_disconnected(y)
+        )
 
         # create other nav buttons and views
         for client_name in self.comm.clients:
@@ -163,7 +194,9 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # add timer for checking warnings
         self._warning_timer = QtCore.QTimer()
-        self._warning_timer.timeout.connect(lambda: asyncio.create_task(self._check_warnings()))
+        self._warning_timer.timeout.connect(
+            lambda: asyncio.create_task(self._check_warnings())
+        )
         self._warning_timer.start(5000)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -172,7 +205,9 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # get current widget
         widget = self.stackedWidget.currentWidget()
 
-    async def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget) -> None:
+    async def _add_client(
+        self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget
+    ) -> None:
         """
 
         Args:
@@ -244,14 +279,16 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             return False
 
         # date
-        time = Time(entry.time, format='unix')
+        time = Time(entry.time, format="unix")
 
         # define new row and emit
-        row = [time.iso.split()[1],
-               str(sender),
-               entry.level,
-               '%s:%d' % (os.path.basename(entry.filename), entry.line),
-               entry.message]
+        row = [
+            time.iso.split()[1],
+            str(sender),
+            entry.level,
+            "%s:%d" % (os.path.basename(entry.filename), entry.line),
+            entry.message,
+        ]
         self.add_log.emit(row)
         return True
 
@@ -259,8 +296,12 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """Resize log table to entries."""
 
         # resize columns
-        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeToContents)
-        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableLog.horizontalHeader().resizeSections(
+            QtWidgets.QHeaderView.ResizeToContents
+        )
+        self.tableLog.horizontalHeader().setSectionResizeMode(
+            4, QtWidgets.QHeaderView.ResizeToContents
+        )
 
         # this is a one-time shot, so unconnect signal
         self.log_model.rowsInserted.disconnect(self._resize_log_table)
@@ -269,7 +310,9 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """Update log filter."""
 
         # update proxy
-        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
+        self.log_proxy.filter_source(
+            str(item.text()), item.checkState() == QtCore.Qt.Checked
+        )
 
     async def _check_warnings(self) -> None:
         """Checks, whether we got an autonomous module."""
@@ -321,8 +364,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # look at custom widgets
         for cw in self.custom_widgets:
-            if cw['module'] == client:
-                widget = self.create_widget(cw['widget'], module=proxy)
+            if cw["module"] == client:
+                widget = self.create_widget(cw["widget"], module=proxy)
                 icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
 
         # still nothing?
@@ -331,8 +374,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # custom sidebar?
         for csw in self.custom_sidebar_widgets:
-            if csw['module'] == client:
-                widget.add_to_sidebar(self.create_widget(csw['widget'], module=proxy))
+            if csw["module"] == client:
+                widget.add_to_sidebar(self.create_widget(csw["widget"], module=proxy))
 
         # add it
         await self._add_client(client, icon, widget)
@@ -387,8 +430,10 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """
         hdr = {}
         for widget in self._widgets.values():
-            if hasattr(widget, 'get_fits_headers'):
-                for k, v in widget.get_fits_headers(namespaces, *args, **kwargs).items():
+            if hasattr(widget, "get_fits_headers"):
+                for k, v in widget.get_fits_headers(
+                    namespaces, *args, **kwargs
+                ).items():
                     hdr[k] = v
         return hdr
 

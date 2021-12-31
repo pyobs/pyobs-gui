@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_WidgetShell(object):
     def setupUi(self, WidgetShell):
         WidgetShell.setObjectName("WidgetShell")
@@ -30,5 +31,6 @@ class Ui_WidgetShell(object):
     def retranslateUi(self, WidgetShell):
         _translate = QtCore.QCoreApplication.translate
         WidgetShell.setWindowTitle(_translate("WidgetShell", "Form"))
+
 
 from .commandinput import CommandInput

@@ -11,7 +11,9 @@ class WidgetsMixin:
         """Mixin for child widgets."""
         self._widgets_mixin: List[WidgetsMixin] = []
 
-    def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> 'BaseWidget':
+    def create_widget(
+        self, config: Union[Dict[str, Any], type], **kwargs: Any
+    ) -> "BaseWidget":
         """Creates new widget.
 
         Args:
@@ -24,18 +26,22 @@ class WidgetsMixin:
 
         # create it
         if isinstance(config, dict):
-            widget = create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+            widget = create_object(
+                config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs
+            )
         elif isinstance(config, type):
-            widget = config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+            widget = config(
+                vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs
+            )
         else:
-            raise ValueError('Wrong type.')
+            raise ValueError("Wrong type.")
 
         # check and return widget
         if isinstance(widget, BaseWidget):
             self._widgets_mixin.append(widget)
             return widget
         else:
-            raise ValueError('Invalid widget.')
+            raise ValueError("Invalid widget.")
 
     async def open(self):
         """Open all widgets."""
@@ -43,4 +49,4 @@ class WidgetsMixin:
             await widget.open()
 
 
-__all__ = ['WidgetsMixin']
+__all__ = ["WidgetsMixin"]

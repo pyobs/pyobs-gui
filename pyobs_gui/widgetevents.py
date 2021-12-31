@@ -17,7 +17,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
 
         # set up table
         self.tableEvents.setColumnCount(4)
-        self.tableEvents.setHorizontalHeaderLabels(['Time', 'Sender', 'Event', 'Data'])
+        self.tableEvents.setHorizontalHeaderLabels(["Time", "Sender", "Event", "Data"])
         self.tableEvents.setColumnWidth(0, 80)
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
@@ -32,13 +32,20 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
                 await self.comm.register_event(cls, self._handle_event)
 
                 # get c'tor
-                ctor = getattr(cls, '__init__')
+                ctor = getattr(cls, "__init__")
                 sig = inspect.signature(ctor)
-                params = [] if len(sig.parameters) < 2 else \
-                    [p.name for p in sig.parameters.values() if p.name not in ['self', 'args', 'kwargs']]
+                params = (
+                    []
+                    if len(sig.parameters) < 2
+                    else [
+                        p.name
+                        for p in sig.parameters.values()
+                        if p.name not in ["self", "args", "kwargs"]
+                    ]
+                )
 
                 # build name
-                name = '%s (%s)' % (cls.__name__, ', '.join(params))
+                name = "%s (%s)" % (cls.__name__, ", ".join(params))
 
                 # add to combo
                 self.comboEvent.addItem(name, cls)
@@ -62,9 +69,13 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         time = datetime.fromtimestamp(event.timestamp)
 
         # fill it
-        self.tableEvents.setItem(0, 0, QtWidgets.QTableWidgetItem(time.strftime('%H:%M:%S')))
+        self.tableEvents.setItem(
+            0, 0, QtWidgets.QTableWidgetItem(time.strftime("%H:%M:%S"))
+        )
         self.tableEvents.setItem(0, 1, QtWidgets.QTableWidgetItem(sender))
-        self.tableEvents.setItem(0, 2, QtWidgets.QTableWidgetItem(event.__class__.__name__))
+        self.tableEvents.setItem(
+            0, 2, QtWidgets.QTableWidgetItem(event.__class__.__name__)
+        )
         self.tableEvents.setItem(0, 3, QtWidgets.QTableWidgetItem(str(event.data)))
 
         # limit number of rows
@@ -98,13 +109,13 @@ class SendEventDialog(QtWidgets.QDialog):
         layout.addWidget(title)
 
         # get c'tor and its params
-        ctor = getattr(event, '__init__')
+        ctor = getattr(event, "__init__")
         sig = inspect.signature(ctor)
 
         # add input for every param
         self._widgets = {}
         for p in sig.parameters:
-            if p not in ['self', 'args', 'kwargs']:
+            if p not in ["self", "args", "kwargs"]:
                 # create widget
                 if sig.parameters[p].annotation == int:
                     widget = QtWidgets.QSpinBox()
@@ -130,7 +141,9 @@ class SendEventDialog(QtWidgets.QDialog):
                 layout.addRow(p, widget_layout)
 
         # add dialog button box
-        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         buttons.accepted.connect(self._send_event)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

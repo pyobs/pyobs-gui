@@ -19,6 +19,7 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         try:
             # set current username
             import pwd
+
             self.textUser.setText(pwd.getpwuid(os.getuid()).pw_name)
         except ModuleNotFoundError:
             pass
@@ -34,7 +35,7 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         """
 
         # check sender
-        if 'sender' in kwargs and kwargs['sender'] != self.module.name:
+        if "sender" in kwargs and kwargs["sender"] != self.module.name:
             return {}
 
         # don't want to send headers?
@@ -43,8 +44,8 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
 
         # define basic headers
         headers = {
-            'OBJECT': (self.textObject.text(), 'Observed object'),
-            'USER': (self.textUser.text(), 'Name of user')
+            "OBJECT": (self.textObject.text(), "Observed object"),
+            "USER": (self.textUser.text(), "Name of user"),
         }
 
         # addition headers?
@@ -60,12 +61,14 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         # return them
         return headers
 
-    @pyqtSlot(name='on_buttonAddHeader_clicked')
+    @pyqtSlot(name="on_buttonAddHeader_clicked")
     def add_header(self):
         """Increase row count by 1."""
-        self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
+        self.tableAdditionalHeaders.setRowCount(
+            self.tableAdditionalHeaders.rowCount() + 1
+        )
 
-    @pyqtSlot(name='on_buttonDelHeader_clicked')
+    @pyqtSlot(name="on_buttonDelHeader_clicked")
     def del_header(self):
         """Delete current row"""
 
@@ -76,4 +79,3 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
 
         # delete it
         self.tableAdditionalHeaders.removeRow(row)
-

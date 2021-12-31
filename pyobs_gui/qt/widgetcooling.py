@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_WidgetCooling(object):
     def setupUi(self, WidgetCooling):
         WidgetCooling.setObjectName("WidgetCooling")
@@ -66,4 +67,3 @@ class Ui_WidgetCooling(object):
         self.spinSetPoint.setSuffix(_translate("WidgetCooling", " °C"))
         self.label.setText(_translate("WidgetCooling", "SetPoint:"))
         self.label_10.setText(_translate("WidgetCooling", "Power:"))
-

@@ -31,7 +31,9 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.exposure_status = ExposureStatus.IDLE
 
         # data display
-        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        self.widgetDataDisplay = self.create_widget(
+            WidgetDataDisplay, module=self.module
+        )
         self.framePlot.layout().addWidget(self.widgetDataDisplay)
 
         # before first update, disable myself
@@ -48,17 +50,21 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         await BaseWidget.open(self)
 
         # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        await self.comm.register_event(
+            ExposureStatusChangedEvent, self._on_exposure_status_changed
+        )
 
     async def _init(self) -> None:
         # get status
         if isinstance(self.module, ISpectrograph):
-            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
+            self.exposure_status = ExposureStatus(
+                await self.module.get_exposure_status()
+            )
 
         # update GUI
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_butExpose_clicked')
+    @pyqtSlot(name="on_butExpose_clicked")
     def grab_spectrum(self):
         if not isinstance(self.module, ISpectrograph):
             return
@@ -70,7 +76,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_butAbort_clicked')
+    @pyqtSlot(name="on_butAbort_clicked")
     def abort(self):
         """Abort exposure."""
         if isinstance(self, ISpectrograph):
@@ -80,12 +86,12 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            #self.exposure_time_left = await self.module.get_exposure_time_left()
+            # self.exposure_time_left = await self.module.get_exposure_time_left()
             self.exposure_progress = await self.module.get_exposure_progress()
 
         else:
             # reset
-            #self.exposure_time_left = 0
+            # self.exposure_time_left = 0
             self.exposure_progress = 0
 
         # signal GUI update
@@ -102,17 +108,17 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.butAbort.setEnabled(self.exposure_status != ExposureStatus.IDLE)
 
         # set progress
-        msg = ''
+        msg = ""
         if self.exposure_status == ExposureStatus.IDLE:
             self.progressExposure.setValue(0)
-            msg = 'IDLE'
+            msg = "IDLE"
         elif self.exposure_status == ExposureStatus.EXPOSING:
-            #self.progressExposure.setValue(int(self.exposure_progress))
-            #msg = 'EXPOSING %.1fs' % self.exposure_time_left
-            msg = ''
+            # self.progressExposure.setValue(int(self.exposure_progress))
+            # msg = 'EXPOSING %.1fs' % self.exposure_time_left
+            msg = ""
         elif self.exposure_status == ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
-            msg = 'READOUT'
+            msg = "READOUT"
 
         # set message
         self.labelStatus.setText(msg)
@@ -120,7 +126,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # trigger image update
         if self.new_spectrum:
             # set filename
-            #self.tabWidget.setTabText(0, os.path.basename(self.spectrum_filename))
+            # self.tabWidget.setTabText(0, os.path.basename(self.spectrum_filename))
 
             # plot image
             self.plot()
@@ -137,7 +143,9 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
+        if sender != self.module.name or not isinstance(
+            event, ExposureStatusChangedEvent
+        ):
             return False
 
         # store new status

@@ -18,7 +18,9 @@ class Ui_WidgetSpectrograph(object):
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(WidgetSpectrograph)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.scrollArea = QtWidgets.QScrollArea(WidgetSpectrograph)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
@@ -28,10 +30,14 @@ class Ui_WidgetSpectrograph(object):
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
         self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 159, 748))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.scrollAreaWidgetContents.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.scrollAreaWidgetContents.sizePolicy().hasHeightForWidth()
+        )
         self.scrollAreaWidgetContents.setSizePolicy(sizePolicy)
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
@@ -345,7 +351,9 @@ class Ui_WidgetSpectrograph(object):
         self.butAbort.setObjectName("butAbort")
         self.verticalLayout_3.addWidget(self.butAbort)
         self.verticalLayout.addWidget(self.groupExposure)
-        spacerItem = QtWidgets.QSpacerItem(20, 26, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(
+            20, 26, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout.addItem(spacerItem)
         self.labelStatus = QtWidgets.QLabel(self.scrollAreaWidgetContents)
         self.labelStatus.setAlignment(QtCore.Qt.AlignCenter)
@@ -390,4 +398,6 @@ class Ui_WidgetSpectrograph(object):
         self.butAbort.setText(_translate("WidgetSpectrograph", "Abort"))
         self.labelStatus.setText(_translate("WidgetSpectrograph", "IDLE"))
         self.labelExposuresLeft.setText(_translate("WidgetSpectrograph", "IDLE"))
+
+
 from . import resources_rc

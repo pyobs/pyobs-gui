@@ -32,7 +32,9 @@ class Ui_WidgetEvents(object):
         self.verticalLayout.addWidget(self.tableEvents)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem)
         self.comboEvent = QtWidgets.QComboBox(WidgetEvents)
         self.comboEvent.setObjectName("comboEvent")
@@ -51,5 +53,3 @@ class Ui_WidgetEvents(object):
         WidgetEvents.setWindowTitle(_translate("WidgetEvents", "Form"))
         self.tableEvents.setSortingEnabled(False)
         self.buttonSend.setText(_translate("WidgetEvents", "Send event"))
-
-

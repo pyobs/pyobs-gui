@@ -30,8 +30,12 @@ class Ui_WidgetDataDisplay(object):
         self.tableFitsHeader = QtWidgets.QTableWidget(self.tabFitsHeader)
         self.tableFitsHeader.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableFitsHeader.setAlternatingRowColors(True)
-        self.tableFitsHeader.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tableFitsHeader.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.tableFitsHeader.setSelectionMode(
+            QtWidgets.QAbstractItemView.SingleSelection
+        )
+        self.tableFitsHeader.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectRows
+        )
         self.tableFitsHeader.setObjectName("tableFitsHeader")
         self.tableFitsHeader.setColumnCount(0)
         self.tableFitsHeader.setRowCount(0)
@@ -46,7 +50,9 @@ class Ui_WidgetDataDisplay(object):
         self.checkAutoUpdate.setChecked(True)
         self.checkAutoUpdate.setObjectName("checkAutoUpdate")
         self.horizontalLayout.addWidget(self.checkAutoUpdate)
-        spacerItem = QtWidgets.QSpacerItem(38, 18, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            38, 18, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem)
         self.checkAutoSave = QtWidgets.QCheckBox(WidgetDataDisplay)
         self.checkAutoSave.setObjectName("checkAutoSave")
@@ -58,11 +64,17 @@ class Ui_WidgetDataDisplay(object):
         self.butAutoSave = QtWidgets.QToolButton(WidgetDataDisplay)
         self.butAutoSave.setObjectName("butAutoSave")
         self.horizontalLayout.addWidget(self.butAutoSave)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem1)
         self.butSaveTo = QtWidgets.QToolButton(WidgetDataDisplay)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/resources/Crystal_Clear_device_floppy_unmount.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/resources/Crystal_Clear_device_floppy_unmount.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.butSaveTo.setIcon(icon)
         self.butSaveTo.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.butSaveTo.setObjectName("butSaveTo")
@@ -76,8 +88,14 @@ class Ui_WidgetDataDisplay(object):
     def retranslateUi(self, WidgetDataDisplay):
         _translate = QtCore.QCoreApplication.translate
         WidgetDataDisplay.setWindowTitle(_translate("WidgetDataDisplay", "Form"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabImage), _translate("WidgetDataDisplay", "Image"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsHeader), _translate("WidgetDataDisplay", "FITS header"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tabImage),
+            _translate("WidgetDataDisplay", "Image"),
+        )
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.tabFitsHeader),
+            _translate("WidgetDataDisplay", "FITS header"),
+        )
         self.checkAutoUpdate.setText(_translate("WidgetDataDisplay", "Auto-update"))
         self.checkAutoSave.setText(_translate("WidgetDataDisplay", "Auto-save:"))
         self.butAutoSave.setText(_translate("WidgetDataDisplay", "..."))

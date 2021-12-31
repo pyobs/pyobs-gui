@@ -24,10 +24,10 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
         elif role == QtCore.Qt.TextColorRole and index.column() == 2:
             # text colors for log level
             return {
-                'INFO': QtGui.QColor('lime'),
-                'WARNING': QtGui.QColor('orange'),
-                'ERROR': QtGui.QColor('red'),
-                'DEBUG': QtGui.QColor('blue')
+                "INFO": QtGui.QColor("lime"),
+                "WARNING": QtGui.QColor("orange"),
+                "ERROR": QtGui.QColor("red"),
+                "DEBUG": QtGui.QColor("blue"),
             }[self._entries[index.row()][index.column()]]
 
         elif role == QtCore.Qt.TextColorRole and index.column() == 1:
@@ -39,12 +39,14 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
 
     def headerData(self, section: int, orientation: Any, role: Any = None) -> Any:
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
-            return ['Time', 'Source', 'Level', 'File', 'Message'][section]
+            return ["Time", "Source", "Level", "File", "Message"][section]
         return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
 
     @QtCore.pyqtSlot(list)
     def add_entry(self, entry: Any) -> None:
-        self.beginInsertRows(QtCore.QModelIndex(), len(self._entries), len(self._entries))
+        self.beginInsertRows(
+            QtCore.QModelIndex(), len(self._entries), len(self._entries)
+        )
         self._entries.append(entry)
         self.endInsertRows()
 
@@ -75,4 +77,4 @@ class LogModelProxy(QtCore.QSortFilterProxyModel):  # type: ignore
             self.invalidateFilter()
 
 
-__all__ = ['LogModel', 'LogModelProxy']
+__all__ = ["LogModel", "LogModelProxy"]

@@ -52,7 +52,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        self.widgetDataDisplay = self.create_widget(
+            WidgetDataDisplay, module=self.module
+        )
         self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
         # connect signals
@@ -62,7 +64,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.setEnabled(False)
 
         # init buffer
-        self.buffer = b''
+        self.buffer = b""
 
         # socket
         self.socket = QTcpSocket()
@@ -71,7 +73,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
-        self.comboImageType.setCurrentText('OBJECT')
+        self.comboImageType.setCurrentText("OBJECT")
 
         # hide single controls, if necessary
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
@@ -80,16 +82,18 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
 
         # initial values
-        self.comboImageType.setCurrentIndex(image_types.index('OBJECT'))
+        self.comboImageType.setCurrentIndex(image_types.index("OBJECT"))
 
     async def _init(self):
         # get video stream URL and open it
         video_path = await self.module.get_video()
-        video_file = self.vfs.open_file(video_path, 'r')
+        video_file = self.vfs.open_file(video_path, "r")
 
         # we heed a HttpFile
         if not isinstance(video_file, HttpFile):
-            log.error('VFS path to video of module %s must be an HttpFile.', self.module.name)
+            log.error(
+                "VFS path to video of module %s must be an HttpFile.", self.module.name
+            )
             return
 
         # analyse URL
@@ -97,12 +101,16 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # scheme must be http
         # TODO: how to do HTTPS?
-        if o.scheme != 'http':
-            log.error('URL scheme to video of module %s must be HTTP.', self.module.name)
+        if o.scheme != "http":
+            log.error(
+                "URL scheme to video of module %s must be HTTP.", self.module.name
+            )
             return
 
         # get info
-        (self.host, self.port) = tuple(o.netloc.split(':')) if ':' in o.netloc else (o.netloc, 80)
+        (self.host, self.port) = (
+            tuple(o.netloc.split(":")) if ":" in o.netloc else (o.netloc, 80)
+        )
         self.path = o.path
 
         # get initial values
@@ -119,7 +127,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # connect socket
         if self.host is not None:
             self.socket.connectToHost(self.host, int(self.port))
-            self.socket.write(b'GET %s HTTP/1.1\r\n\r\n' % bytes(self.path, 'UTF-8'))
+            self.socket.write(b"GET %s HTTP/1.1\r\n\r\n" % bytes(self.path, "UTF-8"))
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # call base
@@ -139,12 +147,12 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # exposures left
         if self.exposures_left > 0:
-            self.labelExposuresLeft.setText('%d exposure(s) left' % self.exposures_left)
+            self.labelExposuresLeft.setText("%d exposure(s) left" % self.exposures_left)
         else:
-            self.labelExposuresLeft.setText('')
+            self.labelExposuresLeft.setText("")
 
     def _received_data(self):
-        boundary = b'--jpgboundary\r\n'
+        boundary = b"--jpgboundary\r\n"
         self.buffer += bytes(self.socket.readAll())
         while boundary in self.buffer:
             # find boundary
@@ -154,17 +162,17 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             frame = self.buffer[:pos]
 
             # remove from buffer
-            self.buffer = self.buffer[pos + len(boundary):]
+            self.buffer = self.buffer[pos + len(boundary) :]
 
             # find end of frame
-            image_data = frame[frame.find(b'\r\n\r\n') + 4:]
+            image_data = frame[frame.find(b"\r\n\r\n") + 4 :]
 
             # to pixmap and show it
             qp = QPixmap()
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @pyqtSlot(name='on_buttonGrabImage_clicked')
+    @pyqtSlot(name="on_buttonGrabImage_clicked")
     def grab_image(self):
         # set image format
         if isinstance(self.module, IImageFormat):
@@ -200,11 +208,11 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_buttonAbort_clicked')
+    @pyqtSlot(name="on_buttonAbort_clicked")
     def abort_sequence(self):
         self.exposures_left = 0
 
-    @pyqtSlot(float, name='on_spinExpTime_valueChanged')
+    @pyqtSlot(float, name="on_spinExpTime_valueChanged")
     def exposure_time_changed(self):
         # get exp_time
         exp_time = self.spinExpTime.value()
@@ -214,4 +222,4 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             asyncio.create_task(self.module.set_exposure_time(exp_time))
 
 
-__all__ = ['WidgetVideo']
+__all__ = ["WidgetVideo"]

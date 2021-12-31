@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_WidgetTemperatures(object):
     def setupUi(self, WidgetTemperatures):
         WidgetTemperatures.setObjectName("WidgetTemperatures")
@@ -28,4 +29,3 @@ class Ui_WidgetTemperatures(object):
         _translate = QtCore.QCoreApplication.translate
         WidgetTemperatures.setWindowTitle(_translate("WidgetTemperatures", "Form"))
         self.groupBox.setTitle(_translate("WidgetTemperatures", "Temperatures"))
-

@@ -22,7 +22,9 @@ class Ui_WidgetFitsHeaders(object):
         self.formLayout.setObjectName("formLayout")
         self.checkAddHeaders = QtWidgets.QCheckBox(self.groupBox)
         self.checkAddHeaders.setObjectName("checkAddHeaders")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.checkAddHeaders)
+        self.formLayout.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.checkAddHeaders
+        )
         self.label = QtWidgets.QLabel(self.groupBox)
         self.label.setObjectName("label")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label)
@@ -46,10 +48,14 @@ class Ui_WidgetFitsHeaders(object):
         self.tableAdditionalHeaders.horizontalHeader().setDefaultSectionSize(50)
         self.tableAdditionalHeaders.horizontalHeader().setStretchLastSection(True)
         self.tableAdditionalHeaders.verticalHeader().setVisible(False)
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.SpanningRole, self.tableAdditionalHeaders)
+        self.formLayout.setWidget(
+            3, QtWidgets.QFormLayout.SpanningRole, self.tableAdditionalHeaders
+        )
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout_2.addItem(spacerItem)
         self.buttonAddHeader = QtWidgets.QToolButton(self.groupBox)
         self.buttonAddHeader.setObjectName("buttonAddHeader")
@@ -57,7 +63,9 @@ class Ui_WidgetFitsHeaders(object):
         self.buttonDelHeader = QtWidgets.QToolButton(self.groupBox)
         self.buttonDelHeader.setObjectName("buttonDelHeader")
         self.horizontalLayout_2.addWidget(self.buttonDelHeader)
-        self.formLayout.setLayout(4, QtWidgets.QFormLayout.SpanningRole, self.horizontalLayout_2)
+        self.formLayout.setLayout(
+            4, QtWidgets.QFormLayout.SpanningRole, self.horizontalLayout_2
+        )
         self.horizontalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(WidgetFitsHeaders)

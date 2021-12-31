@@ -33,11 +33,17 @@ class Ui_WidgetFilter(object):
         self.horizontalLayout.addWidget(self.textFilter)
         self.buttonSetFilter = QtWidgets.QToolButton(self.groupBox_2)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/resources/edit-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/resources/edit-solid.svg"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.buttonSetFilter.setIcon(icon)
         self.buttonSetFilter.setObjectName("buttonSetFilter")
         self.horizontalLayout.addWidget(self.buttonSetFilter)
-        self.formLayout.setLayout(0, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
+        self.formLayout.setLayout(
+            0, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout
+        )
         self.label_11 = QtWidgets.QLabel(self.groupBox_2)
         self.label_11.setObjectName("label_11")
         self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_11)
@@ -58,4 +64,6 @@ class Ui_WidgetFilter(object):
         self.label_9.setText(_translate("WidgetFilter", "Filter:"))
         self.buttonSetFilter.setText(_translate("WidgetFilter", "set..."))
         self.label_11.setText(_translate("WidgetFilter", "Status:"))
+
+
 from . import resources_rc

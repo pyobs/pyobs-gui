@@ -10,10 +10,18 @@ from .mainwindow import MainWindow
 
 
 class GUI(Module, IFitsHeaderBefore):
-    __module__ = 'pyobs_gui'
+    __module__ = "pyobs_gui"
 
-    def __init__(self, show_shell: bool = True, show_events: bool = True, show_modules: list = None,
-                 widgets: list = None, sidebar: Optional[List] = None, *args, **kwargs):
+    def __init__(
+        self,
+        show_shell: bool = True,
+        show_events: bool = True,
+        show_modules: list = None,
+        widgets: list = None,
+        sidebar: Optional[List] = None,
+        *args,
+        **kwargs
+    ):
         """Inits a new GUI.
 
         Args:
@@ -43,14 +51,22 @@ class GUI(Module, IFitsHeaderBefore):
         await Module.open(self)
 
         # create and show window
-        self._window = MainWindow(self.comm, self.vfs, self.observer,
-                                  show_shell=self._show_shell, show_events=self._show_events,
-                                  show_modules=self._show_modules, widgets=self._custom_widgets,
-                                  sidebar=self._custom_sidebar_widgets)
+        self._window = MainWindow(
+            self.comm,
+            self.vfs,
+            self.observer,
+            show_shell=self._show_shell,
+            show_events=self._show_events,
+            show_modules=self._show_modules,
+            widgets=self._custom_widgets,
+            sidebar=self._custom_sidebar_widgets,
+        )
         await self._window.open()
         self._window.show()
 
-    async def get_fits_header_before(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
+    async def get_fits_header_before(
+        self, namespaces: List[str] = None, *args, **kwargs
+    ) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
