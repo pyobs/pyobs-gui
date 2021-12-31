@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class WidgetsMixin:
-    def __init__(self):
+    def __init__(self) -> None:
         """Mixin for child widgets."""
         self._widgets_mixin: List[WidgetsMixin] = []
 
@@ -43,7 +43,7 @@ class WidgetsMixin:
         else:
             raise ValueError("Invalid widget.")
 
-    async def open(self):
+    async def open(self) -> None:
         """Open all widgets."""
         for widget in self._widgets_mixin:
             await widget.open()

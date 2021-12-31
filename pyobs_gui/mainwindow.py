@@ -1,11 +1,13 @@
 import asyncio
 import os
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict, Tuple
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
+from astroplan import Observer
 from astropy.time import Time
 from colour import Color
 
+from pyobs.comm import Comm
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     ICamera,
@@ -17,6 +19,7 @@ from pyobs.interfaces import (
     IAutonomous,
     ISpectrograph,
 )
+from pyobs.vfs import VirtualFileSystem
 from .widgetcamera import WidgetCamera
 from .widgetsmixin import WidgetsMixin
 from .widgettelescope import WidgetTelescope
@@ -82,14 +85,14 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
     def __init__(
         self,
-        comm,
-        vfs,
-        observer,
+        comm: Comm,
+        vfs: VirtualFileSystem,
+        observer: Observer,
         show_shell: bool = True,
         show_events: bool = True,
         show_modules: Optional[List[str]] = None,
-        widgets: Optional[List] = None,
-        sidebar: Optional[List] = None,
+        widgets: Optional[List[Dict[str, Any]]] = None,
+        sidebar: Optional[List[Dict[str, Any]]] = None,
         **kwargs: Any
     ):
         """Init window.
@@ -139,10 +142,12 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.labelWeatherWarning.setVisible(False)
 
         # list of widgets
-        self._widgets = {}
+        self._widgets: Dict[str, QtWidgets.QWidget] = {}
         self._current_widget = None
+        self.shell: Optional[WidgetShell] = None
+        self.events: Optional[WidgetEvents] = None
 
-    async def open(self):
+    async def open(self) -> None:
         """Open module."""
 
         # open widgets
@@ -181,16 +186,12 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # subscribe to events
         await self.comm.register_event(LogEvent, self.process_log_entry)
-        await self.comm.register_event(
-            ModuleOpenedEvent, lambda x, y: self._client_connected(y)
-        )
-        await self.comm.register_event(
-            ModuleClosedEvent, lambda x, y: self._client_disconnected(y)
-        )
+        await self.comm.register_event(ModuleOpenedEvent, self._client_connected)
+        await self.comm.register_event(ModuleClosedEvent, self._client_disconnected)
 
         # create other nav buttons and views
         for client_name in self.comm.clients:
-            await self._client_connected(client_name)
+            await self._client_connected(Event(), client_name)
 
         # add timer for checking warnings
         self._warning_timer = QtCore.QTimer()
@@ -333,7 +334,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)
 
-    async def _client_connected(self, client: str) -> None:
+    async def _client_connected(self, event: Event, client: str) -> bool:
         """Called when a new client connects.
 
         Args:
@@ -342,11 +343,11 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # ignore it?
         if self.show_modules is not None and client not in self.show_modules:
-            return
+            return False
 
         # does client exist already?
         if client in self._widgets:
-            return
+            return False
 
         # update client list
         self._update_client_list()
@@ -370,7 +371,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # still nothing?
         if widget is None:
-            return
+            return False
 
         # custom sidebar?
         for csw in self.custom_sidebar_widgets:
@@ -382,8 +383,9 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # check mastermind
         await self._check_warnings()
+        return True
 
-    async def _client_disconnected(self, client: str) -> None:
+    async def _client_disconnected(self, event: Event, client: str) -> bool:
         """Called, when a client disconnects.
 
         Args:
@@ -395,7 +397,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # not in list?
         if client not in self._widgets:
-            return
+            return False
 
         # get widget
         widget = self._widgets[client]
@@ -418,8 +420,11 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # check mastermind
         await self._check_warnings()
+        return True
 
-    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+    def get_fits_headers(
+        self, namespaces: list = None, *args, **kwargs
+    ) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -437,7 +442,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
                     hdr[k] = v
         return hdr
 
-    def log_entry_added(self):
+    def log_entry_added(self) -> None:
         """Triggered, whenever a new log item has been added."""
         sb = self.tableLog.verticalScrollBar()
         if sb.maximum() == sb.value():
