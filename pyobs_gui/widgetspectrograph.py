@@ -1,13 +1,13 @@
 import asyncio
 import logging
-from typing import Optional
+from typing import Optional, Any
 from PyQt5 import QtCore
 from astropy.io import fits
 
 from pyobs.events import ExposureStatusChangedEvent, Event
-from pyobs.interfaces import IAbortable, ISpectrograph
+from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
 from pyobs.utils.enums import ExposureStatus
-from pyobs_gui.basewidget import BaseWidget
+from .basewidget import BaseWidget
 from .widgetdatadisplay import WidgetDataDisplay
 
 from .qt.widgetspectrograph import Ui_WidgetSpectrograph
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
     signal_update_gui = QtCore.pyqtSignal()
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
@@ -59,7 +59,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.signal_update_gui.emit()
 
     @QtCore.pyqtSlot(name="on_butExpose_clicked")
-    def grab_spectrum(self):
+    def grab_spectrum(self) -> None:
         if not isinstance(self.module, ISpectrograph):
             return
 
@@ -71,7 +71,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.signal_update_gui.emit()
 
     @QtCore.pyqtSlot(name="on_butAbort_clicked")
-    def abort(self):
+    def abort(self) -> None:
         """Abort exposure."""
         if isinstance(self, ISpectrograph):
             asyncio.create_task(self.module.abort())
@@ -80,18 +80,20 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            # self.exposure_time_left = await self.module.get_exposure_time_left()
-            self.exposure_progress = await self.module.get_exposure_progress()
+            if isinstance(self.module, IExposureTime):
+                self.exposure_time_left = await self.module.get_exposure_time_left()
+            if isinstance(self.module, ISpectrograph):
+                self.exposure_progress = await self.module.get_exposure_progress()
 
         else:
             # reset
-            # self.exposure_time_left = 0
+            self.exposure_time_left = 0
             self.exposure_progress = 0
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         """Update the GUI."""
 
         # enable myself

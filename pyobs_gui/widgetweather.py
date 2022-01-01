@@ -1,6 +1,8 @@
+from typing import Any, Dict, List
 from PyQt5 import QtWidgets, QtGui, QtCore
 import logging
 
+from pyobs.interfaces import IWeather
 from pyobs.utils.time import Time
 from .qt.widgetweather import Ui_widgetWeather
 from .basewidget import BaseWidget
@@ -25,8 +27,8 @@ AVERAGE_SENSOR_FIELDS = [
 
 
 class WidgetCurrentSensor(QtWidgets.QFrame):
-    def __init__(self, label: str, unit: str, *args, **kwargs):
-        QtWidgets.QFrame.__init__(self, *args, **kwargs)
+    def __init__(self, label: str, unit: str, **kwargs: Any):
+        QtWidgets.QFrame.__init__(self, **kwargs)
 
         # create layout
         layout = QtWidgets.QVBoxLayout()
@@ -57,10 +59,10 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
         else:
             self._unit = None
 
-    def set_value(self, value: str):
+    def set_value(self, value: str) -> None:
         self._value.setText(value)
 
-    def set_good(self, good: bool):
+    def set_good(self, good: bool) -> None:
         # which colour?
         if good is None:
             stylesheet = ""
@@ -77,14 +79,14 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
 class WidgetWeather(BaseWidget, Ui_widgetWeather):
     signal_update_gui = QtCore.pyqtSignal()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
         # weather info
-        self._current_weather = {}
-        self._current_sensors = []
-        self._current_widgets = {}
+        self._current_weather: Dict[str, Any] = {}
+        self._current_sensors: List[str] = []
+        self._current_widgets: Dict[str, Any] = {}
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -92,16 +94,17 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def _update(self):
+    async def _update(self) -> None:
         """Update values from weather module."""
 
         # get current weather
-        self._current_weather = await self.module.get_current_weather()
+        if isinstance(self.module, IWeather):
+            self._current_weather = await self.module.get_current_weather()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
 
@@ -122,7 +125,7 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
                     w.setParent(None)
 
                 # add time
-                self._current_widgets["time"] = WidgetCurrentSensor("Time", None)
+                self._current_widgets["time"] = WidgetCurrentSensor("Time", "")
                 layout.addWidget(self._current_widgets["time"])
 
                 # loop sensor types
