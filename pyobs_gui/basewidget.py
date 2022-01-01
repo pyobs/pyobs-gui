@@ -15,7 +15,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PySide2 import QtWidgets, QtGui, QtCore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -34,9 +34,9 @@ log = logging.getLogger(__name__)
 WidgetClass = TypeVar("WidgetClass")
 
 
-class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
-    _show_error = QtCore.pyqtSignal(str)
-    _enable_buttons = QtCore.pyqtSignal(list, bool)
+class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
+    _show_error = QtCore.Signal(str)
+    _enable_buttons = QtCore.Signal(list, bool)
 
     def __init__(
         self,

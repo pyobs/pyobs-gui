@@ -1,7 +1,7 @@
 import asyncio
 import os
 from typing import Optional, List, Any, Dict, Tuple
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PySide2 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 from astropy.time import Time
 from colour import Color
@@ -75,12 +75,12 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
             return False
         else:
             # default case
-            return QtWidgets.QListWidgetItem.__lt__(self, other)
+            return self.text() < other.text()
 
 
 class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
-    add_log = QtCore.pyqtSignal(list)
-    add_command_log = QtCore.pyqtSignal(str)
+    add_log = QtCore.Signal(list)
+    add_command_log = QtCore.Signal(str)
 
     def __init__(
         self,

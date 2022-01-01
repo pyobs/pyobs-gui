@@ -1219,7 +1219,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="frameImageGrabber" native="true">
+    <widget class="QWidget" name="frameDataDisplay" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
        <number>0</number>

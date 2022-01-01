@@ -1,10 +1,10 @@
 from typing import List, Any
 
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PySide2 import QtCore, QtWidgets, QtGui
 
 
-class CommandInput(QtWidgets.QLineEdit):  # type: ignore
-    commandExecuted = QtCore.pyqtSignal(str)
+class CommandInput(QtWidgets.QLineEdit):
+    commandExecuted = QtCore.Signal(str)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         QtWidgets.QLineEdit.__init__(self, *args, **kwargs)

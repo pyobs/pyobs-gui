@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from PyQt5.QtCore import pyqtSignal
+from PySide2 import QtCore
 
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetcooling import Ui_WidgetCooling
@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class WidgetCooling(BaseWidget, Ui_WidgetCooling):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)

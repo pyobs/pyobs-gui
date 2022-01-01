@@ -4,7 +4,7 @@ import os
 from typing import Any, Optional, List
 
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore
 from astropy.io import fits
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -201,7 +201,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # finish
         return True
 
-    @QtCore.pyqtSlot(name="on_butAutoSave_clicked")
+    @QtCore.Slot(name="on_butAutoSave_clicked")
     def select_autosave_path(self) -> None:
         """Select path for auto-saving."""
 
@@ -214,7 +214,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         else:
             self.textAutoSavePath.clear()
 
-    @QtCore.pyqtSlot(name="on_butSaveTo_clicked")
+    @QtCore.Slot(name="on_butSaveTo_clicked")
     def save_data(self) -> None:
         """Save image."""
 

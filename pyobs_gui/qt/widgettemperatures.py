@@ -1,31 +1,41 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'widgettemperatures.ui'
-#
-# Created by: PyQt5 UI code generator 5.11.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'widgettemperatures.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
 
 class Ui_WidgetTemperatures(object):
     def setupUi(self, WidgetTemperatures):
-        WidgetTemperatures.setObjectName("WidgetTemperatures")
+        if not WidgetTemperatures.objectName():
+            WidgetTemperatures.setObjectName("WidgetTemperatures")
         WidgetTemperatures.resize(307, 63)
-        self.verticalLayout = QtWidgets.QVBoxLayout(WidgetTemperatures)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout = QVBoxLayout(WidgetTemperatures)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.groupBox = QtWidgets.QGroupBox(WidgetTemperatures)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.groupBox = QGroupBox(WidgetTemperatures)
         self.groupBox.setObjectName("groupBox")
-        self.gridLayout_2 = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout_2 = QGridLayout(self.groupBox)
         self.gridLayout_2.setObjectName("gridLayout_2")
+
         self.verticalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(WidgetTemperatures)
-        QtCore.QMetaObject.connectSlotsByName(WidgetTemperatures)
+
+        QMetaObject.connectSlotsByName(WidgetTemperatures)
+
+    # setupUi
 
     def retranslateUi(self, WidgetTemperatures):
-        _translate = QtCore.QCoreApplication.translate
-        WidgetTemperatures.setWindowTitle(_translate("WidgetTemperatures", "Form"))
-        self.groupBox.setTitle(_translate("WidgetTemperatures", "Temperatures"))
+        WidgetTemperatures.setWindowTitle(QCoreApplication.translate("WidgetTemperatures", "Form", None))
+        self.groupBox.setTitle(QCoreApplication.translate("WidgetTemperatures", "Temperatures", None))
+
+    # retranslateUi

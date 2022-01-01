@@ -1,7 +1,7 @@
 from typing import Any
 
 from colour import Color
-from PyQt5 import QtCore, QtGui
+from PySide2 import QtCore, QtGui
 
 
 class LogModel(QtCore.QAbstractTableModel):  # type: ignore
@@ -35,14 +35,14 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
             c = Color(pick_for=self._entries[index.row()][index.column()])
             return QtGui.QColor(c.hex)
 
-        return QtCore.QVariant()
+        return None
 
     def headerData(self, section: int, orientation: Any, role: Any = None) -> Any:
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
             return ["Time", "Source", "Level", "File", "Message"][section]
         return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
 
-    @QtCore.pyqtSlot(list)
+    @QtCore.Slot(list)
     def add_entry(self, entry: Any) -> None:
         self.beginInsertRows(QtCore.QModelIndex(), len(self._entries), len(self._entries))
         self._entries.append(entry)

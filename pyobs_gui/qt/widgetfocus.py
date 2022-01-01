@@ -1,132 +1,147 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'widgetfocus.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.3
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'widgetfocus.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from . import resources_rc
 
 
 class Ui_WidgetFocus(object):
     def setupUi(self, WidgetFocus):
-        WidgetFocus.setObjectName("WidgetFocus")
+        if not WidgetFocus.objectName():
+            WidgetFocus.setObjectName("WidgetFocus")
         WidgetFocus.resize(248, 195)
-        self.verticalLayout = QtWidgets.QVBoxLayout(WidgetFocus)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout = QVBoxLayout(WidgetFocus)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.groupBox_5 = QtWidgets.QGroupBox(WidgetFocus)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.groupBox_5 = QGroupBox(WidgetFocus)
         self.groupBox_5.setObjectName("groupBox_5")
-        self.formLayout = QtWidgets.QFormLayout(self.groupBox_5)
+        self.formLayout = QFormLayout(self.groupBox_5)
         self.formLayout.setObjectName("formLayout")
-        self.label_12 = QtWidgets.QLabel(self.groupBox_5)
+        self.label_12 = QLabel(self.groupBox_5)
         self.label_12.setObjectName("label_12")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_12)
-        self.labelCurFocus = QtWidgets.QLineEdit(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+
+        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_12)
+
+        self.labelCurFocus = QLineEdit(self.groupBox_5)
+        self.labelCurFocus.setObjectName("labelCurFocus")
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labelCurFocus.sizePolicy().hasHeightForWidth())
         self.labelCurFocus.setSizePolicy(sizePolicy)
-        self.labelCurFocus.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelCurFocus.setAlignment(Qt.AlignCenter)
         self.labelCurFocus.setReadOnly(True)
-        self.labelCurFocus.setObjectName("labelCurFocus")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.labelCurFocus)
-        self.label_11 = QtWidgets.QLabel(self.groupBox_5)
+
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.labelCurFocus)
+
+        self.label_11 = QLabel(self.groupBox_5)
         self.label_11.setObjectName("label_11")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_11)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
+
+        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_11)
+
+        self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.labelCurFocusBase = QtWidgets.QLineEdit(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
+        self.labelCurFocusBase = QLineEdit(self.groupBox_5)
+        self.labelCurFocusBase.setObjectName("labelCurFocusBase")
         sizePolicy.setHeightForWidth(self.labelCurFocusBase.sizePolicy().hasHeightForWidth())
         self.labelCurFocusBase.setSizePolicy(sizePolicy)
-        self.labelCurFocusBase.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelCurFocusBase.setAlignment(Qt.AlignCenter)
         self.labelCurFocusBase.setReadOnly(True)
-        self.labelCurFocusBase.setObjectName("labelCurFocusBase")
+
         self.horizontalLayout.addWidget(self.labelCurFocusBase)
-        self.butSetFocusBase = QtWidgets.QToolButton(self.groupBox_5)
-        icon = QtGui.QIcon()
-        icon.addPixmap(
-            QtGui.QPixmap(":/resources/edit-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
-        self.butSetFocusBase.setIcon(icon)
+
+        self.butSetFocusBase = QToolButton(self.groupBox_5)
         self.butSetFocusBase.setObjectName("butSetFocusBase")
+        icon = QIcon()
+        icon.addFile(":/resources/edit-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.butSetFocusBase.setIcon(icon)
+
         self.horizontalLayout.addWidget(self.butSetFocusBase)
-        self.formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
-        self.label_14 = QtWidgets.QLabel(self.groupBox_5)
+
+        self.formLayout.setLayout(1, QFormLayout.FieldRole, self.horizontalLayout)
+
+        self.label_14 = QLabel(self.groupBox_5)
         self.label_14.setObjectName("label_14")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_14)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+
+        self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_14)
+
+        self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.labelCurFocusOffset = QtWidgets.QLineEdit(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
+        self.labelCurFocusOffset = QLineEdit(self.groupBox_5)
+        self.labelCurFocusOffset.setObjectName("labelCurFocusOffset")
         sizePolicy.setHeightForWidth(self.labelCurFocusOffset.sizePolicy().hasHeightForWidth())
         self.labelCurFocusOffset.setSizePolicy(sizePolicy)
-        self.labelCurFocusOffset.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelCurFocusOffset.setAlignment(Qt.AlignCenter)
         self.labelCurFocusOffset.setReadOnly(True)
-        self.labelCurFocusOffset.setObjectName("labelCurFocusOffset")
+
         self.horizontalLayout_2.addWidget(self.labelCurFocusOffset)
-        self.butSetFocusOffset = QtWidgets.QToolButton(self.groupBox_5)
-        self.butSetFocusOffset.setIcon(icon)
+
+        self.butSetFocusOffset = QToolButton(self.groupBox_5)
         self.butSetFocusOffset.setObjectName("butSetFocusOffset")
+        self.butSetFocusOffset.setIcon(icon)
+
         self.horizontalLayout_2.addWidget(self.butSetFocusOffset)
-        self.buttonResetFocusOffset = QtWidgets.QToolButton(self.groupBox_5)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(
-            QtGui.QPixmap(":/resources/undo-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
-        self.buttonResetFocusOffset.setIcon(icon1)
+
+        self.buttonResetFocusOffset = QToolButton(self.groupBox_5)
         self.buttonResetFocusOffset.setObjectName("buttonResetFocusOffset")
+        icon1 = QIcon()
+        icon1.addFile(":/resources/undo-solid.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.buttonResetFocusOffset.setIcon(icon1)
+
         self.horizontalLayout_2.addWidget(self.buttonResetFocusOffset)
-        self.formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_2)
-        self.label_13 = QtWidgets.QLabel(self.groupBox_5)
+
+        self.formLayout.setLayout(2, QFormLayout.FieldRole, self.horizontalLayout_2)
+
+        self.label_13 = QLabel(self.groupBox_5)
         self.label_13.setObjectName("label_13")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_13)
-        self.labelCurStatus = QtWidgets.QLineEdit(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
+
+        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.label_13)
+
+        self.labelCurStatus = QLineEdit(self.groupBox_5)
+        self.labelCurStatus.setObjectName("labelCurStatus")
         sizePolicy.setHeightForWidth(self.labelCurStatus.sizePolicy().hasHeightForWidth())
         self.labelCurStatus.setSizePolicy(sizePolicy)
-        self.labelCurStatus.setAlignment(QtCore.Qt.AlignCenter)
+        self.labelCurStatus.setAlignment(Qt.AlignCenter)
         self.labelCurStatus.setReadOnly(True)
-        self.labelCurStatus.setObjectName("labelCurStatus")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.labelCurStatus)
+
+        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.labelCurStatus)
+
         self.verticalLayout.addWidget(self.groupBox_5)
 
+        QWidget.setTabOrder(self.labelCurFocus, self.labelCurFocusBase)
+        QWidget.setTabOrder(self.labelCurFocusBase, self.butSetFocusBase)
+        QWidget.setTabOrder(self.butSetFocusBase, self.labelCurFocusOffset)
+        QWidget.setTabOrder(self.labelCurFocusOffset, self.butSetFocusOffset)
+        QWidget.setTabOrder(self.butSetFocusOffset, self.labelCurStatus)
+
         self.retranslateUi(WidgetFocus)
-        QtCore.QMetaObject.connectSlotsByName(WidgetFocus)
-        WidgetFocus.setTabOrder(self.labelCurFocus, self.labelCurFocusBase)
-        WidgetFocus.setTabOrder(self.labelCurFocusBase, self.butSetFocusBase)
-        WidgetFocus.setTabOrder(self.butSetFocusBase, self.labelCurFocusOffset)
-        WidgetFocus.setTabOrder(self.labelCurFocusOffset, self.butSetFocusOffset)
-        WidgetFocus.setTabOrder(self.butSetFocusOffset, self.labelCurStatus)
+
+        QMetaObject.connectSlotsByName(WidgetFocus)
+
+    # setupUi
 
     def retranslateUi(self, WidgetFocus):
-        _translate = QtCore.QCoreApplication.translate
-        WidgetFocus.setWindowTitle(_translate("WidgetFocus", "Form"))
-        self.groupBox_5.setTitle(_translate("WidgetFocus", "Focus"))
-        self.label_12.setText(_translate("WidgetFocus", "Focus:"))
-        self.label_11.setText(_translate("WidgetFocus", "Base:"))
-        self.butSetFocusBase.setText(_translate("WidgetFocus", "set..."))
-        self.label_14.setText(_translate("WidgetFocus", "Offset:"))
-        self.butSetFocusOffset.setText(_translate("WidgetFocus", "set..."))
-        self.buttonResetFocusOffset.setText(_translate("WidgetFocus", "reset"))
-        self.label_13.setText(_translate("WidgetFocus", "Status:"))
+        WidgetFocus.setWindowTitle(QCoreApplication.translate("WidgetFocus", "Form", None))
+        self.groupBox_5.setTitle(QCoreApplication.translate("WidgetFocus", "Focus", None))
+        self.label_12.setText(QCoreApplication.translate("WidgetFocus", "Focus:", None))
+        self.label_11.setText(QCoreApplication.translate("WidgetFocus", "Base:", None))
+        self.butSetFocusBase.setText(QCoreApplication.translate("WidgetFocus", "set...", None))
+        self.label_14.setText(QCoreApplication.translate("WidgetFocus", "Offset:", None))
+        self.butSetFocusOffset.setText(QCoreApplication.translate("WidgetFocus", "set...", None))
+        self.buttonResetFocusOffset.setText(QCoreApplication.translate("WidgetFocus", "reset", None))
+        self.label_13.setText(QCoreApplication.translate("WidgetFocus", "Status:", None))
 
-
-from . import resources_rc
+    # retranslateUi

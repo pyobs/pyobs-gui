@@ -1,36 +1,47 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'widgetshell.ui'
-#
-# Created by: PyQt5 UI code generator 5.11.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'widgetshell.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+
+from .commandinput import CommandInput
 
 
 class Ui_WidgetShell(object):
     def setupUi(self, WidgetShell):
-        WidgetShell.setObjectName("WidgetShell")
+        if not WidgetShell.objectName():
+            WidgetShell.setObjectName("WidgetShell")
         WidgetShell.resize(425, 312)
-        self.verticalLayout = QtWidgets.QVBoxLayout(WidgetShell)
+        self.verticalLayout = QVBoxLayout(WidgetShell)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.textCommandLog = QtWidgets.QTextBrowser(WidgetShell)
-        font = QtGui.QFont()
+        self.textCommandLog = QTextBrowser(WidgetShell)
+        self.textCommandLog.setObjectName("textCommandLog")
+        font = QFont()
         font.setFamily("Monospace")
         self.textCommandLog.setFont(font)
-        self.textCommandLog.setObjectName("textCommandLog")
+
         self.verticalLayout.addWidget(self.textCommandLog)
+
         self.textCommandInput = CommandInput(WidgetShell)
         self.textCommandInput.setObjectName("textCommandInput")
+
         self.verticalLayout.addWidget(self.textCommandInput)
 
         self.retranslateUi(WidgetShell)
-        QtCore.QMetaObject.connectSlotsByName(WidgetShell)
+
+        QMetaObject.connectSlotsByName(WidgetShell)
+
+    # setupUi
 
     def retranslateUi(self, WidgetShell):
-        _translate = QtCore.QCoreApplication.translate
-        WidgetShell.setWindowTitle(_translate("WidgetShell", "Form"))
+        WidgetShell.setWindowTitle(QCoreApplication.translate("WidgetShell", "Form", None))
 
-
-from .commandinput import CommandInput
+    # retranslateUi

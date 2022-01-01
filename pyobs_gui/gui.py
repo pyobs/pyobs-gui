@@ -2,7 +2,7 @@ import asyncio
 import sys
 from typing import List, Dict, Tuple, Any, Optional
 from qasync import QEventLoop
-from PyQt5 import QtWidgets
+from PySide2 import QtWidgets
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module

@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from PyQt5 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent, Event
 from pyobs.interfaces import (
@@ -29,8 +29,8 @@ log = logging.getLogger(__name__)
 
 
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
-    signal_update_gui = QtCore.pyqtSignal()
-    signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
+    signal_update_gui = QtCore.Signal()
+    signal_new_image = QtCore.Signal(NewImageEvent, str)
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
@@ -132,7 +132,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # update GUI
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_butFullFrame_clicked")
+    @QtCore.Slot(name="on_butFullFrame_clicked")
     def _set_full_frame(self):
         asyncio.create_task(self.set_full_frame())
 
@@ -156,11 +156,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinWindowWidth.setValue(int(width / binning))
             self.spinWindowHeight.setValue(int(height / binning))
 
-    @QtCore.pyqtSlot(str, name="on_comboBinning_currentTextChanged")
+    @QtCore.Slot(str, name="on_comboBinning_currentTextChanged")
     def binning_changed(self, binning):
         self.on_butFullFrame_clicked()
 
-    @QtCore.pyqtSlot(int, name="on_checkBroadcast_stateChanged")
+    @QtCore.Slot(int, name="on_checkBroadcast_stateChanged")
     def broadcast_changed(self, state):
         if state == 0:
             r = QtWidgets.QMessageBox.question(
@@ -174,7 +174,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             if r == QtWidgets.QMessageBox.No:
                 self.checkBroadcast.setChecked(True)
 
-    @QtCore.pyqtSlot(str, name="on_comboImageType_currentTextChanged")
+    @QtCore.Slot(str, name="on_comboImageType_currentTextChanged")
     def image_type_changed(self, image_type):
         if image_type == "BIAS":
             self.spinExpTime.setValue(0)
@@ -182,7 +182,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.spinExpTime.setEnabled(True)
 
-    @QtCore.pyqtSlot(name="on_butExpose_clicked")
+    @QtCore.Slot(name="on_butExpose_clicked")
     def _expose(self):
         asyncio.create_task(self.expose())
 
@@ -254,7 +254,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         """Show image."""
         self.imageView.display(self.image)
 
-    @QtCore.pyqtSlot(name="on_butAbort_clicked")
+    @QtCore.Slot(name="on_butAbort_clicked")
     def _abort(self):
         asyncio.create_task(self.abort())
 

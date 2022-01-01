@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from urllib.parse import urlparse
-from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
+from PySide2 import QtWidgets, QtCore, QtGui, QtNetwork
 
 from pyobs.interfaces import IExposureTime, IImageType, IImageFormat
 from pyobs.utils.enums import ImageFormat, ImageType
@@ -31,7 +31,7 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class WidgetVideo(BaseWidget, Ui_WidgetVideo):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, **kwargs)
@@ -160,7 +160,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @QtCore.pyqtSlot(name="on_buttonGrabImage_clicked")
+    @QtCore.Slot(name="on_buttonGrabImage_clicked")
     def grab_image(self):
         # set image format
         if isinstance(self.module, IImageFormat):
@@ -196,11 +196,11 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_buttonAbort_clicked")
+    @QtCore.Slot(name="on_buttonAbort_clicked")
     def abort_sequence(self):
         self.exposures_left = 0
 
-    @QtCore.pyqtSlot(float, name="on_spinExpTime_valueChanged")
+    @QtCore.Slot(float, name="on_spinExpTime_valueChanged")
     def exposure_time_changed(self):
         # get exp_time
         exp_time = self.spinExpTime.value()

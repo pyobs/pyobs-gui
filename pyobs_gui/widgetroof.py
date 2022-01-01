@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSignal
+from PySide2 import QtCore
 
 from pyobs.interfaces import IDome
 from pyobs_gui.basewidget import BaseWidget
@@ -6,7 +6,7 @@ from .qt.widgetroof import Ui_WidgetRoof
 
 
 class WidgetRoof(BaseWidget, Ui_WidgetRoof):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)

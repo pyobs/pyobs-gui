@@ -1,5 +1,5 @@
 import logging
-from PyQt5 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore
 from pyobs.events import MotionStatusChangedEvent, Event
 
 from pyobs.utils.enums import MotionStatus
@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 class WidgetFocus(BaseWidget, Ui_WidgetFocus):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)

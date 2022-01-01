@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from PyQt5 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
@@ -73,7 +73,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         if self.tableEvents.rowCount() > 500:
             self.tableEvents.setRowCount(400)
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_buttonSend_clicked(self):
         # get event class
         cls = self.comboEvent.itemData(self.comboEvent.currentIndex())
