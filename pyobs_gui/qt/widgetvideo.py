@@ -42,9 +42,7 @@ class Ui_WidgetVideo(object):
         self.labelExpTime.setObjectName("labelExpTime")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.labelExpTime)
         self.verticalLayout_2.addWidget(self.groupExposure)
-        spacerItem = QtWidgets.QSpacerItem(
-            20, 340, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem = QtWidgets.QSpacerItem(20, 340, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
         self.horizontalLayout.addWidget(self.frame)
         self.frameLiveView = QtWidgets.QWidget(self.tabLiveView)
@@ -386,9 +384,7 @@ class Ui_WidgetVideo(object):
         self.buttonAbort.setObjectName("buttonAbort")
         self.gridLayout_5.addWidget(self.buttonAbort, 4, 0, 1, 2)
         self.verticalLayout.addWidget(self.groupExposure_2)
-        spacerItem1 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem1)
         self.labelExposuresLeft = QtWidgets.QLabel(self.frame_2)
         self.labelExposuresLeft.setAlignment(QtCore.Qt.AlignCenter)
