@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from typing import Optional
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5 import QtCore
 from astropy.io import fits
 
 from pyobs.events import ExposureStatusChangedEvent, Event
@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs) -> None:
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
@@ -43,7 +43,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(self):
+    async def open(self) -> None:
         """Open widget."""
         await BaseWidget.open(self)
 
@@ -58,7 +58,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # update GUI
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name="on_butExpose_clicked")
+    @QtCore.pyqtSlot(name="on_butExpose_clicked")
     def grab_spectrum(self):
         if not isinstance(self.module, ISpectrograph):
             return
@@ -70,7 +70,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name="on_butAbort_clicked")
+    @QtCore.pyqtSlot(name="on_butAbort_clicked")
     def abort(self):
         """Abort exposure."""
         if isinstance(self, ISpectrograph):

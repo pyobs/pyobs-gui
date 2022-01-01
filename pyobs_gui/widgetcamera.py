@@ -1,9 +1,7 @@
 import asyncio
 import logging
 import os
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5 import QtWidgets, QtCore
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent, Event
 from pyobs.interfaces import (
@@ -31,8 +29,8 @@ log = logging.getLogger(__name__)
 
 
 class WidgetCamera(BaseWidget, Ui_WidgetCamera):
-    signal_update_gui = pyqtSignal()
-    signal_new_image = pyqtSignal(NewImageEvent, str)
+    signal_update_gui = QtCore.pyqtSignal()
+    signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
@@ -134,7 +132,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # update GUI
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name="on_butFullFrame_clicked")
+    @QtCore.pyqtSlot(name="on_butFullFrame_clicked")
     def _set_full_frame(self):
         asyncio.create_task(self.set_full_frame())
 
@@ -158,25 +156,25 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinWindowWidth.setValue(int(width / binning))
             self.spinWindowHeight.setValue(int(height / binning))
 
-    @pyqtSlot(str, name="on_comboBinning_currentTextChanged")
+    @QtCore.pyqtSlot(str, name="on_comboBinning_currentTextChanged")
     def binning_changed(self, binning):
         self.on_butFullFrame_clicked()
 
-    @pyqtSlot(int, name="on_checkBroadcast_stateChanged")
+    @QtCore.pyqtSlot(int, name="on_checkBroadcast_stateChanged")
     def broadcast_changed(self, state):
         if state == 0:
-            r = QMessageBox.question(
+            r = QtWidgets.QMessageBox.question(
                 self,
                 "pyobs",
                 "When disabling the broadcast, new images will not processed (and "
                 "saved) within the pyobs network. Continue?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
             )
-            if r == QMessageBox.No:
+            if r == QtWidgets.QMessageBox.No:
                 self.checkBroadcast.setChecked(True)
 
-    @pyqtSlot(str, name="on_comboImageType_currentTextChanged")
+    @QtCore.pyqtSlot(str, name="on_comboImageType_currentTextChanged")
     def image_type_changed(self, image_type):
         if image_type == "BIAS":
             self.spinExpTime.setValue(0)
@@ -184,7 +182,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         else:
             self.spinExpTime.setEnabled(True)
 
-    @pyqtSlot(name="on_butExpose_clicked")
+    @QtCore.pyqtSlot(name="on_butExpose_clicked")
     def _expose(self):
         asyncio.create_task(self.expose())
 
@@ -196,7 +194,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 await self.module.set_binning(binning, binning)
             except:
                 log.exception("bla")
-                QMessageBox.information(self, "Error", "Could not set binning.")
+                QtWidgets.QMessageBox.information(self, "Error", "Could not set binning.")
                 return
         else:
             binning = 1
@@ -208,7 +206,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             try:
                 await self.module.set_window(left, top, width * binning, height * binning)
             except:
-                QMessageBox.information(self, "Error", "Could not set window.")
+                QtWidgets.QMessageBox.information(self, "Error", "Could not set window.")
                 return
 
         # set image format
@@ -256,7 +254,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         """Show image."""
         self.imageView.display(self.image)
 
-    @pyqtSlot(name="on_butAbort_clicked")
+    @QtCore.pyqtSlot(name="on_butAbort_clicked")
     def _abort(self):
         asyncio.create_task(self.abort())
 

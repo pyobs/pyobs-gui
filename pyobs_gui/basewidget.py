@@ -16,8 +16,6 @@ from typing import (
 )
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QMessageBox
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -37,8 +35,8 @@ WidgetClass = TypeVar("WidgetClass")
 
 
 class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
-    _show_error = pyqtSignal(str)
-    _enable_buttons = pyqtSignal(list, bool)
+    _show_error = QtCore.pyqtSignal(str)
+    _enable_buttons = QtCore.pyqtSignal(list, bool)
 
     def __init__(
         self,

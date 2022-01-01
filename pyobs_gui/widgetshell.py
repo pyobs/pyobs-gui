@@ -4,7 +4,6 @@ import traceback
 from io import BytesIO
 import re
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSignal
 import inspect
 import tokenize
 from enum import Enum
@@ -102,8 +101,8 @@ class CommandModel(QtCore.QAbstractTableModel):
 
 
 class WidgetShell(BaseWidget, Ui_WidgetShell):
-    add_command_log = pyqtSignal(str)
-    show_help = pyqtSignal(str)
+    add_command_log = QtCore.pyqtSignal(str)
+    show_help = QtCore.pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
         BaseWidget.__init__(self, *args, **kwargs)

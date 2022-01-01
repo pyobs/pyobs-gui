@@ -1,5 +1,4 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import pyqtSignal
 import logging
 
 from pyobs.utils.time import Time
@@ -76,7 +75,7 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
 
 
 class WidgetWeather(BaseWidget, Ui_widgetWeather):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)

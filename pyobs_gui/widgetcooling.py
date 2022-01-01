@@ -2,7 +2,6 @@ import asyncio
 import logging
 from PyQt5.QtCore import pyqtSignal
 
-from pyobs.interfaces import ICooling
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgetcooling import Ui_WidgetCooling
 

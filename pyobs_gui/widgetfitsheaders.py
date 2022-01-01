@@ -1,6 +1,6 @@
 import logging
 import os
-from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtCore
 
 from pyobs.interfaces import ICooling
 from pyobs_gui.basewidget import BaseWidget
@@ -61,12 +61,12 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         # return them
         return headers
 
-    @pyqtSlot(name="on_buttonAddHeader_clicked")
+    @QtCore.pyqtSlot(name="on_buttonAddHeader_clicked")
     def add_header(self):
         """Increase row count by 1."""
         self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
-    @pyqtSlot(name="on_buttonDelHeader_clicked")
+    @QtCore.pyqtSlot(name="on_buttonDelHeader_clicked")
     def del_header(self):
         """Delete current row"""
 

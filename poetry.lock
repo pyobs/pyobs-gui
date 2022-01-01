@@ -19,7 +19,7 @@ test = ["pytest-astropy (>=0.8)", "pytest-xdist", "objgraph", "ipython (>=4.2)",
 name = "black"
 version = "21.12b0"
 description = "The uncompromising code formatter."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.2"
 
@@ -29,10 +29,7 @@ mypy-extensions = ">=0.4.3"
 pathspec = ">=0.9.0,<1"
 platformdirs = ">=2"
 tomli = ">=0.2.6,<2.0.0"
-typing-extensions = [
-    {version = ">=3.10.0.0", markers = "python_version < \"3.10\""},
-    {version = "!=3.10.0.1", markers = "python_version >= \"3.10\""},
-]
+typing-extensions = ">=3.10.0.0"
 
 [package.extras]
 colorama = ["colorama (>=0.4.3)"]
@@ -45,7 +42,7 @@ uvloop = ["uvloop (>=0.15.2)"]
 name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -53,7 +50,7 @@ python-versions = ">=3.6.1"
 name = "click"
 version = "8.0.3"
 description = "Composable command line interface toolkit"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -64,7 +61,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "colorama"
 version = "0.4.4"
 description = "Cross-platform colored terminal text."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -91,7 +88,7 @@ python-versions = ">=3.6"
 name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -99,7 +96,7 @@ python-versions = "*"
 name = "filelock"
 version = "3.4.2"
 description = "A platform independent file lock."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -132,7 +129,7 @@ woff = ["zopfli (>=0.1.4)", "brotlicffi (>=0.8.0)", "brotli (>=1.0.1)"]
 name = "identify"
 version = "2.4.1"
 description = "File identification library for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -195,7 +192,7 @@ setuptools_scm = ">=4"
 name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -218,7 +215,7 @@ test = ["pytest (>=6.2)", "pytest-cov (>=2.12)", "codecov (>=2.1)"]
 name = "nodeenv"
 version = "1.6.0"
 description = "Node.js virtual environment builder"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -245,7 +242,7 @@ pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 name = "pathspec"
 version = "0.9.0"
 description = "Utility library for gitignore style pattern matching of file paths."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
@@ -261,7 +258,7 @@ python-versions = ">=3.6"
 name = "platformdirs"
 version = "2.4.1"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -273,7 +270,7 @@ test = ["appdirs (==1.4.4)", "pytest (>=6)", "pytest-cov (>=2.7)", "pytest-mock 
 name = "pre-commit"
 version = "2.16.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.1"
 
@@ -343,12 +340,23 @@ python-versions = ">=3.5"
 name = "pyqt5-stubs"
 version = "5.15.2.0"
 description = "PEP561 stub files for the PyQt5 framework"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">= 3.5"
 
 [package.extras]
 build = ["docker (==4.2.0)"]
+
+[[package]]
+name = "pyside2"
+version = "5.15.2"
+description = "Python bindings for the Qt cross-platform application and UI framework"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.10"
+
+[package.dependencies]
+shiboken2 = "5.15.2"
 
 [[package]]
 name = "python-dateutil"
@@ -376,7 +384,7 @@ numpy = ">=1.17.3"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -454,6 +462,14 @@ tomli = ">=1.0.0"
 toml = ["setuptools (>=42)", "tomli (>=1.0.0)"]
 
 [[package]]
+name = "shiboken2"
+version = "5.15.2"
+description = "Python / C++ bindings helper module"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.10"
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -479,7 +495,7 @@ all = ["imagecodecs (>=2021.7.30)", "matplotlib (>=3.2)", "lxml"]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -495,7 +511,7 @@ python-versions = ">=3.6"
 name = "typing-extensions"
 version = "4.0.0"
 description = "Backported and Experimental Type Hints for Python 3.6+"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -503,7 +519,7 @@ python-versions = ">=3.6"
 name = "virtualenv"
 version = "20.12.0"
 description = "Virtual Python Environment builder"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
@@ -519,8 +535,8 @@ testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", 
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.9"
-content-hash = "7889bca4b57dcbcdae9e7e4f708826182d7abc9fc47e5fd02f736d370df7373f"
+python-versions = ">=3.9,<3.10"
+content-hash = "2cd27271c299291776ff861b37a285b3c9b69e16f28c0b70c6978551ccc58c96"
 
 [metadata.files]
 astropy = [
@@ -844,6 +860,14 @@ pyqt5-stubs = [
     {file = "PyQt5-stubs-5.15.2.0.tar.gz", hash = "sha256:dc0dea66f02fe297fb0cddd5767fbf58275b54ecb67f69ebeb994e1553bfb9b2"},
     {file = "PyQt5_stubs-5.15.2.0-py3-none-any.whl", hash = "sha256:4b750d04ffca1bb188615d1a4e7d655a1d81d30df6ee3488f0adfe09b78e3d36"},
 ]
+pyside2 = [
+    {file = "PySide2-5.15.2-5.15.2-cp27-cp27m-macosx_10_13_intel.whl", hash = "sha256:4f17a0161995678110447711d685fcd7b15b762810e8f00f6dc239bffb70a32e"},
+    {file = "PySide2-5.15.2-5.15.2-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:0558ced3bcd7f9da638fa8b7709dba5dae82a38728e481aac8b9058ea22fcdd9"},
+    {file = "PySide2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-abi3-macosx_10_13_intel.whl", hash = "sha256:976cacf01ef3b397a680f9228af7d3d6273b9254457ad4204731507c1f9e6c3c"},
+    {file = "PySide2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-abi3-manylinux1_x86_64.whl", hash = "sha256:081d8c8a6c65fb1392856a547814c0c014e25ac04b38b987d9a3483e879e9634"},
+    {file = "PySide2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-none-win32.whl", hash = "sha256:087a0b719bb967405ea85fd202757c761f1fc73d0e2397bc3a6a15376782ee75"},
+    {file = "PySide2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-none-win_amd64.whl", hash = "sha256:1316aa22dd330df096daf7b0defe9c00297a66e0b4907f057aaa3e88c53d1aff"},
+]
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
@@ -976,6 +1000,14 @@ scipy = [
 setuptools-scm = [
     {file = "setuptools_scm-6.3.2-py3-none-any.whl", hash = "sha256:4c64444b1d49c4063ae60bfe1680f611c8b13833d556fd1d6050c0023162a119"},
     {file = "setuptools_scm-6.3.2.tar.gz", hash = "sha256:a49aa8081eeb3514eb9728fa5040f2eaa962d6c6f4ec9c32f6c1fba88f88a0f2"},
+]
+shiboken2 = [
+    {file = "shiboken2-5.15.2-5.15.2-cp27-cp27m-macosx_10_13_intel.whl", hash = "sha256:03f41b0693b91c7f89627f1085a4ecbe8591c03f904118a034854d935e0e766c"},
+    {file = "shiboken2-5.15.2-5.15.2-cp27-cp27mu-manylinux1_x86_64.whl", hash = "sha256:ae8ca41274cfa057106268b6249674ca669c5b21009ec49b16d77665ab9619ed"},
+    {file = "shiboken2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-abi3-macosx_10_13_intel.whl", hash = "sha256:edc12a4df2b5be7ca1e762ab94e331ba9e2fbfe3932c20378d8aa3f73f90e0af"},
+    {file = "shiboken2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-abi3-manylinux1_x86_64.whl", hash = "sha256:4aee1b91e339578f9831e824ce2a1ec3ba3a463f41fda8946b4547c7eb3cba86"},
+    {file = "shiboken2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-none-win32.whl", hash = "sha256:89c157a0e2271909330e1655892e7039249f7b79a64a443d52c512337065cde0"},
+    {file = "shiboken2-5.15.2-5.15.2-cp35.cp36.cp37.cp38.cp39-none-win_amd64.whl", hash = "sha256:14a33169cf1bd919e4c4c4408fffbcd424c919a3f702df412b8d72b694e4c1d5"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

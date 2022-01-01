@@ -1,9 +1,7 @@
 import logging
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSignal
 
-from pyobs.interfaces import ITemperatures
 from pyobs_gui.basewidget import BaseWidget
 from .qt.widgettemperatures import Ui_WidgetTemperatures
 
@@ -12,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)

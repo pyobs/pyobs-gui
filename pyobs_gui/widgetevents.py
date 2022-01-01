@@ -4,7 +4,6 @@ from PyQt5 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
-from pyobs.comm import RemoteException
 from pyobs.events import LogEvent, Event
 from pyobs_gui.qt.widgetevents import Ui_WidgetEvents
 

@@ -1,11 +1,7 @@
 import asyncio
 import logging
 from urllib.parse import urlparse
-
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtNetwork import QTcpSocket
+from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
 
 from pyobs.interfaces import IExposureTime, IImageType, IImageFormat
 from pyobs.utils.enums import ImageFormat, ImageType
@@ -35,7 +31,7 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class WidgetVideo(BaseWidget, Ui_WidgetVideo):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, **kwargs)
@@ -65,7 +61,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.buffer = b""
 
         # socket
-        self.socket = QTcpSocket()
+        self.socket = QtNetwork.QTcpSocket()
         self.socket.readyRead.connect(self._received_data)
 
         # set exposure types
@@ -160,11 +156,11 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             image_data = frame[frame.find(b"\r\n\r\n") + 4 :]
 
             # to pixmap and show it
-            qp = QPixmap()
+            qp = QtGui.QPixmap()
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @pyqtSlot(name="on_buttonGrabImage_clicked")
+    @QtCore.pyqtSlot(name="on_buttonGrabImage_clicked")
     def grab_image(self):
         # set image format
         if isinstance(self.module, IImageFormat):
@@ -200,11 +196,11 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    @pyqtSlot(name="on_buttonAbort_clicked")
+    @QtCore.pyqtSlot(name="on_buttonAbort_clicked")
     def abort_sequence(self):
         self.exposures_left = 0
 
-    @pyqtSlot(float, name="on_spinExpTime_valueChanged")
+    @QtCore.pyqtSlot(float, name="on_spinExpTime_valueChanged")
     def exposure_time_changed(self):
         # get exp_time
         exp_time = self.spinExpTime.value()
