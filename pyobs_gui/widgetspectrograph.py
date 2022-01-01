@@ -42,6 +42,8 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.butExpose.clicked.connect(self.grab_spectrum)
+        self.butAbort.clicked.connect(self.abort)
 
     async def open(self) -> None:
         """Open widget."""
@@ -58,7 +60,6 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # update GUI
         self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_butExpose_clicked")
     def grab_spectrum(self):
         if not isinstance(self.module, ISpectrograph):
             return
@@ -70,7 +71,6 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_butAbort_clicked")
     def abort(self):
         """Abort exposure."""
         if isinstance(self, ISpectrograph):

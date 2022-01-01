@@ -21,6 +21,9 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
 
+        # connect signals/slots
+        self.buttonSend.clicked.connect(self.on_buttonSend_clicked)
+
     async def open(self):
         """Open widget."""
 
@@ -73,7 +76,6 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         if self.tableEvents.rowCount() > 500:
             self.tableEvents.setRowCount(400)
 
-    @QtCore.Slot()
     def on_buttonSend_clicked(self):
         # get event class
         cls = self.comboEvent.itemData(self.comboEvent.currentIndex())

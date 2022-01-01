@@ -57,6 +57,8 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
+        self.butAutoSave.clicked.connect(self.select_autosave_path)
+        self.butSaveTo.clicked.connect(self.save_data)
 
     async def open(self):
         """Open widget."""
@@ -201,7 +203,6 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # finish
         return True
 
-    @QtCore.Slot(name="on_butAutoSave_clicked")
     def select_autosave_path(self) -> None:
         """Select path for auto-saving."""
 
@@ -214,7 +215,6 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         else:
             self.textAutoSavePath.clear()
 
-    @QtCore.Slot(name="on_butSaveTo_clicked")
     def save_data(self) -> None:
         """Save image."""
 

@@ -25,6 +25,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonSetFilter.clicked.connect(self.set_filter)
 
         # button colors
         self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
@@ -108,7 +109,6 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_buttonSetFilter_clicked")
     def set_filter(self) -> None:
         # ask for value
         new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)

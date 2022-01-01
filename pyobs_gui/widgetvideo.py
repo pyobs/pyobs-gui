@@ -53,6 +53,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonGrabImage.clicked.connect(self.grab_image)
+        self.buttonAbort.clicked.connect(self.abort_sequence)
+        self.spinExpTime.valueChanged.connect(self.exposure_time_changed)
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -160,7 +163,6 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @QtCore.Slot(name="on_buttonGrabImage_clicked")
     def grab_image(self):
         # set image format
         if isinstance(self.module, IImageFormat):
@@ -196,11 +198,9 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_buttonAbort_clicked")
     def abort_sequence(self):
         self.exposures_left = 0
 
-    @QtCore.Slot(float, name="on_spinExpTime_valueChanged")
     def exposure_time_changed(self):
         # get exp_time
         exp_time = self.spinExpTime.value()

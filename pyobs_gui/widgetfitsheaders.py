@@ -24,6 +24,10 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         except ModuleNotFoundError:
             pass
 
+        # connect
+        self.buttonAddHeader.clicked.connect(self.add_header)
+        self.buttonDelHeader.clicked.connect(self.del_header)
+
     def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
         """Returns FITS header for the current status of this module.
 
@@ -61,12 +65,10 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         # return them
         return headers
 
-    @QtCore.Slot(name="on_buttonAddHeader_clicked")
     def add_header(self):
         """Increase row count by 1."""
         self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
-    @QtCore.Slot(name="on_buttonDelHeader_clicked")
     def del_header(self):
         """Delete current row"""
 
