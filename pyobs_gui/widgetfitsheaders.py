@@ -64,9 +64,7 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
     @pyqtSlot(name="on_buttonAddHeader_clicked")
     def add_header(self):
         """Increase row count by 1."""
-        self.tableAdditionalHeaders.setRowCount(
-            self.tableAdditionalHeaders.rowCount() + 1
-        )
+        self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
     @pyqtSlot(name="on_buttonDelHeader_clicked")
     def del_header(self):

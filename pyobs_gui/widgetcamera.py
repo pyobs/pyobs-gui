@@ -49,9 +49,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.exposure_progress = 0
 
         # data display
-        self.widgetDataDisplay = self.create_widget(
-            WidgetDataDisplay, module=self.module
-        )
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
         self.frameDataDisplay.layout().addWidget(self.widgetDataDisplay)
 
         # set exposure types
@@ -85,9 +83,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         await BaseWidget.open(self)
 
         # subscribe to events
-        await self.comm.register_event(
-            ExposureStatusChangedEvent, self._on_exposure_status_changed
-        )
+        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
         self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, module=self.module))
@@ -96,24 +92,17 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ICooling):
             self.add_to_sidebar(self.create_widget(WidgetCooling, module=self.module))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(
-                self.create_widget(WidgetTemperatures, module=self.module)
-            )
+            self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
     async def _init(self):
         # get status
         if isinstance(self.module, ICamera):
-            self.exposure_status = ExposureStatus(
-                await self.module.get_exposure_status()
-            )
+            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
 
         # get binnings
         if isinstance(self.module, IBinning):
             # get binnings
-            binnings = [
-                "%dx%d" % tuple(binning)
-                for binning in await self.module.list_binnings()
-            ]
+            binnings = ["%dx%d" % tuple(binning) for binning in await self.module.list_binnings()]
 
             # set it
             self.comboBinning.clear()
@@ -125,9 +114,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # get image formats
         if isinstance(self.module, IImageFormat):
             # get formats
-            image_formats = [
-                ImageFormat(f) for f in await self.module.list_image_formats()
-            ]
+            image_formats = [ImageFormat(f) for f in await self.module.list_image_formats()]
 
             # set it
             self.comboImageFormat.clear()
@@ -157,11 +144,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             left, top, width, height = await self.module.get_full_frame()
 
             # get binning
-            binning = (
-                int(self.comboBinning.currentText()[0])
-                if isinstance(self.module, IBinning)
-                else 1
-            )
+            binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinning) else 1
 
             # max values
             self.spinWindowLeft.setMaximum(int(width / binning))
@@ -223,9 +206,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                await self.module.set_window(
-                    left, top, width * binning, height * binning
-                )
+                await self.module.set_window(left, top, width * binning, height * binning)
             except:
                 QMessageBox.information(self, "Error", "Could not set window.")
                 return
@@ -371,12 +352,8 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # set headers
         for i, key in enumerate(sorted(headers.keys())):
             self.tableFitsHeader.setItem(i, 0, QtWidgets.QTableWidgetItem(key))
-            self.tableFitsHeader.setItem(
-                i, 1, QtWidgets.QTableWidgetItem(str(headers[key][0]))
-            )
-            self.tableFitsHeader.setItem(
-                i, 2, QtWidgets.QTableWidgetItem(headers[key][1])
-            )
+            self.tableFitsHeader.setItem(i, 1, QtWidgets.QTableWidgetItem(str(headers[key][0])))
+            self.tableFitsHeader.setItem(i, 2, QtWidgets.QTableWidgetItem(headers[key][1]))
 
         # adjust column widths
         self.tableFitsHeader.resizeColumnToContents(0)
@@ -391,9 +368,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(
-            event, ExposureStatusChangedEvent
-        ):
+        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status

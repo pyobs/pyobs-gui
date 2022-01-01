@@ -15,9 +15,7 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, **kwargs):
-        BaseWidget.__init__(
-            self, update_func=self._update, update_interval=10, **kwargs
-        )
+        BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
         # status
@@ -67,9 +65,7 @@ class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
                     self._widgets[key] = (label, widget)
 
                 # set value
-                self._widgets[key][1].setText(
-                    "N/A" if value is None else "%.2f °C" % value
-                )
+                self._widgets[key][1].setText("N/A" if value is None else "%.2f °C" % value)
 
             # now loop widgets and check, whether we need to delete some
             for key, (label, widget) in self._widgets.items():

@@ -49,7 +49,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         update_func: Optional[Callable[[], Any]] = None,
         update_interval: float = 1,
         *args: Any,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
         WidgetsMixin.__init__(self)
@@ -85,9 +85,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         if self.sidebar_layout is None:
             self.sidebar_layout = QtWidgets.QVBoxLayout()
             self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
-            spacer_item = QtWidgets.QSpacerItem(
-                20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-            )
+            spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
             self.sidebar_layout.addItem(spacer_item)
             self.widgetSidebar.setLayout(self.sidebar_layout)
 
@@ -136,26 +134,14 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             except Exception as e:
                 log.warning("Exception during GUIs update function: %s", str(e))
 
-    def run_background(
-        self, method: Callable[[...], Coroutine], *args: Any, **kwargs: Any
-    ) -> None:
+    def run_background(self, method: Callable[[...], Coroutine], *args: Any, **kwargs: Any) -> None:
         asyncio.create_task(self._background_task(method, *args, **kwargs))
 
     async def _background_task(
-        self,
-        method: Callable[[...], Coroutine],
-        *args: Any,
-        disable: Any = None,
-        **kwargs: Any
+        self, method: Callable[[...], Coroutine], *args: Any, disable: Any = None, **kwargs: Any
     ) -> None:
         # make disable an empty list or a list of widgets
-        disable = (
-            []
-            if disable is None
-            else [disable]
-            if not hasattr(disable, "__iter__")
-            else disable
-        )
+        disable = [] if disable is None else [disable] if not hasattr(disable, "__iter__") else disable
 
         # disable widgets
         self._enable_buttons.emit(disable, False)
@@ -176,9 +162,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
     def enable_buttons(self, widgets: List[QtWidgets.QWidget], enable: bool) -> None:
         [w.setEnabled(enable) for w in widgets]
 
-    def get_fits_headers(
-        self, namespaces: Optional[List[str]] = None, **kwargs: Any
-    ) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -193,9 +177,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
                 hdr[k] = v
         return hdr
 
-    def colorize_button(
-        self, button: Any, background: Any, black_on_white: bool = True
-    ) -> None:
+    def colorize_button(self, button: Any, background: Any, black_on_white: bool = True) -> None:
         # get palette
         pal = button.palette()
 

@@ -57,9 +57,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.checkAutoSave.stateChanged.connect(
-            lambda x: self.textAutoSavePath.setEnabled(x)
-        )
+        self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
     async def open(self):
         """Open widget."""
@@ -69,9 +67,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         await self.comm.register_event(NewImageEvent, self._on_new_data)
         await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
 
-    async def grab_data(
-        self, broadcast: bool, image_type: ImageType = ImageType.OBJECT
-    ) -> None:
+    async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data."""
 
         # expose
@@ -85,9 +81,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
             if isinstance(self.module, IImageGrabber):
-                await self._on_new_data(
-                    NewImageEvent(filename, image_type), self.module.name
-                )
+                await self._on_new_data(NewImageEvent(filename, image_type), self.module.name)
             elif isinstance(self.module, ISpectrograph):
                 await self._on_new_data(NewSpectrumEvent(filename), self.module.name)
             else:
@@ -109,9 +103,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         data = self.data[0].data
 
         # build wavelength array
-        wave = np.arange(
-            hdr["CRVAL1"], hdr["CRVAL1"] + hdr["CDELT1"] * hdr["NAXIS1"], hdr["CDELT1"]
-        )
+        wave = np.arange(hdr["CRVAL1"], hdr["CRVAL1"] + hdr["CDELT1"] * hdr["NAXIS1"], hdr["CDELT1"])
 
         # plot it
         self.figure.delaxes(self.ax)
@@ -151,12 +143,8 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # set headers
         for i, key in enumerate(sorted(headers.keys())):
             self.tableFitsHeader.setItem(i, 0, QtWidgets.QTableWidgetItem(key))
-            self.tableFitsHeader.setItem(
-                i, 1, QtWidgets.QTableWidgetItem(str(headers[key][0]))
-            )
-            self.tableFitsHeader.setItem(
-                i, 2, QtWidgets.QTableWidgetItem(headers[key][1])
-            )
+            self.tableFitsHeader.setItem(i, 1, QtWidgets.QTableWidgetItem(str(headers[key][0])))
+            self.tableFitsHeader.setItem(i, 2, QtWidgets.QTableWidgetItem(headers[key][1]))
 
         # adjust column widths
         self.tableFitsHeader.resizeColumnToContents(0)
@@ -175,9 +163,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
             return False
 
         # wrong type
-        if not isinstance(event, NewImageEvent) and not isinstance(
-            event, NewSpectrumEvent
-        ):
+        if not isinstance(event, NewImageEvent) and not isinstance(event, NewSpectrumEvent):
             return False
 
         # don't update?
@@ -185,9 +171,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
             return False
 
         # autosave?
-        autosave = (
-            self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
-        )
+        autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
 
         # download data
         data = await self.vfs.read_fits(event.filename)
@@ -240,9 +224,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
             return
 
         # get initial filename
-        init_filename = os.path.basename(self.data_filename).replace(
-            ".fits.gz", ".fits"
-        )
+        init_filename = os.path.basename(self.data_filename).replace(".fits.gz", ".fits")
 
         # ask for filename
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(

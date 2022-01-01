@@ -27,9 +27,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.signal_update_gui.connect(self.update_gui)
         self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
         self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
-        self.buttonResetFocusOffset.clicked.connect(
-            lambda: self.run_background(self.module.set_focus_offset, 0)
-        )
+        self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(self.module.set_focus_offset, 0))
 
         # button colors
         self.colorize_button(self.butSetFocusBase, QtCore.Qt.green)
@@ -41,9 +39,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         await BaseWidget.open(self)
 
         # subscribe to events
-        await self.comm.register_event(
-            MotionStatusChangedEvent, self._on_motion_status_changed
-        )
+        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     def _set_focus(self, offset: bool = False):
         """Asks user for new focus (offset) and sets it.
@@ -60,9 +56,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         setter = self.module.set_focus_offset if offset else self.module.set_focus
 
         # ask for value
-        new_value, ok = QtWidgets.QInputDialog.getDouble(
-            self, title, "New value", value, minval, maxval, 2
-        )
+        new_value, ok = QtWidgets.QInputDialog.getDouble(self, title, "New value", value, minval, maxval, 2)
         if ok:
             self.run_background(setter, new_value)
 
@@ -84,16 +78,10 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # enable myself and set filter
         self.setEnabled(True)
         self.labelCurStatus.setText(self._motion_status.name)
-        self.labelCurFocusBase.setText(
-            "" if self._focus is None else "%.3f" % self._focus
-        )
-        self.labelCurFocusOffset.setText(
-            "" if self._focus_offset is None else "%.3f" % self._focus_offset
-        )
+        self.labelCurFocusBase.setText("" if self._focus is None else "%.3f" % self._focus)
+        self.labelCurFocusOffset.setText("" if self._focus_offset is None else "%.3f" % self._focus_offset)
         self.labelCurFocus.setText(
-            ""
-            if self._focus is None or self._focus_offset is None
-            else "%.3f" % (self._focus + self._focus_offset,)
+            "" if self._focus is None or self._focus_offset is None else "%.3f" % (self._focus + self._focus_offset,)
         )
         initialized = self._motion_status in [
             MotionStatus.SLEWING,
@@ -114,9 +102,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(
-            event, MotionStatusChangedEvent
-        ):
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
             return False
 
         # store new status

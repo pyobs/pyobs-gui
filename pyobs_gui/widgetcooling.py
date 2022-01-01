@@ -40,9 +40,7 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
 
             # set it
             if enabled:
-                self.labelStatus.setText(
-                    "N/A" if set_point is None else "Set=%.1f°C" % set_point
-                )
+                self.labelStatus.setText("N/A" if set_point is None else "Set=%.1f°C" % set_point)
                 self.labelPower.setText("N/A" if power is None else "%d%%" % power)
             else:
                 self.labelStatus.setText("N/A" if power is None else "OFF")

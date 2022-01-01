@@ -94,9 +94,7 @@ class Ui_WidgetTelescope(object):
         self.gridLayout.setColumnStretch(1, 2)
         self.verticalLayout.addLayout(self.gridLayout)
         self.verticalLayout_2.addWidget(self.groupStatus)
-        spacerItem = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
         self.horizontalLayout_7.addLayout(self.verticalLayout_2)
         self.verticalLayout_8 = QtWidgets.QVBoxLayout()
@@ -281,9 +279,7 @@ class Ui_WidgetTelescope(object):
         self.buttonSimbadQuery.setIcon(icon)
         self.buttonSimbadQuery.setObjectName("buttonSimbadQuery")
         self.horizontalLayout.addWidget(self.buttonSimbadQuery)
-        self.formLayout.setLayout(
-            1, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout
-        )
+        self.formLayout.setLayout(1, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout)
         self.label_9 = QtWidgets.QLabel(self.pageMoveEquatorial)
         self.label_9.setObjectName("label_9")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_9)
@@ -297,21 +293,15 @@ class Ui_WidgetTelescope(object):
         self.buttonJplHorizonsQuery.setIcon(icon)
         self.buttonJplHorizonsQuery.setObjectName("buttonJplHorizonsQuery")
         self.horizontalLayout_6.addWidget(self.buttonJplHorizonsQuery)
-        self.formLayout.setLayout(
-            2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_6
-        )
+        self.formLayout.setLayout(2, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_6)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.comboSolarSystemBody = QtWidgets.QComboBox(self.pageMoveEquatorial)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.comboSolarSystemBody.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.comboSolarSystemBody.sizePolicy().hasHeightForWidth())
         self.comboSolarSystemBody.setSizePolicy(sizePolicy)
         self.comboSolarSystemBody.setObjectName("comboSolarSystemBody")
         self.comboSolarSystemBody.addItem("")
@@ -326,9 +316,7 @@ class Ui_WidgetTelescope(object):
         self.comboSolarSystemBody.addItem("")
         self.comboSolarSystemBody.addItem("")
         self.horizontalLayout_4.addWidget(self.comboSolarSystemBody)
-        self.formLayout.setLayout(
-            3, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_4
-        )
+        self.formLayout.setLayout(3, QtWidgets.QFormLayout.FieldRole, self.horizontalLayout_4)
         self.label_12 = QtWidgets.QLabel(self.pageMoveEquatorial)
         self.label_12.setObjectName("label_12")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_12)
@@ -341,9 +329,7 @@ class Ui_WidgetTelescope(object):
         self.label_23.setObjectName("label_23")
         self.gridLayout_4.addWidget(self.label_23, 0, 0, 1, 1)
         self.textMoveRA = QtWidgets.QLineEdit(self.widget)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.textMoveRA.sizePolicy().hasHeightForWidth())
@@ -355,9 +341,7 @@ class Ui_WidgetTelescope(object):
         self.label_22.setObjectName("label_22")
         self.gridLayout_4.addWidget(self.label_22, 0, 2, 1, 1)
         self.textMoveDec = QtWidgets.QLineEdit(self.widget)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.textMoveDec.sizePolicy().hasHeightForWidth())
@@ -366,9 +350,7 @@ class Ui_WidgetTelescope(object):
         self.textMoveDec.setObjectName("textMoveDec")
         self.gridLayout_4.addWidget(self.textMoveDec, 0, 3, 1, 1)
         self.verticalLayout_9.addWidget(self.widget)
-        spacerItem1 = QtWidgets.QSpacerItem(
-            20, 105, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem1 = QtWidgets.QSpacerItem(20, 105, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_9.addItem(spacerItem1)
         self.stackedMove.addWidget(self.pageMoveEquatorial)
         self.pageMoveHorizontal = QtWidgets.QWidget()
@@ -386,9 +368,7 @@ class Ui_WidgetTelescope(object):
         self.label_24.setObjectName("label_24")
         self.gridLayout_3.addWidget(self.label_24, 0, 0, 1, 1)
         self.spinMoveAlt = QtWidgets.QDoubleSpinBox(self.widget_2)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinMoveAlt.sizePolicy().hasHeightForWidth())
@@ -398,9 +378,7 @@ class Ui_WidgetTelescope(object):
         self.spinMoveAlt.setObjectName("spinMoveAlt")
         self.gridLayout_3.addWidget(self.spinMoveAlt, 0, 1, 1, 1)
         self.spinMoveAz = QtWidgets.QDoubleSpinBox(self.widget_2)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinMoveAz.sizePolicy().hasHeightForWidth())
@@ -409,18 +387,12 @@ class Ui_WidgetTelescope(object):
         self.spinMoveAz.setObjectName("spinMoveAz")
         self.gridLayout_3.addWidget(self.spinMoveAz, 0, 3, 1, 1)
         self.verticalLayout_3.addWidget(self.widget_2)
-        spacerItem2 = QtWidgets.QSpacerItem(
-            20, 147, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem2 = QtWidgets.QSpacerItem(20, 147, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem2)
         self.stackedMove.addWidget(self.pageMoveHorizontal)
         self.pageMoveHeliographicStonyhurst = QtWidgets.QWidget()
-        self.pageMoveHeliographicStonyhurst.setObjectName(
-            "pageMoveHeliographicStonyhurst"
-        )
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout(
-            self.pageMoveHeliographicStonyhurst
-        )
+        self.pageMoveHeliographicStonyhurst.setObjectName("pageMoveHeliographicStonyhurst")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.pageMoveHeliographicStonyhurst)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.widget_4 = QtWidgets.QWidget(self.pageMoveHeliographicStonyhurst)
         self.widget_4.setObjectName("widget_4")
@@ -430,14 +402,10 @@ class Ui_WidgetTelescope(object):
         self.label_37.setObjectName("label_37")
         self.gridLayout_10.addWidget(self.label_37, 0, 2, 1, 1)
         self.spinMoveHGSLon = QtWidgets.QDoubleSpinBox(self.widget_4)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinMoveHGSLon.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinMoveHGSLon.sizePolicy().hasHeightForWidth())
         self.spinMoveHGSLon.setSizePolicy(sizePolicy)
         self.spinMoveHGSLon.setSuffix("")
         self.spinMoveHGSLon.setMinimum(-180.0)
@@ -450,29 +418,21 @@ class Ui_WidgetTelescope(object):
         self.label_38.setObjectName("label_38")
         self.gridLayout_10.addWidget(self.label_38, 0, 0, 1, 1)
         self.spinMoveHGSLat = QtWidgets.QDoubleSpinBox(self.widget_4)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinMoveHGSLat.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinMoveHGSLat.sizePolicy().hasHeightForWidth())
         self.spinMoveHGSLat.setSizePolicy(sizePolicy)
         self.spinMoveHGSLat.setMinimum(-90.0)
         self.spinMoveHGSLat.setMaximum(90.0)
         self.spinMoveHGSLat.setObjectName("spinMoveHGSLat")
         self.gridLayout_10.addWidget(self.spinMoveHGSLat, 0, 3, 1, 1)
         self.verticalLayout_4.addWidget(self.widget_4)
-        spacerItem3 = QtWidgets.QSpacerItem(
-            20, 147, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem3 = QtWidgets.QSpacerItem(20, 147, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_4.addItem(spacerItem3)
         self.stackedMove.addWidget(self.pageMoveHeliographicStonyhurst)
         self.pageMoveHelioprojectiveRadial = QtWidgets.QWidget()
-        self.pageMoveHelioprojectiveRadial.setObjectName(
-            "pageMoveHelioprojectiveRadial"
-        )
+        self.pageMoveHelioprojectiveRadial.setObjectName("pageMoveHelioprojectiveRadial")
         self.widget_5 = QtWidgets.QWidget(self.pageMoveHelioprojectiveRadial)
         self.widget_5.setGeometry(QtCore.QRect(10, 10, 342, 44))
         self.widget_5.setObjectName("widget_5")
@@ -483,42 +443,30 @@ class Ui_WidgetTelescope(object):
         self.label_39.setObjectName("label_39")
         self.gridLayout_13.addWidget(self.label_39, 0, 2, 1, 1)
         self.spinMoveHelioprojectiveRadialMu = QtWidgets.QDoubleSpinBox(self.widget_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinMoveHelioprojectiveRadialMu.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinMoveHelioprojectiveRadialMu.sizePolicy().hasHeightForWidth())
         self.spinMoveHelioprojectiveRadialMu.setSizePolicy(sizePolicy)
         self.spinMoveHelioprojectiveRadialMu.setSuffix("")
         self.spinMoveHelioprojectiveRadialMu.setMinimum(0.0)
         self.spinMoveHelioprojectiveRadialMu.setMaximum(1.0)
         self.spinMoveHelioprojectiveRadialMu.setSingleStep(0.1)
         self.spinMoveHelioprojectiveRadialMu.setProperty("value", 0.0)
-        self.spinMoveHelioprojectiveRadialMu.setObjectName(
-            "spinMoveHelioprojectiveRadialMu"
-        )
+        self.spinMoveHelioprojectiveRadialMu.setObjectName("spinMoveHelioprojectiveRadialMu")
         self.gridLayout_13.addWidget(self.spinMoveHelioprojectiveRadialMu, 0, 1, 1, 1)
         self.label_40 = QtWidgets.QLabel(self.widget_5)
         self.label_40.setObjectName("label_40")
         self.gridLayout_13.addWidget(self.label_40, 0, 0, 1, 1)
         self.spinMoveHelioprojectiveRadialPsi = QtWidgets.QDoubleSpinBox(self.widget_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinMoveHelioprojectiveRadialPsi.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinMoveHelioprojectiveRadialPsi.sizePolicy().hasHeightForWidth())
         self.spinMoveHelioprojectiveRadialPsi.setSizePolicy(sizePolicy)
         self.spinMoveHelioprojectiveRadialPsi.setMinimum(0.0)
         self.spinMoveHelioprojectiveRadialPsi.setMaximum(359.0)
-        self.spinMoveHelioprojectiveRadialPsi.setObjectName(
-            "spinMoveHelioprojectiveRadialPsi"
-        )
+        self.spinMoveHelioprojectiveRadialPsi.setObjectName("spinMoveHelioprojectiveRadialPsi")
         self.gridLayout_13.addWidget(self.spinMoveHelioprojectiveRadialPsi, 0, 3, 1, 1)
         self.stackedMove.addWidget(self.pageMoveHelioprojectiveRadial)
         self.pageMoveOrbitElements = QtWidgets.QWidget()
@@ -568,85 +516,57 @@ class Ui_WidgetTelescope(object):
         self.label_31.setObjectName("label_31")
         self.gridLayout_2.addWidget(self.label_31, 0, 0, 1, 1)
         self.spinOrbitElementsSemiMajorAxis = QtWidgets.QDoubleSpinBox(self.widget_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinOrbitElementsSemiMajorAxis.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinOrbitElementsSemiMajorAxis.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsSemiMajorAxis.setSizePolicy(sizePolicy)
         self.spinOrbitElementsSemiMajorAxis.setAlignment(
             QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
         )
         self.spinOrbitElementsSemiMajorAxis.setDecimals(6)
         self.spinOrbitElementsSemiMajorAxis.setProperty("value", 1.0)
-        self.spinOrbitElementsSemiMajorAxis.setObjectName(
-            "spinOrbitElementsSemiMajorAxis"
-        )
+        self.spinOrbitElementsSemiMajorAxis.setObjectName("spinOrbitElementsSemiMajorAxis")
         self.gridLayout_2.addWidget(self.spinOrbitElementsSemiMajorAxis, 0, 1, 1, 1)
         self.spinOrbitElementsIncl = QtWidgets.QDoubleSpinBox(self.widget_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinOrbitElementsIncl.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinOrbitElementsIncl.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsIncl.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsIncl.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
-        )
+        self.spinOrbitElementsIncl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsIncl.setDecimals(6)
         self.spinOrbitElementsIncl.setMaximum(360.0)
         self.spinOrbitElementsIncl.setObjectName("spinOrbitElementsIncl")
         self.gridLayout_2.addWidget(self.spinOrbitElementsIncl, 1, 1, 1, 1)
         self.spinOrbitElementsEcc = QtWidgets.QDoubleSpinBox(self.widget_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinOrbitElementsEcc.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinOrbitElementsEcc.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsEcc.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsEcc.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
-        )
+        self.spinOrbitElementsEcc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsEcc.setDecimals(6)
         self.spinOrbitElementsEcc.setMaximum(1.0)
         self.spinOrbitElementsEcc.setSingleStep(0.1)
         self.spinOrbitElementsEcc.setObjectName("spinOrbitElementsEcc")
         self.gridLayout_2.addWidget(self.spinOrbitElementsEcc, 2, 1, 1, 1)
         self.spinOrbitElementsMA = QtWidgets.QDoubleSpinBox(self.widget_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinOrbitElementsMA.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinOrbitElementsMA.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsMA.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsMA.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
-        )
+        self.spinOrbitElementsMA.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsMA.setDecimals(6)
         self.spinOrbitElementsMA.setMaximum(360.0)
         self.spinOrbitElementsMA.setObjectName("spinOrbitElementsMA")
         self.gridLayout_2.addWidget(self.spinOrbitElementsMA, 3, 1, 1, 1)
         self.spinOrbitElementsOmega = QtWidgets.QDoubleSpinBox(self.widget_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinOrbitElementsOmega.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinOrbitElementsOmega.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsOmega.setSizePolicy(sizePolicy)
         self.spinOrbitElementsOmega.setAlignment(
             QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
@@ -656,14 +576,10 @@ class Ui_WidgetTelescope(object):
         self.spinOrbitElementsOmega.setObjectName("spinOrbitElementsOmega")
         self.gridLayout_2.addWidget(self.spinOrbitElementsOmega, 0, 3, 1, 1)
         self.spinOrbitElementsPerifocus = QtWidgets.QDoubleSpinBox(self.widget_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.spinOrbitElementsPerifocus.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.spinOrbitElementsPerifocus.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsPerifocus.setSizePolicy(sizePolicy)
         self.spinOrbitElementsPerifocus.setAlignment(
             QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
@@ -731,9 +647,7 @@ class Ui_WidgetTelescope(object):
         self.buttonMove.setObjectName("buttonMove")
         self.verticalLayout_7.addWidget(self.buttonMove)
         self.verticalLayout_8.addWidget(self.groupBox_5)
-        spacerItem4 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_8.addItem(spacerItem4)
         self.horizontalLayout_7.addLayout(self.verticalLayout_8)
         self.verticalLayout_6 = QtWidgets.QVBoxLayout()
@@ -750,9 +664,7 @@ class Ui_WidgetTelescope(object):
         self.label_8.setObjectName("label_8")
         self.gridLayout_12.addWidget(self.label_8, 3, 0, 1, 1)
         self.textOffsetRA = QtWidgets.QLineEdit(self.groupEquatorialOffsets)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.textOffsetRA.sizePolicy().hasHeightForWidth())
@@ -775,14 +687,10 @@ class Ui_WidgetTelescope(object):
         self.buttonSetRaOffset.setObjectName("buttonSetRaOffset")
         self.gridLayout_12.addWidget(self.buttonSetRaOffset, 1, 2, 1, 1)
         self.textOffsetDec = QtWidgets.QLineEdit(self.groupEquatorialOffsets)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.textOffsetDec.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.textOffsetDec.sizePolicy().hasHeightForWidth())
         self.textOffsetDec.setSizePolicy(sizePolicy)
         self.textOffsetDec.setAlignment(QtCore.Qt.AlignCenter)
         self.textOffsetDec.setReadOnly(True)
@@ -792,9 +700,7 @@ class Ui_WidgetTelescope(object):
         self.buttonSetDecOffset.setIcon(icon2)
         self.buttonSetDecOffset.setObjectName("buttonSetDecOffset")
         self.gridLayout_12.addWidget(self.buttonSetDecOffset, 3, 2, 1, 1)
-        self.buttonResetEquatorialOffsets = QtWidgets.QToolButton(
-            self.groupEquatorialOffsets
-        )
+        self.buttonResetEquatorialOffsets = QtWidgets.QToolButton(self.groupEquatorialOffsets)
         icon3 = QtGui.QIcon()
         icon3.addPixmap(
             QtGui.QPixmap(":/resources/undo-solid.svg"),
@@ -814,14 +720,10 @@ class Ui_WidgetTelescope(object):
         self.buttonSetAltOffset.setObjectName("buttonSetAltOffset")
         self.gridLayout_11.addWidget(self.buttonSetAltOffset, 0, 3, 1, 1)
         self.textOffsetAlt = QtWidgets.QLineEdit(self.groupHorizontalOffsets)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.textOffsetAlt.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.textOffsetAlt.sizePolicy().hasHeightForWidth())
         self.textOffsetAlt.setSizePolicy(sizePolicy)
         self.textOffsetAlt.setAlignment(QtCore.Qt.AlignCenter)
         self.textOffsetAlt.setReadOnly(True)
@@ -831,9 +733,7 @@ class Ui_WidgetTelescope(object):
         self.label_5.setObjectName("label_5")
         self.gridLayout_11.addWidget(self.label_5, 0, 0, 1, 1)
         self.textOffsetAz = QtWidgets.QLineEdit(self.groupHorizontalOffsets)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.textOffsetAz.sizePolicy().hasHeightForWidth())
@@ -849,9 +749,7 @@ class Ui_WidgetTelescope(object):
         self.buttonSetAzOffset.setIcon(icon2)
         self.buttonSetAzOffset.setObjectName("buttonSetAzOffset")
         self.gridLayout_11.addWidget(self.buttonSetAzOffset, 1, 3, 1, 1)
-        self.buttonResetHorizontalOffsets = QtWidgets.QToolButton(
-            self.groupHorizontalOffsets
-        )
+        self.buttonResetHorizontalOffsets = QtWidgets.QToolButton(self.groupHorizontalOffsets)
         self.buttonResetHorizontalOffsets.setIcon(icon3)
         self.buttonResetHorizontalOffsets.setObjectName("buttonResetHorizontalOffsets")
         self.gridLayout_11.addWidget(self.buttonResetHorizontalOffsets, 0, 4, 2, 1)
@@ -909,14 +807,10 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_7.addWidget(self.buttonOffsetSouth, 2, 1, 1, 1)
         self.verticalLayout_5.addLayout(self.gridLayout_7)
         self.verticalLayout_6.addWidget(self.groupBox)
-        spacerItem5 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_6.addItem(spacerItem5)
         self.horizontalLayout_7.addLayout(self.verticalLayout_6)
-        spacerItem6 = QtWidgets.QSpacerItem(
-            133, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
-        )
+        spacerItem6 = QtWidgets.QSpacerItem(133, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_7.addItem(spacerItem6)
         self.widgetSidebar = QtWidgets.QWidget(WidgetTelescope)
         self.widgetSidebar.setObjectName("widgetSidebar")
@@ -949,24 +843,14 @@ class Ui_WidgetTelescope(object):
         self.label_9.setText(_translate("WidgetTelescope", "JPL Horizons:"))
         self.buttonJplHorizonsQuery.setText(_translate("WidgetTelescope", "..."))
         self.comboSolarSystemBody.setItemText(1, _translate("WidgetTelescope", "Sun"))
-        self.comboSolarSystemBody.setItemText(
-            2, _translate("WidgetTelescope", "Mercury")
-        )
+        self.comboSolarSystemBody.setItemText(2, _translate("WidgetTelescope", "Mercury"))
         self.comboSolarSystemBody.setItemText(3, _translate("WidgetTelescope", "Venus"))
         self.comboSolarSystemBody.setItemText(4, _translate("WidgetTelescope", "Moon"))
         self.comboSolarSystemBody.setItemText(5, _translate("WidgetTelescope", "Mars"))
-        self.comboSolarSystemBody.setItemText(
-            6, _translate("WidgetTelescope", "Jupiter")
-        )
-        self.comboSolarSystemBody.setItemText(
-            7, _translate("WidgetTelescope", "Saturn")
-        )
-        self.comboSolarSystemBody.setItemText(
-            8, _translate("WidgetTelescope", "Uranus")
-        )
-        self.comboSolarSystemBody.setItemText(
-            9, _translate("WidgetTelescope", "Neptune")
-        )
+        self.comboSolarSystemBody.setItemText(6, _translate("WidgetTelescope", "Jupiter"))
+        self.comboSolarSystemBody.setItemText(7, _translate("WidgetTelescope", "Saturn"))
+        self.comboSolarSystemBody.setItemText(8, _translate("WidgetTelescope", "Uranus"))
+        self.comboSolarSystemBody.setItemText(9, _translate("WidgetTelescope", "Neptune"))
         self.label_12.setText(_translate("WidgetTelescope", "Solar system:"))
         self.label_23.setText(_translate("WidgetTelescope", "RA:"))
         self.label_22.setText(_translate("WidgetTelescope", "Dec:"))
@@ -979,9 +863,7 @@ class Ui_WidgetTelescope(object):
         self.spinMoveHGSLat.setSuffix(_translate("WidgetTelescope", " °"))
         self.label_39.setText(_translate("WidgetTelescope", "Psi:"))
         self.label_40.setText(_translate("WidgetTelescope", "Mu:"))
-        self.spinMoveHelioprojectiveRadialPsi.setSuffix(
-            _translate("WidgetTelescope", " °")
-        )
+        self.spinMoveHelioprojectiveRadialPsi.setSuffix(_translate("WidgetTelescope", " °"))
         self.label_21.setText(_translate("WidgetTelescope", "JPL Horizons:"))
         self.buttonHorizonsQuery.setText(_translate("WidgetTelescope", "..."))
         self.label_29.setText(_translate("WidgetTelescope", "Ω:"))
@@ -991,9 +873,7 @@ class Ui_WidgetTelescope(object):
         self.label_30.setText(_translate("WidgetTelescope", "ω:"))
         self.label_33.setText(_translate("WidgetTelescope", "MA:"))
         self.label_31.setText(_translate("WidgetTelescope", "a:"))
-        self.spinOrbitElementsSemiMajorAxis.setSuffix(
-            _translate("WidgetTelescope", " AU")
-        )
+        self.spinOrbitElementsSemiMajorAxis.setSuffix(_translate("WidgetTelescope", " AU"))
         self.spinOrbitElementsIncl.setSuffix(_translate("WidgetTelescope", " °"))
         self.spinOrbitElementsMA.setSuffix(_translate("WidgetTelescope", " °"))
         self.spinOrbitElementsOmega.setSuffix(_translate("WidgetTelescope", " °"))
@@ -1005,26 +885,18 @@ class Ui_WidgetTelescope(object):
         self.label_35.setText(_translate("WidgetTelescope", "Az:"))
         self.buttonMove.setText(_translate("WidgetTelescope", "Move"))
         self.groupBox.setTitle(_translate("WidgetTelescope", "Offsets"))
-        self.groupEquatorialOffsets.setTitle(
-            _translate("WidgetTelescope", "Equitorial")
-        )
+        self.groupEquatorialOffsets.setTitle(_translate("WidgetTelescope", "Equitorial"))
         self.label_8.setText(_translate("WidgetTelescope", "Dec:"))
         self.label_7.setText(_translate("WidgetTelescope", "RA:"))
         self.buttonSetRaOffset.setText(_translate("WidgetTelescope", "set"))
         self.buttonSetDecOffset.setText(_translate("WidgetTelescope", "set"))
-        self.buttonResetEquatorialOffsets.setText(
-            _translate("WidgetTelescope", "reset")
-        )
-        self.groupHorizontalOffsets.setTitle(
-            _translate("WidgetTelescope", "Horizontal")
-        )
+        self.buttonResetEquatorialOffsets.setText(_translate("WidgetTelescope", "reset"))
+        self.groupHorizontalOffsets.setTitle(_translate("WidgetTelescope", "Horizontal"))
         self.buttonSetAltOffset.setText(_translate("WidgetTelescope", "set"))
         self.label_5.setText(_translate("WidgetTelescope", "Alt:"))
         self.label_6.setText(_translate("WidgetTelescope", "Az:"))
         self.buttonSetAzOffset.setText(_translate("WidgetTelescope", "set"))
-        self.buttonResetHorizontalOffsets.setText(
-            _translate("WidgetTelescope", "reset")
-        )
+        self.buttonResetHorizontalOffsets.setText(_translate("WidgetTelescope", "reset"))
         self.buttonOffsetEast.setText(_translate("WidgetTelescope", "E"))
         self.spinOffset.setSuffix(_translate("WidgetTelescope", '"'))
         self.buttonOffsetWest.setText(_translate("WidgetTelescope", "W"))

@@ -44,9 +44,7 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
 
     @QtCore.pyqtSlot(list)
     def add_entry(self, entry: Any) -> None:
-        self.beginInsertRows(
-            QtCore.QModelIndex(), len(self._entries), len(self._entries)
-        )
+        self.beginInsertRows(QtCore.QModelIndex(), len(self._entries), len(self._entries))
         self._entries.append(entry)
         self.endInsertRows()
 

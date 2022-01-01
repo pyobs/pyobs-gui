@@ -93,7 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         show_modules: Optional[List[str]] = None,
         widgets: Optional[List[Dict[str, Any]]] = None,
         sidebar: Optional[List[Dict[str, Any]]] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """Init window.
 
@@ -195,9 +195,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # add timer for checking warnings
         self._warning_timer = QtCore.QTimer()
-        self._warning_timer.timeout.connect(
-            lambda: asyncio.create_task(self._check_warnings())
-        )
+        self._warning_timer.timeout.connect(lambda: asyncio.create_task(self._check_warnings()))
         self._warning_timer.start(5000)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -206,9 +204,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # get current widget
         widget = self.stackedWidget.currentWidget()
 
-    async def _add_client(
-        self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget
-    ) -> None:
+    async def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget) -> None:
         """
 
         Args:
@@ -297,12 +293,8 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """Resize log table to entries."""
 
         # resize columns
-        self.tableLog.horizontalHeader().resizeSections(
-            QtWidgets.QHeaderView.ResizeToContents
-        )
-        self.tableLog.horizontalHeader().setSectionResizeMode(
-            4, QtWidgets.QHeaderView.ResizeToContents
-        )
+        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeToContents)
+        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
 
         # this is a one-time shot, so unconnect signal
         self.log_model.rowsInserted.disconnect(self._resize_log_table)
@@ -311,9 +303,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """Update log filter."""
 
         # update proxy
-        self.log_proxy.filter_source(
-            str(item.text()), item.checkState() == QtCore.Qt.Checked
-        )
+        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
 
     async def _check_warnings(self) -> None:
         """Checks, whether we got an autonomous module."""
@@ -422,9 +412,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         await self._check_warnings()
         return True
 
-    def get_fits_headers(
-        self, namespaces: list = None, *args, **kwargs
-    ) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -436,9 +424,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         hdr = {}
         for widget in self._widgets.values():
             if hasattr(widget, "get_fits_headers"):
-                for k, v in widget.get_fits_headers(
-                    namespaces, *args, **kwargs
-                ).items():
+                for k, v in widget.get_fits_headers(namespaces, *args, **kwargs).items():
                     hdr[k] = v
         return hdr
 

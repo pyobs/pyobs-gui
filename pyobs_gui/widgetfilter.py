@@ -16,9 +16,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        BaseWidget.__init__(
-            self, update_func=self._update, update_interval=10, **kwargs
-        )
+        BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
         # variables
@@ -38,9 +36,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
         # subscribe to events
         await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
-        await self.comm.register_event(
-            MotionStatusChangedEvent, self._on_motion_status_changed
-        )
+        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     async def _init(self) -> None:
         # get current filter
@@ -92,9 +88,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(
-            event, MotionStatusChangedEvent
-        ):
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
             return False
 
         # store new status
@@ -118,9 +112,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     @pyqtSlot(name="on_buttonSetFilter_clicked")
     def set_filter(self) -> None:
         # ask for value
-        new_value, ok = QtWidgets.QInputDialog.getItem(
-            self, "Set filter", "New filter", self._filters, 0, False
-        )
+        new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)
         if ok:
             self.run_background(self.module.set_filter, new_value)
 

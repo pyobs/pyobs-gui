@@ -37,11 +37,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
                 params = (
                     []
                     if len(sig.parameters) < 2
-                    else [
-                        p.name
-                        for p in sig.parameters.values()
-                        if p.name not in ["self", "args", "kwargs"]
-                    ]
+                    else [p.name for p in sig.parameters.values() if p.name not in ["self", "args", "kwargs"]]
                 )
 
                 # build name
@@ -69,13 +65,9 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         time = datetime.fromtimestamp(event.timestamp)
 
         # fill it
-        self.tableEvents.setItem(
-            0, 0, QtWidgets.QTableWidgetItem(time.strftime("%H:%M:%S"))
-        )
+        self.tableEvents.setItem(0, 0, QtWidgets.QTableWidgetItem(time.strftime("%H:%M:%S")))
         self.tableEvents.setItem(0, 1, QtWidgets.QTableWidgetItem(sender))
-        self.tableEvents.setItem(
-            0, 2, QtWidgets.QTableWidgetItem(event.__class__.__name__)
-        )
+        self.tableEvents.setItem(0, 2, QtWidgets.QTableWidgetItem(event.__class__.__name__))
         self.tableEvents.setItem(0, 3, QtWidgets.QTableWidgetItem(str(event.data)))
 
         # limit number of rows
@@ -141,9 +133,7 @@ class SendEventDialog(QtWidgets.QDialog):
                 layout.addRow(p, widget_layout)
 
         # add dialog button box
-        buttons = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
-        )
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         buttons.accepted.connect(self._send_event)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

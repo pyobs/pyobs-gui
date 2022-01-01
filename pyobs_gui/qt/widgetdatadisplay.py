@@ -30,12 +30,8 @@ class Ui_WidgetDataDisplay(object):
         self.tableFitsHeader = QtWidgets.QTableWidget(self.tabFitsHeader)
         self.tableFitsHeader.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableFitsHeader.setAlternatingRowColors(True)
-        self.tableFitsHeader.setSelectionMode(
-            QtWidgets.QAbstractItemView.SingleSelection
-        )
-        self.tableFitsHeader.setSelectionBehavior(
-            QtWidgets.QAbstractItemView.SelectRows
-        )
+        self.tableFitsHeader.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.tableFitsHeader.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableFitsHeader.setObjectName("tableFitsHeader")
         self.tableFitsHeader.setColumnCount(0)
         self.tableFitsHeader.setRowCount(0)
@@ -50,9 +46,7 @@ class Ui_WidgetDataDisplay(object):
         self.checkAutoUpdate.setChecked(True)
         self.checkAutoUpdate.setObjectName("checkAutoUpdate")
         self.horizontalLayout.addWidget(self.checkAutoUpdate)
-        spacerItem = QtWidgets.QSpacerItem(
-            38, 18, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
-        )
+        spacerItem = QtWidgets.QSpacerItem(38, 18, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.checkAutoSave = QtWidgets.QCheckBox(WidgetDataDisplay)
         self.checkAutoSave.setObjectName("checkAutoSave")
@@ -64,9 +58,7 @@ class Ui_WidgetDataDisplay(object):
         self.butAutoSave = QtWidgets.QToolButton(WidgetDataDisplay)
         self.butAutoSave.setObjectName("butAutoSave")
         self.horizontalLayout.addWidget(self.butAutoSave)
-        spacerItem1 = QtWidgets.QSpacerItem(
-            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
-        )
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
         self.butSaveTo = QtWidgets.QToolButton(WidgetDataDisplay)
         icon = QtGui.QIcon()

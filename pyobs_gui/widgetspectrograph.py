@@ -31,9 +31,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.exposure_status = ExposureStatus.IDLE
 
         # data display
-        self.widgetDataDisplay = self.create_widget(
-            WidgetDataDisplay, module=self.module
-        )
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
         self.framePlot.layout().addWidget(self.widgetDataDisplay)
 
         # before first update, disable myself
@@ -50,16 +48,12 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         await BaseWidget.open(self)
 
         # subscribe to events
-        await self.comm.register_event(
-            ExposureStatusChangedEvent, self._on_exposure_status_changed
-        )
+        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
     async def _init(self) -> None:
         # get status
         if isinstance(self.module, ISpectrograph):
-            self.exposure_status = ExposureStatus(
-                await self.module.get_exposure_status()
-            )
+            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
 
         # update GUI
         self.signal_update_gui.emit()
@@ -143,9 +137,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(
-            event, ExposureStatusChangedEvent
-        ):
+        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status

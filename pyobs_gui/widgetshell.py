@@ -59,17 +59,13 @@ class CommandModel(QtCore.QAbstractTableModel):
 
                     # get signature
                     params = []
-                    for param_name, param in inspect.signature(
-                        member
-                    ).parameters.items():
+                    for param_name, param in inspect.signature(member).parameters.items():
                         if param_name not in ["self", "args", "kwargs"]:
                             # parameter name itself
                             arg = param_name
 
                             # go a type?
-                            if param.annotation != inspect.Parameter.empty and hasattr(
-                                param.annotation, "__name__"
-                            ):
+                            if param.annotation != inspect.Parameter.empty and hasattr(param.annotation, "__name__"):
                                 arg += ": " + param.annotation.__name__
 
                             # default value?
@@ -83,9 +79,7 @@ class CommandModel(QtCore.QAbstractTableModel):
                     short_doc = doc.split("\n")[0]
 
                     # append to list
-                    self.commands.append(
-                        (name, "(" + ", ".join(params) + ")", short_doc, doc)
-                    )
+                    self.commands.append((name, "(" + ", ".join(params) + ")", short_doc, doc))
 
         # sort
         self.commands.sort(key=lambda m: m[0])
@@ -140,15 +134,9 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         table_view.setMinimumHeight(50)
         table_view.horizontalHeader().hide()
         table_view.horizontalHeader().setStretchLastSection(False)
-        table_view.horizontalHeader().setSectionResizeMode(
-            0, QtWidgets.QHeaderView.ResizeToContents
-        )
-        table_view.horizontalHeader().setSectionResizeMode(
-            1, QtWidgets.QHeaderView.ResizeToContents
-        )
-        table_view.horizontalHeader().setSectionResizeMode(
-            2, QtWidgets.QHeaderView.Stretch
-        )
+        table_view.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        table_view.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
         table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 
         # signals/slots
@@ -277,25 +265,17 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             response = await proxy.execute(command, *params)
         except ValueError as e:
             log.exception("(#%d): Something has gone wrong." % self.command_number)
-            self._add_command_log(
-                "(#%d): Invalid parameter: %s" % (self.command_number, str(e)), "red"
-            )
+            self._add_command_log("(#%d): Invalid parameter: %s" % (self.command_number, str(e)), "red")
             return
         except RemoteException as e:
             if e:
-                self._add_command_log(
-                    "(#%d): %s" % (self.command_number, traceback.format_exc()), "red"
-                )
+                self._add_command_log("(#%d): %s" % (self.command_number, traceback.format_exc()), "red")
             else:
-                self._add_command_log(
-                    "(#%d): Unknown Remote error" % self.command_number, "red"
-                )
+                self._add_command_log("(#%d): Unknown Remote error" % self.command_number, "red")
             return
 
         # log response
-        self._add_command_log(
-            "(#%d) %s" % (self.command_number, pprint.pformat(response))
-        )
+        self._add_command_log("(#%d) %s" % (self.command_number, pprint.pformat(response)))
 
     def _update_docs(self):
         # get current input

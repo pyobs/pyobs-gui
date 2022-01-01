@@ -19,9 +19,7 @@ class WidgetRoof(BaseWidget, Ui_WidgetRoof):
         # connect signals
         self.buttonOpen.clicked.connect(lambda: self.run_background(self.module.init))
         self.buttonClose.clicked.connect(lambda: self.run_background(self.module.park))
-        self.buttonStop.clicked.connect(
-            lambda: self.run_background(self.module.stop_motion)
-        )
+        self.buttonStop.clicked.connect(lambda: self.run_background(self.module.stop_motion))
         self.signal_update_gui.connect(self.update_gui)
 
     async def _init(self):

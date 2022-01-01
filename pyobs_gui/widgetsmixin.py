@@ -11,9 +11,7 @@ class WidgetsMixin:
         """Mixin for child widgets."""
         self._widgets_mixin: List[WidgetsMixin] = []
 
-    def create_widget(
-        self, config: Union[Dict[str, Any], type], **kwargs: Any
-    ) -> "BaseWidget":
+    def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
 
         Args:
@@ -26,13 +24,9 @@ class WidgetsMixin:
 
         # create it
         if isinstance(config, dict):
-            widget = create_object(
-                config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs
-            )
+            widget = create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
         elif isinstance(config, type):
-            widget = config(
-                vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs
-            )
+            widget = config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
         else:
             raise ValueError("Wrong type.")
 

@@ -79,9 +79,7 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, **kwargs):
-        BaseWidget.__init__(
-            self, update_func=self._update, update_interval=10, **kwargs
-        )
+        BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
         # weather info
@@ -136,14 +134,9 @@ class WidgetWeather(BaseWidget, Ui_widgetWeather):
                         layout.addWidget(widget)
 
             # set time
-            if (
-                "time" in self._current_weather
-                and self._current_weather["time"] is not None
-            ):
+            if "time" in self._current_weather and self._current_weather["time"] is not None:
                 t = Time(self._current_weather["time"])
-                self._current_widgets["time"].set_value(
-                    t.strftime("%Y-%m-%d\n%H:%M:%S")
-                )
+                self._current_widgets["time"].set_value(t.strftime("%Y-%m-%d\n%H:%M:%S"))
             else:
                 self._current_widgets["time"].set_value("")
 

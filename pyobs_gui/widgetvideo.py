@@ -52,9 +52,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetDataDisplay = self.create_widget(
-            WidgetDataDisplay, module=self.module
-        )
+        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
         self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
         # connect signals
@@ -91,9 +89,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
 
         # we heed a HttpFile
         if not isinstance(video_file, HttpFile):
-            log.error(
-                "VFS path to video of module %s must be an HttpFile.", self.module.name
-            )
+            log.error("VFS path to video of module %s must be an HttpFile.", self.module.name)
             return
 
         # analyse URL
@@ -102,15 +98,11 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # scheme must be http
         # TODO: how to do HTTPS?
         if o.scheme != "http":
-            log.error(
-                "URL scheme to video of module %s must be HTTP.", self.module.name
-            )
+            log.error("URL scheme to video of module %s must be HTTP.", self.module.name)
             return
 
         # get info
-        (self.host, self.port) = (
-            tuple(o.netloc.split(":")) if ":" in o.netloc else (o.netloc, 80)
-        )
+        (self.host, self.port) = tuple(o.netloc.split(":")) if ":" in o.netloc else (o.netloc, 80)
         self.path = o.path
 
         # get initial values

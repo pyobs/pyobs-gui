@@ -54,7 +54,7 @@ class VisPlot:
         # axes
         ax.set_theta_zero_location("N")
         ax.set_ylim(0.0, 60.0)
-        d = u"\N{DEGREE SIGN}"
+        d = "\N{DEGREE SIGN}"
         ax.set_xticks(
             np.deg2rad([0.0, 45.0, 90.0, 135, 180, 225, 270, 315]),
             [
