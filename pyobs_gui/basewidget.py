@@ -12,7 +12,6 @@ from typing import (
     TypeVar,
     Optional,
     Callable,
-    TYPE_CHECKING,
 )
 
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -20,11 +19,6 @@ from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
 from pyobs.vfs import VirtualFileSystem
-
-if TYPE_CHECKING:
-    from pyobs.modules import Module
-
-
 from .widgetsmixin import WidgetsMixin
 
 
@@ -34,7 +28,7 @@ log = logging.getLogger(__name__)
 WidgetClass = TypeVar("WidgetClass")
 
 
-class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
+class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
     _show_error = QtCore.pyqtSignal(str)
     _enable_buttons = QtCore.pyqtSignal(list, bool)
 
@@ -65,11 +59,11 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         # update
         self._update_func = update_func
         self._update_interval = update_interval
-        self._update_task: Optional[asyncio.Task] = None
+        self._update_task: Optional[Any] = None
 
         # sidebar
         self.sidebar_widgets: List[BaseWidget] = []
-        self.sidebar_layout = None
+        self.sidebar_layout: Optional[QtWidgets.QVBoxLayout] = None
 
         # has it been initialized?
         self._initialized = False
@@ -106,9 +100,9 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # run in loop
-        asyncio.create_task(self._hideEvent(event))
+        asyncio.create_task(self._hide_event(event))
 
-    async def _hideEvent(self, event: QtGui.QHideEvent) -> None:
+    async def _hide_event(self, event: QtGui.QHideEvent) -> None:
         # stop task
         if self._update_task is not None:
             self._update_task.cancel()
@@ -121,7 +115,8 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         while True:
             try:
                 # call update function
-                await self._update_func()
+                if self._update_func is not None:
+                    await self._update_func()
 
                 # sleep a little
                 await asyncio.sleep(1)
@@ -132,11 +127,11 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             except Exception as e:
                 log.warning("Exception during GUIs update function: %s", str(e))
 
-    def run_background(self, method: Callable[[...], Coroutine], *args: Any, **kwargs: Any) -> None:
+    def run_background(self, method: Callable[..., Coroutine[Any, Any, None]], *args: Any, **kwargs: Any) -> None:
         asyncio.create_task(self._background_task(method, *args, **kwargs))
 
     async def _background_task(
-        self, method: Callable[[...], Coroutine], *args: Any, disable: Any = None, **kwargs: Any
+        self, method: Callable[..., Coroutine[Any, Any, None]], *args: Any, disable: Any = None, **kwargs: Any
     ) -> None:
         # make disable an empty list or a list of widgets
         disable = [] if disable is None else [disable] if not hasattr(disable, "__iter__") else disable
@@ -155,10 +150,11 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             self._enable_buttons.emit(disable, True)
 
     def show_error(self, message: str) -> Any:
-        QMessageBox.warning(self, "Error", message)
+        QtWidgets.QMessageBox.warning(self, "Error", message)
 
     def enable_buttons(self, widgets: List[QtWidgets.QWidget], enable: bool) -> None:
-        [w.setEnabled(enable) for w in widgets]
+        for w in widgets:
+            w.setEnabled(enable)
 
     def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.

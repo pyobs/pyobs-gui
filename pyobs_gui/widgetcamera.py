@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from typing import Any
 from PyQt5 import QtWidgets, QtCore
 
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent, Event
@@ -17,11 +18,11 @@ from pyobs.interfaces import (
     ICamera,
 )
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
-from pyobs_gui.basewidget import BaseWidget
-from pyobs_gui.widgetcooling import WidgetCooling
-from pyobs_gui.widgetfilter import WidgetFilter
-from pyobs_gui.widgettemperatures import WidgetTemperatures
-from pyobs_gui.widgetfitsheaders import WidgetFitsHeaders
+from .basewidget import BaseWidget
+from .widgetcooling import WidgetCooling
+from .widgetfilter import WidgetFilter
+from .widgettemperatures import WidgetTemperatures
+from .widgetfitsheaders import WidgetFitsHeaders
 from .qt.widgetcamera import Ui_WidgetCamera
 from .widgetdatadisplay import WidgetDataDisplay
 
@@ -32,7 +33,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
     signal_update_gui = QtCore.pyqtSignal()
     signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
@@ -43,12 +44,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.status = None
         self.exposure_status = ExposureStatus.IDLE
         self.exposures_left = 0
-        self.exposure_time_left = 0
-        self.exposure_progress = 0
+        self.exposure_time_left = 0.0
+        self.exposure_progress = 0.0
 
         # data display
         self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
-        self.frameDataDisplay.layout().addWidget(self.widgetDataDisplay)
+        self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
@@ -76,7 +77,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(self):
+    async def open(self) -> None:
         """Open widget."""
         await BaseWidget.open(self)
 
@@ -92,7 +93,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         if isinstance(self.module, ITemperatures):
             self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
-    async def _init(self):
+    async def _init(self) -> None:
         # get status
         if isinstance(self.module, ICamera):
             self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
@@ -133,10 +134,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.signal_update_gui.emit()
 
     @QtCore.pyqtSlot(name="on_butFullFrame_clicked")
-    def _set_full_frame(self):
+    def _set_full_frame(self) -> None:
         asyncio.create_task(self.set_full_frame())
 
-    async def set_full_frame(self):
+    async def set_full_frame(self) -> None:
         if isinstance(self.module, IWindow):
             # get full frame
             left, top, width, height = await self.module.get_full_frame()
@@ -157,11 +158,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinWindowHeight.setValue(int(height / binning))
 
     @QtCore.pyqtSlot(str, name="on_comboBinning_currentTextChanged")
-    def binning_changed(self, binning):
+    def binning_changed(self, binning: str) -> None:
         self.on_butFullFrame_clicked()
 
     @QtCore.pyqtSlot(int, name="on_checkBroadcast_stateChanged")
-    def broadcast_changed(self, state):
+    def broadcast_changed(self, state: int) -> None:
         if state == 0:
             r = QtWidgets.QMessageBox.question(
                 self,
@@ -175,7 +176,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
                 self.checkBroadcast.setChecked(True)
 
     @QtCore.pyqtSlot(str, name="on_comboImageType_currentTextChanged")
-    def image_type_changed(self, image_type):
+    def image_type_changed(self, image_type: str) -> None:
         if image_type == "BIAS":
             self.spinExpTime.setValue(0)
             self.spinExpTime.setEnabled(False)
@@ -183,10 +184,10 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.spinExpTime.setEnabled(True)
 
     @QtCore.pyqtSlot(name="on_butExpose_clicked")
-    def _expose(self):
+    def _expose(self) -> None:
         asyncio.create_task(self.expose())
 
-    async def expose(self):
+    async def expose(self) -> None:
         # set binning
         if isinstance(self.module, IBinning):
             binning = int(self.comboBinning.currentText()[0])
@@ -250,15 +251,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    def plot(self):
+    def plot(self) -> None:
         """Show image."""
         self.imageView.display(self.image)
 
     @QtCore.pyqtSlot(name="on_butAbort_clicked")
-    def _abort(self):
+    def _abort(self) -> None:
         asyncio.create_task(self.abort())
 
-    async def abort(self):
+    async def abort(self) -> None:
         """Abort exposure."""
 
         # do we have a running exposure?
@@ -270,14 +271,17 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # abort sequence
             self.exposures_left = 0
         else:
-            await self.module.abort()
+            if isinstance(self.module, ICamera):
+                await self.module.abort()
 
-    async def _update(self):
+    async def _update(self) -> None:
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            self.exposure_time_left = await self.module.get_exposure_time_left()
-            self.exposure_progress = await self.module.get_exposure_progress()
+            if isinstance(self.module, IExposureTime):
+                self.exposure_time_left = await self.module.get_exposure_time_left()
+            if isinstance(self.module, ICamera):
+                self.exposure_progress = await self.module.get_exposure_progress()
 
         else:
             # reset
@@ -287,7 +291,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         """Update the GUI."""
 
         # enable myself
@@ -325,7 +329,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             self.labelExposuresLeft.setText("")
 
         # trigger image update
-        if self.new_image:
+        if self.new_image and self.image_filename is not None:
             # set filename
             self.tabWidget.setTabText(0, os.path.basename(self.image_filename))
 
@@ -338,7 +342,11 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             # reset
             self.new_image = False
 
-    def show_fits_headers(self):
+    def show_fits_headers(self) -> None:
+        # check
+        if self.image is None:
+            return
+
         # get all header cards
         headers = {}
         for card in self.image.header.cards:
@@ -366,7 +374,7 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
+        if self.module is None or sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status

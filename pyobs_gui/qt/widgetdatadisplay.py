@@ -63,9 +63,7 @@ class Ui_WidgetDataDisplay(object):
         self.butSaveTo = QtWidgets.QToolButton(WidgetDataDisplay)
         icon = QtGui.QIcon()
         icon.addPixmap(
-            QtGui.QPixmap(":/resources/Crystal_Clear_device_floppy_unmount.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
+            QtGui.QPixmap(":/resources/Crystal_Clear_device_floppy_unmount.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off
         )
         self.butSaveTo.setIcon(icon)
         self.butSaveTo.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -80,13 +78,9 @@ class Ui_WidgetDataDisplay(object):
     def retranslateUi(self, WidgetDataDisplay):
         _translate = QtCore.QCoreApplication.translate
         WidgetDataDisplay.setWindowTitle(_translate("WidgetDataDisplay", "Form"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabImage), _translate("WidgetDataDisplay", "Image"))
         self.tabWidget.setTabText(
-            self.tabWidget.indexOf(self.tabImage),
-            _translate("WidgetDataDisplay", "Image"),
-        )
-        self.tabWidget.setTabText(
-            self.tabWidget.indexOf(self.tabFitsHeader),
-            _translate("WidgetDataDisplay", "FITS header"),
+            self.tabWidget.indexOf(self.tabFitsHeader), _translate("WidgetDataDisplay", "FITS header")
         )
         self.checkAutoUpdate.setText(_translate("WidgetDataDisplay", "Auto-update"))
         self.checkAutoSave.setText(_translate("WidgetDataDisplay", "Auto-save:"))

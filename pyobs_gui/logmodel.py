@@ -1,13 +1,13 @@
-from typing import Any
+from typing import Any, List
 
-from colour import Color
+from colour import Color  # type: ignore
 from PyQt5 import QtCore, QtGui
 
 
-class LogModel(QtCore.QAbstractTableModel):  # type: ignore
+class LogModel(QtCore.QAbstractTableModel):
     def __init__(self, *args: Any):
         QtCore.QAbstractTableModel.__init__(self, *args)
-        self._entries = []
+        self._entries: List[Any] = []
 
     def rowCount(self, parent: Any = None, *args: Any, **kwargs: Any) -> int:
         return len(self._entries)
@@ -49,7 +49,7 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
         self.endInsertRows()
 
 
-class LogModelProxy(QtCore.QSortFilterProxyModel):  # type: ignore
+class LogModelProxy(QtCore.QSortFilterProxyModel):
     def __init__(self, *args: Any):
         QtCore.QSortFilterProxyModel.__init__(self, *args)
         self.setDynamicSortFilter(True)

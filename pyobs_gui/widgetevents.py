@@ -1,11 +1,13 @@
 import asyncio
 from datetime import datetime
+from typing import Any, Type, Dict
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
+from pyobs.comm import Comm
 from pyobs.events import LogEvent, Event
-from pyobs_gui.qt.widgetevents import Ui_WidgetEvents
+from .qt.widgetevents import Ui_WidgetEvents
 
 
 class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
@@ -74,7 +76,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
             self.tableEvents.setRowCount(400)
 
     @QtCore.pyqtSlot()
-    def on_buttonSend_clicked(self):
+    def on_buttonSend_clicked(self) -> None:
         # get event class
         cls = self.comboEvent.itemData(self.comboEvent.currentIndex())
 
@@ -84,8 +86,8 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
 
 
 class SendEventDialog(QtWidgets.QDialog):
-    def __init__(self, comm, event: type, *args, **kwargs):
-        QtWidgets.QDialog.__init__(self, *args, **kwargs)
+    def __init__(self, comm: Comm, event: Type[Event], **kwargs: Any):
+        QtWidgets.QDialog.__init__(self, **kwargs)
 
         # save event type
         self._event = event
@@ -110,8 +112,8 @@ class SendEventDialog(QtWidgets.QDialog):
                 # create widget
                 if sig.parameters[p].annotation == int:
                     widget = QtWidgets.QSpinBox()
-                    widget.setMinimum(-1e5)
-                    widget.setMaximum(1e5)
+                    widget.setMinimum(-100000)
+                    widget.setMaximum(100000)
                 elif sig.parameters[p].annotation == float:
                     widget = QtWidgets.QDoubleSpinBox()
                     widget.setMinimum(-1e5)
@@ -137,11 +139,11 @@ class SendEventDialog(QtWidgets.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    def _send_event(self):
+    def _send_event(self) -> None:
         """Actually send event."""
 
         # collect values
-        values = {}
+        values: Dict[str, Any] = {}
         for name, (checkbox, widget) in self._widgets.items():
             if not checkbox.isChecked():
                 values[name] = None

@@ -106,7 +106,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             widgets: List of custom widgets.
             sidebar: List of custom widgets for the sidebar.
         """
-        QtWidgets.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self, **kwargs)
         WidgetsMixin.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
@@ -411,7 +411,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         await self._check_warnings()
         return True
 
-    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -423,7 +423,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         hdr = {}
         for widget in self._widgets.values():
             if hasattr(widget, "get_fits_headers"):
-                for k, v in widget.get_fits_headers(namespaces, *args, **kwargs).items():
+                for k, v in widget.get_fits_headers(namespaces, **kwargs).items():
                     hdr[k] = v
         return hdr
 

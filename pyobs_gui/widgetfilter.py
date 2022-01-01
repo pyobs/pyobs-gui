@@ -1,9 +1,6 @@
-import asyncio
-from typing import List, Any
-
+from typing import List, Any, Optional
 from PyQt5 import QtWidgets, QtCore
 
-from pyobs.comm import Comm
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFilters
 from pyobs.utils.enums import MotionStatus
@@ -19,7 +16,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         self.setupUi(self)
 
         # variables
-        self._filter = None
+        self._filter: Optional[str] = None
         self._filters: List[str] = []
         self._motion_status = MotionStatus.UNKNOWN
 
@@ -39,9 +36,10 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
     async def _init(self) -> None:
         # get current filter
-        self._motion_status = await self.module.get_motion_status()
-        self._filter = await self.module.get_filter()
-        self._filters = await self.module.list_filters()
+        if isinstance(self.module, IFilters):
+            self._motion_status = await self.module.get_motion_status()
+            self._filter = await self.module.get_filter()
+            self._filters = await self.module.list_filters()
 
         # update gui
         self.signal_update_gui.emit()
@@ -102,8 +100,9 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
 
     async def _update(self) -> None:
         # get filter and motion status
-        self._filter = await self.module.get_filter()
-        self._motion_status = await self.module.get_motion_status()
+        if isinstance(self.module, IFilters):
+            self._filter = await self.module.get_filter()
+            self._motion_status = await self.module.get_motion_status()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -112,7 +111,7 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
     def set_filter(self) -> None:
         # ask for value
         new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)
-        if ok:
+        if ok and isinstance(self.module, IFilters):
             self.run_background(self.module.set_filter, new_value)
 
 

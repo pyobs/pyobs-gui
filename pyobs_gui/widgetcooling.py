@@ -2,7 +2,8 @@ import asyncio
 import logging
 from PyQt5.QtCore import pyqtSignal
 
-from pyobs_gui.basewidget import BaseWidget
+from pyobs.interfaces import ICooling
+from .basewidget import BaseWidget
 from .qt.widgetcooling import Ui_WidgetCooling
 
 
@@ -22,14 +23,15 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def _update(self):
+    async def _update(self) -> None:
         # get status
-        self._status = await self.module.get_cooling_status()
+        if isinstance(self.module, ICooling):
+            self._status = await self.module.get_cooling_status()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         if self._status is not None:
             # enable myself
             self.setEnabled(True)
@@ -45,13 +47,14 @@ class WidgetCooling(BaseWidget, Ui_WidgetCooling):
                 self.labelStatus.setText("N/A" if power is None else "OFF")
                 self.labelPower.clear()
 
-    def on_buttonApply_clicked(self):
+    def on_buttonApply_clicked(self) -> None:
         asyncio.create_task(self.set_cooling())
 
-    async def set_cooling(self):
-        # get enabeld and setpoint temperature
+    async def set_cooling(self) -> None:
+        # get enabled and setpoint temperature
         enabled = self.checkEnabled.isChecked()
         temp = self.spinSetPoint.value()
 
         # send it
-        await self.module.set_cooling(enabled, temp)
+        if isinstance(self.module, ICooling):
+            await self.module.set_cooling(enabled, temp)

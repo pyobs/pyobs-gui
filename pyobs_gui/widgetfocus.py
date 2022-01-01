@@ -1,6 +1,9 @@
 import logging
+from typing import Any, Optional
+
 from PyQt5 import QtWidgets, QtCore
 from pyobs.events import MotionStatusChangedEvent, Event
+from pyobs.interfaces import IFocuser
 
 from pyobs.utils.enums import MotionStatus
 from pyobs_gui.basewidget import BaseWidget
@@ -13,39 +16,43 @@ log = logging.getLogger(__name__)
 class WidgetFocus(BaseWidget, Ui_WidgetFocus):
     signal_update_gui = QtCore.pyqtSignal()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
         self.setupUi(self)
 
         # variables
-        self._focus = None
-        self._focus_offset = None
+        self._focus: Optional[float] = None
+        self._focus_offset: Optional[float] = None
         self._motion_status = MotionStatus.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
-        self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
-        self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(self.module.set_focus_offset, 0))
+        if isinstance(self.module, IFocuser):
+            self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
+            self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
+            self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(self.module.set_focus_offset, 0))
 
         # button colors
         self.colorize_button(self.butSetFocusBase, QtCore.Qt.green)
         self.colorize_button(self.butSetFocusOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonResetFocusOffset, QtCore.Qt.yellow)
 
-    async def open(self):
+    async def open(self) -> None:
         """Open widget."""
         await BaseWidget.open(self)
 
         # subscribe to events
-        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
+        if self.comm is not None:
+            await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
-    def _set_focus(self, offset: bool = False):
+    def _set_focus(self, offset: bool = False) -> None:
         """Asks user for new focus (offset) and sets it.
 
         Args:
             offset: If False, base focus is set, otherwise offset.
         """
+        if not isinstance(self.module, IFocuser):
+            return
 
         # base of offset?
         title = "Focus offset" if offset else "Focus"
@@ -59,12 +66,13 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         if ok:
             self.run_background(setter, new_value)
 
-    async def _init(self):
+    async def _init(self) -> None:
         # get status
         try:
-            self._focus = await self.module.get_focus()
-            self._focus_offset = await self.module.get_focus_offset()
-            self._motion_status = await self.module.get_motion_status()
+            if isinstance(self.module, IFocuser):
+                self._focus = await self.module.get_focus()
+                self._focus_offset = await self.module.get_focus_offset()
+                self._motion_status = await self.module.get_motion_status()
         except:
             self._focus = None
             self._focus_offset = None
@@ -73,7 +81,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         # update GUI
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
         self.labelCurStatus.setText(self._motion_status.name)
@@ -114,11 +122,12 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.signal_update_gui.emit()
         return True
 
-    async def _update(self):
+    async def _update(self) -> None:
         # get focus and motion status
-        self._focus = await self.module.get_focus()
-        self._focus_offset = await self.module.get_focus_offset()
-        self._motion_status = await self.module.get_motion_status()
+        if isinstance(self.module, IFocuser):
+            self._focus = await self.module.get_focus()
+            self._focus_offset = await self.module.get_focus_offset()
+            self._motion_status = await self.module.get_motion_status()
 
         # signal GUI update
         self.signal_update_gui.emit()

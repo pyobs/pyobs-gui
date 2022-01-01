@@ -271,11 +271,7 @@ class Ui_WidgetTelescope(object):
         self.horizontalLayout.addWidget(self.textSimbadName)
         self.buttonSimbadQuery = QtWidgets.QToolButton(self.pageMoveEquatorial)
         icon = QtGui.QIcon()
-        icon.addPixmap(
-            QtGui.QPixmap(":/resources/search-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon.addPixmap(QtGui.QPixmap(":/resources/search-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.buttonSimbadQuery.setIcon(icon)
         self.buttonSimbadQuery.setObjectName("buttonSimbadQuery")
         self.horizontalLayout.addWidget(self.buttonSimbadQuery)
@@ -639,9 +635,7 @@ class Ui_WidgetTelescope(object):
         self.buttonMove = QtWidgets.QPushButton(self.groupBox_5)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
+            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
         )
         self.buttonMove.setIcon(icon1)
         self.buttonMove.setObjectName("buttonMove")
@@ -678,11 +672,7 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_12.addWidget(self.label_7, 1, 0, 1, 1)
         self.buttonSetRaOffset = QtWidgets.QToolButton(self.groupEquatorialOffsets)
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(
-            QtGui.QPixmap(":/resources/edit-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon2.addPixmap(QtGui.QPixmap(":/resources/edit-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.buttonSetRaOffset.setIcon(icon2)
         self.buttonSetRaOffset.setObjectName("buttonSetRaOffset")
         self.gridLayout_12.addWidget(self.buttonSetRaOffset, 1, 2, 1, 1)
@@ -702,11 +692,7 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_12.addWidget(self.buttonSetDecOffset, 3, 2, 1, 1)
         self.buttonResetEquatorialOffsets = QtWidgets.QToolButton(self.groupEquatorialOffsets)
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(
-            QtGui.QPixmap(":/resources/undo-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon3.addPixmap(QtGui.QPixmap(":/resources/undo-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.buttonResetEquatorialOffsets.setIcon(icon3)
         self.buttonResetEquatorialOffsets.setObjectName("buttonResetEquatorialOffsets")
         self.gridLayout_12.addWidget(self.buttonResetEquatorialOffsets, 1, 3, 3, 1)
@@ -767,9 +753,7 @@ class Ui_WidgetTelescope(object):
         self.buttonOffsetEast = QtWidgets.QPushButton(self.groupBox)
         icon4 = QtGui.QIcon()
         icon4.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
+            QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
         )
         self.buttonOffsetEast.setIcon(icon4)
         self.buttonOffsetEast.setObjectName("buttonOffsetEast")
@@ -787,20 +771,14 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_7.addWidget(self.buttonOffsetWest, 1, 2, 1, 1)
         self.buttonOffsetNorth = QtWidgets.QPushButton(self.groupBox)
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-up-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon5.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-up-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.buttonOffsetNorth.setIcon(icon5)
         self.buttonOffsetNorth.setObjectName("buttonOffsetNorth")
         self.gridLayout_7.addWidget(self.buttonOffsetNorth, 0, 1, 1, 1)
         self.buttonOffsetSouth = QtWidgets.QPushButton(self.groupBox)
         icon6 = QtGui.QIcon()
         icon6.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
+            QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
         )
         self.buttonOffsetSouth.setIcon(icon6)
         self.buttonOffsetSouth.setObjectName("buttonOffsetSouth")

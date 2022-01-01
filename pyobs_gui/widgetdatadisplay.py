@@ -1,8 +1,6 @@
-import asyncio
 import logging
 import os
-from typing import Any, Optional, List
-
+from typing import Any, Optional, cast
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from astropy.io import fits
@@ -10,12 +8,13 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+from pyobs.modules import Module
+from qfitswidget import QFitsWidget
+
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IImageGrabber, ISpectrograph
 from pyobs.utils.enums import ImageType
-from pyobs.vfs import VirtualFileSystem
-from pyobs_gui.basewidget import BaseWidget
-from qfitswidget import QFitsWidget
+from .basewidget import BaseWidget
 from .qt.widgetdatadisplay import Ui_WidgetDataDisplay
 
 log = logging.getLogger(__name__)
@@ -58,16 +57,19 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.signal_update_gui.connect(self.update_gui)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
 
-    async def open(self):
+    async def open(self) -> None:
         """Open widget."""
         await BaseWidget.open(self)
 
         # subscribe to events
-        await self.comm.register_event(NewImageEvent, self._on_new_data)
-        await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+        if self.comm is not None:
+            await self.comm.register_event(NewImageEvent, self._on_new_data)
+            await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
 
     async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data."""
+        if self.module is None:
+            return
 
         # expose
         if isinstance(self.module, IImageGrabber):
@@ -80,9 +82,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
             if isinstance(self.module, IImageGrabber):
-                await self._on_new_data(NewImageEvent(filename, image_type), self.module.name)
+                await self._on_new_data(NewImageEvent(filename, image_type), cast(Module, self.module).name())
             elif isinstance(self.module, ISpectrograph):
-                await self._on_new_data(NewSpectrumEvent(filename), self.module.name)
+                await self._on_new_data(NewSpectrumEvent(filename), cast(Module, self.module).name())
             else:
                 raise ValueError("Unknown type")
 
@@ -91,6 +93,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
     def plot(self) -> None:
         """Show data."""
+        if self.data is None:
+            return
+
         if isinstance(self.module, IImageGrabber):
             self.imageView.display(self.data[0])
         elif isinstance(self.module, ISpectrograph):
@@ -98,6 +103,10 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
 
     def _plot_spectrum(self) -> None:
         """Plot spectrum."""
+        if self.data is None:
+            return
+
+        # get shortcuts
         hdr = self.data[0].header
         data = self.data[0].data
 
@@ -117,7 +126,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.setEnabled(True)
 
         # trigger image update
-        if self.new_data:
+        if self.new_data and self.data_filename is not None:
             # set filename
             self.tabWidget.setTabText(0, os.path.basename(self.data_filename))
 
@@ -131,6 +140,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
             self.new_data = False
 
     def show_fits_headers(self) -> None:
+        if self.data is None:
+            return
+
         # get all header cards
         headers = {}
         for card in self.data[0].header.cards:
@@ -219,7 +231,7 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         """Save image."""
 
         # no image?
-        if self.data is None:
+        if self.data is None or self.data_filename is None:
             return
 
         # get initial filename

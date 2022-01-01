@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from typing import List, Dict, Tuple, Any, Optional
-from qasync import QEventLoop
+from qasync import QEventLoop  # type: ignore
 from PyQt5 import QtWidgets
 
 from pyobs.interfaces import IFitsHeaderBefore
@@ -16,11 +16,11 @@ class GUI(Module, IFitsHeaderBefore):
         self,
         show_shell: bool = True,
         show_events: bool = True,
-        show_modules: list = None,
-        widgets: list = None,
-        sidebar: Optional[List] = None,
-        *args,
-        **kwargs,
+        show_modules: Optional[List[str]] = None,
+        widgets: Optional[List[Dict[str, Any]]] = None,
+        sidebar: Optional[List[Dict[str, Any]]] = None,
+        *args: Any,
+        **kwargs: Any,
     ):
         """Inits a new GUI.
 
@@ -39,14 +39,14 @@ class GUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window = None
+        self._window: Optional[MainWindow] = None
         self._show_shell = show_shell
         self._show_events = show_events
         self._show_modules = show_modules
         self._custom_widgets = widgets
         self._custom_sidebar_widgets = sidebar
 
-    async def open(self):
+    async def open(self) -> None:
         """Open module."""
         await Module.open(self)
 
@@ -64,7 +64,9 @@ class GUI(Module, IFitsHeaderBefore):
         await self._window.open()
         self._window.show()
 
-    async def get_fits_header_before(self, namespaces: List[str] = None, *args, **kwargs) -> Dict[str, Tuple[Any, str]]:
+    async def get_fits_header_before(
+        self, namespaces: Optional[List[str]] = None, **kwargs: Any
+    ) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -73,4 +75,7 @@ class GUI(Module, IFitsHeaderBefore):
         Returns:
             Dictionary containing FITS headers.
         """
-        return self._window.get_fits_headers(namespaces)
+        if self._window is not None:
+            return self._window.get_fits_headers(namespaces)
+        else:
+            return {}
