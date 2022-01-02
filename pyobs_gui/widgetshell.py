@@ -3,13 +3,15 @@ import pprint
 import traceback
 from io import BytesIO
 import re
+from typing import Any, Optional, List, Tuple
+
 from PyQt5 import QtWidgets, QtCore
 import inspect
 import tokenize
 from enum import Enum
 import logging
 
-from pyobs.comm import RemoteException
+from pyobs.comm import RemoteException, Comm
 from .basewidget import BaseWidget
 from .qt.widgetshell import Ui_WidgetShell
 
@@ -29,11 +31,11 @@ class ParserState(Enum):
 
 
 class CommandModel(QtCore.QAbstractTableModel):
-    def __init__(self, comm, *args, **kwargs):
+    def __init__(self, comm: Comm, *args: Any, **kwargs: Any):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
 
         # create model
-        self.commands = []
+        self.commands: List[Tuple[str, str, str, str]] = []
         self.comm = comm
 
     async def init(self) -> None:
@@ -74,7 +76,7 @@ class CommandModel(QtCore.QAbstractTableModel):
                             params.append(arg)
 
                     # get first line of documentation
-                    doc = member.__doc__
+                    doc = str(member.__doc__)
                     short_doc = doc.split("\n")[0]
 
                     # append to list
@@ -83,29 +85,30 @@ class CommandModel(QtCore.QAbstractTableModel):
         # sort
         self.commands.sort(key=lambda m: m[0])
 
-    def doc(self, command):
+    def doc(self, command: str) -> Optional[str]:
         for c in self.commands:
             if c[0] == command:
                 return c[3]
         return None
 
-    def rowCount(self, parent=None, *args, **kwargs):
+    def rowCount(self, parent: Optional[Any] = None, *args: Any, **kwargs: Any) -> int:
         return len(self.commands)
 
-    def columnCount(self, parent=None, *args, **kwargs):
+    def columnCount(self, parent: Optional[Any] = None, *args: Any, **kwargs: Any) -> int:
         return 3
 
-    def data(self, index: QtCore.QModelIndex, role=None):
+    def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
         if role == QtCore.Qt.DisplayRole:
             return self.commands[index.row()][index.column()]
+        return ""
 
 
 class WidgetShell(BaseWidget, Ui_WidgetShell):
     add_command_log = QtCore.pyqtSignal(str)
     show_help = QtCore.pyqtSignal(str)
 
-    def __init__(self, *args, **kwargs):
-        BaseWidget.__init__(self, *args, **kwargs)
+    def __init__(self, **kwargs: Any):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
         self.command_number = 0
 
@@ -147,19 +150,19 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         """Open module."""
         await self.command_model.init()
 
-    def _add_command_log(self, msg, color=None):
+    def _add_command_log(self, msg: str, color: Optional[str] = None) -> None:
         if color is not None:
             msg = '<span style="color:%s;">%s</span>' % (color, msg)
         self.add_command_log.emit(msg)
 
-    def _parse_command(self, command):
+    def _parse_command(self, cmd: str) -> Tuple[str, str, List[Any]]:
         # tokenize command
-        tokens = tokenize.tokenize(BytesIO(command.encode("utf-8")).readline)
+        tokens = tokenize.tokenize(BytesIO(cmd.encode("utf-8")).readline)
 
         # init values
-        module = None
-        command = None
-        params = []
+        module: Optional[str] = None
+        command: Optional[str] = None
+        params: List[Any] = []
         sign = 1
 
         # we start here
@@ -236,15 +239,17 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
                     raise ValueError("Expecting end of command after closing bracket.")
 
                 # return results
+                if module is None or command is None:
+                    raise ValueError("Found end of command without module and/or command.")
                 return module, command, params
 
         # if we came here, something went wrong
         raise ValueError("Invalid parameters.")
 
-    def execute_command(self, command):
+    def execute_command(self, command: str) -> None:
         asyncio.create_task(self._execute_command(command))
 
-    async def _execute_command(self, command):
+    async def _execute_command(self, command: str) -> None:
         # log command
         self.command_number += 1
         self._add_command_log("$ (#%d) %s" % (self.command_number, command), "blue")
@@ -276,7 +281,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         # log response
         self._add_command_log("(#%d) %s" % (self.command_number, pprint.pformat(response)))
 
-    def _update_docs(self):
+    def _update_docs(self) -> None:
         # get current input
         cmd = str(self.textCommandInput.text())
         if "(" in cmd:
@@ -290,7 +295,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         # emit doc
         self.show_help.emit(doc)
 
-    def update_client_list(self):
+    def update_client_list(self) -> None:
         # create model for commands
         # self.command_model = CommandModel(self.comm)
         # self.completer.setModel(self.command_model)

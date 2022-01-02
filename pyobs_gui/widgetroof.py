@@ -1,44 +1,48 @@
+from typing import Any, Optional
+
 from PyQt5.QtCore import pyqtSignal
 
-from pyobs.interfaces import IDome
-from pyobs_gui.basewidget import BaseWidget
+from pyobs.interfaces import IDome, IMotion
+from pyobs.utils.enums import MotionStatus
+from .basewidget import BaseWidget
 from .qt.widgetroof import Ui_WidgetRoof
 
 
 class WidgetRoof(BaseWidget, Ui_WidgetRoof):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
         # status
-        self.motion_status = None
-        self.azimuth = None
+        self.motion_status: Optional[MotionStatus] = None
+        self.azimuth: Optional[float] = None
 
         # connect signals
-        self.buttonOpen.clicked.connect(lambda: self.run_background(self.module.init))
-        self.buttonClose.clicked.connect(lambda: self.run_background(self.module.park))
-        self.buttonStop.clicked.connect(lambda: self.run_background(self.module.stop_motion))
+        if isinstance(self.module, IMotion):
+            self.buttonOpen.clicked.connect(lambda: self.run_background(self.module.init))
+            self.buttonClose.clicked.connect(lambda: self.run_background(self.module.park))
+            self.buttonStop.clicked.connect(lambda: self.run_background(self.module.stop_motion))
         self.signal_update_gui.connect(self.update_gui)
 
-    async def _init(self):
+    async def _init(self) -> None:
         # get status and update gui
-        self.motion_status = await self.module.get_motion_status()
+        if isinstance(self.module, IMotion):
+            self.motion_status = await self.module.get_motion_status()
         self.signal_update_gui.emit()
 
-    async def _update(self):
-        # motion status
-        self.motion_status = await self.module.get_motion_status()
-
-        # azimuth
+    async def _update(self) -> None:
+        # azimuth and motion status
+        if isinstance(self.module, IMotion):
+            self.motion_status = await self.module.get_motion_status()
         if isinstance(self.module, IDome):
             _, self.azimuth = await self.module.get_altaz()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         """Update the GUI."""
 
         # enable myself

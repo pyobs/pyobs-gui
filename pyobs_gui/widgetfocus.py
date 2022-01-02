@@ -109,7 +109,7 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+        if self.module is None or sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
             return False
 
         # store new status
