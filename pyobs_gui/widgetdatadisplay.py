@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+from pyobs.comm import Proxy
 from pyobs.modules import Module
 from qfitswidget import QFitsWidget
 
@@ -82,9 +83,9 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
             if isinstance(self.module, IImageGrabber):
-                await self._on_new_data(NewImageEvent(filename, image_type), cast(Module, self.module).name())
+                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, self.module).name)
             elif isinstance(self.module, ISpectrograph):
-                await self._on_new_data(NewSpectrumEvent(filename), cast(Module, self.module).name())
+                await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, self.module).name)
             else:
                 raise ValueError("Unknown type")
 
