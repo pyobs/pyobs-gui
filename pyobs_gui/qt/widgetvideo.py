@@ -34,7 +34,7 @@ class Ui_WidgetVideo(object):
         self.formLayout = QtWidgets.QFormLayout(self.groupExposure)
         self.formLayout.setObjectName("formLayout")
         self.spinExpTime = QtWidgets.QDoubleSpinBox(self.groupExposure)
-        self.spinExpTime.setDecimals(5)
+        self.spinExpTime.setDecimals(6)
         self.spinExpTime.setMaximum(999.0)
         self.spinExpTime.setProperty("value", 1.0)
         self.spinExpTime.setObjectName("spinExpTime")

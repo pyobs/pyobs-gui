@@ -45,7 +45,7 @@
                 <string> s</string>
                </property>
                <property name="decimals">
-                <number>5</number>
+                <number>6</number>
                </property>
                <property name="maximum">
                 <double>999.000000000000000</double>
