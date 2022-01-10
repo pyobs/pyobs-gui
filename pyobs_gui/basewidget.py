@@ -20,6 +20,7 @@ from astroplan import Observer
 from pyobs.comm import Comm, Proxy
 from pyobs.vfs import VirtualFileSystem
 import pyobs.utils.exceptions as exc
+from .utils import QAsyncMessageBox
 from .widgetsmixin import WidgetsMixin
 
 
@@ -144,16 +145,18 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
         try:
             await method(*args, **kwargs)
         except exc.PyObsError as e:
-            self._show_error.emit(str(e))
+            await self.show_error(e)
         except Exception as e:
-            log.exception("error")
-            self._show_error.emit(str(e))
+            log.exception("An error occurred.")
+            await QAsyncMessageBox.warning(self, "Error", str(e))
         finally:
             # enable widgets
             self._enable_buttons.emit(disable, True)
 
-    def show_error(self, message: str) -> Any:
-        QtWidgets.QMessageBox.warning(self, "Error", message)
+    async def show_error(self, exception: exc.PyObsError) -> None:
+        err = str(exception)
+        title, message = err.split(":") if ":" in err else ("Error", err)
+        await QAsyncMessageBox.warning(self, title, message)
 
     def enable_buttons(self, widgets: List[QtWidgets.QWidget], enable: bool) -> None:
         for w in widgets:
