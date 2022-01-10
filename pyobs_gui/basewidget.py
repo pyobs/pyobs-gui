@@ -19,6 +19,7 @@ from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
 from pyobs.vfs import VirtualFileSystem
+import pyobs.utils.exceptions as exc
 from .widgetsmixin import WidgetsMixin
 
 
@@ -142,6 +143,8 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
         # call method
         try:
             await method(*args, **kwargs)
+        except exc.PyObsError as e:
+            self._show_error.emit(str(e))
         except Exception as e:
             log.exception("error")
             self._show_error.emit(str(e))
