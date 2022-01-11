@@ -28,6 +28,7 @@ class LogModel(QtCore.QAbstractTableModel):
                 "WARNING": QtGui.QColor("orange"),
                 "ERROR": QtGui.QColor("red"),
                 "DEBUG": QtGui.QColor("blue"),
+                "CRITICAL": QtGui.QColor("violet"),
             }[self._entries[index.row()][index.column()]]
 
         elif role == QtCore.Qt.TextColorRole and index.column() == 1:
