@@ -12,7 +12,7 @@ https://github.com/duniter/sakia/blob/1de71a18ec635ca63cf4784e4284eea7f6c1c8a1/s
 
 
 def dialog_async_exec(dialog: QtWidgets.QWidget) -> asyncio.Future[Any]:
-    future: asyncio.Future[Any] = asyncio.Future()
+    future: asyncio.Future[Any] = asyncio.get_running_loop().create_future()
     dialog.finished.connect(lambda r: future.set_result(r))
     dialog.open()
     return future
