@@ -18,6 +18,8 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
+from pyobs.interfaces import IModule
+from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem
 import pyobs.utils.exceptions as exc
 from .utils import QAsyncMessageBox
@@ -116,6 +118,13 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
     async def _update_loop(self) -> None:
         while True:
             try:
+                # get module state
+                if isinstance(self.module, IModule):
+                    state = await self.module.get_state()
+                    self.setEnabled(state == ModuleState.READY)
+                    if state != ModuleState.READY:
+                        return
+
                 # call update function
                 if self._update_func is not None:
                     await self._update_func()
@@ -125,6 +134,10 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
 
             except asyncio.CancelledError:
                 return
+
+            except exc.PyObsError:
+                # ignore these and sleep a little
+                await asyncio.sleep(1)
 
             except Exception as e:
                 log.warning("Exception during GUIs update function: %s", str(e))
