@@ -12,6 +12,7 @@ from enum import Enum
 import logging
 
 from pyobs.comm import RemoteException, Comm
+from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
 from .basewidget import BaseWidget
 from .qt.widgetshell import Ui_WidgetShell
 
@@ -125,7 +126,6 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.completer.setModel(self.command_model)
         self.textCommandInput.setCompleter(self.completer)
-        self.update_client_list()
 
         # create widget for popup
         table_view = QtWidgets.QTableView(self)
@@ -148,7 +148,12 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
 
     async def open(self) -> None:
         """Open module."""
-        await self.command_model.init()
+        # await self.command_model.init()
+        await self.update_client_list()
+
+        if self.comm is not None:
+            await self.comm.register_event(ModuleOpenedEvent, self._module_changed)
+            await self.comm.register_event(ModuleClosedEvent, self._module_changed)
 
     def _add_command_log(self, msg: str, color: Optional[str] = None) -> None:
         if color is not None:
@@ -294,8 +299,11 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         if not doc:
             doc = ""
 
-    def update_client_list(self) -> None:
+    async def _module_changed(self, event: Event, sender: str) -> bool:
+        asyncio.create_task(self.update_client_list())
+        return True
+
+    async def update_client_list(self) -> None:
         # create model for commands
-        # self.command_model = CommandModel(self.comm)
-        # self.completer.setModel(self.command_model)
-        pass
+        await self.command_model.init()
+        self.completer.setModel(self.command_model)
