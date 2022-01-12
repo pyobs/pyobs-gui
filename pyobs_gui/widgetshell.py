@@ -100,12 +100,11 @@ class CommandModel(QtCore.QAbstractTableModel):
     def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
         if role == QtCore.Qt.DisplayRole:
             return self.commands[index.row()][index.column()]
-        return ""
+        return QtCore.QVariant()
 
 
 class WidgetShell(BaseWidget, Ui_WidgetShell):
     add_command_log = QtCore.pyqtSignal(str)
-    show_help = QtCore.pyqtSignal(str)
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -140,6 +139,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         table_view.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
         table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         # signals/slots
         self.add_command_log.connect(self.textCommandLog.append)
@@ -282,6 +282,8 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self._add_command_log("(#%d) %s" % (self.command_number, pprint.pformat(response)))
 
     def _update_docs(self) -> None:
+        return
+
         # get current input
         cmd = str(self.textCommandInput.text())
         if "(" in cmd:
@@ -291,9 +293,6 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         doc = self.command_model.doc(cmd)
         if not doc:
             doc = ""
-
-        # emit doc
-        self.show_help.emit(doc)
 
     def update_client_list(self) -> None:
         # create model for commands
