@@ -180,7 +180,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.listPages.currentRowChanged.connect(self._change_page)
 
         # get clients
-        self._update_client_list()
+        await self._update_client_list()
         await self._check_warnings()
 
         # subscribe to events
@@ -248,7 +248,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # get new widget
         self._current_widget = self.stackedWidget.currentWidget()
 
-    def _update_client_list(self) -> None:
+    async def _update_client_list(self) -> None:
         """Updates the list of clients for the log."""
 
         # add all clients to list
@@ -262,7 +262,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
 
         # update shell
         if self.shell is not None:
-            self.shell.update_client_list()
+            await self.shell.update_client_list()
 
     async def process_log_entry(self, entry: Event, sender: str) -> bool:
         """Process a new log entry.
@@ -339,7 +339,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             return False
 
         # update client list
-        self._update_client_list()
+        await self._update_client_list()
 
         # get proxy
         proxy = await self.comm.proxy(client)
@@ -382,7 +382,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """
 
         # update client list
-        self._update_client_list()
+        await self._update_client_list()
 
         # not in list?
         if client not in self._widgets:
