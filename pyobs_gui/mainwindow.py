@@ -21,6 +21,7 @@ from pyobs.interfaces import (
 from pyobs.vfs import VirtualFileSystem
 from .widgetcamera import WidgetCamera
 from .widgetsmixin import WidgetsMixin
+from .widgetstatus import WidgetStatus
 from .widgettelescope import WidgetTelescope
 from .widgetfocus import WidgetFocus
 from .widgetweather import WidgetWeather
@@ -60,21 +61,21 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
     def __lt__(self, other: QtWidgets.QListWidgetItem) -> bool:
         """Compare two items."""
 
-        # special cases?
-        if self.text() == "Shell":
-            # if self is 'Shell', it always goes first
+        # special cases
+        special = ["Shell", "Events", "Status"]
+
+        # do they apply?
+        if self.text() in special and other.text() not in special:
+            # self is special, other not
             return True
-        elif other.text() == "Shell":
-            # if other is 'Shell', it always goes later
+        elif self.text() not in special and other.text() in special:
+            # self not in special, other is
             return False
-        elif self.text() == "Events":
-            # if self is 'Events', it only goes first if other is not 'Shell'
-            return other.text() != "Shell"
-        elif other.text() == "Events":
-            # if other is 'Events', self always goes later, since case of 'Shell' as self has always been dealt with
-            return False
+        elif self.text() in special and other.text() in special:
+            # both are
+            return special.index(self.text()) < special.index(other.text())
         else:
-            # default case
+            # none are
             return QtWidgets.QListWidgetItem.__lt__(self, other)
 
 
@@ -89,6 +90,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         observer: Observer,
         show_shell: bool = True,
         show_events: bool = True,
+        show_status: bool = True,
         show_modules: Optional[List[str]] = None,
         widgets: Optional[List[Dict[str, Any]]] = None,
         sidebar: Optional[List[Dict[str, Any]]] = None,
@@ -102,6 +104,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             observer: Observer to use.
             show_shell: Whether to show shell page.
             show_events: Whether to show events page.
+            show_status: Whether to show status page.
             show_modules: If not empty, show only listed modules.
             widgets: List of custom widgets.
             sidebar: List of custom widgets for the sidebar.
@@ -121,6 +124,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.custom_sidebar_widgets = [] if sidebar is None else sidebar
         self.show_shell = show_shell
         self.show_events = show_events
+        self.show_status = show_status
 
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
@@ -145,6 +149,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self._current_widget = None
         self.shell: Optional[WidgetShell] = None
         self.events: Optional[WidgetEvents] = None
+        self.status: Optional[WidgetStatus] = None
 
     async def open(self) -> None:
         """Open module."""
@@ -170,11 +175,22 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             self.events = WidgetEvents(self.comm)
             await self._add_client(
                 "Events",
-                QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"),
+                QtGui.QIcon(":/resources/Crystal_Clear_app_karm.png"),
                 self.events,
             )
         else:
             self.events = None
+
+        # status
+        if self.show_status:
+            self.status = WidgetStatus(self.comm)
+            await self._add_client(
+                "Status",
+                QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png"),
+                self.status,
+            )
+        else:
+            self.status = None
 
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)

@@ -16,6 +16,7 @@ class GUI(Module, IFitsHeaderBefore):
         self,
         show_shell: bool = True,
         show_events: bool = True,
+        show_status: bool = True,
         show_modules: Optional[List[str]] = None,
         widgets: Optional[List[Dict[str, Any]]] = None,
         sidebar: Optional[List[Dict[str, Any]]] = None,
@@ -42,6 +43,7 @@ class GUI(Module, IFitsHeaderBefore):
         self._window: Optional[MainWindow] = None
         self._show_shell = show_shell
         self._show_events = show_events
+        self._show_status = show_status
         self._show_modules = show_modules
         self._custom_widgets = widgets
         self._custom_sidebar_widgets = sidebar
@@ -57,6 +59,7 @@ class GUI(Module, IFitsHeaderBefore):
             self.observer,
             show_shell=self._show_shell,
             show_events=self._show_events,
+            show_status=self._show_status,
             show_modules=self._show_modules,
             widgets=self._custom_widgets,
             sidebar=self._custom_sidebar_widgets,

@@ -12,5 +12,6 @@
     <file>resources/Crystal_Clear_app_terminal.png</file>
     <file>resources/Crystal_Clear_action_find.png</file>
     <file>resources/Crystal_Clear_app_demo.png</file>
+    <file>resources/Crystal_Clear_app_karm.png</file>
   </qresource>
 </RCC>
