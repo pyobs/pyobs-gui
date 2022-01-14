@@ -257,7 +257,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
     async def _execute_command(self, command: str) -> None:
         # log command
         self.command_number += 1
-        self._add_command_log("$ (#%d) %s" % (self.command_number, command), "blue")
+        self._add_command_log("$ (#%d) %s" % (self.command_number, command))
 
         # parse command
         try:
@@ -282,7 +282,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
 
         # log response
         msg = "OK" if response is None else pprint.pformat(response)
-        self._add_command_log("(#%d) %s" % (self.command_number, msg))
+        self._add_command_log("(#%d) %s" % (self.command_number, msg), "lime")
 
     def _update_docs(self) -> None:
         return
