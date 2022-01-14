@@ -91,12 +91,12 @@ class WidgetStatus(QtWidgets.QTableWidget):
         self.comm = comm
 
         # table settings
-        self.setColumnCount(2)
-        self.setHorizontalHeaderLabels(["Module", "Status"])
+        self.setColumnCount(3)
+        self.setHorizontalHeaderLabels(["Module", "Version", "Status"])
         self.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
         self.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().setMinimumSectionSize(300)
+        self.horizontalHeader().setMinimumSectionSize(200)
         self.verticalHeader().hide()
 
     async def open(self) -> None:
@@ -120,7 +120,7 @@ class WidgetStatus(QtWidgets.QTableWidget):
 
         # add module
         proxy = await self.comm.proxy(sender)
-        self._add_module(proxy)
+        await self._add_module(proxy)
         return True
 
     async def _module_closed(self, event: Event, sender: str) -> bool:
@@ -137,7 +137,7 @@ class WidgetStatus(QtWidgets.QTableWidget):
         # success
         return True
 
-    def _add_module(self, module: Proxy) -> None:
+    async def _add_module(self, module: Proxy) -> None:
         # add row
         row = self.rowCount()
         self.setRowCount(row + 1)
@@ -147,12 +147,18 @@ class WidgetStatus(QtWidgets.QTableWidget):
         item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.setItem(row, 0, item)
 
+        # set version
+        if isinstance(module, IModule):
+            item = QtWidgets.QTableWidgetItem(await module.get_version())
+            item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.setItem(row, 1, item)
+
         # add widget for status
         widget = StatusItem(self.comm, module)
         item = QtWidgets.QTableWidgetItem()
         item.setSizeHint(widget.minimumSizeHint())
-        self.setItem(row, 1, item)
-        self.setCellWidget(row, 1, widget)
+        self.setItem(row, 2, item)
+        self.setCellWidget(row, 2, widget)
 
         # sort
         self.resizeRowsToContents()
@@ -165,7 +171,7 @@ class WidgetStatus(QtWidgets.QTableWidget):
             # loop all rows
             for row in range(self.rowCount()):
                 # get widget and update it
-                widget = self.cellWidget(row, 1)
+                widget = self.cellWidget(row, 2)
                 await widget.update_status()
 
             # sleep a little
