@@ -267,13 +267,17 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             return
 
         # get proxy
-        proxy = await self.comm.proxy(client)
+        try:
+            proxy = await self.comm.proxy(client)
+        except ValueError:
+            self._add_command_log(f"(#{self.command_number}): Could not find module: {str(client)}", "red")
+            return
 
         # execute command
         try:
             response = await proxy.execute(command, *params)
         except ValueError as e:
-            log.exception("(#%d): Something has gone wrong." % self.command_number)
+            log.exception(f"(#{self.command_number}): Something has gone wrong.")
             self._add_command_log(f"(#{self.command_number}): Invalid parameter: {str(e)}", "red")
             return
         except exc.RemoteError as e:
