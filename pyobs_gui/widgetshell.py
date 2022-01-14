@@ -4,15 +4,15 @@ import traceback
 from io import BytesIO
 import re
 from typing import Any, Optional, List, Tuple
-
 from PyQt5 import QtWidgets, QtCore
 import inspect
 import tokenize
 from enum import Enum
 import logging
 
-from pyobs.comm import RemoteException, Comm
+from pyobs.comm import Comm
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
+from pyobs.utils import exceptions as exc
 from .basewidget import BaseWidget
 from .qt.widgetshell import Ui_WidgetShell
 
@@ -274,13 +274,10 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             response = await proxy.execute(command, *params)
         except ValueError as e:
             log.exception("(#%d): Something has gone wrong." % self.command_number)
-            self._add_command_log("(#%d): Invalid parameter: %s" % (self.command_number, str(e)), "red")
+            self._add_command_log(f"(#{self.command_number}): Invalid parameter: {str(e)}", "red")
             return
-        except RemoteException as e:
-            if e:
-                self._add_command_log("(#%d): %s" % (self.command_number, traceback.format_exc()), "red")
-            else:
-                self._add_command_log("(#%d): Unknown Remote error" % self.command_number, "red")
+        except exc.RemoteError as e:
+            self._add_command_log(f"(#{self.command_number}) Exception raised: {str(e)}", "red")
             return
 
         # log response
