@@ -281,7 +281,8 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             return
 
         # log response
-        self._add_command_log("(#%d) %s" % (self.command_number, pprint.pformat(response)))
+        msg = "OK" if response is None else pprint.pformat(response)
+        self._add_command_log("(#%d) %s" % (self.command_number, msg))
 
     def _update_docs(self) -> None:
         return
