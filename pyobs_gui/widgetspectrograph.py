@@ -1,13 +1,13 @@
 import asyncio
 import logging
-from typing import Optional
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from typing import Optional, Any
+from PyQt5 import QtCore
 from astropy.io import fits
 
 from pyobs.events import ExposureStatusChangedEvent, Event
-from pyobs.interfaces import IAbortable, ISpectrograph
+from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
 from pyobs.utils.enums import ExposureStatus
-from pyobs_gui.basewidget import BaseWidget
+from .basewidget import BaseWidget
 from .widgetdatadisplay import WidgetDataDisplay
 
 from .qt.widgetspectrograph import Ui_WidgetSpectrograph
@@ -17,9 +17,9 @@ log = logging.getLogger(__name__)
 
 
 class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = QtCore.pyqtSignal()
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
@@ -43,7 +43,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(self):
+    async def open(self) -> None:
         """Open widget."""
         await BaseWidget.open(self)
 
@@ -58,8 +58,8 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # update GUI
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_butExpose_clicked')
-    def grab_spectrum(self):
+    @QtCore.pyqtSlot(name="on_butExpose_clicked")
+    def grab_spectrum(self) -> None:
         if not isinstance(self.module, ISpectrograph):
             return
 
@@ -70,8 +70,8 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @pyqtSlot(name='on_butAbort_clicked')
-    def abort(self):
+    @QtCore.pyqtSlot(name="on_butAbort_clicked")
+    def abort(self) -> None:
         """Abort exposure."""
         if isinstance(self, ISpectrograph):
             asyncio.create_task(self.module.abort())
@@ -80,18 +80,20 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            #self.exposure_time_left = await self.module.get_exposure_time_left()
-            self.exposure_progress = await self.module.get_exposure_progress()
+            if isinstance(self.module, IExposureTime):
+                self.exposure_time_left = await self.module.get_exposure_time_left()
+            if isinstance(self.module, ISpectrograph):
+                self.exposure_progress = await self.module.get_exposure_progress()
 
         else:
             # reset
-            #self.exposure_time_left = 0
+            self.exposure_time_left = 0
             self.exposure_progress = 0
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    def update_gui(self):
+    def update_gui(self) -> None:
         """Update the GUI."""
 
         # enable myself
@@ -102,17 +104,17 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         self.butAbort.setEnabled(self.exposure_status != ExposureStatus.IDLE)
 
         # set progress
-        msg = ''
+        msg = ""
         if self.exposure_status == ExposureStatus.IDLE:
             self.progressExposure.setValue(0)
-            msg = 'IDLE'
+            msg = "IDLE"
         elif self.exposure_status == ExposureStatus.EXPOSING:
-            #self.progressExposure.setValue(int(self.exposure_progress))
-            #msg = 'EXPOSING %.1fs' % self.exposure_time_left
-            msg = ''
+            # self.progressExposure.setValue(int(self.exposure_progress))
+            # msg = 'EXPOSING %.1fs' % self.exposure_time_left
+            msg = ""
         elif self.exposure_status == ExposureStatus.READOUT:
             self.progressExposure.setValue(100)
-            msg = 'READOUT'
+            msg = "READOUT"
 
         # set message
         self.labelStatus.setText(msg)
@@ -120,7 +122,7 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # trigger image update
         if self.new_spectrum:
             # set filename
-            #self.tabWidget.setTabText(0, os.path.basename(self.spectrum_filename))
+            # self.tabWidget.setTabText(0, os.path.basename(self.spectrum_filename))
 
             # plot image
             self.plot()

@@ -3,36 +3,50 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import Coroutine
-from typing import List, Dict, Tuple, Any, Union, TypeVar, Optional, Callable, TYPE_CHECKING
+from typing import (
+    List,
+    Dict,
+    Tuple,
+    Any,
+    Union,
+    TypeVar,
+    Optional,
+    Callable,
+)
 
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QMessageBox
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
+from pyobs.interfaces import IModule
+from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem
-if TYPE_CHECKING:
-    from pyobs.modules import Module
-
-
+import pyobs.utils.exceptions as exc
+from .utils import QAsyncMessageBox
 from .widgetsmixin import WidgetsMixin
 
 
 log = logging.getLogger(__name__)
 
 
-WidgetClass = TypeVar('WidgetClass')
+WidgetClass = TypeVar("WidgetClass")
 
 
-class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
-    _show_error = pyqtSignal(str)
-    _enable_buttons = pyqtSignal(list, bool)
+class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
+    _show_error = QtCore.pyqtSignal(str)
+    _enable_buttons = QtCore.pyqtSignal(list, bool)
 
-    def __init__(self, module: Optional[Proxy] = None, comm: Optional[Comm] = None,
-                 observer: Optional[Observer] = None, vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-                 update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1,
-                 *args: Any, **kwargs: Any):
+    def __init__(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        update_func: Optional[Callable[[], Any]] = None,
+        update_interval: float = 1,
+        *args: Any,
+        **kwargs: Any,
+    ):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
         WidgetsMixin.__init__(self)
 
@@ -49,11 +63,11 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         # update
         self._update_func = update_func
         self._update_interval = update_interval
-        self._update_task: Optional[asyncio.Task] = None
+        self._update_task: Optional[Any] = None
 
         # sidebar
         self.sidebar_widgets: List[BaseWidget] = []
-        self.sidebar_layout = None
+        self.sidebar_layout: Optional[QtWidgets.QVBoxLayout] = None
 
         # has it been initialized?
         self._initialized = False
@@ -80,7 +94,7 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         asyncio.create_task(self._showEvent(event))
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:
-        if self._initialized is False and hasattr(self, '_init'):
+        if self._initialized is False and hasattr(self, "_init"):
             await self._init()
             self._initialized = True
 
@@ -90,9 +104,9 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # run in loop
-        asyncio.create_task(self._hideEvent(event))
+        asyncio.create_task(self._hide_event(event))
 
-    async def _hideEvent(self, event: QtGui.QHideEvent) -> None:
+    async def _hide_event(self, event: QtGui.QHideEvent) -> None:
         # stop task
         if self._update_task is not None:
             self._update_task.cancel()
@@ -104,8 +118,16 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
     async def _update_loop(self) -> None:
         while True:
             try:
+                # get module state
+                if isinstance(self.module, IModule):
+                    state = await self.module.get_state()
+                    self.setEnabled(state == ModuleState.READY)
+                    if state != ModuleState.READY:
+                        return
+
                 # call update function
-                await self._update_func()
+                if self._update_func is not None:
+                    await self._update_func()
 
                 # sleep a little
                 await asyncio.sleep(1)
@@ -113,16 +135,21 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
             except asyncio.CancelledError:
                 return
 
+            except exc.PyObsError:
+                # ignore these and sleep a little
+                await asyncio.sleep(1)
+
             except Exception as e:
                 log.warning("Exception during GUIs update function: %s", str(e))
 
-    def run_background(self, method: Callable[[...], Coroutine], *args: Any, **kwargs: Any) -> None:
+    def run_background(self, method: Callable[..., Coroutine[Any, Any, None]], *args: Any, **kwargs: Any) -> None:
         asyncio.create_task(self._background_task(method, *args, **kwargs))
 
-    async def _background_task(self, method: Callable[[...], Coroutine], *args: Any, disable: Any = None,
-                               **kwargs: Any) -> None:
+    async def _background_task(
+        self, method: Callable[..., Coroutine[Any, Any, None]], *args: Any, disable: Any = None, **kwargs: Any
+    ) -> None:
         # make disable an empty list or a list of widgets
-        disable = [] if disable is None else [disable] if not hasattr(disable, '__iter__') else disable
+        disable = [] if disable is None else [disable] if not hasattr(disable, "__iter__") else disable
 
         # disable widgets
         self._enable_buttons.emit(disable, False)
@@ -130,18 +157,23 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
         # call method
         try:
             await method(*args, **kwargs)
+        except exc.PyObsError as e:
+            await self.show_error(e)
         except Exception as e:
-            log.exception("error")
-            self._show_error.emit(str(e))
+            log.exception("An error occurred.")
+            await QAsyncMessageBox.warning(self, "Error", str(e))
         finally:
             # enable widgets
             self._enable_buttons.emit(disable, True)
 
-    def show_error(self, message: str) -> Any:
-        QMessageBox.warning(self, 'Error', message)
+    async def show_error(self, exception: exc.PyObsError) -> None:
+        err = str(exception)
+        title, message = err.split(":") if ":" in err else ("Error", err)
+        await QAsyncMessageBox.warning(self, title, message)
 
     def enable_buttons(self, widgets: List[QtWidgets.QWidget], enable: bool) -> None:
-        [w.setEnabled(enable) for w in widgets]
+        for w in widgets:
+            w.setEnabled(enable)
 
     def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
@@ -164,7 +196,10 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):  # type: ignore
 
         # change active colors
         pal.setColor(QtGui.QPalette.Button, background)
-        pal.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.black if black_on_white else QtCore.Qt.white)
+        pal.setColor(
+            QtGui.QPalette.ButtonText,
+            QtCore.Qt.black if black_on_white else QtCore.Qt.white,
+        )
 
         # change disabled colors
         pal.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtCore.Qt.gray)

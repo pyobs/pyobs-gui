@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
+from typing import Any, Type, Dict
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
 import pyobs.events
-from pyobs.comm import RemoteException
+from pyobs.comm import Comm
 from pyobs.events import LogEvent, Event
-from pyobs_gui.qt.widgetevents import Ui_WidgetEvents
+from .qt.widgetevents import Ui_WidgetEvents
 
 
 class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
@@ -17,7 +18,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
 
         # set up table
         self.tableEvents.setColumnCount(4)
-        self.tableEvents.setHorizontalHeaderLabels(['Time', 'Sender', 'Event', 'Data'])
+        self.tableEvents.setHorizontalHeaderLabels(["Time", "Sender", "Event", "Data"])
         self.tableEvents.setColumnWidth(0, 80)
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
@@ -32,13 +33,16 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
                 await self.comm.register_event(cls, self._handle_event)
 
                 # get c'tor
-                ctor = getattr(cls, '__init__')
+                ctor = getattr(cls, "__init__")
                 sig = inspect.signature(ctor)
-                params = [] if len(sig.parameters) < 2 else \
-                    [p.name for p in sig.parameters.values() if p.name not in ['self', 'args', 'kwargs']]
+                params = (
+                    []
+                    if len(sig.parameters) < 2
+                    else [p.name for p in sig.parameters.values() if p.name not in ["self", "args", "kwargs"]]
+                )
 
                 # build name
-                name = '%s (%s)' % (cls.__name__, ', '.join(params))
+                name = "%s (%s)" % (cls.__name__, ", ".join(params))
 
                 # add to combo
                 self.comboEvent.addItem(name, cls)
@@ -62,7 +66,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         time = datetime.fromtimestamp(event.timestamp)
 
         # fill it
-        self.tableEvents.setItem(0, 0, QtWidgets.QTableWidgetItem(time.strftime('%H:%M:%S')))
+        self.tableEvents.setItem(0, 0, QtWidgets.QTableWidgetItem(time.strftime("%H:%M:%S")))
         self.tableEvents.setItem(0, 1, QtWidgets.QTableWidgetItem(sender))
         self.tableEvents.setItem(0, 2, QtWidgets.QTableWidgetItem(event.__class__.__name__))
         self.tableEvents.setItem(0, 3, QtWidgets.QTableWidgetItem(str(event.data)))
@@ -72,7 +76,7 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
             self.tableEvents.setRowCount(400)
 
     @QtCore.pyqtSlot()
-    def on_buttonSend_clicked(self):
+    def on_buttonSend_clicked(self) -> None:
         # get event class
         cls = self.comboEvent.itemData(self.comboEvent.currentIndex())
 
@@ -82,8 +86,8 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
 
 
 class SendEventDialog(QtWidgets.QDialog):
-    def __init__(self, comm, event: type, *args, **kwargs):
-        QtWidgets.QDialog.__init__(self, *args, **kwargs)
+    def __init__(self, comm: Comm, event: Type[Event], **kwargs: Any):
+        QtWidgets.QDialog.__init__(self, **kwargs)
 
         # save event type
         self._event = event
@@ -98,18 +102,18 @@ class SendEventDialog(QtWidgets.QDialog):
         layout.addWidget(title)
 
         # get c'tor and its params
-        ctor = getattr(event, '__init__')
+        ctor = getattr(event, "__init__")
         sig = inspect.signature(ctor)
 
         # add input for every param
         self._widgets = {}
         for p in sig.parameters:
-            if p not in ['self', 'args', 'kwargs']:
+            if p not in ["self", "args", "kwargs"]:
                 # create widget
                 if sig.parameters[p].annotation == int:
                     widget = QtWidgets.QSpinBox()
-                    widget.setMinimum(-1e5)
-                    widget.setMaximum(1e5)
+                    widget.setMinimum(-100000)
+                    widget.setMaximum(100000)
                 elif sig.parameters[p].annotation == float:
                     widget = QtWidgets.QDoubleSpinBox()
                     widget.setMinimum(-1e5)
@@ -135,11 +139,11 @@ class SendEventDialog(QtWidgets.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    def _send_event(self):
+    def _send_event(self) -> None:
         """Actually send event."""
 
         # collect values
-        values = {}
+        values: Dict[str, Any] = {}
         for name, (checkbox, widget) in self._widgets.items():
             if not checkbox.isChecked():
                 values[name] = None

@@ -1,9 +1,10 @@
 import logging
 import os
-from PyQt5.QtCore import pyqtSlot
+from typing import Any, Optional, List, Dict, Tuple
 
-from pyobs.interfaces import ICooling
-from pyobs_gui.basewidget import BaseWidget
+from PyQt5 import QtCore
+
+from .basewidget import BaseWidget
 from .qt.widgetfitsheaders import Ui_WidgetFitsHeaders
 
 
@@ -11,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
@@ -19,11 +20,12 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         try:
             # set current username
             import pwd
+
             self.textUser.setText(pwd.getpwuid(os.getuid()).pw_name)
         except ModuleNotFoundError:
             pass
 
-    def get_fits_headers(self, namespaces: list = None, *args, **kwargs) -> dict:
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -34,7 +36,7 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         """
 
         # check sender
-        if 'sender' in kwargs and kwargs['sender'] != self.module.name:
+        if "sender" in kwargs and kwargs["sender"] != self.module.name:
             return {}
 
         # don't want to send headers?
@@ -43,8 +45,8 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
 
         # define basic headers
         headers = {
-            'OBJECT': (self.textObject.text(), 'Observed object'),
-            'USER': (self.textUser.text(), 'Name of user')
+            "OBJECT": (self.textObject.text(), "Observed object"),
+            "USER": (self.textUser.text(), "Name of user"),
         }
 
         # addition headers?
@@ -60,13 +62,13 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
         # return them
         return headers
 
-    @pyqtSlot(name='on_buttonAddHeader_clicked')
-    def add_header(self):
+    @QtCore.pyqtSlot(name="on_buttonAddHeader_clicked")
+    def add_header(self) -> None:
         """Increase row count by 1."""
         self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
-    @pyqtSlot(name='on_buttonDelHeader_clicked')
-    def del_header(self):
+    @QtCore.pyqtSlot(name="on_buttonDelHeader_clicked")
+    def del_header(self) -> None:
         """Delete current row"""
 
         # get row
@@ -76,4 +78,3 @@ class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
 
         # delete it
         self.tableAdditionalHeaders.removeRow(row)
-

@@ -517,7 +517,9 @@ class Ui_WidgetTelescope(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsSemiMajorAxis.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsSemiMajorAxis.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsSemiMajorAxis.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsSemiMajorAxis.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsSemiMajorAxis.setDecimals(6)
         self.spinOrbitElementsSemiMajorAxis.setProperty("value", 1.0)
         self.spinOrbitElementsSemiMajorAxis.setObjectName("spinOrbitElementsSemiMajorAxis")
@@ -528,7 +530,7 @@ class Ui_WidgetTelescope(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsIncl.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsIncl.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsIncl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsIncl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsIncl.setDecimals(6)
         self.spinOrbitElementsIncl.setMaximum(360.0)
         self.spinOrbitElementsIncl.setObjectName("spinOrbitElementsIncl")
@@ -539,7 +541,7 @@ class Ui_WidgetTelescope(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsEcc.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsEcc.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsEcc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsEcc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsEcc.setDecimals(6)
         self.spinOrbitElementsEcc.setMaximum(1.0)
         self.spinOrbitElementsEcc.setSingleStep(0.1)
@@ -551,7 +553,7 @@ class Ui_WidgetTelescope(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsMA.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsMA.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsMA.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsMA.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsMA.setDecimals(6)
         self.spinOrbitElementsMA.setMaximum(360.0)
         self.spinOrbitElementsMA.setObjectName("spinOrbitElementsMA")
@@ -562,7 +564,9 @@ class Ui_WidgetTelescope(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsOmega.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsOmega.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsOmega.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsOmega.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsOmega.setDecimals(6)
         self.spinOrbitElementsOmega.setMaximum(360.0)
         self.spinOrbitElementsOmega.setObjectName("spinOrbitElementsOmega")
@@ -573,13 +577,17 @@ class Ui_WidgetTelescope(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsPerifocus.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsPerifocus.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsPerifocus.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsPerifocus.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsPerifocus.setDecimals(6)
         self.spinOrbitElementsPerifocus.setMaximum(360.0)
         self.spinOrbitElementsPerifocus.setObjectName("spinOrbitElementsPerifocus")
         self.gridLayout_2.addWidget(self.spinOrbitElementsPerifocus, 1, 3, 1, 1)
         self.spinOrbitElementsEpoch = QtWidgets.QDoubleSpinBox(self.widget_3)
-        self.spinOrbitElementsEpoch.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsEpoch.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsEpoch.setDecimals(6)
         self.spinOrbitElementsEpoch.setMaximum(9999999.0)
         self.spinOrbitElementsEpoch.setObjectName("spinOrbitElementsEpoch")
@@ -626,7 +634,9 @@ class Ui_WidgetTelescope(object):
         self.verticalLayout_7.addWidget(self.groupDestCoords)
         self.buttonMove = QtWidgets.QPushButton(self.groupBox_5)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonMove.setIcon(icon1)
         self.buttonMove.setObjectName("buttonMove")
         self.verticalLayout_7.addWidget(self.buttonMove)
@@ -742,7 +752,9 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_7.setObjectName("gridLayout_7")
         self.buttonOffsetEast = QtWidgets.QPushButton(self.groupBox)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonOffsetEast.setIcon(icon4)
         self.buttonOffsetEast.setObjectName("buttonOffsetEast")
         self.gridLayout_7.addWidget(self.buttonOffsetEast, 1, 0, 1, 1)
@@ -765,7 +777,9 @@ class Ui_WidgetTelescope(object):
         self.gridLayout_7.addWidget(self.buttonOffsetNorth, 0, 1, 1, 1)
         self.buttonOffsetSouth = QtWidgets.QPushButton(self.groupBox)
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon6.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonOffsetSouth.setIcon(icon6)
         self.buttonOffsetSouth.setObjectName("buttonOffsetSouth")
         self.gridLayout_7.addWidget(self.buttonOffsetSouth, 2, 1, 1, 1)
@@ -862,8 +876,10 @@ class Ui_WidgetTelescope(object):
         self.buttonSetAzOffset.setText(_translate("WidgetTelescope", "set"))
         self.buttonResetHorizontalOffsets.setText(_translate("WidgetTelescope", "reset"))
         self.buttonOffsetEast.setText(_translate("WidgetTelescope", "E"))
-        self.spinOffset.setSuffix(_translate("WidgetTelescope", "\""))
+        self.spinOffset.setSuffix(_translate("WidgetTelescope", '"'))
         self.buttonOffsetWest.setText(_translate("WidgetTelescope", "W"))
         self.buttonOffsetNorth.setText(_translate("WidgetTelescope", "N"))
         self.buttonOffsetSouth.setText(_translate("WidgetTelescope", "S"))
+
+
 from . import resources_rc

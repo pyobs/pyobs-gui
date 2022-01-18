@@ -47,22 +47,31 @@ class VisPlot:
         alt = np.array(alt)
         az = np.array(az)
 
-        font = {'family': 'monospace',
-                'weight': 'normal',
-                'size': 10}
+        font = {"family": "monospace", "weight": "normal", "size": 10}
 
-        plt.rc('font', **font)
+        plt.rc("font", **font)
 
         # axes
-        ax.set_theta_zero_location('N')
-        ax.set_ylim(0., 60.)
-        d = u'\N{DEGREE SIGN}'
-        ax.set_xticks(np.deg2rad([0., 45., 90., 135, 180, 225, 270, 315]),
-                      ["N/0" + d, "45" + d, "E/90" + d, "135" + d, "S/180" + d, "225" + d, "W/270" + d, "315" + d])
+        ax.set_theta_zero_location("N")
+        ax.set_ylim(0.0, 60.0)
+        d = "\N{DEGREE SIGN}"
+        ax.set_xticks(
+            np.deg2rad([0.0, 45.0, 90.0, 135, 180, 225, 270, 315]),
+            [
+                "N/0" + d,
+                "45" + d,
+                "E/90" + d,
+                "135" + d,
+                "S/180" + d,
+                "225" + d,
+                "W/270" + d,
+                "315" + d,
+            ],
+        )
         ax.set_yticks([20, 45, 60], (70, 45, 30))
 
         # plot tracks and store handle
-        ax.plot_cartesian(np.deg2rad(az), abs(90. - alt), linewidth=2, ls='-', c='r')
+        ax.plot_cartesian(np.deg2rad(az), abs(90.0 - alt), linewidth=2, ls="-", c="r")
 
         # steps are 15min; 4 steps for 1hr
         for i in range(len(x)):
@@ -70,4 +79,12 @@ class VisPlot:
                 continue
 
             # plot it
-            ax.plot_cartesian(np.deg2rad(az[i]), abs(90. - alt[i]), marker='+', mew=2., ms=6, ls='None', color='r')
+            ax.plot_cartesian(
+                np.deg2rad(az[i]),
+                abs(90.0 - alt[i]),
+                marker="+",
+                mew=2.0,
+                ms=6,
+                ls="None",
+                color="r",
+            )

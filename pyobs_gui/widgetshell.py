@@ -3,14 +3,16 @@ import pprint
 import traceback
 from io import BytesIO
 import re
+from typing import Any, Optional, List, Tuple
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSignal
 import inspect
 import tokenize
 from enum import Enum
 import logging
 
-from pyobs.comm import RemoteException
+from pyobs.comm import Comm
+from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
+from pyobs.utils import exceptions as exc
 from .basewidget import BaseWidget
 from .qt.widgetshell import Ui_WidgetShell
 
@@ -30,11 +32,11 @@ class ParserState(Enum):
 
 
 class CommandModel(QtCore.QAbstractTableModel):
-    def __init__(self, comm, *args, **kwargs):
+    def __init__(self, comm: Comm, *args: Any, **kwargs: Any):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
 
         # create model
-        self.commands = []
+        self.commands: List[Tuple[str, str, str, str]] = []
         self.comm = comm
 
     async def init(self) -> None:
@@ -50,7 +52,7 @@ class CommandModel(QtCore.QAbstractTableModel):
                         continue
 
                     # get name
-                    name = '%s.%s' % (client_name, method_name)
+                    name = "%s.%s" % (client_name, method_name)
 
                     # exists?
                     if name in command_names:
@@ -60,60 +62,60 @@ class CommandModel(QtCore.QAbstractTableModel):
                     # get signature
                     params = []
                     for param_name, param in inspect.signature(member).parameters.items():
-                        if param_name not in ['self', 'args', 'kwargs']:
+                        if param_name not in ["self", "args", "kwargs"]:
                             # parameter name itself
                             arg = param_name
 
                             # go a type?
-                            if param.annotation != inspect.Parameter.empty and hasattr(param.annotation, '__name__'):
-                                arg += ': ' + param.annotation.__name__
+                            if param.annotation != inspect.Parameter.empty and hasattr(param.annotation, "__name__"):
+                                arg += ": " + param.annotation.__name__
 
                             # default value?
                             if param.default != inspect.Parameter.empty:
-                                arg += ' = ' + str(param.default)
+                                arg += " = " + str(param.default)
 
                             params.append(arg)
 
                     # get first line of documentation
-                    doc = member.__doc__
-                    short_doc = doc.split('\n')[0]
+                    doc = str(member.__doc__)
+                    short_doc = doc.split("\n")[0]
 
                     # append to list
-                    self.commands.append((name, '(' + ', '.join(params) + ')', short_doc, doc))
+                    self.commands.append((name, "(" + ", ".join(params) + ")", short_doc, doc))
 
         # sort
         self.commands.sort(key=lambda m: m[0])
 
-    def doc(self, command):
+    def doc(self, command: str) -> Optional[str]:
         for c in self.commands:
             if c[0] == command:
                 return c[3]
         return None
 
-    def rowCount(self, parent=None, *args, **kwargs):
+    def rowCount(self, parent: Optional[Any] = None, *args: Any, **kwargs: Any) -> int:
         return len(self.commands)
 
-    def columnCount(self, parent=None, *args, **kwargs):
+    def columnCount(self, parent: Optional[Any] = None, *args: Any, **kwargs: Any) -> int:
         return 3
 
-    def data(self, index: QtCore.QModelIndex, role=None):
+    def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
         if role == QtCore.Qt.DisplayRole:
             return self.commands[index.row()][index.column()]
+        return QtCore.QVariant()
 
 
 class WidgetShell(BaseWidget, Ui_WidgetShell):
-    add_command_log = pyqtSignal(str)
-    show_help = pyqtSignal(str)
+    add_command_log = QtCore.pyqtSignal(str)
 
-    def __init__(self, *args, **kwargs):
-        BaseWidget.__init__(self, *args, **kwargs)
+    def __init__(self, **kwargs: Any):
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
         self.command_number = 0
 
         # commands
         self.command_model = CommandModel(self.comm)
 
-        self.command_regexp = re.compile(r'(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)')
+        self.command_regexp = re.compile(r"(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)")
         self.args_regexp = re.compile(r'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
         # create completer
@@ -124,7 +126,6 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.completer.setModel(self.command_model)
         self.textCommandInput.setCompleter(self.completer)
-        self.update_client_list()
 
         # create widget for popup
         table_view = QtWidgets.QTableView(self)
@@ -138,6 +139,7 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         table_view.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
         table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
         # signals/slots
         self.add_command_log.connect(self.textCommandLog.append)
@@ -146,21 +148,26 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
 
     async def open(self) -> None:
         """Open module."""
-        await self.command_model.init()
+        # await self.command_model.init()
+        await self.update_client_list()
 
-    def _add_command_log(self, msg, color=None):
+        if self.comm is not None:
+            await self.comm.register_event(ModuleOpenedEvent, self._module_changed)
+            await self.comm.register_event(ModuleClosedEvent, self._module_changed)
+
+    def _add_command_log(self, msg: str, color: Optional[str] = None) -> None:
         if color is not None:
             msg = '<span style="color:%s;">%s</span>' % (color, msg)
         self.add_command_log.emit(msg)
 
-    def _parse_command(self, command):
+    def _parse_command(self, cmd: str) -> Tuple[str, str, List[Any]]:
         # tokenize command
-        tokens = tokenize.tokenize(BytesIO(command.encode('utf-8')).readline)
+        tokens = tokenize.tokenize(BytesIO(cmd.encode("utf-8")).readline)
 
         # init values
-        module = None
-        command = None
-        params = []
+        module: Optional[str] = None
+        command: Optional[str] = None
+        params: List[Any] = []
         sign = 1
 
         # we start here
@@ -171,41 +178,41 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
             if state == ParserState.START:
                 # first token is always ENCODING
                 if t.type != tokenize.ENCODING:
-                    raise ValueError('Invalid command.')
+                    raise ValueError("Invalid command.")
                 state = ParserState.MODULE
 
             elif state == ParserState.MODULE:
                 # 2nd token is always a NAME with the command
                 if t.type != tokenize.NAME:
-                    raise ValueError('Invalid command.')
+                    raise ValueError("Invalid command.")
                 module = t.string
                 state = ParserState.MODSEP
 
             elif state == ParserState.MODSEP:
                 # 3rd token is always a point
-                if t.type != tokenize.OP or t.string != '.':
-                    raise ValueError('Invalid command.')
+                if t.type != tokenize.OP or t.string != ".":
+                    raise ValueError("Invalid command.")
                 state = ParserState.COMMAND
 
             elif state == ParserState.COMMAND:
                 # 4th token is always a NAME with the command
                 if t.type != tokenize.NAME:
-                    raise ValueError('Invalid command.')
+                    raise ValueError("Invalid command.")
                 command = t.string
                 state = ParserState.OPEN
 
             elif state == ParserState.OPEN:
                 # 5th token is always an OP with an opening bracket
-                if t.type != tokenize.OP or t.string != '(':
-                    raise ValueError('Invalid parameters.')
+                if t.type != tokenize.OP or t.string != "(":
+                    raise ValueError("Invalid parameters.")
                 state = ParserState.PARAM
 
             elif state == ParserState.PARAM:
                 # if params list is empty, we accept an OP with a closing bracket, otherwise it must be
                 # a NUMBER or STRING
-                if len(params) == 0 and t.type == tokenize.OP and t.string == ')':
+                if len(params) == 0 and t.type == tokenize.OP and t.string == ")":
                     state = ParserState.CLOSE
-                elif t.type == tokenize.OP and t.string == '-':
+                elif t.type == tokenize.OP and t.string == "-":
                     sign = -1
                 elif t.type == tokenize.NUMBER or t.type == tokenize.STRING:
                     if t.type == tokenize.STRING:
@@ -218,81 +225,87 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
                     sign = 1
                     state = ParserState.PARAMSEP
                 else:
-                    raise ValueError('Invalid parameters.')
+                    raise ValueError("Invalid parameters.")
 
             elif state == ParserState.PARAMSEP:
                 # following a PARAM, there must be an OP, either a comma, or a closing bracket
                 if t.type != tokenize.OP:
-                    raise ValueError('Invalid parameters.')
-                if t.string == ',':
+                    raise ValueError("Invalid parameters.")
+                if t.string == ",":
                     state = ParserState.PARAM
-                elif t.string == ')':
+                elif t.string == ")":
                     state = ParserState.CLOSE
                 else:
-                    raise ValueError('Invalid parameters.')
+                    raise ValueError("Invalid parameters.")
 
             elif state == ParserState.CLOSE:
                 # must be a closing bracket
                 if t.type not in [tokenize.NEWLINE, tokenize.ENDMARKER]:
-                    raise ValueError('Expecting end of command after closing bracket.')
+                    raise ValueError("Expecting end of command after closing bracket.")
 
                 # return results
+                if module is None or command is None:
+                    raise ValueError("Found end of command without module and/or command.")
                 return module, command, params
 
         # if we came here, something went wrong
-        raise ValueError('Invalid parameters.')
+        raise ValueError("Invalid parameters.")
 
-    def execute_command(self, command):
+    def execute_command(self, command: str) -> None:
         asyncio.create_task(self._execute_command(command))
 
-    async def _execute_command(self, command):
+    async def _execute_command(self, command: str) -> None:
         # log command
         self.command_number += 1
-        self._add_command_log('$ (#%d) %s' % (self.command_number, command), 'blue')
+        self._add_command_log("$ (#%d) %s" % (self.command_number, command))
 
         # parse command
         try:
             client, command, params = self._parse_command(command)
         except Exception as e:
-            self._add_command_log('(#%d): %s' % (self.command_number, str(e)), 'red')
+            self._add_command_log("(#%d): %s" % (self.command_number, str(e)), "red")
             return
 
         # get proxy
-        proxy = await self.comm.proxy(client)
+        try:
+            proxy = await self.comm.proxy(client)
+        except ValueError:
+            self._add_command_log(f"(#{self.command_number}): Could not find module: {str(client)}", "red")
+            return
 
         # execute command
         try:
             response = await proxy.execute(command, *params)
         except ValueError as e:
-            log.exception('(#%d): Something has gone wrong.' % self.command_number)
-            self._add_command_log('(#%d): Invalid parameter: %s' % (self.command_number, str(e)), 'red')
+            log.exception(f"(#{self.command_number}): Something has gone wrong.")
+            self._add_command_log(f"(#{self.command_number}): Invalid parameter: {str(e)}", "red")
             return
-        except RemoteException as e:
-            if e:
-                self._add_command_log('(#%d): %s' % (self.command_number, traceback.format_exc()), 'red')
-            else:
-                self._add_command_log('(#%d): Unknown Remote error' % self.command_number, 'red')
+        except exc.RemoteError as e:
+            self._add_command_log(f"(#{self.command_number}) Exception raised: {str(e)}", "red")
             return
 
         # log response
-        self._add_command_log('(#%d) %s' % (self.command_number, pprint.pformat(response)))
+        msg = "OK" if response is None else pprint.pformat(response)
+        self._add_command_log("(#%d) %s" % (self.command_number, msg), "lime")
 
-    def _update_docs(self):
+    def _update_docs(self) -> None:
+        return
+
         # get current input
         cmd = str(self.textCommandInput.text())
-        if '(' in cmd:
-            cmd = cmd[:cmd.index('(')]
+        if "(" in cmd:
+            cmd = cmd[: cmd.index("(")]
 
         # get documentation
         doc = self.command_model.doc(cmd)
         if not doc:
-            doc = ''
+            doc = ""
 
-        # emit doc
-        self.show_help.emit(doc)
+    async def _module_changed(self, event: Event, sender: str) -> bool:
+        asyncio.create_task(self.update_client_list())
+        return True
 
-    def update_client_list(self):
+    async def update_client_list(self) -> None:
         # create model for commands
-        #self.command_model = CommandModel(self.comm)
-        #self.completer.setModel(self.command_model)
-        pass
+        await self.command_model.init()
+        self.completer.setModel(self.command_model)
