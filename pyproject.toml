@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyobs-gui"
-version = "0.16.0"
+version = "0.18.0"
 description = "A remote GUI for pyobs"
 authors = ["Tim-Oliver Husser <thusser@uni-goettingen.de>"]
 license = "MIT"
@@ -12,7 +12,7 @@ PyQt5 = "^5.13"
 matplotlib = "^3.4"
 qfitswidget = "^0.8"
 qasync = "^0.22"
-pyobs-core = "^0.16.1"
+pyobs-core = ">=0.18.0"
 
 [tool.poetry.dev-dependencies]
 black = "^21.12b0"

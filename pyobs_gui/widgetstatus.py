@@ -52,10 +52,9 @@ class StatusItem(QtWidgets.QWidget):
         """Update status of module and display it."""
         # get state and error string
         state = await self.module.get_state()
-        error = await self.module.get_error_string()
 
         # if nothing changed, end here
-        if state == self.last_state and error == self.last_error:
+        if state == self.last_state:
             return
 
         # set status
@@ -65,9 +64,11 @@ class StatusItem(QtWidgets.QWidget):
             self.buttonAction.setVisible(False)
 
         elif state == ModuleState.ERROR:
+            error = await self.module.get_error_string()
             self.labelStatus.setText(f"ERROR: {error}")
             self.setStyleSheet("background-color: red; color: black;")
             self.buttonAction.setVisible(True)
+            self.last_error = error
 
         else:
             self.labelStatus.setText(f"{state.value.upper()}")
@@ -76,7 +77,6 @@ class StatusItem(QtWidgets.QWidget):
 
         # store it
         self.last_state = state
-        self.last_error = error
 
     def button_clicked(self) -> None:
         """Do button action."""
@@ -169,10 +169,16 @@ class WidgetStatus(QtWidgets.QTableWidget):
 
         while True:
             # loop all rows
+            futures = []
             for row in range(self.rowCount()):
                 # get widget and update it
                 widget = self.cellWidget(row, 2)
-                await widget.update_status()
+                if widget is not None:
+                    futures.append(asyncio.create_task(widget.update_status()))
+
+            # await futures
+            for fut in futures:
+                await fut
 
             # sleep a little
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
