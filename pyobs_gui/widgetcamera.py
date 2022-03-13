@@ -16,6 +16,7 @@ from pyobs.interfaces import (
     ICooling,
     ITemperatures,
     ICamera,
+    IGain,
 )
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from .basewidget import BaseWidget
@@ -62,13 +63,12 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         self.groupWindowing.setVisible(isinstance(self.module, IWindow))
         self.groupBinning.setVisible(isinstance(self.module, IBinning))
         self.groupImageFormat.setVisible(isinstance(self.module, IImageFormat))
+        self.groupExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.groupGain.setVisible(isinstance(self.module, IGain))
 
         # and single controls
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
-        self.comboExpTimeUnit.setVisible(isinstance(self.module, IExposureTime))
         self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
         # initial values
@@ -215,32 +215,35 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             await self.module.set_image_format(image_format)
 
+        # set exposure time
+        if isinstance(self.module, IExposureTime):
+            # get exp_time
+            exp_time = self.spinExpTime.value()
+
+            # unit
+            if self.comboExpTimeUnit.currentText() == "ms":
+                exp_time /= 1e3
+            elif self.comboExpTimeUnit.currentText() == "µs":
+                exp_time /= 1e6
+
+            # set it
+            await self.module.set_exposure_time(exp_time)
+
+        # set image type
+        image_type = ImageType.OBJECT
+        if isinstance(self.module, IImageType):
+            image_type = ImageType(self.comboImageType.currentText().lower())
+            await self.module.set_image_type(image_type)
+
+        # set gain
+        if isinstance(self.module, IGain):
+            await self.module.set_gain(self.spinGain.value())
+
         # set initial image count
         self.exposures_left = self.spinCount.value()
 
-        # get image type
-        image_type = ImageType(self.comboImageType.currentText().lower())
-
         # do exposure(s)
         while self.exposures_left > 0:
-            # set exposure time
-            if isinstance(self.module, IExposureTime):
-                # get exp_time
-                exp_time = self.spinExpTime.value()
-
-                # unit
-                if self.comboExpTimeUnit.currentText() == "ms":
-                    exp_time /= 1e3
-                elif self.comboExpTimeUnit.currentText() == "µs":
-                    exp_time /= 1e6
-
-                # set it
-                await self.module.set_exposure_time(exp_time)
-
-            # set image type
-            if isinstance(self.module, IImageType):
-                await self.module.set_image_type(image_type)
-
             # expose
             broadcast = self.checkBroadcast.isChecked()
             await self.widgetDataDisplay.grab_data(broadcast, image_type)
