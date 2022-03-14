@@ -4,7 +4,7 @@ from typing import Any, Optional, cast
 from urllib.parse import urlparse
 from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
 
-from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo
+from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IGain
 from pyobs.modules import Module
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile
@@ -73,8 +73,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # hide single controls, if necessary
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.labelExpTime.setVisible(isinstance(self.module, IExposureTime))
-        self.spinExpTime.setVisible(isinstance(self.module, IExposureTime))
+        self.groupExposure.setVisible(isinstance(self.module, IExposureTime))
+        self.groupGain.setVisible(isinstance(self.module, IGain))
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index("OBJECT"))
@@ -108,6 +108,8 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # get initial values
         if isinstance(self.module, IExposureTime):
             self.spinExpTime.setValue(await self.module.get_exposure_time())
+        if isinstance(self.module, IGain):
+            self.spinGain.setValue(await self.module.get_gain())
 
         # update GUI
         self.signal_update_gui.emit()
@@ -212,6 +214,15 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
         # set it
         if isinstance(self.module, IExposureTime):
             asyncio.create_task(self.module.set_exposure_time(exp_time))
+
+    @QtCore.pyqtSlot(float, name="on_spinGain_valueChanged")
+    def exposure_time_changed(self) -> None:
+        # get gain
+        gain = self.spinGain.value()
+
+        # set it
+        if isinstance(self.module, IGain):
+            asyncio.create_task(self.module.set_gain(gain))
 
 
 __all__ = ["WidgetVideo"]

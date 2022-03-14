@@ -36,7 +36,7 @@
           <item>
            <widget class="QGroupBox" name="groupExposure">
             <property name="title">
-             <string>Exposure</string>
+             <string/>
             </property>
             <layout class="QFormLayout" name="formLayout">
              <item row="0" column="1">
@@ -61,6 +61,25 @@
                 <string>ExpTime:</string>
                </property>
               </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupGain">
+            <property name="title">
+             <string/>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_11">
+               <property name="text">
+                <string>Gain:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="spinGain"/>
              </item>
             </layout>
            </widget>
