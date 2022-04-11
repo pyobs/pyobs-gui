@@ -8,6 +8,7 @@ import astropy.units as u
 import logging
 from astroquery.exceptions import InvalidQueryError
 import astropy.constants
+from sunpy.coordinates.frames import Helioprojective, HeliographicStonyhurst
 
 from pyobs.events import MotionStatusChangedEvent, Event
 from pyobs.interfaces import (
@@ -352,8 +353,12 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             theta = np.arctan(rsun * np.sin(alpha) / (dsun - (rsun * mu)))
 
             # calculate helio projective cartesian coordinates
-            lon = float((-theta * np.sin(psi)).value)
-            lat = float((theta * np.cos(psi)).value)
+            tx = -theta * np.sin(psi)
+            ty = theta * np.cos(psi)
+            heliproj = SkyCoord(tx, ty, obstime=Time.now(), frame=Helioprojective, observer="earth")
+            # convert helioprojective coordinates to HeliographicStonyhurst
+            stony = heliproj.transform_to(HeliographicStonyhurst)
+            lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
 
             # move
             if isinstance(self.module, IPointingHGS):
