@@ -10,6 +10,18 @@ python-versions = "*"
 pycares = ">=4.0.0"
 
 [[package]]
+name = "aioftp"
+version = "0.21.0"
+description = "ftp client/server for asyncio"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+socks = ["siosocks (>=0.2.0)"]
+tests = ["pytest", "pytest-asyncio", "pytest-cov", "trustme", "async-timeout", "siosocks"]
+
+[[package]]
 name = "aiohttp"
 version = "3.8.1"
 description = "Async http client/server framework (asyncio)"
@@ -186,6 +198,14 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "asyncinotify"
+version = "2.0.2"
+description = "A simple optionally-async python inotify library, focused on simplicity of use and operation, and leveraging modern Python features"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "attrs"
 version = "21.4.0"
 description = "Classes Without Boilerplate"
@@ -345,7 +365,7 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 name = "colorama"
 version = "0.4.4"
 description = "Cross-platform colored terminal text."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
@@ -737,6 +757,24 @@ gssapi = ["pyasn1 (>=0.1.7)", "gssapi (>=1.4.1)", "pywin32 (>=2.1.8)"]
 invoke = ["invoke (>=1.3)"]
 
 [[package]]
+name = "parfive"
+version = "1.5.1"
+description = "A HTTP and FTP parallel file downloader."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+aioftp = {version = ">=0.17.1", optional = true, markers = "extra == \"ftp\""}
+aiohttp = "*"
+tqdm = "*"
+
+[package.extras]
+docs = ["sphinx", "sphinx-automodapi", "sunpy-sphinx-theme"]
+ftp = ["aioftp (>=0.17.1)"]
+tests = ["pytest", "pytest-localserver", "pytest-asyncio", "pytest-socket", "pytest-cov", "aiofiles"]
+
+[[package]]
 name = "pathspec"
 version = "0.9.0"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -870,14 +908,6 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "pyinotify"
-version = "0.9.6"
-description = "Linux filesystem events monitoring"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "pynacl"
 version = "1.5.0"
 description = "Python binding to the Networking and Cryptography (NaCl) library"
@@ -894,7 +924,7 @@ tests = ["pytest (>=3.2.1,!=3.3.0)", "hypothesis (>=3.27.0)"]
 
 [[package]]
 name = "pyobs-core"
-version = "0.16.1"
+version = "0.18.6"
 description = "robotic telescope software"
 category = "main"
 optional = false
@@ -905,6 +935,7 @@ aiohttp = ">=3.8.1,<4.0.0"
 astroplan = ">=0.8,<0.9"
 astropy = ">=5.0,<6.0"
 astroquery = ">=0.4.4,<0.5.0"
+asyncinotify = {version = ">=2.0.2,<3.0.0", markers = "sys_platform == \"linux\""}
 ccdproc = ">=2.2,<3.0"
 lmfit = ">=1.0,<2.0"
 numpy = ">=1.21,<2.0"
@@ -912,7 +943,6 @@ pandas = ">=1.1.5,<2.0.0"
 paramiko = ">=2.8,<3.0"
 photutils = ">=1.2,<2.0"
 py-expression-eval = ">=0.3,<0.4"
-pyinotify = {version = ">=0.9,<0.10", markers = "sys_platform == \"linux\""}
 python-daemon = {version = ">=2.3,<3.0", markers = "sys_platform == \"linux\""}
 python-telegram-bot = ">=13.8,<14.0"
 pytz = ">=2021.3,<2022.0"
@@ -921,7 +951,6 @@ requests = ">=2.26,<3.0"
 scipy = ">=1.7.2,<2.0.0"
 sep = {version = ">=1.2,<2.0", markers = "sys_platform == \"linux\""}
 single-source = ">=0.2.0,<0.3.0"
-sleekxmpp = ">=1.3,<2.0"
 slixmpp = ">=1.7.1,<2.0.0"
 tornado = ">=6.1,<7.0"
 typing-extensions = ">=4.0,<5.0"
@@ -1049,8 +1078,9 @@ category = "main"
 optional = false
 python-versions = ">=3.7"
 
-[package.extras]
-docs = ["sphinx-astropy"]
+[package.dependencies]
+astropy = ">=4.0"
+requests = "*"
 
 [[package]]
 name = "pywavelets"
@@ -1230,14 +1260,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
-name = "sleekxmpp"
-version = "1.3.3"
-description = "SleekXMPP is an elegant Python library for XMPP (aka Jabber, Google Talk, etc)."
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "slixmpp"
 version = "1.7.1"
 description = "Slixmpp is an elegant Python library for XMPP (aka Jabber)."
@@ -1389,6 +1411,35 @@ lint = ["flake8", "mypy", "docutils-stubs"]
 test = ["pytest"]
 
 [[package]]
+name = "sunpy"
+version = "3.1.6"
+description = "\"SunPy: Python for Solar Physics\""
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+astropy = ">=4.2.0"
+numpy = ">=1.17.0"
+packaging = ">=19.0"
+parfive = {version = ">=1.2.0", extras = ["ftp"]}
+
+[package.extras]
+all = ["asdf (>=2.6.0)", "dask[array] (>=2.0.0)", "sqlalchemy (>=1.3.4)", "scikit-image (>=0.16.0,<0.19)", "scipy (>=1.3.0)", "glymur (>=0.8.18,!=0.9.0,!=0.9.5)", "matplotlib (>=3.2.0)", "mpl-animators (>=1.0.0)", "reproject", "beautifulsoup4 (>=4.8.0)", "drms (>=0.6.1)", "python-dateutil (>=2.8.0)", "tqdm (>=4.32.1)", "zeep (>=3.4.0)", "cdflib (>=0.3.19,!=0.4.0)", "h5netcdf (>=0.8.1)", "h5py (>=3.1.0)", "pandas (>=1.0.0)"]
+asdf = ["asdf (>=2.6.0)"]
+dask = ["dask[array] (>=2.0.0)"]
+database = ["sqlalchemy (>=1.3.4)"]
+dev = ["asdf (>=2.6.0)", "dask[array] (>=2.0.0)", "sqlalchemy (>=1.3.4)", "scikit-image (>=0.16.0,<0.19)", "scipy (>=1.3.0)", "glymur (>=0.8.18,!=0.9.0,!=0.9.5)", "matplotlib (>=3.2.0)", "mpl-animators (>=1.0.0)", "reproject", "beautifulsoup4 (>=4.8.0)", "drms (>=0.6.1)", "python-dateutil (>=2.8.0)", "tqdm (>=4.32.1)", "zeep (>=3.4.0)", "cdflib (>=0.3.19,!=0.4.0)", "h5netcdf (>=0.8.1)", "h5py (>=3.1.0)", "pandas (>=1.0.0)", "hypothesis (>=6.0.0)", "jplephem", "pytest (>=5.4)", "pytest-astropy (>=0.8)", "pytest-doctestplus (>=0.5)", "pytest-mock", "pytest-mpl (>=0.12)", "pytest-xdist (>=1.27)", "astroquery", "packaging", "ruamel.yaml", "sphinx", "sphinx-automodapi", "sphinx-changelog (>=1.1.1)", "sphinx-gallery (>=0.9.0)", "sphinx-panels", "sphinxext-opengraph", "sunpy-sphinx-theme"]
+docs = ["astroquery", "jplephem", "packaging", "reproject", "ruamel.yaml", "sphinx", "sphinx-automodapi", "sphinx-changelog (>=1.1.1)", "sphinx-gallery (>=0.9.0)", "sphinx-panels", "sphinxext-opengraph", "sunpy-sphinx-theme"]
+image = ["scikit-image (>=0.16.0,<0.19)", "scipy (>=1.3.0)"]
+jpeg2000 = ["glymur (>=0.8.18,!=0.9.0,!=0.9.5)"]
+map = ["matplotlib (>=3.2.0)", "mpl-animators (>=1.0.0)", "scipy (>=1.3.0)", "reproject"]
+net = ["beautifulsoup4 (>=4.8.0)", "drms (>=0.6.1)", "python-dateutil (>=2.8.0)", "tqdm (>=4.32.1)", "zeep (>=3.4.0)"]
+tests = ["hypothesis (>=6.0.0)", "jplephem", "pytest (>=5.4)", "pytest-astropy (>=0.8)", "pytest-doctestplus (>=0.5)", "pytest-mock", "pytest-mpl (>=0.12)", "pytest-xdist (>=1.27)"]
+timeseries = ["cdflib (>=0.3.19,!=0.4.0)", "h5netcdf (>=0.8.1)", "h5py (>=3.1.0)", "matplotlib (>=3.2.0)", "pandas (>=1.0.0)"]
+visualization = ["matplotlib (>=3.2.0)", "mpl-animators (>=1.0.0)"]
+
+[[package]]
 name = "tifffile"
 version = "2021.11.2"
 description = "Read and write TIFF files"
@@ -1425,6 +1476,23 @@ description = "Tornado is a Python web framework and asynchronous networking lib
 category = "main"
 optional = false
 python-versions = ">= 3.5"
+
+[[package]]
+name = "tqdm"
+version = "4.64.0"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["py-make (>=0.1.0)", "twine", "wheel"]
+notebook = ["ipywidgets (>=6)"]
+slack = ["slack-sdk"]
+telegram = ["requests"]
 
 [[package]]
 name = "typing-extensions"
@@ -1541,12 +1609,16 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.10"
-content-hash = "71d13811de1fc9098ec9dc64ee057997796676cfd692fb5fd0885d444f90d865"
+content-hash = "d81a4df538880a9592b73e543feaa99634ffe806bc68999ee6b11827492cef37"
 
 [metadata.files]
 aiodns = [
     {file = "aiodns-3.0.0-py3-none-any.whl", hash = "sha256:2b19bc5f97e5c936638d28e665923c093d8af2bf3aa88d35c43417fa25d136a2"},
     {file = "aiodns-3.0.0.tar.gz", hash = "sha256:946bdfabe743fceeeb093c8a010f5d1645f708a241be849e17edfb0e49e08cd6"},
+]
+aioftp = [
+    {file = "aioftp-0.21.0-py3-none-any.whl", hash = "sha256:b0e2bc1da5df2ae4ad469db58681d34904047ba8a5f36e9980e6649371c9a824"},
+    {file = "aioftp-0.21.0.tar.gz", hash = "sha256:4f03917c287299a0789394370803e3b0f6935e241d8f28bbb367c2379a934f92"},
 ]
 aiohttp = [
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1ed0b6477896559f17b9eaeb6d38e07f7f9ffe40b9f0f9627ae8b9926ae260a8"},
@@ -1714,6 +1786,10 @@ astroscrappy = [
 async-timeout = [
     {file = "async-timeout-4.0.2.tar.gz", hash = "sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15"},
     {file = "async_timeout-4.0.2-py3-none-any.whl", hash = "sha256:8ca1e4fcf50d07413d66d1a5e416e42cfdf5851c981d679a09851a6853383b3c"},
+]
+asyncinotify = [
+    {file = "asyncinotify-2.0.2-py3-none-any.whl", hash = "sha256:26fa85d282df0066ab423cd96754d7ea07e6013d8a69a51e573303dbd0d2dff6"},
+    {file = "asyncinotify-2.0.2.tar.gz", hash = "sha256:867cc056d88fc07aa8b3d1dc5b9c3c911cdd6130a4df5f67beb1fdecfd37b164"},
 ]
 attrs = [
     {file = "attrs-21.4.0-py2.py3-none-any.whl", hash = "sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4"},
@@ -2285,6 +2361,10 @@ paramiko = [
     {file = "paramiko-2.9.2-py2.py3-none-any.whl", hash = "sha256:04097dbd96871691cdb34c13db1883066b8a13a0df2afd4cb0a92221f51c2603"},
     {file = "paramiko-2.9.2.tar.gz", hash = "sha256:944a9e5dbdd413ab6c7951ea46b0ab40713235a9c4c5ca81cfe45c6f14fa677b"},
 ]
+parfive = [
+    {file = "parfive-1.5.1-py3-none-any.whl", hash = "sha256:bcee77426e8eea3b4ca19c137aa4a795326c1da5dd43f6bbae7c1587c3c26db9"},
+    {file = "parfive-1.5.1.tar.gz", hash = "sha256:c411fd7269a49d1c72a964e97de474ec082115777b363aeed98a6595f90b8676"},
+]
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
@@ -2452,9 +2532,6 @@ pygments = [
     {file = "Pygments-2.11.2-py3-none-any.whl", hash = "sha256:44238f1b60a76d78fc8ca0528ee429702aae011c265fe6a8dd8b63049ae41c65"},
     {file = "Pygments-2.11.2.tar.gz", hash = "sha256:4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"},
 ]
-pyinotify = [
-    {file = "pyinotify-0.9.6.tar.gz", hash = "sha256:9c998a5d7606ca835065cdabc013ae6c66eb9ea76a00a1e3bc6e0cfe2b4f71f4"},
-]
 pynacl = [
     {file = "PyNaCl-1.5.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:401002a4aaa07c9414132aaed7f6836ff98f59277a234704ff66878c2ee4a0d1"},
     {file = "PyNaCl-1.5.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:52cb72a79269189d4e0dc537556f4740f7f0a9ec41c1322598799b0bdad4ef92"},
@@ -2468,8 +2545,8 @@ pynacl = [
     {file = "PyNaCl-1.5.0.tar.gz", hash = "sha256:8ac7448f09ab85811607bdd21ec2464495ac8b7c66d146bf545b0f08fb9220ba"},
 ]
 pyobs-core = [
-    {file = "pyobs-core-0.16.1.tar.gz", hash = "sha256:02b42b637efa5d2f428b4f0e42a0beeb1153dca69747bbbf003d613a2df2a6e2"},
-    {file = "pyobs_core-0.16.1-py3-none-any.whl", hash = "sha256:5f40691f3a7d5d1f29ebee5bd43c3c9b772e864d184f6914aa1518982af14f9d"},
+    {file = "pyobs-core-0.18.6.tar.gz", hash = "sha256:ee3cb2c45ff4fe3cebe9192d890a9e4db0abd4ff2570791820d3f349bf2c5376"},
+    {file = "pyobs_core-0.18.6-py3-none-any.whl", hash = "sha256:3779c62c3dde1f6c0050327225af774a5bd66999fae390391f0d62fca6b9cf85"},
 ]
 pyparsing = [
     {file = "pyparsing-3.0.6-py3-none-any.whl", hash = "sha256:04ff808a5b90911829c55c4e26f75fa5ca8a2f5f36aa3a51f68e27033341d3e4"},
@@ -2536,6 +2613,7 @@ pytz-deprecation-shim = [
     {file = "pytz_deprecation_shim-0.1.0.post0.tar.gz", hash = "sha256:af097bae1b616dde5c5744441e2ddc69e74dfdcb0c263129610d85b87445a59d"},
 ]
 pyvo = [
+    {file = "pyvo-1.2.1-py3-none-any.whl", hash = "sha256:f90eb8e687fc950df9b2df9b63b837d33c4db52a68bebc8f4970ec3d1fbba9d2"},
     {file = "pyvo-1.2.1.tar.gz", hash = "sha256:3630ad7c62acf9ce435a9b2d997376fa9fae6865ada6632735680c90ccf525e6"},
 ]
 pywavelets = [
@@ -2755,9 +2833,6 @@ six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
-sleekxmpp = [
-    {file = "sleekxmpp-1.3.3.tar.gz", hash = "sha256:d213c1de71d92505f95ced0460ee0f84fdc4ddcacb7d7dd343739ed4028e5569"},
-]
 slixmpp = [
     {file = "slixmpp-1.7.1.tar.gz", hash = "sha256:9af836dc5747259788651726f062d69a6f430d306ddbd8e6b141c1fec99549e7"},
 ]
@@ -2800,6 +2875,20 @@ sphinxcontrib-qthelp = [
 sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib-serializinghtml-1.1.5.tar.gz", hash = "sha256:aa5f6de5dfdf809ef505c4895e51ef5c9eac17d0f287933eb49ec495280b6952"},
     {file = "sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl", hash = "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd"},
+]
+sunpy = [
+    {file = "sunpy-3.1.6-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:429711b446f1dc167f908babdef33788a9874e2180dc89a32685914cb09f0e00"},
+    {file = "sunpy-3.1.6-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:5cf23929b5bc8968abfd5b8087885a7747f968440138b770a2dd5d44aa554ad1"},
+    {file = "sunpy-3.1.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3088930995137e540212652514d0cbd176a398516d443d0cbb158ca99b567dd1"},
+    {file = "sunpy-3.1.6-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:e5d1a3a3ccd3c40cf42cedd045626c16e25c6bbc35c661c8fdccb671bae3f676"},
+    {file = "sunpy-3.1.6-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a3a1f1dacb1858435801e99752eaf0da33c8d998365d6779a8d15d7da67bb74f"},
+    {file = "sunpy-3.1.6-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:d53f943dfd4044923c8d8508547602921c0132c2cfae4f4b9dcad27164e51053"},
+    {file = "sunpy-3.1.6-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:a24e2ea79f67305d4417f8ec2b176eb95f933bf4e2f736f0b68a7e4e0c8cd3bb"},
+    {file = "sunpy-3.1.6-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:27467dea5fe42702d0b6a63577047b05c2f3772b491e638372c95bf1d7a16482"},
+    {file = "sunpy-3.1.6-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:aa61faa2639efbbc38a8d18a21d8fe88ddabab35e82f33c600af11388471499b"},
+    {file = "sunpy-3.1.6-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:399ea3e45a2545d50e9c131930755da9ccb6d03cea40ccd32e71f8a9c1101af4"},
+    {file = "sunpy-3.1.6-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9c18757316f8798949d2abf1c12abcbed32676480733ef386525f8750540f6a3"},
+    {file = "sunpy-3.1.6.tar.gz", hash = "sha256:988e56e040f34e4dc6af24d06e79af3fe92cdd5243cf0e1dadec3dc03f7eb481"},
 ]
 tifffile = [
     {file = "tifffile-2021.11.2-py3-none-any.whl", hash = "sha256:2e0066f90e2dbeb3e6a287cfd78bafbd2f142fabbca4a76a8ff809573baf5ad5"},
@@ -2855,6 +2944,10 @@ tornado = [
     {file = "tornado-6.1-cp39-cp39-win32.whl", hash = "sha256:d3d20ea5782ba63ed13bc2b8c291a053c8d807a8fa927d941bd718468f7b950c"},
     {file = "tornado-6.1-cp39-cp39-win_amd64.whl", hash = "sha256:548430be2740e327b3fe0201abe471f314741efcb0067ec4f2d7dcfb4825f3e4"},
     {file = "tornado-6.1.tar.gz", hash = "sha256:33c6e81d7bd55b468d2e793517c909b139960b6c790a60b7991b9b6b76fb9791"},
+]
+tqdm = [
+    {file = "tqdm-4.64.0-py2.py3-none-any.whl", hash = "sha256:74a2cdefe14d11442cedf3ba4e21a3b84ff9a2dbdc6cfae2c34addb2a14a5ea6"},
+    {file = "tqdm-4.64.0.tar.gz", hash = "sha256:40be55d30e200777a307a7585aee69e4eabb46b4ec6a4b4a5f2d9f11e7d5408d"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},
