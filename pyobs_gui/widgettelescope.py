@@ -356,7 +356,8 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
             tx = -theta * np.sin(psi)
             ty = theta * np.cos(psi)
             heliproj = SkyCoord(tx, ty, obstime=Time.now(), frame=Helioprojective, observer="earth")
-            # convert helioprojective coordinates to HeliographicStonyhurst
+
+            # convert helio projective coordinates to Heliographic Stonyhurst
             stony = heliproj.transform_to(HeliographicStonyhurst)
             lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
 
