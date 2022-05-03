@@ -216,7 +216,7 @@ class WidgetVideo(BaseWidget, Ui_WidgetVideo):
             asyncio.create_task(self.module.set_exposure_time(exp_time))
 
     @QtCore.pyqtSlot(float, name="on_spinGain_valueChanged")
-    def exposure_time_changed(self) -> None:
+    def gain_changed(self) -> None:
         # get gain
         gain = self.spinGain.value()
 
