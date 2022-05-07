@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections import Coroutine
+from collections.abc import Coroutine
 from typing import (
     List,
     Dict,
