@@ -207,26 +207,24 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     def _offset_altaz_to_radec(self, alt: float, az: float) -> Tuple[float, float]:
         # convert to ra/dec
         p0 = self._alt_az.icrs
-        p1 = SkyCoord(
-            alt=(self._alt_az.alt.degree + alt) * u.deg,
-            az=(self._alt_az.az.degree + az) * u.deg,
-            frame="altaz",
-            location=self.observer.location,
-            obstime=self._alt_az.obstime,
-        ).icrs
-        return float(p1.ra.degree - p0.ra.degree), float(p1.dec.degree - p0.dec.degree)
+        p1 = self._alt_az.spherical_offsets_by(az * u.degree, alt * u.degree).icrs
+        # astropy hot-fix
+        p0 = SkyCoord(ra=p0.ra, dec=p0.dec, frame="icrs")
+        p1 = SkyCoord(ra=p1.ra, dec=p1.dec, frame="icrs")
+        # offset
+        dra, ddec = p0.spherical_offsets_to(p1)
+        return float(dra.degree), float(ddec.degree)
 
     def _offset_radec_to_altaz(self, ra: float, dec: float) -> Tuple[float, float]:
         # convert to alt/az
-        p0 = self._ra_dec.transform_to(AltAz)
-        p1 = SkyCoord(
-            ra=(self._ra_dec.ra.degree + ra) * u.deg,
-            dec=(self._ra_dec.dec.degree + dec) * u.deg,
-            frame="icrs",
+        altaz = AltAz(
             location=self.observer.location,
             obstime=self._ra_dec.obstime,
-        ).transform_to(AltAz)
-        return float(p1.alt.degree - p0.alt.degree), float(p1.az.degree - p0.az.degree)
+        )
+        p0 = self._ra_dec.transform_to(altaz)
+        p1 = self._ra_dec.spherical_offsets_by(ra * u.degree, dec * u.degree).transform_to(altaz)
+        daz, dalt = p0.spherical_offsets_to(p1)
+        return float(dalt.degree), float(daz.degree)
 
     def update_gui(self) -> None:
         # enable myself
