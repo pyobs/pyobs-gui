@@ -19,24 +19,52 @@ from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
 from pyobs.interfaces import IModule
+from pyobs.object import create_object
 from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem
 import pyobs.utils.exceptions as exc
 from .utils import QAsyncMessageBox
 from .widgetsmixin import WidgetsMixin
 
-
 log = logging.getLogger(__name__)
-
 
 WidgetClass = TypeVar("WidgetClass")
 
 
-class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
-    _show_error = QtCore.pyqtSignal(str)
-    _enable_buttons = QtCore.pyqtSignal(list, bool)
+class BaseWindow:
+    def __init__(self) -> None:
+        """Base class for MainWindow and all widgets."""
+        self.comm: Optional[Comm] = None
+        self.observer: Optional[Observer] = None
+        self.vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None
+        self._widgets: List[WidgetsMixin] = []
 
-    def __init__(
+    def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> "BaseWidget":
+        """Creates new widget.
+
+        Args:
+            config: Config to create widget from.
+
+        Returns:
+            New widget.
+        """
+
+        # create it
+        if isinstance(config, dict):
+            widget = create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        elif isinstance(config, type):
+            widget = config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+        else:
+            raise ValueError("Wrong type.")
+
+        # check and return widget
+        if isinstance(widget, BaseWidget):
+            self._widgets.append(widget)
+            return widget
+        else:
+            raise ValueError("Invalid widget.")
+
+    async def open(
         self,
         module: Optional[Proxy] = None,
         comm: Optional[Comm] = None,
@@ -44,17 +72,25 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
         update_func: Optional[Callable[[], Any]] = None,
         update_interval: float = 1,
-        *args: Any,
-        **kwargs: Any,
-    ):
-        QtWidgets.QWidget.__init__(self, *args, **kwargs)
-        WidgetsMixin.__init__(self)
-
+    ) -> None:
         # store
         self.module = module
         self.vfs = vfs
         self.comm = comm
         self.observer = observer
+
+        """Open all widgets."""
+        for widget in self._widgets:
+            await widget.open()
+
+
+class BaseWidget(QtWidgets.QWidget, BaseWindow):
+    _show_error = QtCore.pyqtSignal(str)
+    _enable_buttons = QtCore.pyqtSignal(list, bool)
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self, *args, **kwargs)
+        BaseWindow.__init__(self)
 
         # signals
         self._show_error.connect(self.show_error)
@@ -72,7 +108,15 @@ class BaseWidget(QtWidgets.QWidget, WidgetsMixin):
         # has it been initialized?
         self._initialized = False
 
-    async def open(self) -> None:
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        update_func: Optional[Callable[[], Any]] = None,
+        update_interval: float = 1,
+    ) -> None:
         """Async open method."""
         await WidgetsMixin.open(self)
 
