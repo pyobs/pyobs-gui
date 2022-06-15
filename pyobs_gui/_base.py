@@ -80,7 +80,10 @@ class BaseWindow:
 
         """Open all widgets."""
         for widget in self._base_widgets:
-            await widget.open(module=self.module, vfs=self.vfs, comm=self.comm, observer=self.observer)
+            await self._open_child(widget)
+
+    async def _open_child(self, widget: BaseWidget):
+        await widget.open(module=self.module, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
 class BaseWidget(BaseWindow):
@@ -118,7 +121,7 @@ class BaseWidget(BaseWindow):
         """Async open method."""
         await BaseWindow.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
-    def add_to_sidebar(self, widget: BaseWidget) -> None:
+    async def add_to_sidebar(self, widget: BaseWidget) -> None:
         # if no layout exists on sidebar, create it
         if self.sidebar_layout is None:
             self.sidebar_layout = QtWidgets.QVBoxLayout()
@@ -126,6 +129,9 @@ class BaseWidget(BaseWindow):
             spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
             self.sidebar_layout.addItem(spacer_item)
             self.widgetSidebar.setLayout(self.sidebar_layout)
+
+        # open it
+        await self._open_child(widget)
 
         # append widget
         self.sidebar_widgets.append(widget)

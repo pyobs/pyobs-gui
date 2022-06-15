@@ -56,6 +56,16 @@ class WidgetCamera(QtWidgets.QWidget, BaseWidget, Ui_WidgetCamera):
         self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
         self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
@@ -81,27 +91,17 @@ class WidgetCamera(QtWidgets.QWidget, BaseWidget, Ui_WidgetCamera):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(
-        self,
-        module: Optional[Proxy] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-    ) -> None:
-        """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
-
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
-        self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, module=self.module))
+        await self.add_to_sidebar(self.create_widget(WidgetFitsHeaders, module=self.module))
         if isinstance(self.module, IFilters):
-            self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
+            await self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
         if isinstance(self.module, ICooling):
-            self.add_to_sidebar(self.create_widget(WidgetCooling, module=self.module))
+            await self.add_to_sidebar(self.create_widget(WidgetCooling, module=self.module))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
+            await self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
     async def _init(self) -> None:
         # get status

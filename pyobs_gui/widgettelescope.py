@@ -83,22 +83,6 @@ class WidgetTelescope(QtWidgets.QWidget, BaseWidget, Ui_WidgetTelescope):
             COORDS.ORBIT_ELEMENTS: self._calc_dest_orbit_elements,
         }
 
-        # add coord types
-        if isinstance(self.module, IPointingRaDec):
-            self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
-            # self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
-        if isinstance(self.module, IPointingAltAz):
-            self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if isinstance(self.module, IPointingHGS):
-            self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
-            self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
-        if self.comboMoveType.count() > 0:
-            self.comboMoveType.setCurrentIndex(0)
-
-        # offsets
-        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IOffsetsRaDec))
-        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IOffsetsAltAz))
-
         # plot
         # self.figure = plt.figure()
         # self.plot = VisPlot(self.figure, self.environment)
@@ -143,13 +127,29 @@ class WidgetTelescope(QtWidgets.QWidget, BaseWidget, Ui_WidgetTelescope):
         if self.comm is not None:
             await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
+        # add coord types
+        if isinstance(self.module, IPointingRaDec):
+            self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
+            # self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
+        if isinstance(self.module, IPointingAltAz):
+            self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
+        if isinstance(self.module, IPointingHGS):
+            self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
+            self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
+        if self.comboMoveType.count() > 0:
+            self.comboMoveType.setCurrentIndex(0)
+
+        # offsets
+        self.groupEquatorialOffsets.setVisible(isinstance(self.module, IOffsetsRaDec))
+        self.groupHorizontalOffsets.setVisible(isinstance(self.module, IOffsetsAltAz))
+
         # fill sidebar
         if isinstance(self.module, IFilters):
-            self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
+            await self.add_to_sidebar(self.create_widget(WidgetFilter, module=self.module))
         if isinstance(self.module, IFocuser):
-            self.add_to_sidebar(self.create_widget(WidgetFocus, module=self.module))
+            await self.add_to_sidebar(self.create_widget(WidgetFocus, module=self.module))
         if isinstance(self.module, ITemperatures):
-            self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
+            await self.add_to_sidebar(self.create_widget(WidgetTemperatures, module=self.module))
 
         # init coord type
         self.select_coord_type()
