@@ -1,22 +1,27 @@
 import logging
-from typing import Any, Optional
+from typing import Any, Optional, Union, Dict
 
 from PyQt5 import QtWidgets, QtCore
+from astroplan import Observer
+
+from pyobs.comm import Proxy, Comm
 from pyobs.events import MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFocuser
 
 from pyobs.utils.enums import MotionStatus
-from pyobs_gui.basewidget import BaseWidget
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .qt.widgetfocus import Ui_WidgetFocus
 
 
 log = logging.getLogger(__name__)
 
 
-class WidgetFocus(BaseWidget, Ui_WidgetFocus):
+class WidgetFocus(QtWidgets.QWidget, BaseWidget, Ui_WidgetFocus):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
         self.setupUi(self)
 
@@ -37,9 +42,15 @@ class WidgetFocus(BaseWidget, Ui_WidgetFocus):
         self.colorize_button(self.butSetFocusOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonResetFocusOffset, QtCore.Qt.yellow)
 
-    async def open(self) -> None:
-        """Open widget."""
-        await BaseWidget.open(self)
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         if self.comm is not None:

@@ -5,7 +5,7 @@ import logging
 from pyobs.interfaces import IWeather
 from pyobs.utils.time import Time
 from .qt.widgetweather import Ui_widgetWeather
-from .basewidget import BaseWidget
+from ._base import BaseWidget
 
 
 log = logging.getLogger(__name__)
@@ -76,10 +76,11 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
             self._unit.setStyleSheet(stylesheet)
 
 
-class WidgetWeather(BaseWidget, Ui_widgetWeather):
+class WidgetWeather(QtWidgets.QWidget, BaseWidget, Ui_widgetWeather):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 

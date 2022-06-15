@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from abc import ABC, ABCMeta
 from collections.abc import Coroutine
 from typing import (
     List,
@@ -24,7 +25,6 @@ from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem
 import pyobs.utils.exceptions as exc
 from .utils import QAsyncMessageBox
-from .widgetsmixin import WidgetsMixin
 
 log = logging.getLogger(__name__)
 
@@ -34,10 +34,11 @@ WidgetClass = TypeVar("WidgetClass")
 class BaseWindow:
     def __init__(self) -> None:
         """Base class for MainWindow and all widgets."""
+        self.module: Optional[Proxy] = None
         self.comm: Optional[Comm] = None
         self.observer: Optional[Observer] = None
         self.vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None
-        self._widgets: List[WidgetsMixin] = []
+        self._base_widgets: List[BaseWidget] = []
 
     def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
@@ -51,15 +52,15 @@ class BaseWindow:
 
         # create it
         if isinstance(config, dict):
-            widget = create_object(config, vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+            widget = create_object(config, **kwargs)
         elif isinstance(config, type):
-            widget = config(vfs=self.vfs, comm=self.comm, observer=self.observer, **kwargs)
+            widget = config(**kwargs)
         else:
             raise ValueError("Wrong type.")
 
         # check and return widget
         if isinstance(widget, BaseWidget):
-            self._widgets.append(widget)
+            self._base_widgets.append(widget)
             return widget
         else:
             raise ValueError("Invalid widget.")
@@ -70,8 +71,6 @@ class BaseWindow:
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-        update_func: Optional[Callable[[], Any]] = None,
-        update_interval: float = 1,
     ) -> None:
         # store
         self.module = module
@@ -80,16 +79,17 @@ class BaseWindow:
         self.observer = observer
 
         """Open all widgets."""
-        for widget in self._widgets:
-            await widget.open()
+        for widget in self._base_widgets:
+            await widget.open(module=self.module, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
-class BaseWidget(QtWidgets.QWidget, BaseWindow):
+class BaseWidget(BaseWindow):
     _show_error = QtCore.pyqtSignal(str)
     _enable_buttons = QtCore.pyqtSignal(list, bool)
 
-    def __init__(self, *args: Any, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self, *args, **kwargs)
+    def __init__(
+        self, update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1, *args: Any, **kwargs: Any
+    ):
         BaseWindow.__init__(self)
 
         # signals
@@ -114,11 +114,9 @@ class BaseWidget(QtWidgets.QWidget, BaseWindow):
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-        update_func: Optional[Callable[[], Any]] = None,
-        update_interval: float = 1,
     ) -> None:
         """Async open method."""
-        await WidgetsMixin.open(self)
+        await BaseWindow.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
     def add_to_sidebar(self, widget: BaseWidget) -> None:
         # if no layout exists on sidebar, create it

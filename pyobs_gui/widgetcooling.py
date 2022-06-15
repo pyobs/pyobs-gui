@@ -1,19 +1,22 @@
 import asyncio
 import logging
+
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import ICooling
-from .basewidget import BaseWidget
+from ._base import BaseWidget
 from .qt.widgetcooling import Ui_WidgetCooling
 
 
 log = logging.getLogger(__name__)
 
 
-class WidgetCooling(BaseWidget, Ui_WidgetCooling):
+class WidgetCooling(QtWidgets.QWidget, BaseWidget, Ui_WidgetCooling):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, **kwargs):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 

@@ -1,20 +1,24 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Type, Dict
+from typing import Any, Type, Dict, Optional, Union
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
+from astroplan import Observer
+
 import pyobs.events
-from pyobs.comm import Comm
+from pyobs.comm import Comm, Proxy
 from pyobs.events import LogEvent, Event
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .qt.widgetevents import Ui_WidgetEvents
 
 
-class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
-    def __init__(self, comm, parent=None):
-        QtWidgets.QWidget.__init__(self, parent)
+class WidgetEvents(QtWidgets.QWidget, BaseWidget, Ui_WidgetEvents):
+    def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
-        self.comm = comm
 
         # set up table
         self.tableEvents.setColumnCount(4)
@@ -23,8 +27,15 @@ class WidgetEvents(QtWidgets.QWidget, Ui_WidgetEvents):
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
 
-    async def open(self):
-        """Open widget."""
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # loop all event types
         for name, cls in pyobs.events.__dict__.items():

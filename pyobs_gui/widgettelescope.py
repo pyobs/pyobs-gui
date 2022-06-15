@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import Any, Tuple
+from typing import Any, Tuple, Optional, Union, Dict
 
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
+from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun
 import astropy.units as u
 import logging
@@ -10,6 +11,7 @@ from astroquery.exceptions import InvalidQueryError
 import astropy.constants
 from sunpy.coordinates.frames import Helioprojective, HeliographicStonyhurst
 
+from pyobs.comm import Proxy, Comm
 from pyobs.events import MotionStatusChangedEvent, Event
 from pyobs.interfaces import (
     IPointingRaDec,
@@ -24,11 +26,12 @@ from pyobs.interfaces import (
 )
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
+from pyobs.vfs import VirtualFileSystem
 from .widgetfilter import WidgetFilter
 from .widgetfocus import WidgetFocus
 from .widgettemperatures import WidgetTemperatures
 from .qt.widgettelescope import Ui_WidgetTelescope
-from .basewidget import BaseWidget
+from ._base import BaseWidget
 
 
 log = logging.getLogger(__name__)
@@ -42,10 +45,11 @@ class COORDS(Enum):
     HELIOPROJECTIVE_RADIAL = "Helioprojective Radial"
 
 
-class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
+class WidgetTelescope(QtWidgets.QWidget, BaseWidget, Ui_WidgetTelescope):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
@@ -125,9 +129,15 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(self) -> None:
-        """Open widget."""
-        await BaseWidget.open(self)
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         if self.comm is not None:
@@ -604,7 +614,11 @@ class WidgetTelescope(BaseWidget, Ui_WidgetTelescope):
     def select_coord_type(self) -> None:
         # get coordinate system
         text = self.comboMoveType.currentText()
-        coord = COORDS(text)
+        try:
+            coord = COORDS(text)
+        except ValueError:
+            # just ignore it
+            return
 
         # set page and visibility
         self.stackedMove.setCurrentWidget(self._MOVE_WIDGETS[coord])

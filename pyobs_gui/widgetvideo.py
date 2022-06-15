@@ -8,7 +8,7 @@ from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IG
 from pyobs.modules import Module
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile
-from pyobs_gui.basewidget import BaseWidget
+from ._base import BaseWidget
 from .qt.widgetvideo import Ui_WidgetVideo
 from .widgetdatadisplay import WidgetDataDisplay
 
@@ -31,10 +31,11 @@ class ScaledLabel(QtWidgets.QLabel):
             self.setPixmap(self._pixmap)
 
 
-class WidgetVideo(BaseWidget, Ui_WidgetVideo):
+class WidgetVideo(QtWidgets.QWidget, BaseWidget, Ui_WidgetVideo):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 

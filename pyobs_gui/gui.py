@@ -54,9 +54,6 @@ class GUI(Module, IFitsHeaderBefore):
 
         # create and show window
         self._window = MainWindow(
-            self.comm,
-            self.vfs,
-            self.observer,
             show_shell=self._show_shell,
             show_events=self._show_events,
             show_status=self._show_status,
@@ -64,7 +61,11 @@ class GUI(Module, IFitsHeaderBefore):
             widgets=self._custom_widgets,
             sidebar=self._custom_sidebar_widgets,
         )
-        await self._window.open()
+        await self._window.open(
+            comm=self.comm,
+            vfs=self.vfs,
+            observer=self.observer,
+        )
         self._window.show()
 
     async def get_fits_header_before(

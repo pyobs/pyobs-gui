@@ -1,17 +1,19 @@
 from typing import Any, Optional
 
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import IDome, IMotion
 from pyobs.utils.enums import MotionStatus
-from .basewidget import BaseWidget
+from ._base import BaseWidget
 from .qt.widgetroof import Ui_WidgetRoof
 
 
-class WidgetRoof(BaseWidget, Ui_WidgetRoof):
+class WidgetRoof(QtWidgets.QWidget, BaseWidget, Ui_WidgetRoof):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 

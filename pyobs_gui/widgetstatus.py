@@ -1,14 +1,18 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Type, Dict, Optional, cast
+from typing import Any, Type, Dict, Optional, cast, Union
 from PyQt5 import QtWidgets, QtCore
 import inspect
+
+from astroplan import Observer
 
 import pyobs.events
 from pyobs.comm import Comm, Proxy
 from pyobs.events import LogEvent, Event, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IModule
 from pyobs.utils.enums import ModuleState
+from pyobs.vfs import VirtualFileSystem
+from pyobs_gui._base import BaseWidget
 
 
 class StatusItem(QtWidgets.QWidget):
@@ -85,10 +89,10 @@ class StatusItem(QtWidgets.QWidget):
         asyncio.create_task(self.module.reset_error())
 
 
-class WidgetStatus(QtWidgets.QTableWidget):
-    def __init__(self, comm: Comm, parent: Optional[QtWidgets.QWidget] = None):
-        QtWidgets.QWidget.__init__(self, parent)
-        self.comm = comm
+class WidgetStatus(QtWidgets.QTableWidget, BaseWidget):
+    def __init__(self, **kwargs: Any):
+        QtWidgets.QTableWidget.__init__(self)
+        BaseWidget.__init__(self, **kwargs)
 
         # table settings
         self.setColumnCount(3)
@@ -99,8 +103,15 @@ class WidgetStatus(QtWidgets.QTableWidget):
         self.horizontalHeader().setMinimumSectionSize(200)
         self.verticalHeader().hide()
 
-    async def open(self) -> None:
-        """Open widget."""
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # register events
         await self.comm.register_event(ModuleOpenedEvent, self._module_opened)

@@ -1,30 +1,33 @@
 import logging
 import os
-from typing import Any, Optional, cast
+from typing import Any, Optional, cast, Union, Dict
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
+from astroplan import Observer
 from astropy.io import fits
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from pyobs.comm import Proxy
+from pyobs.comm import Proxy, Comm
 from pyobs.modules import Module
 from qfitswidget import QFitsWidget
 
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IImageGrabber, ISpectrograph
 from pyobs.utils.enums import ImageType
-from .basewidget import BaseWidget
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .qt.widgetdatadisplay import Ui_WidgetDataDisplay
 
 log = logging.getLogger(__name__)
 
 
-class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
+class WidgetDataDisplay(QtWidgets.QWidget, BaseWidget, Ui_WidgetDataDisplay):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
@@ -32,9 +35,33 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
         self.new_data = False
         self.data_filename: Optional[str] = None
         self.data: Optional[fits.HDUList] = None
+        self.imageLayout: Optional[QtWidgets.QVBoxLayout] = None
+        self.imageView: Optional[QFitsWidget] = None
+        self.figure = None
+        self.ax = None
+        self.canvas = None
+        self.plotTools = None
 
         # before first update, disable mys
         self.setEnabled(False)
+
+        # set headers for fits header tab
+        self.tableFitsHeader.setColumnCount(3)
+        self.tableFitsHeader.setHorizontalHeaderLabels(["Key", "Value", "Comment"])
+
+        # connect signals
+        self.signal_update_gui.connect(self.update_gui)
+        self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
+
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
@@ -49,18 +76,6 @@ class WidgetDataDisplay(BaseWidget, Ui_WidgetDataDisplay):
             self.imageLayout.addWidget(self.canvas)
         else:
             raise ValueError("Unknown type")
-
-        # set headers for fits header tab
-        self.tableFitsHeader.setColumnCount(3)
-        self.tableFitsHeader.setHorizontalHeaderLabels(["Key", "Value", "Comment"])
-
-        # connect signals
-        self.signal_update_gui.connect(self.update_gui)
-        self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
-
-    async def open(self) -> None:
-        """Open widget."""
-        await BaseWidget.open(self)
 
         # subscribe to events
         if self.comm is not None:

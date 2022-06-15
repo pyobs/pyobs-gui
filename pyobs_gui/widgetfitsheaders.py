@@ -2,17 +2,18 @@ import logging
 import os
 from typing import Any, Optional, List, Dict, Tuple
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 
-from .basewidget import BaseWidget
+from ._base import BaseWidget
 from .qt.widgetfitsheaders import Ui_WidgetFitsHeaders
 
 
 log = logging.getLogger(__name__)
 
 
-class WidgetFitsHeaders(BaseWidget, Ui_WidgetFitsHeaders):
+class WidgetFitsHeaders(QtWidgets.QWidget, BaseWidget, Ui_WidgetFitsHeaders):
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 

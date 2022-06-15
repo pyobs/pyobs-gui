@@ -1,9 +1,11 @@
 import asyncio
 import logging
 import os
-from typing import Any
+from typing import Any, Optional, Union, Dict
 from PyQt5 import QtWidgets, QtCore
+from astroplan import Observer
 
+from pyobs.comm import Proxy, Comm
 from pyobs.events import ExposureStatusChangedEvent, NewImageEvent, Event
 from pyobs.interfaces import (
     IAbortable,
@@ -19,7 +21,8 @@ from pyobs.interfaces import (
     IGain,
 )
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
-from .basewidget import BaseWidget
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .widgetcooling import WidgetCooling
 from .widgetfilter import WidgetFilter
 from .widgettemperatures import WidgetTemperatures
@@ -30,11 +33,12 @@ from .widgetdatadisplay import WidgetDataDisplay
 log = logging.getLogger(__name__)
 
 
-class WidgetCamera(BaseWidget, Ui_WidgetCamera):
+class WidgetCamera(QtWidgets.QWidget, BaseWidget, Ui_WidgetCamera):
     signal_update_gui = QtCore.pyqtSignal()
     signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
@@ -77,9 +81,15 @@ class WidgetCamera(BaseWidget, Ui_WidgetCamera):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(self) -> None:
-        """Open widget."""
-        await BaseWidget.open(self)
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)

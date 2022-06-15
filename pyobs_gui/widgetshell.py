@@ -3,17 +3,20 @@ import pprint
 import traceback
 from io import BytesIO
 import re
-from typing import Any, Optional, List, Tuple
+from typing import Any, Optional, List, Tuple, Union, Dict
 from PyQt5 import QtWidgets, QtCore
 import inspect
 import tokenize
 from enum import Enum
 import logging
 
-from pyobs.comm import Comm
+from astroplan import Observer
+
+from pyobs.comm import Comm, Proxy
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
 from pyobs.utils import exceptions as exc
-from .basewidget import BaseWidget
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .qt.widgetshell import Ui_WidgetShell
 
 
@@ -104,19 +107,38 @@ class CommandModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
 
-class WidgetShell(BaseWidget, Ui_WidgetShell):
+class WidgetShell(QtWidgets.QWidget, BaseWidget, Ui_WidgetShell):
     add_command_log = QtCore.pyqtSignal(str)
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
         self.command_number = 0
 
         # commands
-        self.command_model = CommandModel(self.comm)
-
+        self.command_model = None
+        self.completer = None
         self.command_regexp = re.compile(r"(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)")
         self.args_regexp = re.compile(r'(?:[^\s,"]|"(?:\\.|[^"])*")+')
+
+        # signals/slots
+        self.add_command_log.connect(self.textCommandLog.append)
+        self.textCommandInput.commandExecuted.connect(self.execute_command)
+        self.textCommandInput.textChanged.connect(self._update_docs)
+
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+
+        # commands
+        self.command_model = CommandModel(self.comm)
 
         # create completer
         self.completer = QtWidgets.QCompleter(self)
@@ -141,13 +163,6 @@ class WidgetShell(BaseWidget, Ui_WidgetShell):
         table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
-        # signals/slots
-        self.add_command_log.connect(self.textCommandLog.append)
-        self.textCommandInput.commandExecuted.connect(self.execute_command)
-        self.textCommandInput.textChanged.connect(self._update_docs)
-
-    async def open(self) -> None:
-        """Open module."""
         # await self.command_model.init()
         await self.update_client_list()
 

@@ -1,17 +1,21 @@
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Union, Dict
 from PyQt5 import QtWidgets, QtCore
+from astroplan import Observer
 
+from pyobs.comm import Proxy, Comm
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFilters
 from pyobs.utils.enums import MotionStatus
-from pyobs_gui.basewidget import BaseWidget
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .qt.widgetfilter import Ui_WidgetFilter
 
 
-class WidgetFilter(BaseWidget, Ui_WidgetFilter):
+class WidgetFilter(QtWidgets.QWidget, BaseWidget, Ui_WidgetFilter):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
@@ -26,9 +30,15 @@ class WidgetFilter(BaseWidget, Ui_WidgetFilter):
         # button colors
         self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
 
-    async def open(self) -> None:
-        """Open widget."""
-        await BaseWidget.open(self)
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)

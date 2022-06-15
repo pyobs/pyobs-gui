@@ -1,13 +1,16 @@
 import asyncio
 import logging
-from typing import Optional, Any
-from PyQt5 import QtCore
+from typing import Optional, Any, Union, Dict
+from PyQt5 import QtCore, QtWidgets
+from astroplan import Observer
 from astropy.io import fits
 
+from pyobs.comm import Proxy, Comm
 from pyobs.events import ExposureStatusChangedEvent, Event
 from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
 from pyobs.utils.enums import ExposureStatus
-from .basewidget import BaseWidget
+from pyobs.vfs import VirtualFileSystem
+from ._base import BaseWidget
 from .widgetdatadisplay import WidgetDataDisplay
 
 from .qt.widgetspectrograph import Ui_WidgetSpectrograph
@@ -16,10 +19,11 @@ from .qt.widgetspectrograph import Ui_WidgetSpectrograph
 log = logging.getLogger(__name__)
 
 
-class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
+class WidgetSpectrograph(QtWidgets.QWidget, BaseWidget, Ui_WidgetSpectrograph):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any) -> None:
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
@@ -43,9 +47,15 @@ class WidgetSpectrograph(BaseWidget, Ui_WidgetSpectrograph):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
-    async def open(self) -> None:
-        """Open widget."""
-        await BaseWidget.open(self)
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)

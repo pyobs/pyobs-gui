@@ -3,17 +3,18 @@ from typing import Any, Dict, Tuple
 from PyQt5 import QtWidgets, QtCore
 
 from pyobs.interfaces import ITemperatures
-from pyobs_gui.basewidget import BaseWidget
+from ._base import BaseWidget
 from .qt.widgettemperatures import Ui_WidgetTemperatures
 
 
 log = logging.getLogger(__name__)
 
 
-class WidgetTemperatures(BaseWidget, Ui_WidgetTemperatures):
+class WidgetTemperatures(QtWidgets.QWidget, BaseWidget, Ui_WidgetTemperatures):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 
