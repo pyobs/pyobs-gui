@@ -46,12 +46,10 @@ class FilterWidget(QtWidgets.QWidget, BaseWidget, Ui_FilterWidget):
 
     async def _init(self) -> None:
         # get current filter
-        print(self.module)
         if isinstance(self.module, IFilters):
             self._motion_status = await self.module.get_motion_status()
             self._filter = await self.module.get_filter()
             self._filters = await self.module.list_filters()
-            print(self._filters)
 
         # update gui
         self.signal_update_gui.emit()
