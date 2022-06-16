@@ -96,10 +96,6 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
         self.colorize_button(self.buttonPark, QtCore.Qt.yellow)
         self.colorize_button(self.buttonStop, QtCore.Qt.red)
         self.colorize_button(self.buttonMove, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetEast, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetNorth, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetWest, QtCore.Qt.blue)
         self.colorize_button(self.buttonSetAltOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonSetAzOffset, QtCore.Qt.green)
         self.colorize_button(self.buttonSetRaOffset, QtCore.Qt.green)
@@ -122,12 +118,14 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await self.compassmovewidget.open(module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         if self.comm is not None:
             await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
         # add coord types
+        print(isinstance(self.module, IOffsetsAltAz), isinstance(self.module, IOffsetsRaDec))
         if isinstance(self.module, IPointingRaDec):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
             # self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
@@ -262,10 +260,7 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             MotionStatus.POSITIONED,
         ]
         self.buttonMove.setEnabled(initialized)
-        self.buttonOffsetNorth.setEnabled(initialized)
-        self.buttonOffsetSouth.setEnabled(initialized)
-        self.buttonOffsetEast.setEnabled(initialized)
-        self.buttonOffsetWest.setEnabled(initialized)
+        self.compassmovewidget.setEnabled(initialized)
         self.buttonSetAltOffset.setEnabled(initialized)
         self.buttonSetAzOffset.setEnabled(initialized)
         self.buttonSetRaOffset.setEnabled(initialized)
@@ -665,33 +660,3 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
                     self.run_background(self.module.set_offsets_radec, new_value / 3600.0, self._off_dec)
                 elif self.sender() == self.buttonSetDecOffset:
                     self.run_background(self.module.set_offsets_radec, self._off_ra, new_value / 3600.0)
-
-    @QtCore.pyqtSlot(name="on_buttonOffsetNorth_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetSouth_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetEast_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetWest_clicked")
-    def _move_offset(self) -> None:
-        # get current offsets
-        off_ra, off_dec = self._off_ra, self._off_dec
-
-        # new offset
-        user_offset = self.spinOffset.value() / 3600.0
-
-        # who send event?
-        if self.sender() == self.buttonOffsetNorth:
-            off_dec += user_offset
-        elif self.sender() == self.buttonOffsetSouth:
-            off_dec -= user_offset
-        elif self.sender() == self.buttonOffsetEast:
-            off_ra += user_offset
-        elif self.sender() == self.buttonOffsetWest:
-            off_ra -= user_offset
-
-        # move
-        if isinstance(self.module, IOffsetsRaDec):
-            self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
-        elif isinstance(self.module, IOffsetsAltAz):
-            off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
-            self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
-        else:
-            raise ValueError
