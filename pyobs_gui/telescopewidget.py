@@ -30,6 +30,7 @@ from pyobs.vfs import VirtualFileSystem
 from .filterwidget import FilterWidget
 from .focuswidget import FocusWidget
 from .temperatureswidget import TemperaturesWidget
+from .compassmovewidget import CompassMoveWidget
 from .qt.telescopewidget_ui import Ui_TelescopeWidget
 from ._base import BaseWidget
 
@@ -119,6 +120,7 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
         """Open module."""
         await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
         await self.compassmovewidget.open(module=module, comm=comm, observer=observer, vfs=vfs)
+        self.compassmovewidget.show_extract_button(CompassMoveWidget, f'Offset "{module.name}"')
 
         # subscribe to events
         if self.comm is not None:

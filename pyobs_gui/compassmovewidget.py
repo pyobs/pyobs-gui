@@ -22,19 +22,6 @@ class CompassMoveWidget(QtWidgets.QWidget, BaseWidget, Ui_CompassMoveWidget):
         self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.blue)
         self.colorize_button(self.buttonOffsetWest, QtCore.Qt.blue)
 
-    async def open(
-        self,
-        module: Optional[Proxy] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-    ) -> None:
-        """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
-        print("open:", module)
-        print("open2:", self.module)
-        print(isinstance(module, IOffsetsAltAz), isinstance(module, IOffsetsRaDec))
-
     @QtCore.pyqtSlot(name="on_buttonOffsetNorth_clicked")
     @QtCore.pyqtSlot(name="on_buttonOffsetSouth_clicked")
     @QtCore.pyqtSlot(name="on_buttonOffsetEast_clicked")

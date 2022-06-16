@@ -91,7 +91,11 @@ class BaseWidget(BaseWindow):
     _enable_buttons = QtCore.pyqtSignal(list, bool)
 
     def __init__(
-        self, update_func: Optional[Callable[[], Any]] = None, update_interval: float = 1, *args: Any, **kwargs: Any
+        self,
+        update_func: Optional[Callable[[], Any]] = None,
+        update_interval: float = 1,
+        *args: Any,
+        **kwargs: Any,
     ):
         BaseWindow.__init__(self)
 
@@ -108,18 +112,46 @@ class BaseWidget(BaseWindow):
         self.sidebar_widgets: List[BaseWidget] = []
         self.sidebar_layout: Optional[QtWidgets.QVBoxLayout] = None
 
+        # button to extract to window
+        self.extract_window_button: Optional[QtWidgets.QToolButton] = None
+        self._windows: List[QtWidgets.QDialog] = []
+
         # has it been initialized?
         self._initialized = False
 
-    async def open(
-        self,
-        module: Optional[Proxy] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-    ) -> None:
-        """Async open method."""
-        await BaseWindow.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+    def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
+        if self.extract_window_button:
+            self.extract_window_button.move(self.width() - 20, 0)
+
+    def show_extract_button(self, klass, title):
+        # button to extract to window
+        self.extract_window_button = QtWidgets.QToolButton(self)
+        # self.extract_window_button.setText("X")
+        self.extract_window_button.setIcon(QtGui.QIcon(":/resources/arrow-up-right-from-square-solid.svg"))
+        self.colorize_button(self.extract_window_button, QtCore.Qt.darkCyan)
+        self.extract_window_button.move(self.width() - 20, 0)
+        self.extract_window_button.resize(20, 20)
+        self.extract_window_button.raise_()
+
+        # method for creating new window
+        def create_window():
+            # create dialog and add widget
+            dialog = QtWidgets.QDialog()
+            dialog.setWindowTitle(title)
+            layout = QtWidgets.QVBoxLayout()
+            dialog.setLayout(layout)
+            widget = klass(dialog)
+            layout.addWidget(widget)
+
+            # open it
+            asyncio.create_task(self._open_child(widget))
+
+            # show dialog and store it
+            dialog.show()
+            self._windows.append(dialog)
+
+        # connect
+        self.extract_window_button.clicked.connect(create_window)
 
     async def add_to_sidebar(self, widget: BaseWidget) -> None:
         # if no layout exists on sidebar, create it
