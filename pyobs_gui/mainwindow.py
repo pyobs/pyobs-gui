@@ -20,28 +20,28 @@ from pyobs.interfaces import (
 )
 from pyobs.vfs import VirtualFileSystem
 from ._base import BaseWindow, BaseWidget
-from .widgetcamera import WidgetCamera
-from .widgetstatus import WidgetStatus
-from .widgettelescope import WidgetTelescope
-from .widgetfocus import WidgetFocus
-from .widgetweather import WidgetWeather
-from .widgetvideo import WidgetVideo
+from .camerawidget import CameraWidget
+from .statuswidget import StatusWidget
+from .telescopewidget import TelescopeWidget
+from .focuswidget import FocusWidget
+from .weatherwidget import WeatherWidget
+from .videowidget import VideoWidget
 from .qt.mainwindow import Ui_MainWindow
 from .logmodel import LogModel, LogModelProxy
-from .widgetevents import WidgetEvents
-from .widgetroof import WidgetRoof
-from .widgetshell import WidgetShell
-from .widgetspectrograph import WidgetSpectrograph
+from .eventswidget import EventsWidget
+from .roofwidget import RoofWidget
+from .shellwidget import ShellWidget
+from .spectrographwidget import SpectrographWidget
 
 
 DEFAULT_WIDGETS = {
-    ICamera: WidgetCamera,
-    ITelescope: WidgetTelescope,
-    IRoof: WidgetRoof,
-    IFocuser: WidgetFocus,
-    IWeather: WidgetWeather,
-    IVideo: WidgetVideo,
-    ISpectrograph: WidgetSpectrograph,
+    ICamera: CameraWidget,
+    ITelescope: TelescopeWidget,
+    IRoof: RoofWidget,
+    IFocuser: FocusWidget,
+    IWeather: WeatherWidget,
+    IVideo: VideoWidget,
+    ISpectrograph: SpectrographWidget,
 }
 
 DEFAULT_ICONS = {
@@ -138,9 +138,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         # list of widgets
         self._widgets: Dict[str, QtWidgets.QWidget] = {}
         self._current_widget = None
-        self.shell: Optional[WidgetShell] = None
-        self.events: Optional[WidgetEvents] = None
-        self.status: Optional[WidgetStatus] = None
+        self.shell: Optional[ShellWidget] = None
+        self.events: Optional[EventsWidget] = None
+        self.status: Optional[StatusWidget] = None
 
     async def open(self, **kwargs: Any) -> None:
         """Open module."""
@@ -151,7 +151,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         # shell
         if self.show_shell:
             # add shell nav button and view
-            self.shell = self.create_widget(WidgetShell)
+            self.shell = self.create_widget(ShellWidget)
             await self._add_client("Shell", QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell, None)
         else:
             self.shell = None
@@ -159,14 +159,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         # events
         if self.show_events:
             # add events nav button and view
-            self.events = self.create_widget(WidgetEvents)
+            self.events = self.create_widget(EventsWidget)
             await self._add_client("Events", QtGui.QIcon(":/resources/Crystal_Clear_app_karm.png"), self.events, None)
         else:
             self.events = None
 
         # status
         if self.show_status:
-            self.status = self.create_widget(WidgetStatus)
+            self.status = self.create_widget(StatusWidget)
             await self._add_client("Status", QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png"), self.status, None)
         else:
             self.status = None

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'datadisplaywidget.ui'
+# Form implementation generated from ..reading ui file 'datadisplaywidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -11,13 +11,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_WidgetDataDisplay(object):
-    def setupUi(self, WidgetDataDisplay):
-        WidgetDataDisplay.setObjectName("WidgetDataDisplay")
-        WidgetDataDisplay.resize(512, 388)
-        self.verticalLayout = QtWidgets.QVBoxLayout(WidgetDataDisplay)
+class Ui_DataDisplayWidget(object):
+    def setupUi(self, DataDisplayWidget):
+        DataDisplayWidget.setObjectName("DataDisplayWidget")
+        DataDisplayWidget.resize(512, 388)
+        self.verticalLayout = QtWidgets.QVBoxLayout(DataDisplayWidget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.tabWidget = QtWidgets.QTabWidget(WidgetDataDisplay)
+        self.tabWidget = QtWidgets.QTabWidget(DataDisplayWidget)
         self.tabWidget.setObjectName("tabWidget")
         self.tabImage = QtWidgets.QWidget()
         self.tabImage.setObjectName("tabImage")
@@ -42,25 +42,25 @@ class Ui_WidgetDataDisplay(object):
         self.verticalLayout.addWidget(self.tabWidget)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.checkAutoUpdate = QtWidgets.QCheckBox(WidgetDataDisplay)
+        self.checkAutoUpdate = QtWidgets.QCheckBox(DataDisplayWidget)
         self.checkAutoUpdate.setChecked(True)
         self.checkAutoUpdate.setObjectName("checkAutoUpdate")
         self.horizontalLayout.addWidget(self.checkAutoUpdate)
         spacerItem = QtWidgets.QSpacerItem(38, 18, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        self.checkAutoSave = QtWidgets.QCheckBox(WidgetDataDisplay)
+        self.checkAutoSave = QtWidgets.QCheckBox(DataDisplayWidget)
         self.checkAutoSave.setObjectName("checkAutoSave")
         self.horizontalLayout.addWidget(self.checkAutoSave)
-        self.textAutoSavePath = QtWidgets.QLineEdit(WidgetDataDisplay)
+        self.textAutoSavePath = QtWidgets.QLineEdit(DataDisplayWidget)
         self.textAutoSavePath.setEnabled(False)
         self.textAutoSavePath.setObjectName("textAutoSavePath")
         self.horizontalLayout.addWidget(self.textAutoSavePath)
-        self.butAutoSave = QtWidgets.QToolButton(WidgetDataDisplay)
+        self.butAutoSave = QtWidgets.QToolButton(DataDisplayWidget)
         self.butAutoSave.setObjectName("butAutoSave")
         self.horizontalLayout.addWidget(self.butAutoSave)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
-        self.butSaveTo = QtWidgets.QToolButton(WidgetDataDisplay)
+        self.butSaveTo = QtWidgets.QToolButton(DataDisplayWidget)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/resources/Crystal_Clear_device_floppy_unmount.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.butSaveTo.setIcon(icon)
@@ -69,16 +69,16 @@ class Ui_WidgetDataDisplay(object):
         self.horizontalLayout.addWidget(self.butSaveTo)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
-        self.retranslateUi(WidgetDataDisplay)
+        self.retranslateUi(DataDisplayWidget)
         self.tabWidget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(WidgetDataDisplay)
+        QtCore.QMetaObject.connectSlotsByName(DataDisplayWidget)
 
-    def retranslateUi(self, WidgetDataDisplay):
+    def retranslateUi(self, DataDisplayWidget):
         _translate = QtCore.QCoreApplication.translate
-        WidgetDataDisplay.setWindowTitle(_translate("WidgetDataDisplay", "Form"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabImage), _translate("WidgetDataDisplay", "Image"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsHeader), _translate("WidgetDataDisplay", "FITS header"))
-        self.checkAutoUpdate.setText(_translate("WidgetDataDisplay", "Auto-update"))
-        self.checkAutoSave.setText(_translate("WidgetDataDisplay", "Auto-save:"))
-        self.butAutoSave.setText(_translate("WidgetDataDisplay", "..."))
-        self.butSaveTo.setText(_translate("WidgetDataDisplay", "Save to..."))
+        DataDisplayWidget.setWindowTitle(_translate("DataDisplayWidget", "Form"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabImage), _translate("DataDisplayWidget", "Image"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsHeader), _translate("DataDisplayWidget", "FITS header"))
+        self.checkAutoUpdate.setText(_translate("DataDisplayWidget", "Auto-update"))
+        self.checkAutoSave.setText(_translate("DataDisplayWidget", "Auto-save:"))
+        self.butAutoSave.setText(_translate("DataDisplayWidget", "..."))
+        self.butSaveTo.setText(_translate("DataDisplayWidget", "Save to..."))

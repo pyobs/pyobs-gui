@@ -1,12 +1,12 @@
 from PyQt5.QtGui import QIcon
 from PyQt5.QtDesigner import QPyDesignerCustomWidgetPlugin
 
-from datadisplaywidget import DataDisplayWidget
+from camerawidget import CameraWidget
 
 
-class DataDisplayPlugin(QPyDesignerCustomWidgetPlugin):
+class CameraPlugin(QPyDesignerCustomWidgetPlugin):
     def __init__(self, parent=None):
-        super(DataDisplayPlugin, self).__init__(parent)
+        super(CameraPlugin, self).__init__(parent)
 
         self.initialized = False
 
@@ -20,10 +20,10 @@ class DataDisplayPlugin(QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        return DataDisplayWidget(parent)
+        return CameraWidget(parent)
 
     def name(self):
-        return "DataDisplayWidget"
+        return "CameraWidget"
 
     def group(self):
         return "pyobs Widgets"
@@ -41,4 +41,4 @@ class DataDisplayPlugin(QPyDesignerCustomWidgetPlugin):
         return False
 
     def includeFile(self):
-        return "pyobs_gui.datadisplaywidget"
+        return "camerawidget"
