@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
+  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0">
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>237</width>
+        <width>406</width>
         <height>748</height>
        </rect>
       </property>
@@ -1247,28 +1247,20 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="frameImageGrabber" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-     </layout>
-    </widget>
+    <widget class="DataDisplayWidget" name="datadisplay"/>
    </item>
    <item>
     <widget class="QWidget" name="widgetSidebar" native="true"/>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DataDisplayWidget</class>
+   <extends>QWidget</extends>
+   <header>pyobs_gui.widgetdatadisplay</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>scrollArea</tabstop>
   <tabstop>spinWindowLeft</tabstop>

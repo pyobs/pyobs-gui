@@ -27,7 +27,7 @@ class Ui_WidgetCamera(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 237, 748))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 406, 748))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -483,17 +483,12 @@ class Ui_WidgetCamera(object):
         self.verticalLayout.addWidget(self.labelExposuresLeft)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.horizontalLayout_2.addWidget(self.scrollArea)
-        self.frameImageGrabber = QtWidgets.QWidget(WidgetCamera)
-        self.frameImageGrabber.setObjectName("frameImageGrabber")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.frameImageGrabber)
-        self.verticalLayout_2.setContentsMargins(-1, 0, 0, 0)
-        self.verticalLayout_2.setSpacing(0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout_2.addWidget(self.frameImageGrabber)
+        self.datadisplay = WidgetDataDisplay(WidgetCamera)
+        self.datadisplay.setObjectName("datadisplay")
+        self.horizontalLayout_2.addWidget(self.datadisplay)
         self.widgetSidebar = QtWidgets.QWidget(WidgetCamera)
         self.widgetSidebar.setObjectName("widgetSidebar")
         self.horizontalLayout_2.addWidget(self.widgetSidebar)
-        self.horizontalLayout_2.setStretch(1, 1)
 
         self.retranslateUi(WidgetCamera)
         QtCore.QMetaObject.connectSlotsByName(WidgetCamera)
@@ -534,4 +529,5 @@ class Ui_WidgetCamera(object):
         self.labelExposuresLeft.setText(_translate("WidgetCamera", "IDLE"))
 
 
+from pyobs_gui.widgetdatadisplay import WidgetDataDisplay
 from . import resources_rc

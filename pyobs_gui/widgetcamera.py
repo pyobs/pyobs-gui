@@ -53,8 +53,8 @@ class WidgetCamera(QtWidgets.QWidget, BaseWidget, Ui_WidgetCamera):
         self.exposure_progress = 0.0
 
         # data display
-        self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
-        self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
+        # self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
+        # self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
     async def open(
         self,
@@ -65,6 +65,7 @@ class WidgetCamera(QtWidgets.QWidget, BaseWidget, Ui_WidgetCamera):
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await self.datadisplay.open(module=module, comm=comm, observer=observer, vfs=vfs)
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])

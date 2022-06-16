@@ -26,8 +26,8 @@ log = logging.getLogger(__name__)
 class WidgetDataDisplay(QtWidgets.QWidget, BaseWidget, Ui_WidgetDataDisplay):
     signal_update_gui = QtCore.pyqtSignal()
 
-    def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self, parent, **kwargs: Any):
+        QtWidgets.QWidget.__init__(self, parent)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 
