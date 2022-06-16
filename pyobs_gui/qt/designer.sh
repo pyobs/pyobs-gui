@@ -1,2 +1,2 @@
 #!/bin/bash
-PYQTDESIGNERPATH=. designer camerawidget.ui
+PYQTDESIGNERPATH=. designer camerawidget.ui $@
