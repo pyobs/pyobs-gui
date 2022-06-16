@@ -35,8 +35,8 @@ class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
         self.exposure_status = ExposureStatus.IDLE
 
         # data display
-        self.widgetDataDisplay = self.create_widget(DataDisplayWidget, module=self.module)
-        self.framePlot.layout().addWidget(self.widgetDataDisplay)
+        # self.widgetDataDisplay = self.create_widget(DataDisplayWidget, module=self.module)
+        # self.framePlot.layout().addWidget(self.widgetDataDisplay)
 
         # before first update, disable myself
         self.setEnabled(False)
@@ -56,6 +56,7 @@ class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await self.datadisplay.open(module=module, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
@@ -75,7 +76,7 @@ class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        asyncio.create_task(self.widgetDataDisplay.grab_data(broadcast))
+        asyncio.create_task(self.datadisplay.grab_data(broadcast))
 
         # signal GUI update
         self.signal_update_gui.emit()

@@ -405,12 +405,9 @@ class Ui_VideoWidget(object):
         self.labelExposuresLeft.setObjectName("labelExposuresLeft")
         self.verticalLayout.addWidget(self.labelExposuresLeft)
         self.horizontalLayout_3.addWidget(self.frame_2)
-        self.frameImageGrabber = QtWidgets.QWidget(self.tabFitsImage)
-        self.frameImageGrabber.setObjectName("frameImageGrabber")
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.frameImageGrabber)
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.horizontalLayout_3.addWidget(self.frameImageGrabber)
-        self.horizontalLayout_3.setStretch(1, 1)
+        self.datadisplay = DataDisplayWidget(self.tabFitsImage)
+        self.datadisplay.setObjectName("datadisplay")
+        self.horizontalLayout_3.addWidget(self.datadisplay)
         self.tabWidget.addTab(self.tabFitsImage, "")
         self.horizontalLayout_2.addWidget(self.tabWidget)
 
@@ -433,3 +430,4 @@ class Ui_VideoWidget(object):
         self.buttonAbort.setText(_translate("VideoWidget", "Abort sequence"))
         self.labelExposuresLeft.setText(_translate("VideoWidget", "IDLE"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsImage), _translate("VideoWidget", "FITS Image"))
+from ..datadisplaywidget import DataDisplayWidget

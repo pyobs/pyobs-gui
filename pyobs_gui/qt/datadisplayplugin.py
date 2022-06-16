@@ -41,4 +41,4 @@ class DataDisplayPlugin(QPyDesignerCustomWidgetPlugin):
         return False
 
     def includeFile(self):
-        return "pyobs_gui.datadisplaywidget"
+        return "datadisplaywidget"

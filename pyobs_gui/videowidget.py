@@ -50,8 +50,8 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
         # add camera widget
-        self.widgetDataDisplay = self.create_widget(DataDisplayWidget, module=self.module)
-        self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
+        # self.widgetDataDisplay = self.create_widget(DataDisplayWidget, module=self.module)
+        # self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -195,7 +195,7 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            await self.widgetDataDisplay.grab_data(broadcast, image_type)
+            await self.datadisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1

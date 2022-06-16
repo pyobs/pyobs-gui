@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_SpectrographWidget(object):
     def setupUi(self, SpectrographWidget):
         SpectrographWidget.setObjectName("SpectrographWidget")
-        SpectrographWidget.resize(1000, 764)
+        SpectrographWidget.resize(881, 677)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(SpectrographWidget)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.scrollArea = QtWidgets.QScrollArea(SpectrographWidget)
@@ -27,7 +27,7 @@ class Ui_SpectrographWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 118, 748))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 287, 661))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -363,17 +363,12 @@ class Ui_SpectrographWidget(object):
         self.verticalLayout.addWidget(self.labelExposuresLeft)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.horizontalLayout_2.addWidget(self.scrollArea)
-        self.framePlot = QtWidgets.QWidget(SpectrographWidget)
-        self.framePlot.setObjectName("framePlot")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.framePlot)
-        self.verticalLayout_2.setContentsMargins(-1, 0, 0, 0)
-        self.verticalLayout_2.setSpacing(0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout_2.addWidget(self.framePlot)
+        self.datadisplay = DataDisplayWidget(SpectrographWidget)
+        self.datadisplay.setObjectName("datadisplay")
+        self.horizontalLayout_2.addWidget(self.datadisplay)
         self.widgetSidebar = QtWidgets.QWidget(SpectrographWidget)
         self.widgetSidebar.setObjectName("widgetSidebar")
         self.horizontalLayout_2.addWidget(self.widgetSidebar)
-        self.horizontalLayout_2.setStretch(1, 1)
 
         self.retranslateUi(SpectrographWidget)
         QtCore.QMetaObject.connectSlotsByName(SpectrographWidget)
@@ -390,4 +385,5 @@ class Ui_SpectrographWidget(object):
         self.butAbort.setText(_translate("SpectrographWidget", "Abort"))
         self.labelStatus.setText(_translate("SpectrographWidget", "IDLE"))
         self.labelExposuresLeft.setText(_translate("SpectrographWidget", "IDLE"))
+from ..datadisplaywidget import DataDisplayWidget
 from . import resources_rc

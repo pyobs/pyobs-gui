@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>764</height>
+    <width>881</width>
+    <height>677</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1,0">
+  <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0">
    <item>
     <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
@@ -33,8 +33,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>118</width>
-        <height>748</height>
+        <width>287</width>
+        <height>661</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -1018,28 +1018,20 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="framePlot" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-     </layout>
-    </widget>
+    <widget class="DataDisplayWidget" name="datadisplay"/>
    </item>
    <item>
     <widget class="QWidget" name="widgetSidebar" native="true"/>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DataDisplayWidget</class>
+   <extends>QWidget</extends>
+   <header>datadisplaywidget</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>scrollArea</tabstop>
   <tabstop>checkBroadcast</tabstop>
