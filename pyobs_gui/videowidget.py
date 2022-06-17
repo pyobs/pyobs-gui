@@ -49,10 +49,6 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
         self.widgetLiveView = ScaledLabel()
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
 
-        # add camera widget
-        # self.widgetDataDisplay = self.create_widget(DataDisplayWidget, module=self.module)
-        # self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
-
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
@@ -71,16 +67,16 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
         self.comboImageType.addItems(image_types)
         self.comboImageType.setCurrentText("OBJECT")
 
+        # initial values
+        self.comboImageType.setCurrentIndex(image_types.index("OBJECT"))
+
+    async def _init(self) -> None:
         # hide single controls, if necessary
         self.labelImageType.setVisible(isinstance(self.module, IImageType))
         self.comboImageType.setVisible(isinstance(self.module, IImageType))
         self.groupExposure.setVisible(isinstance(self.module, IExposureTime))
         self.groupGain.setVisible(isinstance(self.module, IGain))
 
-        # initial values
-        self.comboImageType.setCurrentIndex(image_types.index("OBJECT"))
-
-    async def _init(self) -> None:
         # get video stream URL and open it
         if not isinstance(self.module, IVideo) or self.module is None:
             log.error("Module is not an IVideo.")
