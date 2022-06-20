@@ -1,13 +1,16 @@
 import asyncio
 import logging
-from typing import Any, Optional, cast
+from typing import Any, Optional, cast, Union, Dict
 from urllib.parse import urlparse
 from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
+from astroplan import Observer
+
+from pyobs.comm import Proxy, Comm
 
 from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IGain
 from pyobs.modules import Module
 from pyobs.utils.enums import ImageFormat, ImageType
-from pyobs.vfs import HttpFile
+from pyobs.vfs import HttpFile, VirtualFileSystem
 from ._base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
 from .datadisplaywidget import DataDisplayWidget
@@ -69,6 +72,17 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
 
         # initial values
         self.comboImageType.setCurrentIndex(image_types.index("OBJECT"))
+
+    async def open(
+        self,
+        module: Optional[Proxy] = None,
+        comm: Optional[Comm] = None,
+        observer: Optional[Observer] = None,
+        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+    ) -> None:
+        """Open module."""
+        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await self.datadisplay.open(module=module, comm=comm, observer=observer, vfs=vfs)
 
     async def _init(self) -> None:
         # hide single controls, if necessary
