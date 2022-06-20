@@ -217,6 +217,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         item = PagesListWidgetItem()
         item.setIcon(icon)
         item.setText(client)
+        item.setSizeHint(QtCore.QSize(80, 80))
 
         # add to list and sort
         self.listPages.addItem(item)
