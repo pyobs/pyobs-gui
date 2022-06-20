@@ -1,17 +1,5 @@
 <RCC>
   <qresource prefix="/">
-    <file>resources/arrows-to-eye-solid.svg</file>
-    <file>resources/circle-question-solid.svg</file>
-    <file>resources/chart-line-solid.svg</file>
-    <file>resources/arrow-alt-circle-left-solid.svg</file>
-    <file>resources/cloud-sun-solid.svg</file>
-    <file>resources/clock-solid.svg</file>
-    <file>resources/camera-solid.svg</file>
-    <file>resources/house-solid.svg</file>
-    <file>resources/keyboard-solid.svg</file>
-    <file>resources/location-crosshairs-solid.svg</file>
-    <file>resources/signal-solid.svg</file>
-    <file>resources/video-solid.svg</file>
     <file>resources/search-solid.svg</file>
     <file>resources/arrow-alt-circle-down-solid.svg</file>
     <file>resources/arrow-alt-circle-left-solid.svg</file>
@@ -19,12 +7,6 @@
     <file>resources/arrow-alt-circle-right-solid.svg</file>
     <file>resources/arrow-up-right-from-square-solid.svg</file>
     <file>resources/undo-solid.svg</file>
-    <file>resources/Crystal_Clear_app_kfm_home.png</file>
     <file>resources/edit-solid.svg</file>
-    <file>resources/Crystal_Clear_device_camera.png</file>
-    <file>resources/Crystal_Clear_app_terminal.png</file>
-    <file>resources/Crystal_Clear_action_find.png</file>
-    <file>resources/Crystal_Clear_app_demo.png</file>
-    <file>resources/Crystal_Clear_app_karm.png</file>
   </qresource>
 </RCC>
