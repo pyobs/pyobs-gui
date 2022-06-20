@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 from astropy.time import Time
 from colour import Color
+import qtawesome as qta
 
 from pyobs.comm import Comm, Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
@@ -45,14 +46,14 @@ DEFAULT_WIDGETS = {
 }
 
 DEFAULT_ICONS = {
-    None: ":/resources/circle-question-solid.svg",
-    ICamera: ":/resources/camera-solid.svg",
-    ITelescope: ":/resources/location-crosshairs-solid.svg",
-    IRoof: ":/resources/house-solid.svg",
-    IFocuser: ":/resources/arrows-to-eye-solid.svg",
-    IWeather: ":/resources/cloud-sun-solid.svg",
-    IVideo: ":/resources/video-solid.svg",
-    ISpectrograph: ":/resources/chart-line-solid.svg",
+    None: "fa5.question-circle",
+    ICamera: "fa5s.camera",
+    ITelescope: "msc.telescope",
+    IRoof: "ph.house",
+    IFocuser: "mdi.image-filter-center-focus",
+    IWeather: "fa5s.cloud-sun",
+    IVideo: "fa5s.video",
+    ISpectrograph: "ei.graph",
 }
 
 
@@ -153,7 +154,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         if self.show_shell:
             # add shell nav button and view
             self.shell = self.create_widget(ShellWidget)
-            await self._add_client("Shell", QtGui.QIcon(":/resources/keyboard-solid.svg"), self.shell, None)
+            await self._add_client("Shell", qta.icon("msc.terminal-powershell"), self.shell, None)
         else:
             self.shell = None
 
@@ -161,14 +162,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         if self.show_events:
             # add events nav button and view
             self.events = self.create_widget(EventsWidget)
-            await self._add_client("Events", QtGui.QIcon(":/resources/clock-solid.svg"), self.events, None)
+            await self._add_client("Events", qta.icon("msc.symbol-event"), self.events, None)
         else:
             self.events = None
 
         # status
         if self.show_status:
             self.status = self.create_widget(StatusWidget)
-            await self._add_client("Status", QtGui.QIcon(":/resources/signal-solid.svg"), self.status, None)
+            await self._add_client("Status", qta.icon("fa5s.wifi"), self.status, None)
         else:
             self.status = None
 
@@ -348,14 +349,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         for interface, klass in DEFAULT_WIDGETS.items():
             if isinstance(proxy, interface):
                 widget = self.create_widget(klass, module=proxy)
-                icon = QtGui.QIcon(DEFAULT_ICONS[interface])
+                icon = qta.icon(DEFAULT_ICONS[interface])
                 break
 
         # look at custom widgets
         for cw in self.custom_widgets:
             if cw["module"] == client:
                 widget = self.create_widget(cw["widget"], module=proxy)
-                icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
+                icon = qta.icon(DEFAULT_ICONS[None])
 
         # still nothing?
         if widget is None:

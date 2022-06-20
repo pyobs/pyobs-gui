@@ -14,6 +14,7 @@ qfitswidget = "^0.8"
 qasync = "^0.22"
 pyobs-core = ">=0.18.0"
 sunpy = "^3.1.6"
+QtAwesome = "^1.1.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.12b0"
