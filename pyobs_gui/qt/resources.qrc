@@ -1,5 +1,12 @@
 <RCC>
   <qresource prefix="/">
+    <file>resources/clock-solid.svg</file>
+    <file>resources/camera-solid.svg</file>
+    <file>resources/house-solid.svg</file>
+    <file>resources/keyboard-solid.svg</file>
+    <file>resources/location-crosshairs-solid.svg</file>
+    <file>resources/signal-solid.svg</file>
+    <file>resources/video-solid.svg</file>
     <file>resources/search-solid.svg</file>
     <file>resources/arrow-alt-circle-down-solid.svg</file>
     <file>resources/arrow-alt-circle-left-solid.svg</file>

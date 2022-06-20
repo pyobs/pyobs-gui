@@ -45,12 +45,12 @@ DEFAULT_WIDGETS = {
 }
 
 DEFAULT_ICONS = {
-    ICamera: ":/resources/Crystal_Clear_device_camera.png",
-    ITelescope: ":/resources/Crystal_Clear_action_find.png",
-    IRoof: ":/resources/Crystal_Clear_app_kfm_home.png",
+    ICamera: ":/resources/camera-solid.svg",
+    ITelescope: ":/resources/location-crosshairs-solid.svg",
+    IRoof: ":/resources/house-solid.svg",
     IFocuser: ":/resources/Crystal_Clear_app_demo.png",
     IWeather: ":/resources/Crystal_Clear_app_demo.png",
-    IVideo: ":/resources/Crystal_Clear_device_camera.png",
+    IVideo: ":/resources/video-solid.svg",
     ISpectrograph: ":/resources/Crystal_Clear_device_camera.png",
 }
 
@@ -152,7 +152,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         if self.show_shell:
             # add shell nav button and view
             self.shell = self.create_widget(ShellWidget)
-            await self._add_client("Shell", QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell, None)
+            await self._add_client("Shell", QtGui.QIcon(":/resources/keyboard-solid.svg"), self.shell, None)
         else:
             self.shell = None
 
@@ -160,14 +160,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         if self.show_events:
             # add events nav button and view
             self.events = self.create_widget(EventsWidget)
-            await self._add_client("Events", QtGui.QIcon(":/resources/Crystal_Clear_app_karm.png"), self.events, None)
+            await self._add_client("Events", QtGui.QIcon(":/resources/clock-solid.svg"), self.events, None)
         else:
             self.events = None
 
         # status
         if self.show_status:
             self.status = self.create_widget(StatusWidget)
-            await self._add_client("Status", QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png"), self.status, None)
+            await self._add_client("Status", QtGui.QIcon(":/resources/signal-solid.svg"), self.status, None)
         else:
             self.status = None
 
