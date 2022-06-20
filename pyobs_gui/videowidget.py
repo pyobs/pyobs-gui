@@ -11,7 +11,7 @@ from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IG
 from pyobs.modules import Module
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
 from .datadisplaywidget import DataDisplayWidget
 

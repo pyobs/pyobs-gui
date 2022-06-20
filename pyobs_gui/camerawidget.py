@@ -22,7 +22,7 @@ from pyobs.interfaces import (
 )
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .coolingwidget import CoolingWidget
 from .filterwidget import FilterWidget
 from .temperatureswidget import TemperaturesWidget

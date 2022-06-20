@@ -4,7 +4,7 @@ from typing import Any, Optional, List, Dict, Tuple
 
 from PyQt5 import QtCore, QtWidgets
 
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
 
 

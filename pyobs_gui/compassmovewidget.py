@@ -6,7 +6,7 @@ from pyobs.vfs import VirtualFileSystem
 
 from pyobs.comm import Proxy, Comm
 from pyobs.interfaces import IOffsetsRaDec, IOffsetsAltAz
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.compassmovewidget_ui import Ui_CompassMoveWidget
 
 

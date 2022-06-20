@@ -7,7 +7,7 @@ from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFilters
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.filterwidget_ui import Ui_FilterWidget
 
 

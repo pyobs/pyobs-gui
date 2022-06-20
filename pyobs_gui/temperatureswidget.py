@@ -3,7 +3,7 @@ from typing import Any, Dict, Tuple
 from PyQt5 import QtWidgets, QtCore
 
 from pyobs.interfaces import ITemperatures
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.temperatureswidget_ui import Ui_TemperaturesWidget
 
 

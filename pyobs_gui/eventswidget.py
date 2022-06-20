@@ -10,7 +10,7 @@ import pyobs.events
 from pyobs.comm import Comm, Proxy
 from pyobs.events import LogEvent, Event
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.eventswidget_ui import Ui_EventsWidget
 
 

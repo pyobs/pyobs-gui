@@ -12,7 +12,7 @@ from pyobs.events import LogEvent, Event, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IModule
 from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem
-from pyobs_gui._base import BaseWidget
+from pyobs_gui.base import BaseWidget
 
 
 class StatusItem(QtWidgets.QWidget):

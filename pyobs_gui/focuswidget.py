@@ -10,7 +10,7 @@ from pyobs.interfaces import IFocuser
 
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.focuswidget_ui import Ui_FocusWidget
 
 

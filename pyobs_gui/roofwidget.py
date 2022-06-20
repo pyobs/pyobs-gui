@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import IDome, IMotion
 from pyobs.utils.enums import MotionStatus
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.roofwidget_ui import Ui_RoofWidget
 
 

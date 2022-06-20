@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import ICooling
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.coolingwidget_ui import Ui_CoolingWidget
 
 

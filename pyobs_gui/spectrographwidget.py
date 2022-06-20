@@ -10,7 +10,7 @@ from pyobs.events import ExposureStatusChangedEvent, Event
 from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
 from pyobs.utils.enums import ExposureStatus
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .datadisplaywidget import DataDisplayWidget
 
 from .qt.spectrographwidget_ui import Ui_SpectrographWidget

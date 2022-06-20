@@ -32,7 +32,7 @@ from .focuswidget import FocusWidget
 from .temperatureswidget import TemperaturesWidget
 from .compassmovewidget import CompassMoveWidget
 from .qt.telescopewidget_ui import Ui_TelescopeWidget
-from ._base import BaseWidget
+from .base import BaseWidget
 
 
 log = logging.getLogger(__name__)

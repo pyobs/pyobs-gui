@@ -5,7 +5,7 @@ import logging
 from pyobs.interfaces import IWeather
 from pyobs.utils.time import Time
 from .qt.weatherwidget_ui import Ui_WeatherWidget
-from ._base import BaseWidget
+from .base import BaseWidget
 
 
 log = logging.getLogger(__name__)

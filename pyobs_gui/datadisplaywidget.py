@@ -17,7 +17,7 @@ from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IImageGrabber, ISpectrograph
 from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
 
 log = logging.getLogger(__name__)

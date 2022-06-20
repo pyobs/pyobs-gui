@@ -19,7 +19,7 @@ from pyobs.interfaces import (
     ISpectrograph,
 )
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWindow, BaseWidget
+from .base import BaseWindow, BaseWidget
 from .camerawidget import CameraWidget
 from .statuswidget import StatusWidget
 from .telescopewidget import TelescopeWidget

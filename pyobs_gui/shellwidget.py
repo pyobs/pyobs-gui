@@ -16,7 +16,7 @@ from pyobs.comm import Comm, Proxy
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
 from pyobs.utils import exceptions as exc
 from pyobs.vfs import VirtualFileSystem
-from ._base import BaseWidget
+from .base import BaseWidget
 from .qt.shellwidget_ui import Ui_ShellWidget
 
 
