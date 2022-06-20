@@ -45,13 +45,14 @@ DEFAULT_WIDGETS = {
 }
 
 DEFAULT_ICONS = {
+    None: ":/resources/circle-question-solid.svg",
     ICamera: ":/resources/camera-solid.svg",
     ITelescope: ":/resources/location-crosshairs-solid.svg",
     IRoof: ":/resources/house-solid.svg",
-    IFocuser: ":/resources/Crystal_Clear_app_demo.png",
-    IWeather: ":/resources/Crystal_Clear_app_demo.png",
+    IFocuser: ":/resources/arrows-to-eye-solid.svg",
+    IWeather: ":/resources/cloud-sun-solid.svg",
     IVideo: ":/resources/video-solid.svg",
-    ISpectrograph: ":/resources/Crystal_Clear_device_camera.png",
+    ISpectrograph: ":/resources/chart-line-solid.svg",
 }
 
 

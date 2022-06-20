@@ -125,7 +125,7 @@ class Ui_MainWindow(object):
         self.listPages.setProperty("showDropIndicator", False)
         self.listPages.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
         self.listPages.setDefaultDropAction(QtCore.Qt.IgnoreAction)
-        self.listPages.setIconSize(QtCore.QSize(64, 64))
+        self.listPages.setIconSize(QtCore.QSize(32, 32))
         self.listPages.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
         self.listPages.setMovement(QtWidgets.QListView.Static)
         self.listPages.setFlow(QtWidgets.QListView.LeftToRight)
