@@ -4,11 +4,11 @@ TODO: write doc
 __title__ = "GUI"
 
 from .gui import GUI
-from .widgetcamera import WidgetCamera
-from .widgetdatadisplay import WidgetDataDisplay
-from .widgetcooling import WidgetCooling
-from .widgetshell import WidgetShell
-from .widgetvideo import WidgetVideo
-from .widgetfocus import WidgetFocus
-from .widgettelescope import WidgetTelescope
-from .widgetweather import WidgetWeather
+from .camerawidget import CameraWidget
+from .datadisplaywidget import DataDisplayWidget
+from .coolingwidget import CoolingWidget
+from .shellwidget import ShellWidget
+from .videowidget import VideoWidget
+from .focuswidget import FocusWidget
+from .telescopewidget import TelescopeWidget
+from .weatherwidget import WeatherWidget

@@ -1,12 +1,12 @@
 import asyncio
 import os
-from typing import Optional, List, Any, Dict, Tuple
+from typing import Optional, List, Any, Dict, Tuple, Union
 from PyQt5 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 from astropy.time import Time
 from colour import Color
 
-from pyobs.comm import Comm
+from pyobs.comm import Comm, Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     ICamera,
@@ -19,29 +19,29 @@ from pyobs.interfaces import (
     ISpectrograph,
 )
 from pyobs.vfs import VirtualFileSystem
-from .widgetcamera import WidgetCamera
-from .widgetsmixin import WidgetsMixin
-from .widgetstatus import WidgetStatus
-from .widgettelescope import WidgetTelescope
-from .widgetfocus import WidgetFocus
-from .widgetweather import WidgetWeather
-from .widgetvideo import WidgetVideo
+from .base import BaseWindow, BaseWidget
+from .camerawidget import CameraWidget
+from .statuswidget import StatusWidget
+from .telescopewidget import TelescopeWidget
+from .focuswidget import FocusWidget
+from .weatherwidget import WeatherWidget
+from .videowidget import VideoWidget
 from .qt.mainwindow import Ui_MainWindow
 from .logmodel import LogModel, LogModelProxy
-from .widgetevents import WidgetEvents
-from .widgetroof import WidgetRoof
-from .widgetshell import WidgetShell
-from .widgetspectrograph import WidgetSpectrograph
+from .eventswidget import EventsWidget
+from .roofwidget import RoofWidget
+from .shellwidget import ShellWidget
+from .spectrographwidget import SpectrographWidget
 
 
 DEFAULT_WIDGETS = {
-    ICamera: WidgetCamera,
-    ITelescope: WidgetTelescope,
-    IRoof: WidgetRoof,
-    IFocuser: WidgetFocus,
-    IWeather: WidgetWeather,
-    IVideo: WidgetVideo,
-    ISpectrograph: WidgetSpectrograph,
+    ICamera: CameraWidget,
+    ITelescope: TelescopeWidget,
+    IRoof: RoofWidget,
+    IFocuser: FocusWidget,
+    IWeather: WeatherWidget,
+    IVideo: VideoWidget,
+    ISpectrograph: SpectrographWidget,
 }
 
 DEFAULT_ICONS = {
@@ -79,15 +79,12 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
             return QtWidgets.QListWidgetItem.__lt__(self, other)
 
 
-class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
     add_log = QtCore.pyqtSignal(list)
     add_command_log = QtCore.pyqtSignal(str)
 
     def __init__(
         self,
-        comm: Comm,
-        vfs: VirtualFileSystem,
-        observer: Observer,
         show_shell: bool = True,
         show_events: bool = True,
         show_status: bool = True,
@@ -99,9 +96,6 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         """Init window.
 
         Args:
-            comm: Comm to use.
-            vfs: VFS to use.
-            observer: Observer to use.
             show_shell: Whether to show shell page.
             show_events: Whether to show events page.
             show_status: Whether to show status page.
@@ -110,14 +104,11 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
             sidebar: List of custom widgets for the sidebar.
         """
         QtWidgets.QMainWindow.__init__(self, **kwargs)
-        WidgetsMixin.__init__(self)
+        BaseWindow.__init__(self)
         self.setupUi(self)
         self.resize(1300, 800)
 
         # store stuff
-        self.comm = comm
-        self.vfs = vfs
-        self.observer = observer
         self.mastermind_running = False
         self.show_modules = show_modules
         self.custom_widgets = [] if widgets is None else widgets
@@ -147,48 +138,36 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # list of widgets
         self._widgets: Dict[str, QtWidgets.QWidget] = {}
         self._current_widget = None
-        self.shell: Optional[WidgetShell] = None
-        self.events: Optional[WidgetEvents] = None
-        self.status: Optional[WidgetStatus] = None
+        self.shell: Optional[ShellWidget] = None
+        self.events: Optional[EventsWidget] = None
+        self.status: Optional[StatusWidget] = None
 
-    async def open(self) -> None:
+    async def open(self, **kwargs: Any) -> None:
         """Open module."""
 
         # open widgets
-        await WidgetsMixin.open(self)
+        await BaseWindow.open(self, **kwargs)
 
         # shell
         if self.show_shell:
             # add shell nav button and view
-            self.shell = self.create_widget(WidgetShell)
-            await self._add_client(
-                "Shell",
-                QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"),
-                self.shell,
-            )
+            self.shell = self.create_widget(ShellWidget)
+            await self._add_client("Shell", QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell, None)
         else:
             self.shell = None
 
         # events
         if self.show_events:
             # add events nav button and view
-            self.events = WidgetEvents(self.comm)
-            await self._add_client(
-                "Events",
-                QtGui.QIcon(":/resources/Crystal_Clear_app_karm.png"),
-                self.events,
-            )
+            self.events = self.create_widget(EventsWidget)
+            await self._add_client("Events", QtGui.QIcon(":/resources/Crystal_Clear_app_karm.png"), self.events, None)
         else:
             self.events = None
 
         # status
         if self.show_status:
-            self.status = WidgetStatus(self.comm)
-            await self._add_client(
-                "Status",
-                QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png"),
-                self.status,
-            )
+            self.status = self.create_widget(StatusWidget)
+            await self._add_client("Status", QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png"), self.status, None)
         else:
             self.status = None
 
@@ -219,14 +198,16 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         # get current widget
         widget = self.stackedWidget.currentWidget()
 
-    async def _add_client(self, client: str, icon: QtGui.QIcon, widget: QtWidgets.QWidget) -> None:
+    async def _add_client(
+        self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None
+    ) -> None:
         """
 
         Args:
             client: Name of client to add.
             icon: Icon for client in nav list.
             widget: Widget to add for client.
-            label: Label for icon.
+            proxy: Proxy for client.
 
         Returns:
 
@@ -242,7 +223,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
         self.listPages.sortItems()
 
         # open and add widget
-        await widget.open()
+        await widget.open(module=proxy, comm=self.comm, observer=self.observer, vfs=self.vfs)
         self.stackedWidget.addWidget(widget)
 
         # store
@@ -384,7 +365,7 @@ class MainWindow(QtWidgets.QMainWindow, WidgetsMixin, Ui_MainWindow):
                 widget.add_to_sidebar(self.create_widget(csw["widget"], module=proxy))
 
         # add it
-        await self._add_client(client, icon, widget)
+        await self._add_client(client, icon, widget, proxy)
 
         # check mastermind
         await self._check_warnings()
