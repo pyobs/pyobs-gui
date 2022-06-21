@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 from astropy.time import Time
 from colour import Color
+import qtawesome as qta
 
 from pyobs.comm import Comm, Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
@@ -45,13 +46,14 @@ DEFAULT_WIDGETS = {
 }
 
 DEFAULT_ICONS = {
-    ICamera: ":/resources/Crystal_Clear_device_camera.png",
-    ITelescope: ":/resources/Crystal_Clear_action_find.png",
-    IRoof: ":/resources/Crystal_Clear_app_kfm_home.png",
-    IFocuser: ":/resources/Crystal_Clear_app_demo.png",
-    IWeather: ":/resources/Crystal_Clear_app_demo.png",
-    IVideo: ":/resources/Crystal_Clear_device_camera.png",
-    ISpectrograph: ":/resources/Crystal_Clear_device_camera.png",
+    None: "fa5.question-circle",
+    ICamera: "fa5s.camera",
+    ITelescope: "msc.telescope",
+    IRoof: "ph.house",
+    IFocuser: "mdi.image-filter-center-focus",
+    IWeather: "fa5s.cloud-sun",
+    IVideo: "fa5s.video",
+    ISpectrograph: "ei.graph",
 }
 
 
@@ -152,7 +154,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         if self.show_shell:
             # add shell nav button and view
             self.shell = self.create_widget(ShellWidget)
-            await self._add_client("Shell", QtGui.QIcon(":/resources/Crystal_Clear_app_terminal.png"), self.shell, None)
+            await self._add_client("Shell", qta.icon("msc.terminal-powershell"), self.shell, None)
         else:
             self.shell = None
 
@@ -160,14 +162,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         if self.show_events:
             # add events nav button and view
             self.events = self.create_widget(EventsWidget)
-            await self._add_client("Events", QtGui.QIcon(":/resources/Crystal_Clear_app_karm.png"), self.events, None)
+            await self._add_client("Events", qta.icon("msc.symbol-event"), self.events, None)
         else:
             self.events = None
 
         # status
         if self.show_status:
             self.status = self.create_widget(StatusWidget)
-            await self._add_client("Status", QtGui.QIcon(":/resources/Crystal_Clear_app_demo.png"), self.status, None)
+            await self._add_client("Status", qta.icon("fa5s.wifi"), self.status, None)
         else:
             self.status = None
 
@@ -217,6 +219,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         item = PagesListWidgetItem()
         item.setIcon(icon)
         item.setText(client)
+        item.setSizeHint(QtCore.QSize(80, 80))
 
         # add to list and sort
         self.listPages.addItem(item)
@@ -346,14 +349,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         for interface, klass in DEFAULT_WIDGETS.items():
             if isinstance(proxy, interface):
                 widget = self.create_widget(klass, module=proxy)
-                icon = QtGui.QIcon(DEFAULT_ICONS[interface])
+                icon = qta.icon(DEFAULT_ICONS[interface])
                 break
 
         # look at custom widgets
         for cw in self.custom_widgets:
             if cw["module"] == client:
                 widget = self.create_widget(cw["widget"], module=proxy)
-                icon = QtGui.QIcon(list(DEFAULT_ICONS.values())[0])
+                icon = qta.icon(DEFAULT_ICONS[None])
 
         # still nothing?
         if widget is None:

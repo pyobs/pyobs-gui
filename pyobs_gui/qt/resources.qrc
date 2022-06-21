@@ -7,12 +7,6 @@
     <file>resources/arrow-alt-circle-right-solid.svg</file>
     <file>resources/arrow-up-right-from-square-solid.svg</file>
     <file>resources/undo-solid.svg</file>
-    <file>resources/Crystal_Clear_app_kfm_home.png</file>
     <file>resources/edit-solid.svg</file>
-    <file>resources/Crystal_Clear_device_camera.png</file>
-    <file>resources/Crystal_Clear_app_terminal.png</file>
-    <file>resources/Crystal_Clear_action_find.png</file>
-    <file>resources/Crystal_Clear_app_demo.png</file>
-    <file>resources/Crystal_Clear_app_karm.png</file>
   </qresource>
 </RCC>

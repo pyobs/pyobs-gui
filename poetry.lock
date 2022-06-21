@@ -1147,6 +1147,31 @@ PyQt5 = "*"
 scikit-image = "*"
 
 [[package]]
+name = "qtawesome"
+version = "1.1.1"
+description = "FontAwesome icons in PyQt and PySide applications"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+qtpy = "*"
+
+[[package]]
+name = "qtpy"
+version = "2.1.0"
+description = "Provides an abstraction layer on top of the various Qt bindings (PyQt5/6 and PySide2/6)."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+packaging = "*"
+
+[package.extras]
+test = ["pytest (>=6,!=7.0.0,!=7.0.1)", "pytest-cov (>=3.0.0)", "pytest-qt"]
+
+[[package]]
 name = "reproject"
 version = "0.8"
 description = "Reproject astronomical images"
@@ -1625,7 +1650,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.10"
-content-hash = "d81a4df538880a9592b73e543feaa99634ffe806bc68999ee6b11827492cef37"
+content-hash = "819c1397ff53cf59be93cda7c20408e5e575a8857aeeba7306520e594b167890"
 
 [metadata.files]
 aiodns = [
@@ -2647,6 +2672,14 @@ qasync = [
 qfitswidget = [
     {file = "qfitswidget-0.8.2-py3-none-any.whl", hash = "sha256:908f249f3f0c8a50a78813ba923c971bfe821ddfea46cdf834dd8a7c86ae141d"},
     {file = "qfitswidget-0.8.2.tar.gz", hash = "sha256:5f491684e27a6da16b35066bd7b7463364d3efc8ca3ad96e97a1884b4ed2a821"},
+]
+qtawesome = [
+    {file = "QtAwesome-1.1.1-py3-none-any.whl", hash = "sha256:27d2e2bcb34cb5c9a7f61c29f34b24bf89ef50c79ffff7a76effe59bf781fcee"},
+    {file = "QtAwesome-1.1.1.tar.gz", hash = "sha256:ec02e200231fa68a146a93845890aa0432a7edcba14bf811ff6975cf9acdab5d"},
+]
+qtpy = [
+    {file = "QtPy-2.1.0-py3-none-any.whl", hash = "sha256:aee0586081f943029312becece9f63977b0a9e3788f77a6ac8cc74802bb173d6"},
+    {file = "QtPy-2.1.0.tar.gz", hash = "sha256:ca8cd4217175186344299ee4c0f7e7adcf362c70852ba35b255a534077025c06"},
 ]
 reproject = [
     {file = "reproject-0.8-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:62c5ceec278d42144941e552a2a9778cd3efb3c3064e77dd70dd6fc2430e8f56"},
