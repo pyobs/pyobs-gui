@@ -1,11 +1,11 @@
-import logging
-from typing import Any, Optional, Union, Dict
+from typing import Any
 from PyQt5 import QtWidgets, QtCore
-from astroplan import Observer
-from pyobs.vfs import VirtualFileSystem
+import astropy.units as u
+from astropy.coordinates import AltAz, SkyCoord, ICRS
 
-from pyobs.comm import Proxy, Comm
-from pyobs.interfaces import IOffsetsRaDec, IOffsetsAltAz
+from pyobs.interfaces import IOffsetsRaDec, IOffsetsAltAz, IPointingAltAz
+from pyobs.utils.coordinates import offset_altaz_to_radec, offset_radec_to_altaz
+from pyobs.utils.time import Time
 from .base import BaseWidget
 from .qt.compassmovewidget_ui import Ui_CompassMoveWidget
 
@@ -31,9 +31,17 @@ class CompassMoveWidget(QtWidgets.QWidget, BaseWidget, Ui_CompassMoveWidget):
 
     async def __move_offset(self, sender: QtWidgets.QWidget) -> None:
         # get offsets
-        if isinstance(self.module, IOffsetsAltAz):
+        if isinstance(self.module, IOffsetsAltAz) and isinstance(self.module, IPointingAltAz):
+            alt, az = await self.module.get_altaz()
+            altaz = SkyCoord(
+                alt=alt * u.degree,
+                az=alt * u.degree,
+                obstime=Time.now(),
+                location=self.observer.location,
+                frame="altaz",
+            )
             off_alt, off_az = await self.module.get_offsets_altaz()
-            off_ra, off_dec = self._offset_altaz_to_radec(off_alt, off_az)
+            off_ra, off_dec = offset_altaz_to_radec(altaz, off_alt, off_az)
         elif isinstance(self.module, IOffsetsRaDec):
             off_ra, off_dec = await self.module.get_offsets_radec()
         else:
@@ -56,7 +64,7 @@ class CompassMoveWidget(QtWidgets.QWidget, BaseWidget, Ui_CompassMoveWidget):
         if isinstance(self.module, IOffsetsRaDec):
             self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
         elif isinstance(self.module, IOffsetsAltAz):
-            off_alt, off_az = self._offset_radec_to_altaz(off_ra, off_dec)
+            off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)
             self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
         else:
             raise ValueError
