@@ -105,8 +105,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
             widgets: List of custom widgets.
             sidebar: List of custom widgets for the sidebar.
         """
-        QtWidgets.QMainWindow.__init__(self, **kwargs)
-        BaseWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
+        BaseWindow.__init__(self, **kwargs)
         self.setupUi(self)
         self.resize(1300, 800)
 
@@ -118,6 +118,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.show_shell = show_shell
         self.show_events = show_events
         self.show_status = show_status
+        self.warning_task: Optional[asyncio.Task] = None
 
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
@@ -190,7 +191,13 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
             await self._client_connected(Event(), client_name)
 
         # add timer for checking warnings
-        asyncio.create_task(self._check_warning_task())
+        self.warning_task = asyncio.create_task(self._check_warning_task())
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        if self.warning_task is not None:
+            self.warning_task.cancel()
+        if self.module is not None:
+            self.module.quit()
 
     async def _add_client(
         self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None

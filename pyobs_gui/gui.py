@@ -62,6 +62,7 @@ class GUI(Module, IFitsHeaderBefore):
             sidebar=self._custom_sidebar_widgets,
         )
         await self._window.open(
+            module=self,
             comm=self.comm,
             vfs=self.vfs,
             observer=self.observer,
