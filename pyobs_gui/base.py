@@ -194,6 +194,8 @@ class BaseWidget(BaseWindow):
                 await self._update_task
             except asyncio.CancelledError:
                 pass
+            finally:
+                self._update_task = None
 
     async def _update_loop(self) -> None:
         while True:
