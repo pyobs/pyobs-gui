@@ -190,15 +190,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
             await self._client_connected(Event(), client_name)
 
         # add timer for checking warnings
-        self._warning_timer = QtCore.QTimer()
-        self._warning_timer.timeout.connect(lambda: asyncio.create_task(self._check_warnings()))
-        self._warning_timer.start(5000)
-
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        """Called when window is about to be closed."""
-
-        # get current widget
-        widget = self.stackedWidget.currentWidget()
+        asyncio.create_task(self._check_warning_task())
 
     async def _add_client(
         self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None
@@ -303,6 +295,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
 
         # update proxy
         self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
+
+    async def _check_warning_task(self) -> None:
+        while True:
+            await self._check_warnings()
+            await asyncio.sleep(5)
 
     async def _check_warnings(self) -> None:
         """Checks, whether we got an autonomous module."""
