@@ -194,6 +194,8 @@ class BaseWidget(BaseWindow):
                 await self._update_task
             except asyncio.CancelledError:
                 pass
+            finally:
+                self._update_task = None
 
     async def _update_loop(self) -> None:
         while True:
@@ -212,15 +214,9 @@ class BaseWidget(BaseWindow):
                 # sleep a little
                 await asyncio.sleep(1)
 
-            except asyncio.CancelledError:
-                return
-
             except exc.PyObsError:
                 # ignore these and sleep a little
                 await asyncio.sleep(1)
-
-            except Exception as e:
-                log.warning("Exception during GUIs update function: %s", str(e))
 
     def run_background(self, method: Callable[..., Coroutine[Any, Any, None]], *args: Any, **kwargs: Any) -> None:
         asyncio.create_task(self._background_task(method, *args, **kwargs))
