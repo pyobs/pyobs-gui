@@ -1,6 +1,8 @@
 import asyncio
 import sys
 from typing import List, Dict, Tuple, Any, Optional
+
+import qasync
 from qasync import QEventLoop  # type: ignore
 from PyQt5 import QtWidgets
 
@@ -35,8 +37,9 @@ class GUI(Module, IFitsHeaderBefore):
 
         # init Qt with asyncio
         self._app = QtWidgets.QApplication(sys.argv)
-        loop = QEventLoop(self._app)
-        asyncio.set_event_loop(loop)
+        #loop = QEventLoop(self._app)
+        #asyncio.set_event_loop(loop)
+        asyncio.set_event_loop_policy(qasync.DefaultQEventLoopPolicy())
 
         # init module
         Module.__init__(self, *args, **kwargs)
