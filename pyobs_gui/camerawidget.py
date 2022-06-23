@@ -28,7 +28,6 @@ from .filterwidget import FilterWidget
 from .temperatureswidget import TemperaturesWidget
 from .fitsheaderswidget import FitsHeadersWidget
 from .qt.camerawidget_ui import Ui_CameraWidget
-from .datadisplaywidget import DataDisplayWidget
 
 log = logging.getLogger(__name__)
 
@@ -51,10 +50,6 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         self.exposures_left = 0
         self.exposure_time_left = 0.0
         self.exposure_progress = 0.0
-
-        # data display
-        # self.widgetDataDisplay = self.create_widget(WidgetDataDisplay, module=self.module)
-        # self.frameImageGrabber.layout().addWidget(self.widgetDataDisplay)
 
     async def open(
         self,
@@ -257,7 +252,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         while self.exposures_left > 0:
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            await self.widgetDataDisplay.grab_data(broadcast, image_type)
+            await self.datadisplay.grab_data(broadcast, image_type)
 
             # decrement number of exposures left
             self.exposures_left -= 1
