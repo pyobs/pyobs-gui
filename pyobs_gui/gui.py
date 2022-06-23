@@ -1,6 +1,8 @@
 import asyncio
 import sys
 from typing import List, Dict, Tuple, Any, Optional
+
+import qasync
 from qasync import QEventLoop  # type: ignore
 from PyQt5 import QtWidgets
 
@@ -11,6 +13,8 @@ from .mainwindow import MainWindow
 
 class GUI(Module, IFitsHeaderBefore):
     __module__ = "pyobs_gui"
+
+    app: Optional[QtWidgets.QApplication] = None
 
     def __init__(
         self,
@@ -33,11 +37,6 @@ class GUI(Module, IFitsHeaderBefore):
             sidebar: List of custom sidebar widgets.
         """
 
-        # init Qt with asyncio
-        self._app = QtWidgets.QApplication(sys.argv)
-        loop = QEventLoop(self._app)
-        asyncio.set_event_loop(loop)
-
         # init module
         Module.__init__(self, *args, **kwargs)
         self._window: Optional[MainWindow] = None
@@ -47,6 +46,11 @@ class GUI(Module, IFitsHeaderBefore):
         self._show_modules = show_modules
         self._custom_widgets = widgets
         self._custom_sidebar_widgets = sidebar
+
+    @staticmethod
+    def new_event_loop() -> asyncio.AbstractEventLoop:
+        GUI.app = QtWidgets.QApplication(sys.argv)
+        return qasync.QEventLoop(GUI.app)
 
     async def open(self) -> None:
         """Open module."""
@@ -62,6 +66,7 @@ class GUI(Module, IFitsHeaderBefore):
             sidebar=self._custom_sidebar_widgets,
         )
         await self._window.open(
+            module=self,
             comm=self.comm,
             vfs=self.vfs,
             observer=self.observer,

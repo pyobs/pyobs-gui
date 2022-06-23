@@ -127,7 +127,6 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
         # add coord types
-        print(isinstance(self.module, IOffsetsAltAz), isinstance(self.module, IOffsetsRaDec))
         if isinstance(self.module, IPointingRaDec):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
             # self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
@@ -503,15 +502,10 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             QtWidgets.QMessageBox.critical(self, "MPC", "No result found")
             return
 
-        print(obj)
-        print(obj.uri)
         try:
             eph = obj.elements()
         except ValueError:
             pass
-        print(eph)
-        print(eph.columns)
-        print(obj.uri)
 
         self.spinOrbitElementsEcc.setValue(eph["e"][0])
         self.spinOrbitElementsIncl.setValue(eph["incl"][0])

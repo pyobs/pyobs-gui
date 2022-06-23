@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import Task
 from datetime import datetime
 from typing import Any, Type, Dict, Optional, cast, Union
 from PyQt5 import QtWidgets, QtCore
@@ -92,7 +93,7 @@ class StatusItem(QtWidgets.QWidget):
 class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
     def __init__(self, **kwargs: Any):
         QtWidgets.QTableWidget.__init__(self)
-        BaseWidget.__init__(self, **kwargs)
+        BaseWidget.__init__(self, update_func=self._update_status, **kwargs)
 
         # table settings
         self.setColumnCount(3)
@@ -102,6 +103,9 @@ class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().setMinimumSectionSize(200)
         self.verticalHeader().hide()
+
+        # stuff
+        self._status_task: Optional[Task] = None
 
     async def open(
         self,
@@ -122,7 +126,7 @@ class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
             await self._module_opened(ModuleOpenedEvent(), mod)
 
         # trigger status updates
-        asyncio.create_task(self._update_status())
+        #self._status_task = asyncio.create_task(self._update_status())
 
     async def _module_opened(self, event: Event, sender: str) -> bool:
         """Called when module was opened."""
