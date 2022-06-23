@@ -35,12 +35,6 @@ class GUI(Module, IFitsHeaderBefore):
             sidebar: List of custom sidebar widgets.
         """
 
-        # init Qt with asyncio
-        self._app = QtWidgets.QApplication(sys.argv)
-        #loop = QEventLoop(self._app)
-        #asyncio.set_event_loop(loop)
-        asyncio.set_event_loop_policy(qasync.DefaultQEventLoopPolicy())
-
         # init module
         Module.__init__(self, *args, **kwargs)
         self._window: Optional[MainWindow] = None
@@ -50,6 +44,11 @@ class GUI(Module, IFitsHeaderBefore):
         self._show_modules = show_modules
         self._custom_widgets = widgets
         self._custom_sidebar_widgets = sidebar
+
+    @staticmethod
+    def new_event_loop() -> asyncio.AbstractEventLoop:
+        GUI.app = QtWidgets.QApplication(sys.argv)
+        return qasync.QEventLoop(GUI.app)
 
     async def open(self) -> None:
         """Open module."""
