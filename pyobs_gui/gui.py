@@ -14,6 +14,8 @@ from .mainwindow import MainWindow
 class GUI(Module, IFitsHeaderBefore):
     __module__ = "pyobs_gui"
 
+    app: Optional[QtWidgets.QApplication] = None
+
     def __init__(
         self,
         show_shell: bool = True,
