@@ -29,7 +29,7 @@ class CoolingWidget(QtWidgets.QWidget, BaseWidget, Ui_CoolingWidget):
     async def _update(self) -> None:
         # get status
         if isinstance(self.module, ICooling):
-            self._status = await self.module.get_cooling_status()
+            self._status = await self.module.get_cooling()
 
         # signal GUI update
         self.signal_update_gui.emit()
