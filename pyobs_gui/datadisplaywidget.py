@@ -14,7 +14,7 @@ from pyobs.modules import Module
 from qfitswidget import QFitsWidget
 
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
-from pyobs.interfaces import IImageGrabber, ISpectrograph
+from pyobs.interfaces import IData, ISpectrograph
 from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
@@ -65,7 +65,7 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        if isinstance(self.module, IImageGrabber):
+        if isinstance(self.module, IData):
             self.imageView = QFitsWidget()
             self.imageLayout.addWidget(self.imageView)
         elif isinstance(self.module, ISpectrograph):
@@ -88,16 +88,16 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
             return
 
         # expose
-        if isinstance(self.module, IImageGrabber):
-            filename = await self.module.grab_image(broadcast=broadcast)
+        if isinstance(self.module, IData):
+            filename = await self.module.grab_data(broadcast=broadcast)
         elif isinstance(self.module, ISpectrograph):
-            filename = await self.module.grab_spectrum(broadcast=broadcast)
+            filename = await self.module.grab_data(broadcast=broadcast)
         else:
             raise ValueError("Unknown type")
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(self.module, IImageGrabber):
+            if isinstance(self.module, IData):
                 await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, self.module).name)
             elif isinstance(self.module, ISpectrograph):
                 await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, self.module).name)
@@ -112,7 +112,7 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         if self.data is None:
             return
 
-        if isinstance(self.module, IImageGrabber):
+        if isinstance(self.module, IData):
             self.imageView.display(self.data[0])
         elif isinstance(self.module, ISpectrograph):
             self._plot_spectrum()
