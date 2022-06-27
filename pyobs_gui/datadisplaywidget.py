@@ -65,15 +65,15 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        if isinstance(self.module, IData):
-            self.imageView = QFitsWidget()
-            self.imageLayout.addWidget(self.imageView)
-        elif isinstance(self.module, ISpectrograph):
+        if isinstance(self.module, ISpectrograph):
             self.figure, self.ax = plt.subplots()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
             self.imageLayout.addWidget(self.plotTools)
             self.imageLayout.addWidget(self.canvas)
+        elif isinstance(self.module, IData):
+            self.imageView = QFitsWidget()
+            self.imageLayout.addWidget(self.imageView)
         else:
             raise ValueError("Unknown type")
 
@@ -90,17 +90,15 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         # expose
         if isinstance(self.module, IData):
             filename = await self.module.grab_data(broadcast=broadcast)
-        elif isinstance(self.module, ISpectrograph):
-            filename = await self.module.grab_data(broadcast=broadcast)
         else:
             raise ValueError("Unknown type")
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(self.module, IData):
-                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, self.module).name)
-            elif isinstance(self.module, ISpectrograph):
+            if isinstance(self.module, ISpectrograph):
                 await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, self.module).name)
+            elif isinstance(self.module, IData):
+                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, self.module).name)
             else:
                 raise ValueError("Unknown type")
 
@@ -112,10 +110,10 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         if self.data is None:
             return
 
-        if isinstance(self.module, IData):
-            self.imageView.display(self.data[0])
-        elif isinstance(self.module, ISpectrograph):
+        if isinstance(self.module, ISpectrograph):
             self._plot_spectrum()
+        elif isinstance(self.module, IData):
+            self.imageView.display(self.data[0])
 
     def _plot_spectrum(self) -> None:
         """Plot spectrum."""
