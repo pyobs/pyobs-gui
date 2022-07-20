@@ -448,7 +448,7 @@ class Ui_TelescopeWidget(object):
         self.spinMoveHelioprojectiveRadialMu.setMinimum(0.0)
         self.spinMoveHelioprojectiveRadialMu.setMaximum(1.0)
         self.spinMoveHelioprojectiveRadialMu.setSingleStep(0.1)
-        self.spinMoveHelioprojectiveRadialMu.setProperty("value", 0.0)
+        self.spinMoveHelioprojectiveRadialMu.setProperty("value", 1.0)
         self.spinMoveHelioprojectiveRadialMu.setObjectName("spinMoveHelioprojectiveRadialMu")
         self.gridLayout_13.addWidget(self.spinMoveHelioprojectiveRadialMu, 0, 1, 1, 1)
         self.label_40 = QtWidgets.QLabel(self.widget_5)
