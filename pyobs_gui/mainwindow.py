@@ -312,9 +312,16 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         """Checks, whether we got an autonomous module."""
         # get all autonomous modules
         autonomous_clients = await self.comm.clients_with_interface(IAutonomous)
+        self.mastermind_running = False
+        for auto_client in autonomous_clients:
+            proxy = await self.comm.safe_proxy(
+                auto_client, IAutonomous
+            )
+            if await proxy.is_running():
+                self.mastermind_running = True
+                break
 
         # got any?
-        self.mastermind_running = len(autonomous_clients) > 0
         self.labelAutonomousWarning.setVisible(self.mastermind_running)
 
         # get weather modules
