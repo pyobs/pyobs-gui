@@ -278,18 +278,21 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>84</width>
-            <height>84</height>
+            <width>90</width>
+            <height>90</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>84</width>
+            <width>90</width>
             <height>16777215</height>
            </size>
           </property>
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
           </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOff</enum>
