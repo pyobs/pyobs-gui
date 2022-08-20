@@ -8,7 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = ">=3.9,<3.10"
 colour = "^0.1"
-PyQt5 = "^5.13"
+PyQt5 = "<=5.14.2"
 matplotlib = "^3.4"
 qfitswidget = "^0.8"
 qasync = "^0.22"
