@@ -173,7 +173,7 @@ class SendEventDialog(QtWidgets.QDialog):
         # collect values
         values: Dict[str, Any] = {}
         for name, (checkbox, widget, ann) in self._widgets.items():
-            if checkbox is None or not checkbox.isChecked():
+            if checkbox is not None and not checkbox.isChecked():
                 values[name] = None
             else:
                 if isinstance(widget, QtWidgets.QLineEdit):
