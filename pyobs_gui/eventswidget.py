@@ -123,7 +123,6 @@ class SendEventDialog(QtWidgets.QDialog):
             if p not in ["self", "args", "kwargs"]:
                 # get annotation
                 ann = sig.parameters[p].annotation
-                print(ann, type(ann))
 
                 # optional?
                 optional = False
@@ -157,7 +156,7 @@ class SendEventDialog(QtWidgets.QDialog):
                 widget_layout.addWidget(widget)
 
                 # store widget
-                self._widgets[p] = (checkbox, widget)
+                self._widgets[p] = (checkbox, widget, ann)
 
                 # add to layout
                 layout.addRow(p, widget_layout)
@@ -173,14 +172,14 @@ class SendEventDialog(QtWidgets.QDialog):
 
         # collect values
         values: Dict[str, Any] = {}
-        for name, (checkbox, widget) in self._widgets.items():
+        for name, (checkbox, widget, ann) in self._widgets.items():
             if checkbox is None or not checkbox.isChecked():
                 values[name] = None
             else:
                 if isinstance(widget, QtWidgets.QLineEdit):
-                    values[name] = widget.text()
+                    values[name] = ann(widget.text())
                 elif isinstance(widget, QtWidgets.QComboBox):
-                    values[name] = widget.currentText()
+                    values[name] = ann(widget.currentText())
                 else:
                     values[name] = widget.value()
 
