@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Type, Dict, Optional, Union
+from enum import Enum, EnumMeta
+from typing import Any, Type, Dict, Optional, Union, get_origin, get_args
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
@@ -120,22 +121,39 @@ class SendEventDialog(QtWidgets.QDialog):
         self._widgets = {}
         for p in sig.parameters:
             if p not in ["self", "args", "kwargs"]:
+                # get annotation
+                ann = sig.parameters[p].annotation
+                print(ann, type(ann))
+
+                # optional?
+                optional = False
+                if get_origin(ann) is Union and type(None) in get_args(ann):
+                    # get first not-None type hint
+                    ann = list(filter(lambda x: x is not None, get_args(ann)))[0]
+                    optional = True
+
                 # create widget
-                if sig.parameters[p].annotation == int:
+                if ann == int:
                     widget = QtWidgets.QSpinBox()
                     widget.setMinimum(-100000)
                     widget.setMaximum(100000)
-                elif sig.parameters[p].annotation == float:
+                elif ann == float:
                     widget = QtWidgets.QDoubleSpinBox()
                     widget.setMinimum(-1e5)
                     widget.setMaximum(1e5)
+                elif type(ann) == EnumMeta:
+                    widget = QtWidgets.QComboBox()
+                    widget.addItems([a.value for a in ann])
                 else:
                     widget = QtWidgets.QLineEdit()
 
                 # create checkbox and layout
-                checkbox = QtWidgets.QCheckBox()
                 widget_layout = QtWidgets.QHBoxLayout()
+                checkbox = QtWidgets.QCheckBox()
                 widget_layout.addWidget(checkbox)
+                if not optional:
+                    checkbox.setChecked(True)
+                    checkbox.setEnabled(False)
                 widget_layout.addWidget(widget)
 
                 # store widget
@@ -156,11 +174,13 @@ class SendEventDialog(QtWidgets.QDialog):
         # collect values
         values: Dict[str, Any] = {}
         for name, (checkbox, widget) in self._widgets.items():
-            if not checkbox.isChecked():
+            if checkbox is None or not checkbox.isChecked():
                 values[name] = None
             else:
                 if isinstance(widget, QtWidgets.QLineEdit):
                     values[name] = widget.text()
+                elif isinstance(widget, QtWidgets.QComboBox):
+                    values[name] = widget.currentText()
                 else:
                     values[name] = widget.value()
 
