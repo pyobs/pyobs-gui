@@ -1,0 +1,75 @@
+import asyncio
+import sys
+from typing import List, Dict, Tuple, Any, Optional
+
+import qasync
+from qasync import QEventLoop  # type: ignore
+from PyQt5 import QtWidgets
+
+from pyobs.interfaces import IFitsHeaderBefore
+from pyobs.modules import Module
+from .mainwindow import MainWindow, DEFAULT_WIDGETS
+
+
+class ModuleGUI(Module, IFitsHeaderBefore):
+    __module__ = "pyobs_gui"
+
+    app: Optional[QtWidgets.QApplication] = None
+
+    def __init__(
+        self,
+        module: Dict[str, Any],
+        *args: Any,
+        **kwargs: Any,
+    ):
+        """Inits a new module GUI.
+
+        Args:
+            show_shell: Whether to show the shell page.
+            show_events: Whether to show the events page.
+            show_modules: If not empty, show only listed modules.
+            widgets: List of custom widgets.
+            sidebar: List of custom sidebar widgets.
+        """
+
+        # init module
+        Module.__init__(self, *args, **kwargs)
+        self._window: Optional[MainWindow] = None
+        self._module = self.add_child_object(module, Module)
+
+    @staticmethod
+    def new_event_loop() -> asyncio.AbstractEventLoop:
+        ModuleGUI.app = QtWidgets.QApplication(sys.argv)
+        return qasync.QEventLoop(ModuleGUI.app)
+
+    async def open(self) -> None:
+        """Open module."""
+        await Module.open(self)
+
+        # create new mainwindow
+        self._window = QtWidgets.QMainWindow()
+
+        # what do we have?
+        widget, icon = None, None
+        for interface, klass in DEFAULT_WIDGETS.items():
+            if isinstance(self._module, interface):
+                # widget = self.create_widget(klass, module=self._module)
+                # icon = qta.icon(DEFAULT_ICONS[interface])
+                print(interface)
+                break
+
+    async def get_fits_header_before(
+        self, namespaces: Optional[List[str]] = None, **kwargs: Any
+    ) -> Dict[str, Tuple[Any, str]]:
+        """Returns FITS header for the current status of this module.
+
+        Args:
+            namespaces: If given, only return FITS headers for the given namespaces.
+
+        Returns:
+            Dictionary containing FITS headers.
+        """
+        if self._window is not None:
+            return self._window.get_fits_headers(namespaces)
+        else:
+            return {}
