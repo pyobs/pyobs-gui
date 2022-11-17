@@ -18,10 +18,12 @@ from pyobs.interfaces import (
     IVideo,
     IAutonomous,
     ISpectrograph,
+    IFilters,
 )
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWindow, BaseWidget
 from .camerawidget import CameraWidget
+from .filterwidget import FilterWidget
 from .statuswidget import StatusWidget
 from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
@@ -43,6 +45,7 @@ DEFAULT_WIDGETS = {
     IWeather: WeatherWidget,
     IVideo: VideoWidget,
     ISpectrograph: SpectrographWidget,
+    IFilters: FilterWidget,
 }
 
 DEFAULT_ICONS = {
@@ -54,6 +57,7 @@ DEFAULT_ICONS = {
     IWeather: "fa5s.cloud-sun",
     IVideo: "fa5s.video",
     ISpectrograph: "ei.graph",
+    IFilters: "ei.graph",
 }
 
 
@@ -314,9 +318,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         autonomous_clients = await self.comm.clients_with_interface(IAutonomous)
         self.mastermind_running = False
         for auto_client in autonomous_clients:
-            proxy = await self.comm.safe_proxy(
-                auto_client, IAutonomous
-            )
+            proxy = await self.comm.safe_proxy(auto_client, IAutonomous)
             if await proxy.is_running():
                 self.mastermind_running = True
                 break
