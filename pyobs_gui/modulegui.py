@@ -8,7 +8,30 @@ from PyQt5 import QtWidgets
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
+from .base import BaseWindow
 from .mainwindow import MainWindow, DEFAULT_WIDGETS
+
+
+class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
+    def __init__(self, **kwargs: Any):
+        QtWidgets.QMainWindow.__init__(self)
+        BaseWindow.__init__(self)
+
+    async def open(self, module: Optional[Module] = None, **kwargs: Any) -> None:
+        """Open module."""
+
+        # what do we have?
+        widget, icon = None, None
+        for interface, klass in DEFAULT_WIDGETS.items():
+            if isinstance(module, interface):
+                print(interface)
+                widget = self.create_widget(klass)
+                self.setCentralWidget(widget)
+
+                break
+
+        # open widgets
+        await BaseWindow.open(self, module=module, **kwargs)
 
 
 class ModuleGUI(Module, IFitsHeaderBefore):
@@ -46,17 +69,18 @@ class ModuleGUI(Module, IFitsHeaderBefore):
         """Open module."""
         await Module.open(self)
 
-        # create new mainwindow
-        self._window = QtWidgets.QMainWindow()
+        # open module
+        await self._module.open()
 
-        # what do we have?
-        widget, icon = None, None
-        for interface, klass in DEFAULT_WIDGETS.items():
-            if isinstance(self._module, interface):
-                # widget = self.create_widget(klass, module=self._module)
-                # icon = qta.icon(DEFAULT_ICONS[interface])
-                print(interface)
-                break
+        # create new mainwindow
+        self._window = ModuleWindow()
+        await self._window.open(
+            module=self._module,
+            comm=self.comm,
+            vfs=self.vfs,
+            observer=self.observer,
+        )
+        self._window.show()
 
     async def get_fits_header_before(
         self, namespaces: Optional[List[str]] = None, **kwargs: Any
