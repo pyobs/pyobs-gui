@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import sys
 from typing import List, Dict, Tuple, Any, Optional
@@ -13,9 +14,10 @@ from .mainwindow import MainWindow, DEFAULT_WIDGETS
 
 
 class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
-    def __init__(self, **kwargs: Any):
+    def __init__(self, gui_module: ModuleGUI, **kwargs: Any):
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
+        self.gui_module = gui_module
 
     async def open(self, module: Optional[Module] = None, **kwargs: Any) -> None:
         """Open module."""
@@ -32,8 +34,7 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
         await BaseWindow.open(self, module=module, **kwargs)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        if self.module is not None:
-            self.module.quit()
+        self.gui_module.quit()
 
 
 class ModuleGUI(Module, IFitsHeaderBefore):
@@ -75,7 +76,7 @@ class ModuleGUI(Module, IFitsHeaderBefore):
         await self._module.open()
 
         # create new mainwindow
-        self._window = ModuleWindow()
+        self._window = ModuleWindow(self)
         await self._window.open(
             module=self._module,
             comm=self.comm,
