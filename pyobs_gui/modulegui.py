@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple, Any, Optional
 
 import qasync
 from qasync import QEventLoop  # type: ignore
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
@@ -32,6 +32,10 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
 
         # open widgets
         await BaseWindow.open(self, module=module, **kwargs)
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        if self.module is not None:
+            self.module.quit()
 
 
 class ModuleGUI(Module, IFitsHeaderBefore):
