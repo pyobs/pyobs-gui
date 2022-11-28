@@ -60,7 +60,7 @@ class ModuleGUI(Module, IFitsHeaderBefore):
         # init module
         Module.__init__(self, *args, **kwargs)
         self._window: Optional[MainWindow] = None
-        self._module = self.add_child_object(module, Module)
+        self._module = self.add_child_object(module, Module, own_comm=False)
 
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
