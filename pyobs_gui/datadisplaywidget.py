@@ -184,7 +184,7 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
+        if sender != self.module.name():
             return False
 
         # wrong type
