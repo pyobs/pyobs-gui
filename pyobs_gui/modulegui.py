@@ -24,10 +24,8 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
         widget, icon = None, None
         for interface, klass in DEFAULT_WIDGETS.items():
             if isinstance(module, interface):
-                print(interface)
                 widget = self.create_widget(klass)
                 self.setCentralWidget(widget)
-
                 break
 
         # open widgets
