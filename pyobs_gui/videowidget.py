@@ -100,7 +100,7 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
 
         # we heed a HttpFile
         if not isinstance(video_file, HttpFile):
-            log.error("VFS path to video of module %s must be an HttpFile.", cast(Module, self.module).name())
+            log.error("VFS path to video of module %s must be an HttpFile.", cast(Module, self.module).name)
             return
 
         # analyse URL
@@ -109,7 +109,7 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
         # scheme must be http
         # TODO: how to do HTTPS?
         if o.scheme != "http":
-            log.error("URL scheme to video of module %s must be HTTP.", cast(Module, self.module).name())
+            log.error("URL scheme to video of module %s must be HTTP.", cast(Module, self.module).name)
             return
 
         # get info

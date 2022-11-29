@@ -12,3 +12,4 @@ from .videowidget import VideoWidget
 from .focuswidget import FocusWidget
 from .telescopewidget import TelescopeWidget
 from .weatherwidget import WeatherWidget
+from .modulegui import ModuleGUI
