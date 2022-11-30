@@ -26,6 +26,12 @@ class CoolingWidget(QtWidgets.QWidget, BaseWidget, Ui_CoolingWidget):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
+    async def _init(self) -> None:
+        if isinstance(self.module, ICooling):
+            enabled, setpoint, _ = await self.module.get_cooling()
+            self.checkEnabled.setChecked(enabled)
+            self.spinSetPoint.setValue(setpoint)
+
     async def _update(self) -> None:
         # get status
         if isinstance(self.module, ICooling):
@@ -44,11 +50,14 @@ class CoolingWidget(QtWidgets.QWidget, BaseWidget, Ui_CoolingWidget):
 
             # set it
             if enabled:
-                self.labelStatus.setText("N/A" if set_point is None else "Set=%.1f°C" % set_point)
+                self.labelStatus.setText("N/A" if set_point is None else "%.1f°C" % set_point)
                 self.labelPower.setText("N/A" if power is None else "%d%%" % power)
             else:
                 self.labelStatus.setText("N/A" if power is None else "OFF")
                 self.labelPower.clear()
+
+    def on_checkEnabled_toggled(self, enabled: bool) -> None:
+        self.spinSetPoint.setEnabled(enabled)
 
     def on_buttonApply_clicked(self) -> None:
         asyncio.create_task(self.set_cooling())
