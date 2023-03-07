@@ -372,7 +372,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
 
                 # got an icon?
                 icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(DEFAULT_ICONS[None])
-                print(icon)
 
         # still nothing?
         if widget is None:
