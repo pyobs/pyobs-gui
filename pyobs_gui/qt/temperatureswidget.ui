@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>307</width>
-    <height>63</height>
+    <width>271</width>
+    <height>193</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,11 +31,45 @@
      <property name="title">
       <string>Temperatures</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2" columnstretch="0"/>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QFrame" name="frame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Plain</enum>
+        </property>
+        <layout class="QFormLayout" name="formLayout"/>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="buttonPlotTemps">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Plot &amp;&amp; log temperatures</string>
+        </property>
+        <property name="icon">
+         <iconset resource="resources.qrc">
+          <normaloff>:/resources/chart-line-solid.svg</normaloff>:/resources/chart-line-solid.svg</iconset>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

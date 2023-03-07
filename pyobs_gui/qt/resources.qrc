@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/">
+    <file>resources/chart-line-solid.svg</file>
     <file>resources/search-solid.svg</file>
     <file>resources/arrow-alt-circle-down-solid.svg</file>
     <file>resources/arrow-alt-circle-left-solid.svg</file>

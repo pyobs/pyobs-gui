@@ -369,7 +369,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         for cw in self.custom_widgets:
             if cw["module"] == client:
                 widget = self.create_widget(cw["widget"], module=proxy)
-                icon = qta.icon(DEFAULT_ICONS[None])
+
+                # got an icon?
+                icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(DEFAULT_ICONS[None])
+                print(icon)
 
         # still nothing?
         if widget is None:
