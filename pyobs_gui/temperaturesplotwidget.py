@@ -64,6 +64,7 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
             self.data.to_csv(self.log_file, index=False)
 
         # what to plot?
+        print(self.show_option)
         if self.show_option == "All":
             d = self.data
         elif self.show_option == "Last minute":
@@ -91,7 +92,7 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
         self.ax.legend()
         self.canvas.draw()
 
-    @pyqtSlot()
+    @pyqtSlot(str)
     def on_comboShow_currentTextChanged(self, opt: str) -> None:
         self.show_option = opt
 
