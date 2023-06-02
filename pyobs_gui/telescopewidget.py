@@ -16,6 +16,7 @@ from pyobs.events import MotionStatusChangedEvent, Event
 from pyobs.interfaces import (
     IPointingRaDec,
     IPointingAltAz,
+    IPointingHelioprojective,
     IPointingHGS,
     IOffsetsRaDec,
     IOffsetsAltAz,
@@ -44,6 +45,7 @@ class COORDS(Enum):
     ORBIT_ELEMENTS = "Orbit Elements"
     HELIOGRAPHIC_STONYHURST = "Heliographic Stonyhurst"
     HELIOPROJECTIVE_RADIAL = "Helioprojective Radial"
+    HELIOPROJECTIVE_MUPSI = "Helioprojective Mu/Psi"
 
 
 class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
@@ -72,6 +74,7 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             COORDS.HORIZONTAL: self.pageMoveHorizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self.pageMoveHeliographicStonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self.pageMoveHelioprojectiveRadial,
+            COORDS.HELIOPROJECTIVE_MUPSI: self.pageMoveHelioprojectiveRadial,
             COORDS.ORBIT_ELEMENTS: self.pageMoveOrbitElements,
         }
 
@@ -81,6 +84,7 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             COORDS.HORIZONTAL: self._calc_dest_horizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self._calc_dest_heliographic_stonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self._calc_dest_helioprojective_radial,
+            COORDS.HELIOPROJECTIVE_MUPSI: self._calc_dest_helioprojective_radial,
             COORDS.ORBIT_ELEMENTS: self._calc_dest_orbit_elements,
         }
 
@@ -132,9 +136,10 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             # self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
         if isinstance(self.module, IPointingAltAz):
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if isinstance(self.module, IPointingHGS):
+        if isinstance(self.module, IPointingHGS) or isinstance(self.module, IPointingHelioprojective):
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
+            self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_MUPSI.value)
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
 
@@ -342,6 +347,21 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support stonyhurst coordinates.")
 
         elif coord == COORDS.HELIOPROJECTIVE_RADIAL:
+            # get theta x/y
+            theta_x = self.spinMoveHelioProjectiveRadialTx.value()
+            theta_y = np.deg2rad(self.spinMoveHelioProjectiveRadialTy.value())
+
+            # move
+            if isinstance(self.module, IPointingHelioprojective):
+                # run it
+                self.run_background(self.module.move_helioprojective, theta_x, theta_y)
+
+            else:
+                QtWidgets.QMessageBox.critical(
+                    self, "pyobs", "Telescope does not support helioprojective radial coordinates."
+                )
+
+        elif coord == COORDS.HELIOPROJECTIVE_MUPSI:
             # get mu and psi (in rad)
             mu = self.spinMoveHelioprojectiveRadialMu.value()
             psi = np.deg2rad(self.spinMoveHelioprojectiveRadialPsi.value())
@@ -361,15 +381,20 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             ty = theta * np.cos(psi)
             heliproj = SkyCoord(tx, ty, obstime=Time.now(), frame=Helioprojective, observer="earth")
 
-            # convert helio projective coordinates to Heliographic Stonyhurst
-            stony = heliproj.transform_to(HeliographicStonyhurst)
-            lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
-
             # move
-            if isinstance(self.module, IPointingHGS):
+            if isinstance(self.module, IPointingHelioprojective):
+                # run it
+                self.run_background(self.module.move_helioprojective, heliproj.Tx.degrees, heliproj.Ty.degrees)
+
+            elif isinstance(self.module, IPointingHGS):
+                # alternatively, convert helio projective coordinates to Heliographic Stonyhurst
+                stony = heliproj.transform_to(HeliographicStonyhurst)
+                lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
+
+                # run it
                 self.run_background(self.module.move_hgs_lon_lat, lon, lat)
             else:
-                QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support stonyhurst coordinates.")
+                QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support Mu/Psi coordinates.")
 
     async def _on_motion_status_changed(self, event: Event, sender: str) -> bool:
         """Called when motion status of module changed.
