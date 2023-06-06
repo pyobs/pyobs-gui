@@ -347,9 +347,9 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support stonyhurst coordinates.")
 
         elif coord == COORDS.HELIOPROJECTIVE_RADIAL:
-            # get theta x/y
-            theta_x = self.spinMoveHelioProjectiveRadialTx.value()
-            theta_y = np.deg2rad(self.spinMoveHelioProjectiveRadialTy.value())
+            # get theta x/y in degrees
+            theta_x = self.spinMoveHelioProjectiveRadialTx.value() / 3600.
+            theta_y = np.deg2rad(self.spinMoveHelioProjectiveRadialTy.value()) / 3600.
 
             # move
             if isinstance(self.module, IPointingHelioprojective):

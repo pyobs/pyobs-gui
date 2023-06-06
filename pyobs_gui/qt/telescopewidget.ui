@@ -628,7 +628,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedMove">
           <property name="currentIndex">
-           <number>0</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="pageMoveEquatorial">
            <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -992,7 +992,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="spinMoveHelioProjectiveRadialTx">
+               <widget class="QSpinBox" name="spinMoveHelioProjectiveRadialTx">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1000,19 +1000,16 @@
                  </sizepolicy>
                 </property>
                 <property name="suffix">
+                 <string>&quot;</string>
+                </property>
+                <property name="prefix">
                  <string/>
                 </property>
                 <property name="minimum">
-                 <double>-180.000000000000000</double>
+                 <number>-9999</number>
                 </property>
                 <property name="maximum">
-                 <double>180.000000000000000</double>
-                </property>
-                <property name="singleStep">
-                 <double>0.100000000000000</double>
-                </property>
-                <property name="value">
-                 <double>0.000000000000000</double>
+                 <number>9999</number>
                 </property>
                </widget>
               </item>
@@ -1024,7 +1021,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QDoubleSpinBox" name="spinMoveHelioProjectiveRadialTy">
+               <widget class="QSpinBox" name="spinMoveHelioProjectiveRadialTy">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -1032,13 +1029,13 @@
                  </sizepolicy>
                 </property>
                 <property name="suffix">
-                 <string> °</string>
+                 <string>&quot;</string>
                 </property>
                 <property name="minimum">
-                 <double>-90.000000000000000</double>
+                 <number>-9999</number>
                 </property>
                 <property name="maximum">
-                 <double>90.000000000000000</double>
+                 <number>9999</number>
                 </property>
                </widget>
               </item>
