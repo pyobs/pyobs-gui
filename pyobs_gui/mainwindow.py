@@ -65,14 +65,14 @@ DEFAULT_CONFIG = [
     {"widget": ShellWidget, "label": "Shell", "always": True},
     {"widget": EventsWidget, "label": "Events", "always": True},
     {"widget": StatusWidget, "label": "Status", "always": True},
-    {"widget": CameraWidget, "interfaces": "ICamera"},
-    {"widget": TelescopeWidget, "interfaces": "ITelescope"},
-    {"widget": RoofWidget, "interfaces": "IRoof"},
-    {"widget": FocusWidget, "interfaces": "IFocuser"},
-    {"widget": WeatherWidget, "interfaces": "IWeather"},
-    {"widget": VideoWidget, "interfaces": "IVideo"},
-    {"widget": SpectrographWidget, "interfaces": "ISpectrograph"},
-    {"widget": FilterWidget, "interfaces": "IFilters"},
+    {"widget": CameraWidget, "interfaces": "ICamera", "icon": "fa5s.camera"},
+    {"widget": TelescopeWidget, "interfaces": "ITelescope", "icon": "msc.telescope"},
+    {"widget": RoofWidget, "interfaces": "IRoof", "icon": "ph.house"},
+    {"widget": FocusWidget, "interfaces": "IFocuser", "icon": "mdi.image-filter-center-focus"},
+    {"widget": WeatherWidget, "interfaces": "IWeather", "icon": "fa5s.cloud-sun"},
+    {"widget": VideoWidget, "interfaces": "IVideo", "icon": "fa5s.video"},
+    {"widget": SpectrographWidget, "interfaces": "ISpectrograph", "icon": "ei.graph"},
+    {"widget": FilterWidget, "interfaces": "IFilters", "icon": "mdi.air-filter"},
 ]
 
 
