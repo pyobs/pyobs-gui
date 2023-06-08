@@ -348,8 +348,8 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
 
         elif coord == COORDS.HELIOPROJECTIVE_RADIAL:
             # get theta x/y in degrees
-            theta_x = self.spinMoveHelioProjectiveRadialTx.value() / 3600.
-            theta_y = np.deg2rad(self.spinMoveHelioProjectiveRadialTy.value()) / 3600.
+            theta_x = self.spinMoveHelioProjectiveRadialTx.value() / 3600.0
+            theta_y = self.spinMoveHelioProjectiveRadialTy.value() / 3600.0
 
             # move
             if isinstance(self.module, IPointingHelioprojective):
