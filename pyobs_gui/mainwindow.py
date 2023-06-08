@@ -62,17 +62,17 @@ DEFAULT_ICONS = {
 
 
 DEFAULT_CONFIG = [
-    {"widget": ShellWidget, "label": "Shell", "always": True},
-    {"widget": EventsWidget, "label": "Events", "always": True},
-    {"widget": StatusWidget, "label": "Status", "always": True},
-    {"widget": CameraWidget, "interfaces": "ICamera", "icon": "fa5s.camera"},
-    {"widget": TelescopeWidget, "interfaces": "ITelescope", "icon": "msc.telescope"},
-    {"widget": RoofWidget, "interfaces": "IRoof", "icon": "ph.house"},
-    {"widget": FocusWidget, "interfaces": "IFocuser", "icon": "mdi.image-filter-center-focus"},
-    {"widget": WeatherWidget, "interfaces": "IWeather", "icon": "fa5s.cloud-sun"},
-    {"widget": VideoWidget, "interfaces": "IVideo", "icon": "fa5s.video"},
-    {"widget": SpectrographWidget, "interfaces": "ISpectrograph", "icon": "ei.graph"},
-    {"widget": FilterWidget, "interfaces": "IFilters", "icon": "mdi.air-filter"},
+    {"always": True, "widget": ShellWidget, "label": "Shell"},
+    {"always": True, "widget": EventsWidget, "label": "Events"},
+    {"always": True, "widget": StatusWidget, "label": "Status"},
+    {"interfaces": "ICamera", "widget": CameraWidget, "icon": "fa5s.camera"},
+    {"interfaces": "ITelescope", "widget": TelescopeWidget, "icon": "msc.telescope"},
+    {"interfaces": "IRoof", "widget": RoofWidget, "icon": "ph.house"},
+    {"interfaces": "IFocuser", "widget": FocusWidget, "icon": "mdi.image-filter-center-focus"},
+    {"interfaces": "IWeather", "widget": WeatherWidget, "icon": "fa5s.cloud-sun"},
+    {"interfaces": "IVideo", "widget": VideoWidget, "icon": "fa5s.video"},
+    {"interfaces": "ISpectrograph", "widget": SpectrographWidget, "icon": "ei.graph"},
+    {"interfaces": "IFilters", "widget": FilterWidget, "icon": "mdi.air-filter"},
 ]
 
 
@@ -132,6 +132,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         # store stuff
         self.mastermind_running = False
         self.show_modules = show_modules
+        self.widgets_config = DEFAULT_CONFIG + ([] if widgets is None else widgets)
         self.custom_widgets = [] if widgets is None else widgets
         self.custom_sidebar_widgets = [] if sidebar is None else sidebar
         self.show_shell = show_shell
@@ -220,6 +221,28 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
             self.warning_task.cancel()
         if self.module is not None:
             self.module.quit()
+
+    def find_always_visible_widgets(self, widgets: List[Dict[str, Any]]) -> List[str]:
+        """Find all widgets in the config that are always visible, i.e. always=True
+
+        Args:
+            widgets: List of widgets to filter.
+
+        Returns:
+            List of filtered widgets.
+        """
+
+        filtered_widgets: List[str] = []
+        for w in widgets:
+            # "always" set?
+            if "always" in w:
+                # does widget already exist in list?
+                if w["widget"] in filtered_widgets:
+                    # add or remove it from list?
+                    filtered_widgets[w["widget"]] = w["always"]
+                else:
+                    # otherwise add it
+                    filtered_widgets.append()
 
     async def _add_client(
         self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None
