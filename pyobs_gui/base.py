@@ -42,7 +42,49 @@ class BaseWindow:
 
     @property
     def module(self) -> Optional[Proxy]:
+        """Returns the first module in the list or None, if list is empty"""
         return self.modules[0] if len(self.modules) > 0 else None
+
+    def module_by_name(self, name: str) -> Optional[Proxy]:
+        """Return the module with the given name or None, if not exists.
+
+        Args:
+            name: Name of module to return.
+
+        Returns:
+            Module or None.
+        """
+
+        # loop all modules and check name
+        for module in self.modules:
+            if module.name == name:
+                return module
+
+        # nothing found
+        return None
+
+    def modules_by_interface(self, interface: Any) -> List[Proxy]:
+        """Returns all modules that implement the given interface.
+
+        Args:
+            interface: Interface that modules must implement.
+
+        Returns:
+            List of modules.
+        """
+        return list(filter(lambda m: isinstance(m, interface), self.modules))
+
+    def module_by_interface(self, interface: Any) -> Optional[Proxy]:
+        """Returns first modules that implement the given interface, or None, if no exist.
+
+        Args:
+            interface: Interface that module must implement.
+
+        Returns:
+            Module or None.
+        """
+        modules = self.modules_by_interface(interface)
+        return None if len(modules) == 0 else modules[0]
 
     def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
