@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Tuple, Optional, Union, Dict
+from typing import Any, Tuple, Optional, Union, Dict, List
 
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
@@ -116,15 +116,15 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
-        await self.compassmovewidget.open(module=module, comm=comm, observer=observer, vfs=vfs)
-        self.compassmovewidget.show_extract_button(CompassMoveWidget, f'Offset "{module.name}"')
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self.compassmovewidget.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
+        self.compassmovewidget.show_extract_button(CompassMoveWidget, f'Offset "{modules[0].name}"')
 
         # subscribe to events
         if self.comm is not None:

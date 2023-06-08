@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Optional, cast, Union, Dict
+from typing import Any, Optional, cast, Union, Dict, List
 from urllib.parse import urlparse
 from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
 from astroplan import Observer
@@ -75,14 +75,14 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
-        await self.datadisplay.open(module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
 
     async def _init(self) -> None:
         # hide single controls, if necessary

@@ -152,8 +152,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
     async def open(self, **kwargs: Any) -> None:
         """Open module."""
 
+        # get module
+        module = kwargs.pop("module")
+
         # open widgets
-        await BaseWindow.open(self, **kwargs)
+        await BaseWindow.open(self, modules=[module], **kwargs)
 
         # shell
         if self.show_shell:
@@ -229,7 +232,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.listPages.sortItems()
 
         # open and add widget
-        await widget.open(module=proxy, comm=self.comm, observer=self.observer, vfs=self.vfs)
+        await widget.open(modules=[proxy], comm=self.comm, observer=self.observer, vfs=self.vfs)
         self.stackedWidget.addWidget(widget)
 
         # store

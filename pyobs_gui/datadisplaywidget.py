@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Optional, cast, Union, Dict
+from typing import Any, Optional, cast, Union, Dict, List
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from astroplan import Observer
@@ -55,13 +55,13 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)

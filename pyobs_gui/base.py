@@ -34,11 +34,15 @@ WidgetClass = TypeVar("WidgetClass")
 class BaseWindow:
     def __init__(self) -> None:
         """Base class for MainWindow and all widgets."""
-        self.module: Optional[Proxy] = None
+        self.modules: List[Proxy] = []
         self.comm: Optional[Comm] = None
         self.observer: Optional[Observer] = None
         self.vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None
         self._base_widgets: List[BaseWidget] = []
+
+    @property
+    def module(self) -> Optional[Proxy]:
+        return self.modules[0] if len(self.modules) > 0 else None
 
     def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
@@ -67,13 +71,13 @@ class BaseWindow:
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         # store
-        self.module = module
+        self.modules = [] if modules is None else modules
         self.vfs = vfs
         self.comm = comm
         self.observer = observer
@@ -83,7 +87,7 @@ class BaseWindow:
             await self._open_child(widget)
 
     async def _open_child(self, widget: BaseWidget):
-        await widget.open(module=self.module, vfs=self.vfs, comm=self.comm, observer=self.observer)
+        await widget.open(modules=self.modules, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
 class BaseWidget(BaseWindow):

@@ -31,7 +31,7 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
                 break
 
         # open widgets
-        await BaseWindow.open(self, module=module, **kwargs)
+        await BaseWindow.open(self, modules=[module], **kwargs)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
