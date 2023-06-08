@@ -61,6 +61,21 @@ DEFAULT_ICONS = {
 }
 
 
+DEFAULT_CONFIG = [
+    {"widget": ShellWidget, "label": "Shell", "always": True},
+    {"widget": EventsWidget, "label": "Events", "always": True},
+    {"widget": StatusWidget, "label": "Status", "always": True},
+    {"widget": CameraWidget, "interfaces": "ICamera"},
+    {"widget": TelescopeWidget, "interfaces": "ITelescope"},
+    {"widget": RoofWidget, "interfaces": "IRoof"},
+    {"widget": FocusWidget, "interfaces": "IFocuser"},
+    {"widget": WeatherWidget, "interfaces": "IWeather"},
+    {"widget": VideoWidget, "interfaces": "IVideo"},
+    {"widget": SpectrographWidget, "interfaces": "ISpectrograph"},
+    {"widget": FilterWidget, "interfaces": "IFilters"},
+]
+
+
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):
     """ListWidgetItem for the pages list. Always sorts Shell and Events first"""
 
