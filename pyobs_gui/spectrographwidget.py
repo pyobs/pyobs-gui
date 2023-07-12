@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Optional, Any, Union, Dict
+from typing import Optional, Any, Union, Dict, List
 from PyQt5 import QtCore, QtWidgets
 from astroplan import Observer
 from astropy.io import fits
@@ -49,14 +49,14 @@ class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
-        await self.datadisplay.open(module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)

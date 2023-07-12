@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from enum import Enum, EnumMeta
-from typing import Any, Type, Dict, Optional, Union, get_origin, get_args
+from typing import Any, Type, Dict, Optional, Union, get_origin, get_args, List
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
@@ -30,13 +30,13 @@ class EventsWidget(QtWidgets.QWidget, BaseWidget, Ui_EventsWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # loop all event types
         for name, cls in pyobs.events.__dict__.items():

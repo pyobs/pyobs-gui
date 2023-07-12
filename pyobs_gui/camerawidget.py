@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from typing import Any, Optional, Union, Dict
+from typing import Any, Optional, Union, Dict, List
 from PyQt5 import QtWidgets, QtCore
 from astroplan import Observer
 
@@ -53,14 +53,14 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
-        await self.datadisplay.open(module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])

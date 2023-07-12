@@ -129,13 +129,13 @@ class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # commands
         self.command_model = CommandModel(self.comm)

@@ -1,7 +1,7 @@
 import asyncio
 from asyncio import Task
 from datetime import datetime
-from typing import Any, Type, Dict, Optional, cast, Union
+from typing import Any, Type, Dict, Optional, cast, Union, List
 from PyQt5 import QtWidgets, QtCore
 import inspect
 
@@ -109,13 +109,13 @@ class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
 
     async def open(
         self,
-        module: Optional[Proxy] = None,
+        modules: Optional[List[Proxy]] = None,
         comm: Optional[Comm] = None,
         observer: Optional[Observer] = None,
         vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
     ) -> None:
         """Open module."""
-        await BaseWidget.open(self, module=module, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # register events
         await self.comm.register_event(ModuleOpenedEvent, self._module_opened)
@@ -126,7 +126,7 @@ class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
             await self._module_opened(ModuleOpenedEvent(), mod)
 
         # trigger status updates
-        #self._status_task = asyncio.create_task(self._update_status())
+        # self._status_task = asyncio.create_task(self._update_status())
 
     async def _module_opened(self, event: Event, sender: str) -> bool:
         """Called when module was opened."""
