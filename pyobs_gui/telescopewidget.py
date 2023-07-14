@@ -74,7 +74,7 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             COORDS.HORIZONTAL: self.pageMoveHorizontal,
             COORDS.HELIOGRAPHIC_STONYHURST: self.pageMoveHeliographicStonyhurst,
             COORDS.HELIOPROJECTIVE_RADIAL: self.pageMoveHelioprojectiveRadial,
-            COORDS.HELIOPROJECTIVE_MUPSI: self.pageMoveHelioprojectiveRadial,
+            COORDS.HELIOPROJECTIVE_MUPSI: self.pageMoveHelioprojectiveMuPsi,
             COORDS.ORBIT_ELEMENTS: self.pageMoveOrbitElements,
         }
 
