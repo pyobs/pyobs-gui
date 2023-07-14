@@ -628,7 +628,7 @@
         <item>
          <widget class="QStackedWidget" name="stackedMove">
           <property name="currentIndex">
-           <number>3</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="pageMoveEquatorial">
            <layout class="QVBoxLayout" name="verticalLayout_9">
