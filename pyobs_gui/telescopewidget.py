@@ -384,7 +384,7 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
             # move
             if isinstance(self.module, IPointingHelioprojective):
                 # run it
-                self.run_background(self.module.move_helioprojective, heliproj.Tx.degrees, heliproj.Ty.degrees)
+                self.run_background(self.module.move_helioprojective, heliproj.Tx.degree, heliproj.Ty.degree)
 
             elif isinstance(self.module, IPointingHGS):
                 # alternatively, convert helio projective coordinates to Heliographic Stonyhurst
