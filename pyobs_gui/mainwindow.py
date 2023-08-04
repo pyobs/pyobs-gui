@@ -196,6 +196,13 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         else:
             self.status = None
 
+        # show all widgets that are not coupled to a module
+        for cw in self.custom_widgets:
+            if cw['modules'] is None:
+                widget = self.create_widget(cw["widget"])
+                name = cw["widget"]["class"].split(".")[-1].replace("Widget", "")
+                await self._add_client(name, qta.icon(DEFAULT_ICONS[None]), widget, None)
+
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
 
@@ -385,7 +392,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
 
         # look at custom widgets
         for cw in self.custom_widgets:
-            if cw["module"] == client:
+            if cw["modules"] == client:
                 widget = self.create_widget(cw["widget"], module=proxy)
 
                 # got an icon?
