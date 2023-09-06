@@ -88,7 +88,9 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
         self.ax.set_ylabel("Temperature [°C]")
         self.ax.grid(linestyle=":", alpha=0.5)
         self.ax.set_axisbelow(True)
-        self.ax.legend()
+        if len(d.columns) > 2:
+            # only show legend, if data exists
+            self.ax.legend()
         self.canvas.draw()
 
     @pyqtSlot(str)
