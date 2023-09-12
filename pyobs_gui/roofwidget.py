@@ -23,9 +23,9 @@ class RoofWidget(QtWidgets.QWidget, BaseWidget, Ui_RoofWidget):
 
         # connect signals
         if isinstance(self.module, IMotion):
-            self.buttonOpen.clicked.connect(lambda: self.run_background(self.module.init))
-            self.buttonClose.clicked.connect(lambda: self.run_background(self.module.park))
-            self.buttonStop.clicked.connect(lambda: self.run_background(self.module.stop_motion))
+            self.buttonOpen.clicked.connect(self.open_roof)
+            self.buttonClose.clicked.connect(self.close_roof)
+            self.buttonStop.clicked.connect(self.stop_roof)
         self.signal_update_gui.connect(self.update_gui)
 
     async def _init(self) -> None:
@@ -59,3 +59,12 @@ class RoofWidget(QtWidgets.QWidget, BaseWidget, Ui_RoofWidget):
             self.labelAzimuth.setText("N/A")
         else:
             self.labelAzimuth.setText("%.1f°" % self.azimuth)
+
+    def open_roof(self):
+        self.run_background(self.module.init)
+
+    def close_roof(self):
+        self.run_background(self.module.park)
+
+    def stop_roof(self):
+        self.run_background(self.module.stop_motion)
