@@ -1591,21 +1591,21 @@ files = [
 
 [[package]]
 name = "qfitswidget"
-version = "0.9.7"
+version = "0.9.9"
 description = "PyQt widget for displaying FITS files"
 category = "main"
 optional = false
 python-versions = ">=3.9,<3.12"
 files = [
-    {file = "qfitswidget-0.9.7-py3-none-any.whl", hash = "sha256:451967eb107e7fb87f8b266877a5efd44f8b74653d7df1ebca70567ef9d4262e"},
-    {file = "qfitswidget-0.9.7.tar.gz", hash = "sha256:59b3ada025c3f55529e62a34f20874fd932e597371a2c5970d70b9cc5b98952e"},
+    {file = "qfitswidget-0.9.9-py3-none-any.whl", hash = "sha256:f5d3b5c3fc7607073ab16b0d66578ebb4e96f825c57a9a0075cd16eeaaa0bc2c"},
+    {file = "qfitswidget-0.9.9.tar.gz", hash = "sha256:56f6fec3e0db51ace814b3c54d1082b795183b40f414bc969112646c2fdb2779"},
 ]
 
 [package.dependencies]
-astropy = ">=5.2.2,<6.0.0"
-matplotlib = ">=3.7.1,<4.0.0"
-numpy = ">=1.24.3,<2.0.0"
-opencv-python-headless = ">=4.8,<5.0"
+astropy = ">=5.3.3,<6.0.0"
+matplotlib = ">=3.7.3,<4.0.0"
+numpy = ">=1.25.2,<2.0.0"
+opencv-python-headless = ">=4.8.0.76,<5.0.0.0"
 PyQt5 = ">=5.15.9,<6.0.0"
 
 [[package]]
@@ -2134,4 +2134,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "5b15a60b76ad7645a2d80b4b44036a2a5795a637a2dcbfa3f0af1856dd125408"
+content-hash = "687fe3824dceb01d5e702682c6f40fb6661beead491e6cff54b54b0e0fbaafc6"
