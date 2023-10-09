@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyobs-gui"
-version = "1.0.9"
+version = "1.0.10"
 description = "A remote GUI for pyobs"
 authors = ["Tim-Oliver Husser <thusser@uni-goettingen.de>"]
 license = "MIT"
@@ -9,8 +9,8 @@ license = "MIT"
 python = ">=3.9,<3.12"
 colour = "^0.1.5"
 PyQt5 = "^5.15.9"
-matplotlib = "^3.7.3"
-qasync = "^0.24.0"
+matplotlib = "^3.8.0"
+qasync = "^0.26.0"
 sunpy = "^5.0.1"
 QtAwesome = "^1.2.3"
 qfitswidget = "^0.9.9"
@@ -20,7 +20,7 @@ black = "^23.9.1"
 pre-commit = "^3.4.0"
 PyQt5-stubs = "^5.15.6.0"
 sphinx-rtd-theme = "^1.3.0"
-Sphinx = "^7.2.5"
+Sphinx = "^7.2.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
