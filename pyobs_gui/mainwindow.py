@@ -392,7 +392,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
 
         # look at custom widgets
         for cw in self.custom_widgets:
-            if cw["modules"] == client:
+            if cw["module"] == client:
                 widget = self.create_widget(cw["widget"], module=proxy)
 
                 # got an icon?
