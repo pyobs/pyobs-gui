@@ -198,7 +198,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
 
         # show all widgets that are not coupled to a module
         for cw in self.custom_widgets:
-            if cw['modules'] is None:
+            if cw['module'] is None:
                 widget = self.create_widget(cw["widget"])
                 name = cw["widget"]["class"].split(".")[-1].replace("Widget", "")
                 await self._add_client(name, qta.icon(DEFAULT_ICONS[None]), widget, None)
