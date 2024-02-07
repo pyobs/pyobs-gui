@@ -132,8 +132,9 @@ class Ui_CameraWidget(object):
         self.spinExpTime.setObjectName("spinExpTime")
         self.layoutExpTime.addWidget(self.spinExpTime)
         self.comboExpTimeUnit = QtWidgets.QComboBox(self.groupExpTime)
-        self.comboExpTimeUnit.setMinimumContentsLength(2)
+        self.comboExpTimeUnit.setMinimumContentsLength(3)
         self.comboExpTimeUnit.setObjectName("comboExpTimeUnit")
+        self.comboExpTimeUnit.addItem("")
         self.comboExpTimeUnit.addItem("")
         self.comboExpTimeUnit.addItem("")
         self.comboExpTimeUnit.addItem("")
@@ -517,9 +518,10 @@ class Ui_CameraWidget(object):
         self.label_5.setText(_translate("CameraWidget", "Binning:"))
         self.label_11.setText(_translate("CameraWidget", "Gain:"))
         self.label_12.setText(_translate("CameraWidget", "ExpTime:"))
-        self.comboExpTimeUnit.setItemText(0, _translate("CameraWidget", "s"))
-        self.comboExpTimeUnit.setItemText(1, _translate("CameraWidget", "ms"))
-        self.comboExpTimeUnit.setItemText(2, _translate("CameraWidget", "µs"))
+        self.comboExpTimeUnit.setItemText(0, _translate("CameraWidget", "min"))
+        self.comboExpTimeUnit.setItemText(1, _translate("CameraWidget", "s"))
+        self.comboExpTimeUnit.setItemText(2, _translate("CameraWidget", "ms"))
+        self.comboExpTimeUnit.setItemText(3, _translate("CameraWidget", "µs"))
         self.labelImageType.setText(_translate("CameraWidget", "Type:"))
         self.butAbort.setText(_translate("CameraWidget", "Abort"))
         self.label_8.setText(_translate("CameraWidget", "Count:"))
@@ -527,5 +529,7 @@ class Ui_CameraWidget(object):
         self.checkBroadcast.setText(_translate("CameraWidget", "Broadcast"))
         self.labelStatus.setText(_translate("CameraWidget", "IDLE"))
         self.labelExposuresLeft.setText(_translate("CameraWidget", "IDLE"))
+
+
 from ..datadisplaywidget import DataDisplayWidget
 from . import resources_rc
