@@ -1,10 +1,10 @@
 import functools
-from typing import List, Any, Optional, Union, Dict
+from typing import List, Any, Optional, Union, Dict, Tuple
 from PyQt5 import QtWidgets, QtCore, Qt
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
-from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event
+from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event, ModeChangedEvent
 from pyobs.interfaces import IFilters, IMode
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
@@ -23,9 +23,9 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
         # variables
         self._mode_groups: List[str] = []
         self._mode_options: List[List[str]] = [[]]
-        self._modes = List[int]
+        self._modes: List[int] = []
         self._motion_status = MotionStatus.UNKNOWN
-        self._mode_widgets: List[QtWidgets.QLineEdit] = []
+        self._mode_widgets: List[Tuple[QtWidgets.QLineEdit, QtWidgets.QPushButton]] = []
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -41,17 +41,16 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
-        await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
+        await self.comm.register_event(ModeChangedEvent, self._on_mode_changed)
         await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     async def _init(self) -> None:
         # get current filter
         if isinstance(self.module, IMode):
+            self._motion_status = await self.module.get_motion_status()
             self._mode_groups = await self.module.list_mode_groups()
             self._mode_options = [await self.module.list_modes(i) for i in range(len(self._mode_groups))]
             await self._update_modes()
-            print(self._mode_groups)
-            print(self._mode_options)
 
             # add widgets
             self._mode_widgets = []
@@ -60,13 +59,13 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
                 current = QtWidgets.QLineEdit()
                 current.setReadOnly(True)
                 current.setAlignment(QtCore.Qt.AlignCenter)
-                self._mode_widgets.append(current)
                 layout.addWidget(current)
                 button = QtWidgets.QToolButton()
                 button.setIcon(Qt.QIcon(":/resources/edit-solid.svg"))
                 self.colorize_button(button, QtCore.Qt.green)
                 button.clicked.connect(functools.partial(self.set_mode, i))
                 layout.addWidget(button)
+                self._mode_widgets.append((current, button))
                 self.groupBox.layout().addRow(self._mode_groups[i], layout)
 
         # update gui
@@ -76,30 +75,31 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
         # enable myself and set filter
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
-        for i in range(len(self._mode_groups)):
-            self._mode_widgets[i].setText(self._modes[i])
         initialized = self._motion_status in [
             MotionStatus.SLEWING,
             MotionStatus.TRACKING,
             MotionStatus.IDLE,
             MotionStatus.POSITIONED,
         ]
-        self.buttonSetFilter.setEnabled(initialized)
+        for i in range(len(self._mode_groups)):
+            self._mode_widgets[i][0].setText(self._modes[i])
+            self._mode_widgets[i][1].setEnabled(initialized)
 
-    async def _on_filter_changed(self, event: Event, sender: str) -> bool:
-        """Called when filter changed.
+    async def _on_mode_changed(self, event: Event, sender: str) -> bool:
+        """Called when mode changed.
 
         Args:
-            event: Filter change event.
+            event: Mode change event.
             sender: Name of sender.
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, FilterChangedEvent):
+        if sender != self.module.name or not isinstance(event, ModeChangedEvent):
             return False
 
         # store new filter
-        self._filter = event.filter
+        g = self._mode_groups.index(event.group)
+        self._modes[g] = event.mode
 
         # trigger GUI update
         self.signal_update_gui.emit()
