@@ -1,3 +1,4 @@
+import functools
 from typing import List, Any, Optional, Union, Dict
 from PyQt5 import QtWidgets, QtCore, Qt
 from astroplan import Observer
@@ -21,15 +22,13 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
 
         # variables
         self._mode_groups: List[str] = []
-        self._mode_options: Dict[str, List[str]]
-        self._modes = Dict[str, str]
+        self._mode_options: List[List[str]] = [[]]
+        self._modes = List[int]
         self._motion_status = MotionStatus.UNKNOWN
+        self._mode_widgets: List[QtWidgets.QLineEdit] = []
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-
-        # button colors
-        self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
 
     async def open(
         self,
@@ -49,18 +48,24 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
         # get current filter
         if isinstance(self.module, IMode):
             self._mode_groups = await self.module.list_mode_groups()
-            self._mode_options = {i: await self.module.list_modes(i) for i in range(len(self._mode_groups))}
+            self._mode_options = [await self.module.list_modes(i) for i in range(len(self._mode_groups))]
+            await self._update_modes()
             print(self._mode_groups)
             print(self._mode_options)
 
             # add widgets
+            self._mode_widgets = []
             for i in range(len(self._mode_groups)):
                 layout = QtWidgets.QHBoxLayout()
                 current = QtWidgets.QLineEdit()
                 current.setReadOnly(True)
+                current.setAlignment(QtCore.Qt.AlignCenter)
+                self._mode_widgets.append(current)
                 layout.addWidget(current)
                 button = QtWidgets.QToolButton()
                 button.setIcon(Qt.QIcon(":/resources/edit-solid.svg"))
+                self.colorize_button(button, QtCore.Qt.green)
+                button.clicked.connect(functools.partial(self.set_mode, i))
                 layout.addWidget(button)
                 self.groupBox.layout().addRow(self._mode_groups[i], layout)
 
@@ -70,8 +75,9 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
     def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
-        # self.textStatus.setText(self._motion_status.name)
-        # self.textFilter.setText("" if self._filter is None else self._filter)
+        self.textStatus.setText(self._motion_status.name)
+        for i in range(len(self._mode_groups)):
+            self._mode_widgets[i].setText(self._modes[i])
         initialized = self._motion_status in [
             MotionStatus.SLEWING,
             MotionStatus.TRACKING,
@@ -112,8 +118,8 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
             return False
 
         # store new status
-        if "IFilters" in event.interfaces:
-            self._motion_status = event.interfaces["IFilters"]
+        if "IMode" in event.interfaces:
+            self._motion_status = event.interfaces["IMode"]
         else:
             self._motion_status = event.status
 
@@ -121,21 +127,27 @@ class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
         self.signal_update_gui.emit()
         return True
 
+    async def _update_modes(self) -> None:
+        self._modes = [await self.module.get_mode(i) for i in range(len(self._mode_groups))]
+
     async def _update(self) -> None:
-        # get filter and motion status
-        # if isinstance(self.module, IFilters):
-        #    self._filter = await self.module.get_filter()
-        #    self._motion_status = await self.module.get_motion_status()
+        # get mode and motion status
+        if isinstance(self.module, IFilters):
+            await self._update_modes()
+            self._motion_status = await self.module.get_motion_status()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_buttonSetFilter_clicked")
-    def set_filter(self) -> None:
+    @QtCore.pyqtSlot(int)
+    def set_mode(self, group: int) -> None:
         # ask for value
-        new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)
-        if ok and isinstance(self.module, IFilters):
-            self.run_background(self.module.set_filter, new_value)
+        mode = self._mode_groups[group]
+        new_value, ok = QtWidgets.QInputDialog.getItem(
+            self, f"Set {mode}", f"New {mode}", self._mode_options[group], 0, False
+        )
+        if ok and isinstance(self.module, IMode):
+            self.run_background(self.module.set_mode, new_value, group)
 
 
 __all__ = ["ModeWidget"]
