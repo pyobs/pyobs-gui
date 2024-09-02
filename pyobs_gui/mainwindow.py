@@ -19,11 +19,13 @@ from pyobs.interfaces import (
     IAutonomous,
     ISpectrograph,
     IFilters,
+    IMode,
 )
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWindow, BaseWidget
 from .camerawidget import CameraWidget
 from .filterwidget import FilterWidget
+from .modewidget import ModeWidget
 from .statuswidget import StatusWidget
 from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
@@ -46,6 +48,7 @@ DEFAULT_WIDGETS = {
     IVideo: VideoWidget,
     ISpectrograph: SpectrographWidget,
     IFilters: FilterWidget,
+    IMode: ModeWidget,
 }
 
 DEFAULT_ICONS = {
@@ -58,6 +61,7 @@ DEFAULT_ICONS = {
     IVideo: "fa5s.video",
     ISpectrograph: "ei.graph",
     IFilters: "ei.graph",
+    IMode: "ei.video",
 }
 
 

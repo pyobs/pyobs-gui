@@ -1,6 +1,6 @@
-import datetime
 import logging
 import os
+from datetime import timezone, timedelta, datetime
 from typing import Any, Dict, Tuple, Optional
 
 import pandas as pd
@@ -67,9 +67,9 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
         if self.show_option == "All":
             d = self.data
         elif self.show_option == "Last minute":
-            d = self.data[self.data["time"] >= datetime.datetime.utcnow() - datetime.timedelta(minutes=1)]
+            d = self.data[self.data["time"] >= datetime.now(timezone.utc) - timedelta(minutes=1)]
         elif self.show_option == "Last 5 minutes":
-            d = self.data[self.data["time"] >= datetime.datetime.utcnow() - datetime.timedelta(minutes=5)]
+            d = self.data[self.data["time"] >= datetime.now(timezone.utc) - timedelta(minutes=5)]
         else:
             return
 
