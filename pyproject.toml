@@ -6,14 +6,14 @@ authors = ["Tim-Oliver Husser <thusser@uni-goettingen.de>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.10,<3.14"
 colour = "^0.1.5"
 PyQt5 = "^5.15.9"
 matplotlib = "^3.8.0"
 qasync = "^0.26.0"
 sunpy = "^5.0.1"
 QtAwesome = "^1.2.3"
-qfitswidget = "^0.9.9"
+qfitswidget = "^0.10.0"
 
 [tool.poetry.dev-dependencies]
 black = "^23.9.1"
