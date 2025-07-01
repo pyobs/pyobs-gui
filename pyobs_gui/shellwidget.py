@@ -1,6 +1,5 @@
 import asyncio
 import pprint
-import traceback
 from io import BytesIO
 import re
 from typing import Any, Optional, List, Tuple, Union, Dict

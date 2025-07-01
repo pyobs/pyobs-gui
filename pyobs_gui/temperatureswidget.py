@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
 from PyQt5 import QtWidgets, QtCore
 
 from pyobs.interfaces import ITemperatures

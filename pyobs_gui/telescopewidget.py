@@ -541,12 +541,14 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
         self.spinOrbitElementsEpoch.setValue(eph["datetime_jd"][0])
         return
 
+        """
         # to coordinates
         coord = SkyCoord.guess_from_table(result)[0]
 
         # set it
         self.textTrackRA.setText(coord.ra.to_string(u.hour, sep=":"))
         self.textTrackDec.setText(coord.dec.to_string(sep=":"))
+        """
 
     def _show_dest_coords(self, ra: str = "N/A", dec: str = "N/A", alt: str = "N/A", az: str = "N/A") -> None:
         self.textDestRA.setText(ra if isinstance(ra, str) else ra.to_string(u.hour, sep=":"))

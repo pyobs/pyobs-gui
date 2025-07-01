@@ -10,7 +10,6 @@ from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from pyobs.comm import Proxy, Comm
-from pyobs.modules import Module
 from qfitswidget import QFitsWidget
 
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event

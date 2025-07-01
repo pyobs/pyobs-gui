@@ -1,18 +1,16 @@
 import logging
 import os
 from datetime import timezone, timedelta, datetime
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSlot
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.dates import date2num, DateFormatter
+from matplotlib.dates import DateFormatter
 
-from pyobs.interfaces import ITemperatures
 from pyobs.utils.time import Time
-from .base import BaseWidget
 from .qt.temperaturesplotwidget_ui import Ui_TemperaturesPlotWidget
 
 

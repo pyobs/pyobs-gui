@@ -1,7 +1,7 @@
 from typing import Any
 from PyQt5 import QtWidgets, QtCore
 import astropy.units as u
-from astropy.coordinates import AltAz, SkyCoord, ICRS
+from astropy.coordinates import SkyCoord, ICRS
 
 from pyobs.interfaces import IOffsetsRaDec, IOffsetsAltAz, IPointingAltAz
 from pyobs.utils.coordinates import offset_altaz_to_radec, offset_radec_to_altaz
