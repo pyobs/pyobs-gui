@@ -20,6 +20,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=25.1.0,<26",
+    "flake8>=7.3.0",
     "pre-commit>=4.2.0,<5",
     "PyQt5-stubs>=5.15.6.0,<6",
     "sphinx-rtd-theme>=3.0.2,<4",
