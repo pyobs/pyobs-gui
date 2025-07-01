@@ -557,7 +557,9 @@ class Ui_TelescopeWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsSemiMajorAxis.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsSemiMajorAxis.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsSemiMajorAxis.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsSemiMajorAxis.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsSemiMajorAxis.setDecimals(6)
         self.spinOrbitElementsSemiMajorAxis.setProperty("value", 1.0)
         self.spinOrbitElementsSemiMajorAxis.setObjectName("spinOrbitElementsSemiMajorAxis")
@@ -568,7 +570,7 @@ class Ui_TelescopeWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsIncl.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsIncl.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsIncl.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsIncl.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsIncl.setDecimals(6)
         self.spinOrbitElementsIncl.setMaximum(360.0)
         self.spinOrbitElementsIncl.setObjectName("spinOrbitElementsIncl")
@@ -579,7 +581,7 @@ class Ui_TelescopeWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsEcc.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsEcc.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsEcc.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsEcc.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsEcc.setDecimals(6)
         self.spinOrbitElementsEcc.setMaximum(1.0)
         self.spinOrbitElementsEcc.setSingleStep(0.1)
@@ -591,7 +593,7 @@ class Ui_TelescopeWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsMA.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsMA.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsMA.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsMA.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         self.spinOrbitElementsMA.setDecimals(6)
         self.spinOrbitElementsMA.setMaximum(360.0)
         self.spinOrbitElementsMA.setObjectName("spinOrbitElementsMA")
@@ -602,7 +604,9 @@ class Ui_TelescopeWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsOmega.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsOmega.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsOmega.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsOmega.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsOmega.setDecimals(6)
         self.spinOrbitElementsOmega.setMaximum(360.0)
         self.spinOrbitElementsOmega.setObjectName("spinOrbitElementsOmega")
@@ -613,13 +617,17 @@ class Ui_TelescopeWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.spinOrbitElementsPerifocus.sizePolicy().hasHeightForWidth())
         self.spinOrbitElementsPerifocus.setSizePolicy(sizePolicy)
-        self.spinOrbitElementsPerifocus.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsPerifocus.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsPerifocus.setDecimals(6)
         self.spinOrbitElementsPerifocus.setMaximum(360.0)
         self.spinOrbitElementsPerifocus.setObjectName("spinOrbitElementsPerifocus")
         self.gridLayout_2.addWidget(self.spinOrbitElementsPerifocus, 1, 3, 1, 1)
         self.spinOrbitElementsEpoch = QtWidgets.QDoubleSpinBox(self.widget_3)
-        self.spinOrbitElementsEpoch.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.spinOrbitElementsEpoch.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.spinOrbitElementsEpoch.setDecimals(6)
         self.spinOrbitElementsEpoch.setMaximum(9999999.0)
         self.spinOrbitElementsEpoch.setObjectName("spinOrbitElementsEpoch")
@@ -666,7 +674,9 @@ class Ui_TelescopeWidget(object):
         self.verticalLayout_7.addWidget(self.groupDestCoords)
         self.buttonMove = QtWidgets.QPushButton(self.groupBox_5)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonMove.setIcon(icon1)
         self.buttonMove.setObjectName("buttonMove")
         self.verticalLayout_7.addWidget(self.buttonMove)
@@ -829,9 +839,9 @@ class Ui_TelescopeWidget(object):
         self.label_38.setText(_translate("TelescopeWidget", "Lon:"))
         self.spinMoveHGSLat.setSuffix(_translate("TelescopeWidget", " °"))
         self.label_42.setText(_translate("TelescopeWidget", "Tx"))
-        self.spinMoveHelioProjectiveRadialTx.setSuffix(_translate("TelescopeWidget", "\""))
+        self.spinMoveHelioProjectiveRadialTx.setSuffix(_translate("TelescopeWidget", '"'))
         self.label_41.setText(_translate("TelescopeWidget", "Ty"))
-        self.spinMoveHelioProjectiveRadialTy.setSuffix(_translate("TelescopeWidget", "\""))
+        self.spinMoveHelioProjectiveRadialTy.setSuffix(_translate("TelescopeWidget", '"'))
         self.label_39.setText(_translate("TelescopeWidget", "Psi:"))
         self.label_40.setText(_translate("TelescopeWidget", "Mu:"))
         self.spinMoveHelioprojectiveRadialPsi.setSuffix(_translate("TelescopeWidget", " °"))
@@ -868,5 +878,7 @@ class Ui_TelescopeWidget(object):
         self.label_6.setText(_translate("TelescopeWidget", "Az:"))
         self.buttonSetAzOffset.setText(_translate("TelescopeWidget", "set"))
         self.buttonResetHorizontalOffsets.setText(_translate("TelescopeWidget", "reset"))
+
+
 from ..compassmovewidget import CompassMoveWidget
 from . import resources_rc

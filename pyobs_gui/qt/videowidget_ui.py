@@ -429,4 +429,6 @@ class Ui_VideoWidget(object):
         self.buttonAbort.setText(_translate("VideoWidget", "Abort sequence"))
         self.labelExposuresLeft.setText(_translate("VideoWidget", "IDLE"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsImage), _translate("VideoWidget", "FITS Image"))
+
+
 from ..datadisplaywidget import DataDisplayWidget

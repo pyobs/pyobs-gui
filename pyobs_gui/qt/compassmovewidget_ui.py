@@ -24,7 +24,9 @@ class Ui_CompassMoveWidget(object):
         self.gridLayout.addWidget(self.buttonOffsetNorth, 0, 1, 1, 1)
         self.buttonOffsetEast = QtWidgets.QPushButton(CompassMoveWidget)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonOffsetEast.setIcon(icon1)
         self.buttonOffsetEast.setObjectName("buttonOffsetEast")
         self.gridLayout.addWidget(self.buttonOffsetEast, 1, 0, 1, 1)
@@ -37,13 +39,17 @@ class Ui_CompassMoveWidget(object):
         self.gridLayout.addWidget(self.spinOffset, 1, 1, 1, 1)
         self.buttonOffsetWest = QtWidgets.QPushButton(CompassMoveWidget)
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonOffsetWest.setIcon(icon2)
         self.buttonOffsetWest.setObjectName("buttonOffsetWest")
         self.gridLayout.addWidget(self.buttonOffsetWest, 1, 2, 1, 1)
         self.buttonOffsetSouth = QtWidgets.QPushButton(CompassMoveWidget)
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonOffsetSouth.setIcon(icon3)
         self.buttonOffsetSouth.setObjectName("buttonOffsetSouth")
         self.gridLayout.addWidget(self.buttonOffsetSouth, 2, 1, 1, 1)
@@ -56,7 +62,9 @@ class Ui_CompassMoveWidget(object):
         CompassMoveWidget.setWindowTitle(_translate("CompassMoveWidget", "Form"))
         self.buttonOffsetNorth.setText(_translate("CompassMoveWidget", "N"))
         self.buttonOffsetEast.setText(_translate("CompassMoveWidget", "E"))
-        self.spinOffset.setSuffix(_translate("CompassMoveWidget", "\""))
+        self.spinOffset.setSuffix(_translate("CompassMoveWidget", '"'))
         self.buttonOffsetWest.setText(_translate("CompassMoveWidget", "W"))
         self.buttonOffsetSouth.setText(_translate("CompassMoveWidget", "S"))
+
+
 from . import resources_rc

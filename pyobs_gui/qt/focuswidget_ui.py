@@ -119,4 +119,6 @@ class Ui_FocusWidget(object):
         self.butSetFocusOffset.setText(_translate("FocusWidget", "set..."))
         self.buttonResetFocusOffset.setText(_translate("FocusWidget", "reset"))
         self.label_13.setText(_translate("FocusWidget", "Status:"))
+
+
 from . import resources_rc

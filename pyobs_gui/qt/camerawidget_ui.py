@@ -527,5 +527,7 @@ class Ui_CameraWidget(object):
         self.checkBroadcast.setText(_translate("CameraWidget", "Broadcast"))
         self.labelStatus.setText(_translate("CameraWidget", "IDLE"))
         self.labelExposuresLeft.setText(_translate("CameraWidget", "IDLE"))
+
+
 from ..datadisplaywidget import DataDisplayWidget
 from . import resources_rc
