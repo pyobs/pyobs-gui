@@ -13,7 +13,6 @@ dependencies = [
     "sunpy>=6.1.1,<7",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget==0.11.0",
-    "slixmpp>=1.10.0,<2",
     "pyobs-core>=1.24.0",
 ]
 
