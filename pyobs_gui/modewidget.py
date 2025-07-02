@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtCore, Qt
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
-from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event, ModeChangedEvent
+from pyobs.events import MotionStatusChangedEvent, Event, ModeChangedEvent
 from pyobs.interfaces import IFilters, IMode
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem

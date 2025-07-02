@@ -13,7 +13,6 @@ from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
 from .base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
-from .datadisplaywidget import DataDisplayWidget
 
 log = logging.getLogger(__name__)
 

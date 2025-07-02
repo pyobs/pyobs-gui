@@ -32,4 +32,6 @@ class Ui_ShellWidget(object):
     def retranslateUi(self, ShellWidget):
         _translate = QtCore.QCoreApplication.translate
         ShellWidget.setWindowTitle(_translate("ShellWidget", "Form"))
+
+
 from ..commandinputwidget import CommandInputWidget

@@ -58,4 +58,6 @@ class Ui_FilterWidget(object):
         self.label_9.setText(_translate("FilterWidget", "Filter:"))
         self.buttonSetFilter.setText(_translate("FilterWidget", "set..."))
         self.label_11.setText(_translate("FilterWidget", "Status:"))
+
+
 from . import resources_rc

@@ -385,5 +385,7 @@ class Ui_SpectrographWidget(object):
         self.butAbort.setText(_translate("SpectrographWidget", "Abort"))
         self.labelStatus.setText(_translate("SpectrographWidget", "IDLE"))
         self.labelExposuresLeft.setText(_translate("SpectrographWidget", "IDLE"))
+
+
 from ..datadisplaywidget import DataDisplayWidget
 from . import resources_rc

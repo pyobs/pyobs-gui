@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from abc import ABC, ABCMeta
 from collections.abc import Coroutine
 from typing import (
     List,

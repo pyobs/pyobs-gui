@@ -11,7 +11,6 @@ from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
 from pyobs.utils.enums import ExposureStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
-from .datadisplaywidget import DataDisplayWidget
 
 from .qt.spectrographwidget_ui import Ui_SpectrographWidget
 

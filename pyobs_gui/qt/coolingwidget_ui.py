@@ -53,7 +53,9 @@ class Ui_CoolingWidget(object):
         self.horizontalLayout.addWidget(self.spinSetPoint)
         self.buttonApply = QtWidgets.QToolButton(self.groupBox_2)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         self.buttonApply.setIcon(icon)
         self.buttonApply.setObjectName("buttonApply")
         self.horizontalLayout.addWidget(self.buttonApply)
@@ -76,4 +78,6 @@ class Ui_CoolingWidget(object):
         self.spinSetPoint.setSuffix(_translate("CoolingWidget", " °C"))
         self.buttonApply.setText(_translate("CoolingWidget", "..."))
         self.checkEnabled.setText(_translate("CoolingWidget", "Enable"))
+
+
 from . import resources_rc

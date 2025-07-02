@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from enum import Enum, EnumMeta
+from enum import EnumMeta
 from typing import Any, Type, Dict, Optional, Union, get_origin, get_args, List
 from PyQt5 import QtWidgets, QtCore
 import inspect
@@ -140,7 +140,7 @@ class SendEventDialog(QtWidgets.QDialog):
                     widget = QtWidgets.QDoubleSpinBox()
                     widget.setMinimum(-1e5)
                     widget.setMaximum(1e5)
-                elif type(ann) == EnumMeta:
+                elif type(ann) is EnumMeta:
                     widget = QtWidgets.QComboBox()
                     widget.addItems([a.value for a in ann])
                 else:

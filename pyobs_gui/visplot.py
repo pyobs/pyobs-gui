@@ -8,10 +8,10 @@ from pyobs.utils.time import Time
 
 
 class VisPlot:
-    def __init__(self, figure, observer):
+    def __init__(self, figure, observer: Observer):
         """Inits the dialog."""
         self.figure = figure
-        self.observer = observer  # type: Observer
+        self.observer = observer
 
     def plot(self, coords):
         """Plot visibility plots for the given coordinates starting from now."""

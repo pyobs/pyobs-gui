@@ -39,4 +39,6 @@ class Ui_ModeWidget(object):
         ModeWidget.setWindowTitle(_translate("ModeWidget", "Form"))
         self.groupBox.setTitle(_translate("ModeWidget", "Modes"))
         self.label_11.setText(_translate("ModeWidget", "Status:"))
+
+
 from . import resources_rc
