@@ -4,7 +4,7 @@ import sys
 from typing import List, Dict, Tuple, Any, Optional
 
 import qasync
-from qasync import QEventLoop  # type: ignore
+from qasync import QEventLoop  # type: ignore   # noqa: F401
 from PyQt5 import QtWidgets, QtGui
 
 from pyobs.interfaces import IFitsHeaderBefore
@@ -23,7 +23,6 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
         """Open module."""
 
         # what do we have?
-        widget, icon = None, None
         for interface, klass in DEFAULT_WIDGETS.items():
             if isinstance(module, interface):
                 widget = self.create_widget(klass)

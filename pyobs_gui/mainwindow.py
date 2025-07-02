@@ -1,13 +1,12 @@
 import asyncio
 import os
-from typing import Optional, List, Any, Dict, Tuple, Union
+from typing import Optional, List, Any, Dict, Tuple
 from PyQt5 import QtWidgets, QtCore, QtGui
-from astroplan import Observer
 from astropy.time import Time
 from colour import Color
 import qtawesome as qta
 
-from pyobs.comm import Comm, Proxy
+from pyobs.comm import Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     ICamera,
@@ -21,7 +20,7 @@ from pyobs.interfaces import (
     IFilters,
     IMode,
 )
-from pyobs.vfs import VirtualFileSystem
+
 from .base import BaseWindow, BaseWidget
 from .camerawidget import CameraWidget
 from .filterwidget import FilterWidget

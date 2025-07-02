@@ -176,4 +176,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "pyobs GUI"))
         self.labelAutonomousWarning.setText(_translate("MainWindow", "!!! WARNING: autonomous module(s) active !!!"))
         self.labelWeatherWarning.setText(_translate("MainWindow", "!!! WARNING: weather module disabled !!!"))
+
+
 from . import resources_rc

@@ -1,15 +1,11 @@
 import asyncio
 from asyncio import Task
-from datetime import datetime
-from typing import Any, Type, Dict, Optional, cast, Union, List
+from typing import Any, Dict, Optional, cast, Union, List
 from PyQt5 import QtWidgets, QtCore
-import inspect
-
 from astroplan import Observer
 
-import pyobs.events
 from pyobs.comm import Comm, Proxy
-from pyobs.events import LogEvent, Event, ModuleOpenedEvent, ModuleClosedEvent
+from pyobs.events import Event, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IModule
 from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem

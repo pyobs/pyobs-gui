@@ -50,4 +50,6 @@ class Ui_TemperaturesWidget(object):
         TemperaturesWidget.setWindowTitle(_translate("TemperaturesWidget", "Form"))
         self.groupBox.setTitle(_translate("TemperaturesWidget", "Temperatures"))
         self.buttonPlotTemps.setText(_translate("TemperaturesWidget", "Plot && log temperatures"))
+
+
 from . import resources_rc
