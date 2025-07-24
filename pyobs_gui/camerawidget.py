@@ -39,7 +39,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
     def __init__(self, **kwargs: Any):
         QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self) # type: ignore
 
         # variables
         self.new_image = False
@@ -88,7 +88,8 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         self.signal_update_gui.connect(self.update_gui)
 
         # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        if self.comm is not None:
+            await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
         await self.add_to_sidebar(self.create_widget(FitsHeadersWidget, module=self.module))
@@ -165,7 +166,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
 
     @QtCore.pyqtSlot(str, name="on_comboBinning_currentTextChanged")
     def binning_changed(self, binning: str) -> None:
-        self.on_butFullFrame_clicked()
+        self._set_full_frame()
 
     @QtCore.pyqtSlot(int, name="on_checkBroadcast_stateChanged")
     def broadcast_changed(self, state: int) -> None:
