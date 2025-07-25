@@ -18,7 +18,7 @@ from .qt.eventswidget_ui import Ui_EventsWidget
 class EventsWidget(BaseWidget, Ui_EventsWidget):
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # set up table
         self.tableEvents.setColumnCount(4)

@@ -22,7 +22,7 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self._focus: Optional[float] = None

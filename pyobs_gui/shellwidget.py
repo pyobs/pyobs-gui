@@ -111,7 +111,7 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
         self.command_number = 0
 
         # commands

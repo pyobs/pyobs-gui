@@ -13,7 +13,7 @@ from .qt.compassmovewidget_ui import Ui_CompassMoveWidget
 class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
     def __init__(self, parent: QtWidgets.QWidget, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # button colors
         self.colorize_button(self.buttonOffsetEast, QtCore.Qt.blue)

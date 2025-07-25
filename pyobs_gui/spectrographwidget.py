@@ -23,7 +23,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
     def __init__(self, **kwargs: Any) -> None:
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_spectrum = False

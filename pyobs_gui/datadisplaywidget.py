@@ -27,7 +27,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
     def __init__(self, parent, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_data = False

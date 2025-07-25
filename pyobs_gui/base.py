@@ -12,6 +12,7 @@ from typing import (
     TypeVar,
     Optional,
     Callable,
+    Type,
 )
 
 from PyQt5 import QtWidgets, QtGui, QtCore
@@ -127,7 +128,7 @@ class BaseWindow:
         for widget in self._base_widgets:
             await self._open_child(widget)
 
-    async def _open_child(self, widget: BaseWidget):
+    async def _open_child(self, widget: BaseWidget) -> None:
         await widget.open(modules=self.modules, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
@@ -169,7 +170,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         if self.extract_window_button:
             self.extract_window_button.move(self.width() - 20, 0)
 
-    def show_extract_button(self, klass, title):
+    def show_extract_button(self, klass: Type[Any], title: str) -> None:
         # button to extract to window
         self.extract_window_button = QtWidgets.QToolButton(self)
         # self.extract_window_button.setText("X")
@@ -180,7 +181,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         self.extract_window_button.raise_()
 
         # method for creating new window
-        def create_window():
+        def create_window() -> None:
             # create dialog and add widget
             dialog = QtWidgets.QDialog()
             dialog.setWindowTitle(title)
@@ -206,7 +207,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
             self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
             spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
             self.sidebar_layout.addItem(spacer_item)
-            self.widgetSidebar.setLayout(self.sidebar_layout)
+            if hasattr(self, "widgetSidebar"):
+                self.widgetSidebar.setLayout(self.sidebar_layout)
 
         # open it
         await self._open_child(widget)

@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # this only works in Linux
         try:

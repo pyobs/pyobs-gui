@@ -16,7 +16,7 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self._filter: Optional[str] = None

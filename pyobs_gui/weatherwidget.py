@@ -81,7 +81,7 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # weather info
         self._current_weather: Dict[str, Any] = {}

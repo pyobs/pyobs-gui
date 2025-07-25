@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
     def __init__(self, **kwargs: Any):
         QtWidgets.QWidget.__init__(self)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # add plot
         self.figure, self.ax = plt.subplots()

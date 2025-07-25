@@ -38,7 +38,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # store
         self.host: Optional[str] = None

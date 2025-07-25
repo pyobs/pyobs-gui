@@ -53,7 +53,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self._motion_status = MotionStatus.UNKNOWN

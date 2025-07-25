@@ -15,7 +15,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
 
     def __init__(self, **kwargs):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # status
         self._status = None

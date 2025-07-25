@@ -12,7 +12,7 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # status
         self.motion_status: Optional[MotionStatus] = None
