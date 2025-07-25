@@ -131,7 +131,7 @@ class BaseWindow:
         await widget.open(modules=self.modules, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
-class BaseWidget(BaseWindow):
+class BaseWidget(BaseWindow, QtWidgets.QWidget):
     _show_error = QtCore.pyqtSignal(str)
     _enable_buttons = QtCore.pyqtSignal(list, bool)
 
@@ -143,6 +143,7 @@ class BaseWidget(BaseWindow):
         **kwargs: Any,
     ):
         BaseWindow.__init__(self)
+        QtWidgets.QWidget.__init__(self)
 
         # signals
         self._show_error.connect(self.show_error)

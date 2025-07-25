@@ -33,11 +33,10 @@ class ScaledLabel(QtWidgets.QLabel):
             self.setPixmap(self._pixmap)
 
 
-class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
+class VideoWidget(BaseWidget, Ui_VideoWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 

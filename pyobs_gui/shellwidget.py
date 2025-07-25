@@ -106,11 +106,10 @@ class CommandModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
 
-class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
+class ShellWidget(BaseWidget, Ui_ShellWidget):
     add_command_log = QtCore.pyqtSignal(str)
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
         self.command_number = 0

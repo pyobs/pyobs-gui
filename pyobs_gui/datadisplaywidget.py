@@ -22,11 +22,10 @@ from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
 log = logging.getLogger(__name__)
 
 
-class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
+class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, parent, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self, parent)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 

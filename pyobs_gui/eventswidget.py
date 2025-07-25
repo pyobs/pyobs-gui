@@ -15,9 +15,8 @@ from .base import BaseWidget
 from .qt.eventswidget_ui import Ui_EventsWidget
 
 
-class EventsWidget(QtWidgets.QWidget, BaseWidget, Ui_EventsWidget):
+class EventsWidget(BaseWidget, Ui_EventsWidget):
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 

@@ -32,14 +32,13 @@ from .qt.camerawidget_ui import Ui_CameraWidget
 log = logging.getLogger(__name__)
 
 
-class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
+class CameraWidget(BaseWidget, Ui_CameraWidget):
     signal_update_gui = QtCore.pyqtSignal()
     signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self) # type: ignore
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_image = False

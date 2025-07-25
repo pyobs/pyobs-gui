@@ -11,11 +11,10 @@ from .temperaturesplotwidget import TemperaturesPlotWidget
 log = logging.getLogger(__name__)
 
 
-class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
+class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 

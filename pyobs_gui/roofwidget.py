@@ -1,6 +1,4 @@
 from typing import Any, Optional
-
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import IDome, IMotion
@@ -9,11 +7,10 @@ from .base import BaseWidget
 from .qt.roofwidget_ui import Ui_RoofWidget
 
 
-class RoofWidget(QtWidgets.QWidget, BaseWidget, Ui_RoofWidget):
+class RoofWidget(BaseWidget, Ui_RoofWidget):
     signal_update_gui = pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 

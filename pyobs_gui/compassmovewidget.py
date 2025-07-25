@@ -10,9 +10,8 @@ from .base import BaseWidget
 from .qt.compassmovewidget_ui import Ui_CompassMoveWidget
 
 
-class CompassMoveWidget(QtWidgets.QWidget, BaseWidget, Ui_CompassMoveWidget):
+class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
     def __init__(self, parent: QtWidgets.QWidget, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self, parent)
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)
 

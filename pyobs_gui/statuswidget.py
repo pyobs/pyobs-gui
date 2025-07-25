@@ -86,19 +86,24 @@ class StatusItem(QtWidgets.QWidget):
         asyncio.create_task(self.module.reset_error())
 
 
-class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
+class StatusWidget(BaseWidget):
     def __init__(self, **kwargs: Any):
-        QtWidgets.QTableWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update_status, **kwargs)
 
+        # create table
+        self.table = QtWidgets.QTableWidget()
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.table)
+        self.setLayout(layout)
+
         # table settings
-        self.setColumnCount(3)
-        self.setHorizontalHeaderLabels(["Module", "Version", "Status"])
-        self.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().setMinimumSectionSize(200)
-        self.verticalHeader().hide()
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Module", "Version", "Status"])
+        self.table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setMinimumSectionSize(200)
+        self.table.verticalHeader().hide()
 
         # stuff
         self._status_task: Optional[Task] = None
@@ -150,30 +155,30 @@ class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
 
     async def _add_module(self, module: Proxy) -> None:
         # add row
-        row = self.rowCount()
-        self.setRowCount(row + 1)
+        row = self.table.rowCount()
+        self.table.setRowCount(row + 1)
 
         # set module name
         item = QtWidgets.QTableWidgetItem(module.name)
         item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.setItem(row, 0, item)
+        self.table.setItem(row, 0, item)
 
         # set version
         if isinstance(module, IModule):
             item = QtWidgets.QTableWidgetItem(await module.get_version())
             item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.setItem(row, 1, item)
+            self.table.setItem(row, 1, item)
 
         # add widget for status
         widget = StatusItem(self.comm, module)
         item = QtWidgets.QTableWidgetItem()
         item.setSizeHint(widget.minimumSizeHint())
-        self.setItem(row, 2, item)
-        self.setCellWidget(row, 2, widget)
+        self.table.setItem(row, 2, item)
+        self.table.setCellWidget(row, 2, widget)
 
         # sort
-        self.resizeRowsToContents()
-        self.sortItems(0)
+        self.table.resizeRowsToContents()
+        self.table.sortItems(0)
 
     async def _update_status(self) -> None:
         """Update status for all modules."""
@@ -181,9 +186,9 @@ class StatusWidget(QtWidgets.QTableWidget, BaseWidget):
         while True:
             # loop all rows
             futures = []
-            for row in range(self.rowCount()):
+            for row in range(self.table.rowCount()):
                 # get widget and update it
-                widget = self.cellWidget(row, 2)
+                widget = self.table.cellWidget(row, 2)
                 if widget is not None:
                     futures.append(asyncio.create_task(widget.update_status()))
 

@@ -17,11 +17,10 @@ from .qt.focuswidget_ui import Ui_FocusWidget
 log = logging.getLogger(__name__)
 
 
-class FocusWidget(QtWidgets.QWidget, BaseWidget, Ui_FocusWidget):
+class FocusWidget(BaseWidget, Ui_FocusWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
         self.setupUi(self)
 

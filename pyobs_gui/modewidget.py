@@ -12,11 +12,10 @@ from .base import BaseWidget
 from .qt.modewidget_ui import Ui_ModeWidget
 
 
-class ModeWidget(QtWidgets.QWidget, BaseWidget, Ui_ModeWidget):
+class ModeWidget(BaseWidget, Ui_ModeWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
         self.setupUi(self)
 

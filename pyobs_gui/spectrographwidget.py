@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from typing import Optional, Any, Union, Dict, List
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore
 from astroplan import Observer
 from astropy.io import fits
 
@@ -18,11 +18,10 @@ from .qt.spectrographwidget_ui import Ui_SpectrographWidget
 log = logging.getLogger(__name__)
 
 
-class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
+class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any) -> None:
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
         self.setupUi(self)
 
