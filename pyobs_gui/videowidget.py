@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 class ScaledLabel(QtWidgets.QLabel):
     def __init__(self, **kwargs: Any):
         QtWidgets.QLabel.__init__(self, **kwargs)
-        self._pixmap = None
+        self._pixmap: QtGui.QPixmap | None = None
         self.setMinimumSize(QtCore.QSize(10, 10))
 
     def setPixmap(self, pixmap: QtGui.QPixmap) -> None:

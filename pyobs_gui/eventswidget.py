@@ -41,7 +41,8 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
         for name, cls in pyobs.events.__dict__.items():
             if isinstance(cls, type):
                 # register event
-                await self.comm.register_event(cls, self._handle_event)
+                if self.comm is not None:
+                    await self.comm.register_event(cls, self._handle_event)
 
                 # get c'tor
                 ctor = getattr(cls, "__init__")
@@ -58,7 +59,7 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
                 # add to combo
                 self.comboEvent.addItem(name, cls)
 
-    async def _handle_event(self, event: pyobs.events.Event, sender: str):
+    async def _handle_event(self, event: pyobs.events.Event, sender: str) -> None:
         """Handle any incoming event.
 
         Args:
@@ -88,6 +89,9 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
 
     @QtCore.pyqtSlot()
     def on_buttonSend_clicked(self) -> None:
+        if self.comm is None:
+            return
+
         # get event class
         cls = self.comboEvent.itemData(self.comboEvent.currentIndex())
 

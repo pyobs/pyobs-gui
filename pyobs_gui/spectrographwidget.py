@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Optional, Any, Union, Dict, List
+from typing import Any
 from PyQt5 import QtCore
 from astroplan import Observer
 from astropy.io import fits
@@ -27,8 +27,8 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
         # variables
         self.new_spectrum = False
-        self.spectrum_filename: Optional[str] = None
-        self.spectrum: Optional[fits.PrimaryHDU] = None
+        self.spectrum_filename: str | None = None
+        self.spectrum: fits.PrimaryHDU | None = None
         self.status = None
         self.exposure_status = ExposureStatus.IDLE
 
@@ -47,17 +47,18 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
         await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        if self.comm is not None:
+            await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
     async def _init(self) -> None:
         # get status
@@ -82,7 +83,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     @QtCore.pyqtSlot(name="on_butAbort_clicked")
     def abort(self) -> None:
         """Abort exposure."""
-        if isinstance(self, ISpectrograph):
+        if self.module is not None and isinstance(self.module, ISpectrograph):
             asyncio.create_task(self.module.abort())
 
     async def _update(self) -> None:
@@ -96,8 +97,8 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
         else:
             # reset
-            self.exposure_time_left = 0
-            self.exposure_progress = 0
+            self.exposure_time_left = 0.0
+            self.exposure_progress = 0.0
 
         # signal GUI update
         self.signal_update_gui.emit()

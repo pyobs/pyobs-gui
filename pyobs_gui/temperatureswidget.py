@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, cast
 from PyQt5 import QtWidgets, QtCore
 
 from pyobs.interfaces import ITemperatures
@@ -47,7 +47,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
             self.setEnabled(True)
 
             # get layout
-            layout = self.frame.layout()
+            layout = cast(QtWidgets.QFormLayout, self.frame.layout())
 
             # loop temps
             for key in sorted(self._temps.keys()):
