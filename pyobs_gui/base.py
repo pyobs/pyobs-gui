@@ -3,18 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Coroutine
-from typing import (
-    List,
-    Dict,
-    Tuple,
-    Any,
-    Union,
-    TypeVar,
-    Optional,
-    Callable,
-    Type,
-)
-
+from typing import Any, TypeVar, Callable, Type
 from PyQt5 import QtWidgets, QtGui, QtCore
 from astroplan import Observer
 
@@ -34,18 +23,24 @@ WidgetClass = TypeVar("WidgetClass")
 class BaseWindow:
     def __init__(self) -> None:
         """Base class for MainWindow and all widgets."""
-        self.modules: List[Proxy] = []
-        self.comm: Optional[Comm] = None
-        self.observer: Optional[Observer] = None
-        self.vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None
-        self._base_widgets: List[BaseWidget] = []
+        self.modules: list[Proxy] = []
+        self._comm: Comm | None = None
+        self.observer: Observer | None = None
+        self.vfs: VirtualFileSystem | dict[str, Any] | None = None
+        self._base_widgets: list[BaseWidget] = []
 
     @property
-    def module(self) -> Optional[Proxy]:
+    def comm(self) -> Comm:
+        if self._comm is None:
+            raise ValueError("No comm object.")
+        return self._comm
+
+    @property
+    def module(self) -> Proxy | None:
         """Returns the first module in the list or None, if list is empty"""
         return self.modules[0] if len(self.modules) > 0 else None
 
-    def module_by_name(self, name: str) -> Optional[Proxy]:
+    def module_by_name(self, name: str) -> Proxy | None:
         """Return the module with the given name or None, if not exists.
 
         Args:
@@ -63,7 +58,7 @@ class BaseWindow:
         # nothing found
         return None
 
-    def modules_by_interface(self, interface: Any) -> List[Proxy]:
+    def modules_by_interface(self, interface: Any) -> list[Proxy]:
         """Returns all modules that implement the given interface.
 
         Args:
@@ -74,7 +69,7 @@ class BaseWindow:
         """
         return list(filter(lambda m: isinstance(m, interface), self.modules))
 
-    def module_by_interface(self, interface: Any) -> Optional[Proxy]:
+    def module_by_interface(self, interface: Any) -> Proxy | None:
         """Returns first modules that implement the given interface, or None, if no exist.
 
         Args:
@@ -86,7 +81,7 @@ class BaseWindow:
         modules = self.modules_by_interface(interface)
         return None if len(modules) == 0 else modules[0]
 
-    def create_widget(self, config: Union[Dict[str, Any], type], **kwargs: Any) -> "BaseWidget":
+    def create_widget(self, config: dict[str, Any] | type, **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
 
         Args:
@@ -113,15 +108,15 @@ class BaseWindow:
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         # store
         self.modules = [] if modules is None else modules
         self.vfs = vfs
-        self.comm = comm
+        self._comm = comm
         self.observer = observer
 
         """Open all widgets."""
@@ -138,7 +133,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
 
     def __init__(
         self,
-        update_func: Optional[Callable[[], Any]] = None,
+        update_func: Callable[[], Any] | None = None,
         update_interval: float = 1,
         *args: Any,
         **kwargs: Any,
@@ -153,15 +148,15 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         # update
         self._update_func = update_func
         self._update_interval = update_interval
-        self._update_task: Optional[Any] = None
+        self._update_task: Any | None = None
 
         # sidebar
-        self.sidebar_widgets: List[BaseWidget] = []
-        self.sidebar_layout: Optional[QtWidgets.QVBoxLayout] = None
+        self.sidebar_widgets: list[BaseWidget] = []
+        self.sidebar_layout: QtWidgets.QVBoxLayout | None = None
 
         # button to extract to window
-        self.extract_window_button: Optional[QtWidgets.QToolButton] = None
-        self._windows: List[QtWidgets.QDialog] = []
+        self.extract_window_button: QtWidgets.QToolButton | None = None
+        self._windows: list[QtWidgets.QDialog] = []
 
         # has it been initialized?
         self._initialized = False
@@ -249,7 +244,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         while True:
             try:
                 # get module state
-                if isinstance(self.module, IModule):
+                if self.module is not None and isinstance(self.module, IModule):
                     state = await self.module.get_state()
                     self.setEnabled(state == ModuleState.READY)
                     if state != ModuleState.READY:
@@ -295,11 +290,11 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         title, message = err.split(":") if ":" in err else ("Error", err)
         await QAsyncMessageBox.warning(self, title, message)
 
-    def enable_buttons(self, widgets: List[QtWidgets.QWidget], enable: bool) -> None:
+    def enable_buttons(self, widgets: list[QtWidgets.QWidget], enable: bool) -> None:
         for w in widgets:
             w.setEnabled(enable)
 
-    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -314,7 +309,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
                 hdr[k] = v
         return hdr
 
-    def colorize_button(self, button: Any, background: Any, black_on_white: bool = True) -> None:
+    @staticmethod
+    def colorize_button(button: Any, background: Any, black_on_white: bool = True) -> None:
         # get palette
         pal = button.palette()
 

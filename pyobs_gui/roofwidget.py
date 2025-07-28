@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import IDome, IMotion
@@ -15,8 +15,8 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
         self.setupUi(self)  # type: ignore
 
         # status
-        self.motion_status: Optional[MotionStatus] = None
-        self.azimuth: Optional[float] = None
+        self.motion_status: MotionStatus | None = None
+        self.azimuth: float | None = None
 
         # connect signals
         if isinstance(self.module, IMotion):
@@ -27,15 +27,15 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
 
     async def _init(self) -> None:
         # get status and update gui
-        if isinstance(self.module, IMotion):
+        if self.module is not None and isinstance(self.module, IMotion):
             self.motion_status = await self.module.get_motion_status()
         self.signal_update_gui.emit()
 
     async def _update(self) -> None:
         # azimuth and motion status
-        if isinstance(self.module, IMotion):
+        if self.module is not None and isinstance(self.module, IMotion):
             self.motion_status = await self.module.get_motion_status()
-        if isinstance(self.module, IDome):
+        if self.module is not None and isinstance(self.module, IDome):
             _, self.azimuth = await self.module.get_altaz()
 
         # signal GUI update
@@ -57,11 +57,14 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
         else:
             self.labelAzimuth.setText("%.1f°" % self.azimuth)
 
-    def open_roof(self):
-        self.run_background(self.module.init)
+    def open_roof(self) -> None:
+        if self.module is not None and isinstance(self.module, IMotion):
+            self.run_background(self.module.init)
 
-    def close_roof(self):
-        self.run_background(self.module.park)
+    def close_roof(self) -> None:
+        if self.module is not None and isinstance(self.module, IMotion):
+            self.run_background(self.module.park)
 
-    def stop_roof(self):
-        self.run_background(self.module.stop_motion)
+    def stop_roof(self) -> None:
+        if self.module is not None and isinstance(self.module, IMotion):
+            self.run_background(self.module.stop_motion)

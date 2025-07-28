@@ -106,25 +106,26 @@ class StatusWidget(BaseWidget):
         self.table.verticalHeader().hide()
 
         # stuff
-        self._status_task: Optional[Task] = None
+        self._status_task: Task[Any] | None = None
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
-        # register events
-        await self.comm.register_event(ModuleOpenedEvent, self._module_opened)
-        await self.comm.register_event(ModuleClosedEvent, self._module_closed)
+        if self.comm is not None:
+            # register events
+            await self.comm.register_event(ModuleOpenedEvent, self._module_opened)
+            await self.comm.register_event(ModuleClosedEvent, self._module_closed)
 
-        # add all existing modules
-        for mod in self.comm.clients:
-            await self._module_opened(ModuleOpenedEvent(), mod)
+            # add all existing modules
+            for mod in self.comm.clients:
+                await self._module_opened(ModuleOpenedEvent(), mod)
 
         # trigger status updates
         # self._status_task = asyncio.create_task(self._update_status())
@@ -135,6 +136,8 @@ class StatusWidget(BaseWidget):
             return False
 
         # add module
+        if self.comm is None:
+            return False
         proxy = await self.comm.proxy(sender)
         await self._add_module(proxy)
         return True
@@ -145,9 +148,10 @@ class StatusWidget(BaseWidget):
             return False
 
         # find and remove it
-        for row in range(self.rowCount()):
-            if self.item(row, 0).text() == sender:
-                self.removeRow(row)
+        for row in range(self.table.rowCount()):
+            item = self.table.item(row, 0)
+            if item is not None and item.text() == sender:
+                self.table.removeRow(row)
                 break
 
         # success
@@ -170,11 +174,12 @@ class StatusWidget(BaseWidget):
             self.table.setItem(row, 1, item)
 
         # add widget for status
-        widget = StatusItem(self.comm, module)
-        item = QtWidgets.QTableWidgetItem()
-        item.setSizeHint(widget.minimumSizeHint())
-        self.table.setItem(row, 2, item)
-        self.table.setCellWidget(row, 2, widget)
+        if self.comm is not None:
+            widget = StatusItem(self.comm, module)
+            item = QtWidgets.QTableWidgetItem()
+            item.setSizeHint(widget.minimumSizeHint())
+            self.table.setItem(row, 2, item)
+            self.table.setCellWidget(row, 2, widget)
 
         # sort
         self.table.resizeRowsToContents()
@@ -188,7 +193,7 @@ class StatusWidget(BaseWidget):
             futures = []
             for row in range(self.table.rowCount()):
                 # get widget and update it
-                widget = self.table.cellWidget(row, 2)
+                widget = cast(StatusItem, self.table.cellWidget(row, 2))
                 if widget is not None:
                     futures.append(asyncio.create_task(widget.update_status()))
 
