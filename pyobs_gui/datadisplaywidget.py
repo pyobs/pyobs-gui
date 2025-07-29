@@ -82,8 +82,6 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
     async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data."""
-        if self.module is None:
-            return
 
         # expose
         if isinstance(self.module, IData):

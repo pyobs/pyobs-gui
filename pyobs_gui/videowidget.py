@@ -90,7 +90,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self.groupGain.setVisible(isinstance(self.module, IGain))
 
         # get video stream URL and open it
-        if not isinstance(self.module, IVideo) or self.module is None:
+        if not isinstance(self.module, IVideo):
             log.error("Module is not an IVideo.")
             return
         video_path = await self.module.get_video()

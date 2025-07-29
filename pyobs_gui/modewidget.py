@@ -1,5 +1,5 @@
 import functools
-from typing import List, Any, Optional, Union, Dict, Tuple
+from typing import Any
 from PyQt5 import QtWidgets, QtCore, Qt
 from astroplan import Observer
 
@@ -20,21 +20,21 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         self.setupUi(self)  # type: ignore
 
         # variables
-        self._mode_groups: List[str] = []
-        self._mode_options: List[List[str]] = [[]]
-        self._modes: List[int] = []
+        self._mode_groups: list[str] = []
+        self._mode_options: list[list[str]] = [[]]
+        self._modes: list[int] = []
         self._motion_status = MotionStatus.UNKNOWN
-        self._mode_widgets: List[Tuple[QtWidgets.QLineEdit, QtWidgets.QPushButton]] = []
+        self._mode_widgets: list[tuple[QtWidgets.QLineEdit, QtWidgets.QPushButton]] = []
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)

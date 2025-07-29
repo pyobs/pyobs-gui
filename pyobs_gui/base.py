@@ -36,9 +36,11 @@ class BaseWindow:
         return self._comm
 
     @property
-    def module(self) -> Proxy | None:
+    def module(self) -> Proxy:
         """Returns the first module in the list or None, if list is empty"""
-        return self.modules[0] if len(self.modules) > 0 else None
+        if len(self.modules) == 0:
+            raise ValueError("No module.")
+        return self.modules[0]
 
     def module_by_name(self, name: str) -> Proxy | None:
         """Return the module with the given name or None, if not exists.

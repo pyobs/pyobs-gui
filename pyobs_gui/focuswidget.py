@@ -118,7 +118,7 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         """
 
         # ignore events from wrong sender
-        if self.module is None or sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
             return False
 
         # store new status

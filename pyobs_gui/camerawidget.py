@@ -383,7 +383,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         """
 
         # ignore events from wrong sender
-        if self.module is None or sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
+        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status
