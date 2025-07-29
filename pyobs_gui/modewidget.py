@@ -1,11 +1,11 @@
 import functools
-from typing import Any
-from PyQt5 import QtWidgets, QtCore, Qt
+from typing import Any, cast
+from PyQt5 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
 from pyobs.events import MotionStatusChangedEvent, Event, ModeChangedEvent
-from pyobs.interfaces import IFilters, IMode
+from pyobs.interfaces import IFilters, IMode, IMotion
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
@@ -22,9 +22,9 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         # variables
         self._mode_groups: list[str] = []
         self._mode_options: list[list[str]] = [[]]
-        self._modes: list[int] = []
+        self._modes: list[str] = []
         self._motion_status = MotionStatus.UNKNOWN
-        self._mode_widgets: list[tuple[QtWidgets.QLineEdit, QtWidgets.QPushButton]] = []
+        self._mode_widgets: list[tuple[QtWidgets.QLineEdit, QtWidgets.QToolButton]] = []
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -44,9 +44,11 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     async def _init(self) -> None:
+        if isinstance(self.module, IMotion):
+            self._motion_status = await self.module.get_motion_status()
+
         # get current filter
         if isinstance(self.module, IMode):
-            self._motion_status = await self.module.get_motion_status()
             self._mode_groups = await self.module.list_mode_groups()
             self._mode_options = [await self.module.list_modes(i) for i in range(len(self._mode_groups))]
             await self._update_modes()
@@ -60,12 +62,12 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
                 current.setAlignment(QtCore.Qt.AlignCenter)
                 layout.addWidget(current)
                 button = QtWidgets.QToolButton()
-                button.setIcon(Qt.QIcon(":/resources/edit-solid.svg"))
+                button.setIcon(QtGui.QIcon(":/resources/edit-solid.svg"))
                 self.colorize_button(button, QtCore.Qt.green)
                 button.clicked.connect(functools.partial(self.set_mode, i))
                 layout.addWidget(button)
                 self._mode_widgets.append((current, button))
-                self.groupBox.layout().addRow(self._mode_groups[i], layout)
+                cast(QtWidgets.QFormLayout, self.groupBox.layout()).addRow(self._mode_groups[i], layout)
 
         # update gui
         self.signal_update_gui.emit()
@@ -81,7 +83,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
             MotionStatus.POSITIONED,
         ]
         for i in range(len(self._mode_groups)):
-            self._mode_widgets[i][0].setText(self._modes[i])
+            self._mode_widgets[i][0].setText(str(self._modes[i]))
             self._mode_widgets[i][1].setEnabled(initialized)
 
     async def _on_mode_changed(self, event: Event, sender: str) -> bool:
@@ -127,7 +129,8 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         return True
 
     async def _update_modes(self) -> None:
-        self._modes = [await self.module.get_mode(i) for i in range(len(self._mode_groups))]
+        if isinstance(self.module, IMode):
+            self._modes = [await self.module.get_mode(i) for i in range(len(self._mode_groups))]
 
     async def _update(self) -> None:
         # get mode and motion status

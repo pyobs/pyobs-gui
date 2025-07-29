@@ -51,12 +51,14 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         # addition headers?
         for row in range(self.tableAdditionalHeaders.rowCount()):
             # get key and value
-            key = self.tableAdditionalHeaders.item(row, 0).text()
-            value = self.tableAdditionalHeaders.item(row, 1).text()
+            item = self.tableAdditionalHeaders.item(row, 0)
+            if item is not None:
+                key = item.text()
+                value = item.text()
 
-            # add it
-            if len(key) > 0 and len(value) > 0:
-                headers[key] = value
+                # add it
+                if len(key) > 0 and len(value) > 0:
+                    headers[key] = (str(value), "")
 
         # return them
         return headers

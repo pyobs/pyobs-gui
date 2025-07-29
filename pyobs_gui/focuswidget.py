@@ -33,7 +33,8 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         self.signal_update_gui.connect(self.update_gui)
         self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
         self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
-        self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(self.module.set_focus_offset, 0))
+        if isinstance(self.module, IFocuser):
+            self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(self.module.set_focus_offset, 0))
 
         # button colors
         self.colorize_button(self.butSetFocusBase, QtCore.Qt.green)

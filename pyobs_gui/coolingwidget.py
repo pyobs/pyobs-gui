@@ -20,7 +20,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         self.setupUi(self)  # type: ignore
 
         # status
-        self._status = None
+        self._status: tuple[bool, float, float] | None = None
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
