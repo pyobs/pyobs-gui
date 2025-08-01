@@ -15,11 +15,10 @@ from .base import BaseWidget
 from .qt.eventswidget_ui import Ui_EventsWidget
 
 
-class EventsWidget(QtWidgets.QWidget, BaseWidget, Ui_EventsWidget):
+class EventsWidget(BaseWidget, Ui_EventsWidget):
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # set up table
         self.tableEvents.setColumnCount(4)
@@ -59,7 +58,7 @@ class EventsWidget(QtWidgets.QWidget, BaseWidget, Ui_EventsWidget):
                 # add to combo
                 self.comboEvent.addItem(name, cls)
 
-    async def _handle_event(self, event: pyobs.events.Event, sender: str):
+    async def _handle_event(self, event: pyobs.events.Event, sender: str) -> bool:
         """Handle any incoming event.
 
         Args:
@@ -69,7 +68,7 @@ class EventsWidget(QtWidgets.QWidget, BaseWidget, Ui_EventsWidget):
 
         # ignore log events
         if isinstance(event, LogEvent):
-            return
+            return False
 
         # add row to table
         self.tableEvents.insertRow(0)
@@ -86,9 +85,13 @@ class EventsWidget(QtWidgets.QWidget, BaseWidget, Ui_EventsWidget):
         # limit number of rows
         if self.tableEvents.rowCount() > 500:
             self.tableEvents.setRowCount(400)
+        return True
 
     @QtCore.pyqtSlot()
     def on_buttonSend_clicked(self) -> None:
+        if self.comm is None:
+            return
+
         # get event class
         cls = self.comboEvent.itemData(self.comboEvent.currentIndex())
 
@@ -132,6 +135,7 @@ class SendEventDialog(QtWidgets.QDialog):
                     optional = True
 
                 # create widget
+                widget: QtWidgets.QSpinBox | QtWidgets.QDoubleSpinBox | QtWidgets.QComboBox | QtWidgets.QLineEdit
                 if ann == int:
                     widget = QtWidgets.QSpinBox()
                     widget.setMinimum(-100000)

@@ -76,13 +76,12 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
             self._unit.setStyleSheet(stylesheet)
 
 
-class WeatherWidget(QtWidgets.QWidget, BaseWidget, Ui_WeatherWidget):
+class WeatherWidget(BaseWidget, Ui_WeatherWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # weather info
         self._current_weather: Dict[str, Any] = {}

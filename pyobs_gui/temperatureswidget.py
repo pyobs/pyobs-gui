@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, cast
 from PyQt5 import QtWidgets, QtCore
 
 from pyobs.interfaces import ITemperatures
@@ -11,13 +11,12 @@ from .temperaturesplotwidget import TemperaturesPlotWidget
 log = logging.getLogger(__name__)
 
 
-class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
+class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # status
         self._temps: Dict[str, float] = {}
@@ -48,7 +47,7 @@ class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
             self.setEnabled(True)
 
             # get layout
-            layout = self.frame.layout()
+            layout = cast(QtWidgets.QFormLayout, self.frame.layout())
 
             # loop temps
             for key in sorted(self._temps.keys()):

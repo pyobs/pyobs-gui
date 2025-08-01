@@ -6,8 +6,10 @@ from PyQt5 import QtWidgets, QtCore
 from astroplan import Observer
 from astropy.io import fits
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 from pyobs.comm import Proxy, Comm
 from qfitswidget import QFitsWidget
@@ -22,13 +24,12 @@ from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
 log = logging.getLogger(__name__)
 
 
-class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
+class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
-    def __init__(self, parent, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self, parent)
+    def __init__(self, parent: Any, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_data = False
@@ -36,10 +37,10 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         self.data: Optional[fits.HDUList] = None
         self.imageLayout: Optional[QtWidgets.QVBoxLayout] = None
         self.imageView: Optional[QFitsWidget] = None
-        self.figure = None
-        self.ax = None
-        self.canvas = None
-        self.plotTools = None
+        self.figure: Figure | None = None
+        self.ax: Axes | None = None
+        self.canvas: FigureCanvas | None = None
+        self.plotTools: NavigationToolbar2QT | None = None
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -83,8 +84,6 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
 
     async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data."""
-        if self.module is None:
-            return
 
         # expose
         if isinstance(self.module, IData):
@@ -111,7 +110,7 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
 
         if isinstance(self.module, ISpectrograph):
             self._plot_spectrum()
-        elif isinstance(self.module, IData):
+        elif isinstance(self.module, IData) and self.imageView is not None:
             self.imageView.display(self.data[0])
 
     def _plot_spectrum(self) -> None:
@@ -127,10 +126,11 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         wave = np.arange(hdr["CRVAL1"], hdr["CRVAL1"] + hdr["CDELT1"] * hdr["NAXIS1"], hdr["CDELT1"])
 
         # plot it
-        self.figure.delaxes(self.ax)
-        self.ax = self.figure.add_subplot(111)
-        self.ax.plot(wave, data)
-        self.canvas.draw()
+        if self.figure is not None and self.ax is not None and self.canvas is not None:
+            self.figure.delaxes(self.ax)
+            self.ax = self.figure.add_subplot(111)
+            self.ax.plot(wave, data)
+            self.canvas.draw()
 
     def update_gui(self) -> None:
         """Update the GUI."""
@@ -198,6 +198,8 @@ class DataDisplayWidget(QtWidgets.QWidget, BaseWidget, Ui_DataDisplayWidget):
         autosave = self.textAutoSavePath.text() if self.checkAutoSave.isChecked() else None
 
         # download data
+        if self.vfs is None or not isinstance(self.vfs, VirtualFileSystem):
+            return False
         data = await self.vfs.read_fits(event.filename)
 
         # auto save?

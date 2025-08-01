@@ -48,13 +48,12 @@ class COORDS(Enum):
     HELIOPROJECTIVE_MUPSI = "Helioprojective Mu/Psi"
 
 
-class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
+class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self._motion_status = MotionStatus.UNKNOWN

@@ -20,17 +20,17 @@ log = logging.getLogger(__name__)
 class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
     def __init__(self, **kwargs: Any):
         QtWidgets.QWidget.__init__(self)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # add plot
         self.figure, self.ax = plt.subplots()
         layout = QtWidgets.QVBoxLayout(self.frame)
-        self.canvas = FigureCanvas(self.figure)
+        self.canvas = FigureCanvas(self.figure)  # type: ignore
         layout.addWidget(self.canvas)
         self.frame.setLayout(layout)
 
         # format time
-        fmt = DateFormatter("%H:%m:%s")
+        fmt = DateFormatter("%H:%m:%s")  # type: ignore
         self.ax.xaxis.set_major_formatter(fmt)
 
         # data
@@ -89,7 +89,7 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
         if len(d.columns) > 2:
             # only show legend, if data exists
             self.ax.legend()
-        self.canvas.draw()
+        self.canvas.draw()  # type: ignore
 
     @pyqtSlot(str)
     def on_comboShow_currentTextChanged(self, opt: str) -> None:

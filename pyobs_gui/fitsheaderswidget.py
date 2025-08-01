@@ -1,8 +1,7 @@
 import logging
 import os
 from typing import Any, Optional, List, Dict, Tuple
-
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore
 
 from .base import BaseWidget
 from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
@@ -11,11 +10,10 @@ from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
 log = logging.getLogger(__name__)
 
 
-class FitsHeadersWidget(QtWidgets.QWidget, BaseWidget, Ui_FitsHeadersWidget):
+class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # this only works in Linux
         try:
@@ -53,12 +51,14 @@ class FitsHeadersWidget(QtWidgets.QWidget, BaseWidget, Ui_FitsHeadersWidget):
         # addition headers?
         for row in range(self.tableAdditionalHeaders.rowCount()):
             # get key and value
-            key = self.tableAdditionalHeaders.item(row, 0).text()
-            value = self.tableAdditionalHeaders.item(row, 1).text()
+            item = self.tableAdditionalHeaders.item(row, 0)
+            if item is not None:
+                key = item.text()
+                value = item.text()
 
-            # add it
-            if len(key) > 0 and len(value) > 0:
-                headers[key] = value
+                # add it
+                if len(key) > 0 and len(value) > 0:
+                    headers[key] = (str(value), "")
 
         # return them
         return headers

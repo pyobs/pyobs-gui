@@ -129,7 +129,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         """
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
         self.resize(1300, 800)
 
         # store stuff

@@ -32,14 +32,13 @@ from .qt.camerawidget_ui import Ui_CameraWidget
 log = logging.getLogger(__name__)
 
 
-class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
+class CameraWidget(BaseWidget, Ui_CameraWidget):
     signal_update_gui = QtCore.pyqtSignal()
     signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_image = False
@@ -88,7 +87,8 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         self.signal_update_gui.connect(self.update_gui)
 
         # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        if self.comm is not None:
+            await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
         await self.add_to_sidebar(self.create_widget(FitsHeadersWidget, module=self.module))
@@ -165,7 +165,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
 
     @QtCore.pyqtSlot(str, name="on_comboBinning_currentTextChanged")
     def binning_changed(self, binning: str) -> None:
-        self.on_butFullFrame_clicked()
+        self._set_full_frame()
 
     @QtCore.pyqtSlot(int, name="on_checkBroadcast_stateChanged")
     def broadcast_changed(self, state: int) -> None:
@@ -383,7 +383,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         """
 
         # ignore events from wrong sender
-        if self.module is None or sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
+        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status

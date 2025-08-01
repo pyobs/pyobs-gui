@@ -17,13 +17,12 @@ from .qt.focuswidget_ui import Ui_FocusWidget
 log = logging.getLogger(__name__)
 
 
-class FocusWidget(QtWidgets.QWidget, BaseWidget, Ui_FocusWidget):
+class FocusWidget(BaseWidget, Ui_FocusWidget):
     signal_update_gui = QtCore.pyqtSignal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self._focus: Optional[float] = None
@@ -119,7 +118,7 @@ class FocusWidget(QtWidgets.QWidget, BaseWidget, Ui_FocusWidget):
         """
 
         # ignore events from wrong sender
-        if self.module is None or sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
+        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
             return False
 
         # store new status

@@ -1,7 +1,7 @@
 import asyncio
 import logging
+from typing import Any
 
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from pyobs.interfaces import ICooling
@@ -12,16 +12,15 @@ from .qt.coolingwidget_ui import Ui_CoolingWidget
 log = logging.getLogger(__name__)
 
 
-class CoolingWidget(QtWidgets.QWidget, BaseWidget, Ui_CoolingWidget):
+class CoolingWidget(BaseWidget, Ui_CoolingWidget):
     signal_update_gui = pyqtSignal()
 
-    def __init__(self, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # status
-        self._status = None
+        self._status: tuple[bool, float, float] | None = None
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
