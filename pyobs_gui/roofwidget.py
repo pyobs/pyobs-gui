@@ -19,10 +19,10 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
         self.azimuth: float | None = None
 
         # connect signals
-        if isinstance(self.module, IMotion):
-            self.buttonOpen.clicked.connect(self.open_roof)
-            self.buttonClose.clicked.connect(self.close_roof)
-            self.buttonStop.clicked.connect(self.stop_roof)
+        # if isinstance(self.module, IMotion):
+        self.buttonOpen.clicked.connect(self.open_roof)
+        self.buttonClose.clicked.connect(self.close_roof)
+        self.buttonStop.clicked.connect(self.stop_roof)
         self.signal_update_gui.connect(self.update_gui)
 
     async def _init(self) -> None:
