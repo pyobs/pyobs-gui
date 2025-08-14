@@ -442,9 +442,13 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         # always use first result
         for r in result:
+            # build sky coord
+            c = SkyCoord(r["ra"] * u.deg, r["dec"] * u.deg, frame="icrs")
+            ra, dec = c.to_string("hmsdms").split(" ")
+
             # set it
-            self.textMoveRA.setText(r["RA"])
-            self.textMoveDec.setText(r["DEC"])
+            self.textMoveRA.setText(ra)
+            self.textMoveDec.setText(dec)
 
         # update destination
         self._calc_dest_equatorial(clear=False)
