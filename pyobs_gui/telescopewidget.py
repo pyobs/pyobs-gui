@@ -112,6 +112,20 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonMove.clicked.connect(self.move)
+        self.buttonSimbadQuery.clicked.connect(self._query_simbad)
+        self.buttonJplHorizonsQuery.clicked.connect(self._query_jpl_horizons)
+        self.comboSolarSystemBody.currentTextChanged.connect(self._select_solar_system)
+        self.buttonHorizonsQuery.clicked.connect(self._query_horizons)
+        self.spinMoveAlt.editingFinished.connect(self._calc_dest_horizontal)
+        self.spinMoveAz.valueChanged.connect(self._calc_dest_horizontal)
+        self.textMoveRA.editingFinished.connect(self._calc_dest_equatorial)
+        self.textMoveDec.editingFinished.connect(self._calc_dest_equatorial)
+        self.spinMoveHGSLat.valueChanged.connect(self._calc_dest_heliographic_stonyhurst)
+        self.spinMoveHGSLat.valueChanged.connect(self._calc_dest_heliographic_stonyhurst)
+        self.spinMoveHelioprojectiveRadialMu.valueChanged.connect(self._calc_dest_helioprojective_radial)
+        self.spinMoveHelioprojectiveRadialPsi.valueChanged.connect(self._calc_dest_helioprojective_radial)
+        self.comboMoveType.currentIndexChanged.connect(self.select_coord_type)
 
     async def open(
         self,
@@ -295,7 +309,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self.textOffsetAlt.setText("N/A" if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.0,))
             self.textOffsetAz.setText("N/A" if self._off_az is None else '%.2f"' % (self._off_az * 3600.0,))
 
-    @QtCore.pyqtSlot(name="on_buttonMove_clicked")
     def move(self) -> None:
         # get coordinate system
         text = self.comboMoveType.currentText()
@@ -417,7 +430,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.signal_update_gui.emit()
         return True
 
-    @QtCore.pyqtSlot(name="on_buttonSimbadQuery_clicked")
     def _query_simbad(self) -> None:
         """Takes the object name from the text box, queries simbad, and fills the RA/Dec inputs with the result."""
         from astroquery.simbad import Simbad
@@ -453,7 +465,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # update destination
         self._calc_dest_equatorial(clear=False)
 
-    @QtCore.pyqtSlot(name="on_buttonJplHorizonsQuery_clicked")
     def _query_jpl_horizons(self) -> None:
         """Takes the object name from the text box, queries JPL Horizons, and fills the RA/Dec inputs with the result."""
         from astroquery.jplhorizons import Horizons
@@ -491,7 +502,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # update destination
         self._calc_dest_equatorial(clear=False)
 
-    @QtCore.pyqtSlot(str, name="on_comboSolarSystemBody_currentTextChanged")
     def _select_solar_system(self, body: str) -> None:
         """Set RA/Dec for selected solar system body."""
         from astropy.coordinates import solar_system_ephemeris, get_body
@@ -517,7 +527,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # update destination
         self._calc_dest_equatorial(clear=False)
 
-    @QtCore.pyqtSlot(name="on_buttonHorizonsQuery_clicked")
     def _query_horizons(self) -> None:
         """Takes the object name from the text box, queries Horizons, and fills the RA/Dec inputs with the result."""
         from astroquery.jplhorizons import Horizons
@@ -559,8 +568,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.textDestAlt.setText(alt if isinstance(alt, str) else "%.2f°" % alt.degree)
         self.textDestAz.setText(az if isinstance(az, str) else "%.2f°" % az.degree)
 
-    @QtCore.pyqtSlot(name="on_spinMoveAlt_editingFinished")
-    @QtCore.pyqtSlot(name="on_spinMoveAz_editingFinished")
     def _calc_dest_horizontal(self) -> None:
         """Called, whenever Alt/Az input changes. Calculates destination."""
 
@@ -579,8 +586,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # display
         self._show_dest_coords(ra_dec.ra, ra_dec.dec, alt_az.alt, alt_az.az)
 
-    @QtCore.pyqtSlot(name="on_textMoveRA_editingFinished")
-    @QtCore.pyqtSlot(name="on_textMoveDec_editingFinished")
     def _calc_dest_equatorial(self, clear: bool = True) -> None:
         """Called, whenever RA/Dec input changes. Calculates destination."""
 
@@ -608,8 +613,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # display
         self._show_dest_coords(ra_dec.ra, ra_dec.dec, alt_az.alt, alt_az.az)
 
-    @QtCore.pyqtSlot(name="on_spinMoveHGSLat_valueChanged")
-    @QtCore.pyqtSlot(name="on_spinMoveHGSLat_valueChanged")
     def _calc_dest_heliographic_stonyhurst(self) -> None:
         # get sun
         sun = self.observer.sun_altaz(Time.now())
@@ -618,10 +621,10 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # display
         self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
 
-    @QtCore.pyqtSlot(name="on_spinMoveHelioprojectiveRadialMu_valueChanged")
-    @QtCore.pyqtSlot(name="on_spinMoveHelioprojectiveRadialPsi_valueChanged")
     def _calc_dest_helioprojective_radial(self) -> None:
         # get sun
+        if self.observer is None:
+            return
         sun = self.observer.sun_altaz(Time.now())
         sun_radec = sun.icrs
 
@@ -631,7 +634,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     def _calc_dest_orbit_elements(self) -> None:
         pass
 
-    @QtCore.pyqtSlot(int, name="on_comboMoveType_currentIndexChanged")
     def select_coord_type(self) -> None:
         # get coordinate system
         text = self.comboMoveType.currentText()
