@@ -102,7 +102,7 @@ class CommandModel(QtCore.QAbstractTableModel):
     def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
         if role == QtCore.Qt.DisplayRole:
             return self.commands[index.row()][index.column()]
-        return ""
+        return QtCore.QVariant()
 
 
 class ShellWidget(BaseWidget, Ui_ShellWidget):
