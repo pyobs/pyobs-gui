@@ -181,7 +181,7 @@ class SendEventDialog(QtWidgets.QDialog):
                 values[name] = None
             else:
                 if isinstance(widget, QtWidgets.QLineEdit):
-                    values[name] = ann(widget.text())
+                    values[name] = widget.text()
                 elif isinstance(widget, QtWidgets.QComboBox):
                     values[name] = ann(widget.currentText())
                 else:
