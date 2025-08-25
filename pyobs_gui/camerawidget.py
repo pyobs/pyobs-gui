@@ -231,6 +231,8 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
                 exp_time /= 1e3
             elif self.comboExpTimeUnit.currentText() == "µs":
                 exp_time /= 1e6
+            elif self.comboExpTimeUnit.currentText() == "min":
+                exp_time *= 60
 
             # set it
             await self.module.set_exposure_time(exp_time)
