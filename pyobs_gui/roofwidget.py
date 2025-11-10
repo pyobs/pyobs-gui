@@ -20,15 +20,15 @@ class RoofWidget(QtWidgets.QWidget, BaseWidget, Ui_RoofWidget):
         # status
         self.motion_status: Optional[MotionStatus] = None
         self.azimuth: Optional[float] = None
+        
+        self.signal_update_gui.connect(self.update_gui)
 
+    async def _init(self) -> None:
         # connect signals
         if isinstance(self.module, IMotion):
             self.buttonOpen.clicked.connect(self.open_roof)
             self.buttonClose.clicked.connect(self.close_roof)
             self.buttonStop.clicked.connect(self.stop_roof)
-        self.signal_update_gui.connect(self.update_gui)
-
-    async def _init(self) -> None:
         # get status and update gui
         if isinstance(self.module, IMotion):
             self.motion_status = await self.module.get_motion_status()
