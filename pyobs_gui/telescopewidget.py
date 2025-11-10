@@ -444,8 +444,8 @@ class TelescopeWidget(QtWidgets.QWidget, BaseWidget, Ui_TelescopeWidget):
         # always use first result
         for r in result:
             # set it
-            self.textMoveRA.setText(r["RA"])
-            self.textMoveDec.setText(r["DEC"])
+            self.textMoveRA.setText(str(r["ra"]/15))
+            self.textMoveDec.setText(str(r["dec"]))
 
         # update destination
         self._calc_dest_equatorial(clear=False)
