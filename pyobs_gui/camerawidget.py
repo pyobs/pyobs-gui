@@ -133,6 +133,11 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             else:
                 self.comboImageFormat.setCurrentIndex(0)
 
+        # get gain and offset
+        if isinstance(self.module, IGain):
+            self.textGain.setText(f"{await self.module.get_gain()}")
+            self.textOffset.setText(f"{await self.module.get_offset()}")
+
         # set full frame
         await self.set_full_frame()
 
@@ -240,10 +245,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         if isinstance(self.module, IImageType):
             image_type = ImageType(self.comboImageType.currentText().lower())
             await self.module.set_image_type(image_type)
-
-        # set gain
-        if isinstance(self.module, IGain):
-            await self.module.set_gain(self.spinGain.value())
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
@@ -392,3 +393,25 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         # trigger GUI update
         self.signal_update_gui.emit()
         return True
+
+    @QtCore.pyqtSlot(name="on_buttonSetGain_clicked")
+    def set_gain(self) -> None:
+        if not isinstance(self.module, IGain):
+            return
+        value = float(self.textGain.text())
+        new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set camera gain", "New value", value, 0.0, 10000.0, 2)
+        if ok:
+            asyncio.create_task(self.module.set_gain(new_value))
+            self.textGain.setText(str(new_value))
+
+    @QtCore.pyqtSlot(name="on_buttonSetOffset_clicked")
+    def set_offset(self) -> None:
+        if not isinstance(self.module, IGain):
+            return
+        value = float(self.textOffset.text())
+        new_value, ok = QtWidgets.QInputDialog.getDouble(
+            self, "Set camera gain offset", "New value", value, 0.0, 60000.0, 2
+        )
+        if ok:
+            asyncio.create_task(self.module.set_offset(new_value))
+            self.textOffset.setText(str(new_value))
