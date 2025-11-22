@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Optional, cast, Union, Dict, List
 import numpy as np
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 from astropy.io import fits
 from matplotlib import pyplot as plt

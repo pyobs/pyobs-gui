@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, cast
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 
 from pyobs.interfaces import ITemperatures
 from pyobs.utils.time import Time

@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from enum import EnumMeta
 from typing import Any, Type, Dict, Optional, Union, get_origin, get_args, List
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
 
 from astroplan import Observer

@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections.abc import Coroutine
 from typing import Any, TypeVar, Callable, Type
-from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -129,7 +129,7 @@ class BaseWindow:
         await widget.open(modules=self.modules, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
-class BaseWidget(BaseWindow, QtWidgets.QWidget):
+class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
     _show_error = QtCore.Signal(str)
     _enable_buttons = QtCore.Signal(list, bool)
 
@@ -172,7 +172,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         self.extract_window_button = QtWidgets.QToolButton(self)
         # self.extract_window_button.setText("X")
         self.extract_window_button.setIcon(QtGui.QIcon(":/resources/arrow-up-right-from-square-solid.svg"))
-        self.colorize_button(self.extract_window_button, QtCore.Qt.darkCyan)
+        self.colorize_button(self.extract_window_button, QtCore.Qt.GlobalColor.darkCyan)
         self.extract_window_button.move(self.width() - 20, 0)
         self.extract_window_button.resize(20, 20)
         self.extract_window_button.raise_()
@@ -202,7 +202,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         if self.sidebar_layout is None:
             self.sidebar_layout = QtWidgets.QVBoxLayout()
             self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
-            spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            spacer_item = QtWidgets.QSpacerItem(
+                20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding
+            )
             self.sidebar_layout.addItem(spacer_item)
             if hasattr(self, "widgetSidebar"):
                 self.widgetSidebar.setLayout(self.sidebar_layout)
@@ -246,8 +248,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         while True:
             try:
                 # get module state
-                if self.module is not None and isinstance(self.module, IModule):
-                    state = await self.module.get_state()
+                module = self.module
+                if module is not None and isinstance(module, IModule):
+                    state = await module.get_state()
                     self.setEnabled(state == ModuleState.READY)
                     if state != ModuleState.READY:
                         return

@@ -1,9 +1,9 @@
 from typing import List, Any
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6 import QtCore, QtWidgets, QtGui  # type: ignore
 
 
-class CommandInputWidget(QtWidgets.QLineEdit):
+class CommandInputWidget(QtWidgets.QLineEdit):  # type: ignore
     commandExecuted = QtCore.Signal(str)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

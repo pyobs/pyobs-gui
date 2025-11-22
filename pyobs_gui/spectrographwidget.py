@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from typing import Any
-from PySide6 import QtCore
+from PySide6 import QtCore  # type: ignore
 from astroplan import Observer
 from astropy.io import fits
 

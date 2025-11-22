@@ -1,8 +1,7 @@
 import asyncio
 import logging
 from typing import Any
-
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal  # type: ignore
 
 from pyobs.interfaces import ICooling
 from .base import BaseWidget

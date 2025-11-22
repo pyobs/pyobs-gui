@@ -1,6 +1,6 @@
 import functools
 from typing import Any, cast
-from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm

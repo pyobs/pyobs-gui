@@ -3,7 +3,7 @@ import pprint
 from io import BytesIO
 import re
 from typing import Any
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
 import tokenize
 from enum import Enum
@@ -32,7 +32,7 @@ class ParserState(Enum):
     CLOSE = 7
 
 
-class CommandModel(QtCore.QAbstractTableModel):
+class CommandModel(QtCore.QAbstractTableModel):  # type: ignore
     def __init__(self, comm: Comm, *args: Any, **kwargs: Any):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
 

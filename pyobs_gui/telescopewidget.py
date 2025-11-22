@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Any, Tuple, Optional, Union, Dict, List
 
 import numpy as np
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun
 import astropy.units as u

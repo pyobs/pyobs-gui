@@ -2,11 +2,10 @@ import asyncio
 import logging
 from typing import Any, Optional, cast, Union, Dict, List
 from urllib.parse import urlparse
-from PySide6 import QtWidgets, QtCore, QtGui, QtNetwork
+from PySide6 import QtWidgets, QtCore, QtGui, QtNetwork  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
-
 from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IGain
 from pyobs.modules import Module
 from pyobs.utils.enums import ImageFormat, ImageType

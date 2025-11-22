@@ -1,13 +1,11 @@
 import logging
 from typing import Any, Optional, Union, Dict, List
-
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
 from pyobs.events import MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFocuser
-
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget

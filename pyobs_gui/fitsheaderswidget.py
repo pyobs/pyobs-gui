@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import Any, Optional, List, Dict, Tuple
-from PySide6 import QtCore
+from PySide6 import QtCore  # type: ignore
 
 from .base import BaseWidget
 from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget

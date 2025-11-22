@@ -1,10 +1,9 @@
 from typing import Any, List
-
 from colour import Color  # type: ignore
-from PySide6 import QtCore, QtGui
+from PySide6 import QtCore, QtGui  # type: ignore
 
 
-class LogModel(QtCore.QAbstractTableModel):
+class LogModel(QtCore.QAbstractTableModel):  # type: ignore
     def __init__(self, *args: Any):
         QtCore.QAbstractTableModel.__init__(self, *args)
         self._entries: List[Any] = []

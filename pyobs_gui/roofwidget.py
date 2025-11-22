@@ -1,5 +1,5 @@
 from typing import Any
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal  # type: ignore
 
 from pyobs.interfaces import IDome, IMotion
 from pyobs.utils.enums import MotionStatus

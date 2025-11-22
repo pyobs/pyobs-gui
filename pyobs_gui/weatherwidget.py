@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from PySide6 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 import logging
 
 from pyobs.interfaces import IWeather
@@ -26,7 +26,7 @@ AVERAGE_SENSOR_FIELDS = [
 ]
 
 
-class WidgetCurrentSensor(QtWidgets.QFrame):
+class WidgetCurrentSensor(QtWidgets.QFrame):  # type: ignore
     def __init__(self, label: str, unit: str, **kwargs: Any):
         QtWidgets.QFrame.__init__(self, **kwargs)
 

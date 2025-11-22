@@ -1,7 +1,7 @@
 import asyncio
 from asyncio import Task
 from typing import Any, Dict, Optional, cast, Union, List
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy

@@ -1,5 +1,5 @@
 from typing import List, Any, Optional, Union, Dict
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm

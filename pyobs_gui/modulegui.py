@@ -3,9 +3,9 @@ import asyncio
 import sys
 from typing import List, Dict, Tuple, Any, Optional
 
-import qasync
-from qasync import QEventLoop  # type: ignore   # noqa: F401
-from PySide6 import QtWidgets, QtGui
+import qasync  # type: ignore
+from qasync import QEventLoop  # noqa: F401
+from PySide6 import QtWidgets, QtGui  # type: ignore
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
@@ -13,7 +13,7 @@ from .base import BaseWindow
 from .mainwindow import MainWindow, DEFAULT_WIDGETS
 
 
-class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
+class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
     def __init__(self, gui_module: ModuleGUI, **kwargs: Any):
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)

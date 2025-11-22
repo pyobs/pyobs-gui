@@ -1,8 +1,8 @@
 import asyncio
 import sys
 from typing import Any, cast
-from PySide6 import QtWidgets
-import qasync
+from PySide6 import QtWidgets  # type: ignore
+import qasync  # type: ignore
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module

@@ -4,8 +4,8 @@ from datetime import timezone, timedelta, datetime
 from typing import Any, Dict, Optional
 
 import pandas as pd
-from PySide6 import QtWidgets
-from PySide6.QtCore import Slot
+from PySide6 import QtWidgets  # type: ignore
+from PySide6.QtCore import Slot  # type: ignore
 
 os.environ["QT_API"] = "PyQt6"
 from matplotlib import pyplot as plt
