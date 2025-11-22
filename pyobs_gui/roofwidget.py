@@ -1,7 +1,6 @@
 from typing import Any
-
-import qasync
-from PySide6.QtCore import Signal  # type: ignore
+import qasync  # type: ignore
+from qtpy import QtCore  # type: ignore
 
 from pyobs.interfaces import IDome, IMotion
 from pyobs.utils.enums import MotionStatus
@@ -10,7 +9,7 @@ from .qt.roofwidget_ui import Ui_RoofWidget
 
 
 class RoofWidget(BaseWidget, Ui_RoofWidget):
-    signal_update_gui = Signal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
