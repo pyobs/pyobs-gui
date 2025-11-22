@@ -8,72 +8,31 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (
-    QCoreApplication,
-    QDate,
-    QDateTime,
-    QLocale,
-    QMetaObject,
-    QObject,
-    QPoint,
-    QRect,
-    QSize,
-    QTime,
-    QUrl,
-    Qt,
-)
-from PySide6.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QCursor,
-    QFont,
-    QFontDatabase,
-    QGradient,
-    QIcon,
-    QImage,
-    QKeySequence,
-    QLinearGradient,
-    QPainter,
-    QPalette,
-    QPixmap,
-    QRadialGradient,
-    QTransform,
-)
-from PySide6.QtWidgets import (
-    QApplication,
-    QCheckBox,
-    QComboBox,
-    QDoubleSpinBox,
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QProgressBar,
-    QPushButton,
-    QScrollArea,
-    QSizePolicy,
-    QSpacerItem,
-    QSpinBox,
-    QToolButton,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QProgressBar, QPushButton, QScrollArea,
+    QSizePolicy, QSpacerItem, QSpinBox, QToolButton,
+    QVBoxLayout, QWidget)
 
 from ..datadisplaywidget import DataDisplayWidget
 from . import resources_rc
 
-
 class Ui_CameraWidget(object):
     def setupUi(self, CameraWidget):
         if not CameraWidget.objectName():
-            CameraWidget.setObjectName("CameraWidget")
+            CameraWidget.setObjectName(u"CameraWidget")
         CameraWidget.resize(1002, 764)
         self.horizontalLayout_2 = QHBoxLayout(CameraWidget)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.scrollArea = QScrollArea(CameraWidget)
-        self.scrollArea.setObjectName("scrollArea")
+        self.scrollArea.setObjectName(u"scrollArea")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -82,7 +41,7 @@ class Ui_CameraWidget(object):
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
-        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
         self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 295, 748))
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
@@ -91,119 +50,122 @@ class Ui_CameraWidget(object):
         self.scrollAreaWidgetContents.setSizePolicy(sizePolicy1)
         self.verticalLayout = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.groupWindowing = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupWindowing.setObjectName("groupWindowing")
+        self.groupWindowing.setObjectName(u"groupWindowing")
         self.gridLayout_2 = QGridLayout(self.groupWindowing)
         self.gridLayout_2.setSpacing(0)
-        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.spinWindowWidth = QSpinBox(self.groupWindowing)
-        self.spinWindowWidth.setObjectName("spinWindowWidth")
+        self.spinWindowWidth.setObjectName(u"spinWindowWidth")
         self.spinWindowWidth.setMinimum(1)
         self.spinWindowWidth.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowWidth, 2, 1, 1, 1)
 
         self.label_2 = QLabel(self.groupWindowing)
-        self.label_2.setObjectName("label_2")
+        self.label_2.setObjectName(u"label_2")
 
         self.gridLayout_2.addWidget(self.label_2, 1, 0, 1, 1)
 
         self.label_3 = QLabel(self.groupWindowing)
-        self.label_3.setObjectName("label_3")
+        self.label_3.setObjectName(u"label_3")
 
         self.gridLayout_2.addWidget(self.label_3, 2, 0, 1, 1)
 
         self.label = QLabel(self.groupWindowing)
-        self.label.setObjectName("label")
+        self.label.setObjectName(u"label")
 
         self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
 
         self.spinWindowHeight = QSpinBox(self.groupWindowing)
-        self.spinWindowHeight.setObjectName("spinWindowHeight")
+        self.spinWindowHeight.setObjectName(u"spinWindowHeight")
         self.spinWindowHeight.setMinimum(1)
         self.spinWindowHeight.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowHeight, 3, 1, 1, 1)
 
         self.label_4 = QLabel(self.groupWindowing)
-        self.label_4.setObjectName("label_4")
+        self.label_4.setObjectName(u"label_4")
 
         self.gridLayout_2.addWidget(self.label_4, 3, 0, 1, 1)
 
         self.spinWindowLeft = QSpinBox(self.groupWindowing)
-        self.spinWindowLeft.setObjectName("spinWindowLeft")
+        self.spinWindowLeft.setObjectName(u"spinWindowLeft")
         self.spinWindowLeft.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowLeft, 0, 1, 1, 1)
 
         self.spinWindowTop = QSpinBox(self.groupWindowing)
-        self.spinWindowTop.setObjectName("spinWindowTop")
+        self.spinWindowTop.setObjectName(u"spinWindowTop")
         self.spinWindowTop.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowTop, 1, 1, 1, 1)
 
         self.butFullFrame = QPushButton(self.groupWindowing)
-        self.butFullFrame.setObjectName("butFullFrame")
+        self.butFullFrame.setObjectName(u"butFullFrame")
 
         self.gridLayout_2.addWidget(self.butFullFrame, 4, 0, 1, 2)
+
 
         self.verticalLayout.addWidget(self.groupWindowing)
 
         self.groupImageFormat = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupImageFormat.setObjectName("groupImageFormat")
+        self.groupImageFormat.setObjectName(u"groupImageFormat")
         self.gridLayout_6 = QGridLayout(self.groupImageFormat)
         self.gridLayout_6.setSpacing(0)
-        self.gridLayout_6.setObjectName("gridLayout_6")
+        self.gridLayout_6.setObjectName(u"gridLayout_6")
         self.label_10 = QLabel(self.groupImageFormat)
-        self.label_10.setObjectName("label_10")
+        self.label_10.setObjectName(u"label_10")
 
         self.gridLayout_6.addWidget(self.label_10, 0, 0, 1, 1)
 
         self.comboImageFormat = QComboBox(self.groupImageFormat)
-        self.comboImageFormat.setObjectName("comboImageFormat")
+        self.comboImageFormat.setObjectName(u"comboImageFormat")
 
         self.gridLayout_6.addWidget(self.comboImageFormat, 0, 1, 1, 1)
+
 
         self.verticalLayout.addWidget(self.groupImageFormat)
 
         self.groupBinning = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupBinning.setObjectName("groupBinning")
+        self.groupBinning.setObjectName(u"groupBinning")
         self.gridLayout_3 = QGridLayout(self.groupBinning)
         self.gridLayout_3.setSpacing(0)
-        self.gridLayout_3.setObjectName("gridLayout_3")
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.label_5 = QLabel(self.groupBinning)
-        self.label_5.setObjectName("label_5")
+        self.label_5.setObjectName(u"label_5")
 
         self.gridLayout_3.addWidget(self.label_5, 0, 0, 1, 1)
 
         self.comboBinning = QComboBox(self.groupBinning)
-        self.comboBinning.setObjectName("comboBinning")
+        self.comboBinning.setObjectName(u"comboBinning")
 
         self.gridLayout_3.addWidget(self.comboBinning, 0, 1, 1, 1)
+
 
         self.verticalLayout.addWidget(self.groupBinning)
 
         self.groupGain = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupGain.setObjectName("groupGain")
+        self.groupGain.setObjectName(u"groupGain")
         self.gridLayout = QGridLayout(self.groupGain)
-        self.gridLayout.setObjectName("gridLayout")
+        self.gridLayout.setObjectName(u"gridLayout")
         self.buttonSetGain = QToolButton(self.groupGain)
-        self.buttonSetGain.setObjectName("buttonSetGain")
+        self.buttonSetGain.setObjectName(u"buttonSetGain")
         icon = QIcon()
-        icon.addFile(":/resources/edit-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/resources/edit-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonSetGain.setIcon(icon)
 
         self.gridLayout.addWidget(self.buttonSetGain, 0, 3, 1, 1)
 
         self.textGain = QLineEdit(self.groupGain)
-        self.textGain.setObjectName("textGain")
+        self.textGain.setObjectName(u"textGain")
         self.textGain.setReadOnly(True)
 
         self.gridLayout.addWidget(self.textGain, 0, 2, 1, 1)
 
         self.label_11 = QLabel(self.groupGain)
-        self.label_11.setObjectName("label_11")
+        self.label_11.setObjectName(u"label_11")
 
         self.gridLayout.addWidget(self.label_11, 0, 0, 1, 1)
 
@@ -212,7 +174,7 @@ class Ui_CameraWidget(object):
         self.gridLayout.addItem(self.horizontalSpacer, 0, 1, 1, 1)
 
         self.label_13 = QLabel(self.groupGain)
-        self.label_13.setObjectName("label_13")
+        self.label_13.setObjectName(u"label_13")
 
         self.gridLayout.addWidget(self.label_13, 1, 0, 1, 1)
 
@@ -221,32 +183,33 @@ class Ui_CameraWidget(object):
         self.gridLayout.addItem(self.horizontalSpacer_2, 1, 1, 1, 1)
 
         self.textOffset = QLineEdit(self.groupGain)
-        self.textOffset.setObjectName("textOffset")
+        self.textOffset.setObjectName(u"textOffset")
         self.textOffset.setReadOnly(True)
 
         self.gridLayout.addWidget(self.textOffset, 1, 2, 1, 1)
 
         self.buttonSetOffset = QToolButton(self.groupGain)
-        self.buttonSetOffset.setObjectName("buttonSetOffset")
+        self.buttonSetOffset.setObjectName(u"buttonSetOffset")
         self.buttonSetOffset.setIcon(icon)
 
         self.gridLayout.addWidget(self.buttonSetOffset, 1, 3, 1, 1)
 
+
         self.verticalLayout.addWidget(self.groupGain)
 
         self.groupExpTime = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupExpTime.setObjectName("groupExpTime")
+        self.groupExpTime.setObjectName(u"groupExpTime")
         self.gridLayout_5 = QGridLayout(self.groupExpTime)
-        self.gridLayout_5.setObjectName("gridLayout_5")
+        self.gridLayout_5.setObjectName(u"gridLayout_5")
         self.label_12 = QLabel(self.groupExpTime)
-        self.label_12.setObjectName("label_12")
+        self.label_12.setObjectName(u"label_12")
 
         self.gridLayout_5.addWidget(self.label_12, 0, 0, 1, 1)
 
         self.layoutExpTime = QHBoxLayout()
-        self.layoutExpTime.setObjectName("layoutExpTime")
+        self.layoutExpTime.setObjectName(u"layoutExpTime")
         self.spinExpTime = QDoubleSpinBox(self.groupExpTime)
-        self.spinExpTime.setObjectName("spinExpTime")
+        self.spinExpTime.setObjectName(u"spinExpTime")
         self.spinExpTime.setDecimals(3)
         self.spinExpTime.setMaximum(999.000000000000000)
         self.spinExpTime.setValue(1.000000000000000)
@@ -257,7 +220,7 @@ class Ui_CameraWidget(object):
         self.comboExpTimeUnit.addItem("")
         self.comboExpTimeUnit.addItem("")
         self.comboExpTimeUnit.addItem("")
-        self.comboExpTimeUnit.setObjectName("comboExpTimeUnit")
+        self.comboExpTimeUnit.setObjectName(u"comboExpTimeUnit")
         self.comboExpTimeUnit.setMinimumContentsLength(2)
 
         self.layoutExpTime.addWidget(self.comboExpTimeUnit)
@@ -266,27 +229,28 @@ class Ui_CameraWidget(object):
 
         self.gridLayout_5.addLayout(self.layoutExpTime, 0, 1, 1, 1)
 
+
         self.verticalLayout.addWidget(self.groupExpTime)
 
         self.groupExposure = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupExposure.setObjectName("groupExposure")
+        self.groupExposure.setObjectName(u"groupExposure")
         self.gridLayout_4 = QGridLayout(self.groupExposure)
         self.gridLayout_4.setSpacing(0)
-        self.gridLayout_4.setObjectName("gridLayout_4")
+        self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.labelImageType = QLabel(self.groupExposure)
-        self.labelImageType.setObjectName("labelImageType")
+        self.labelImageType.setObjectName(u"labelImageType")
 
         self.gridLayout_4.addWidget(self.labelImageType, 0, 0, 1, 1)
 
         self.spinCount = QSpinBox(self.groupExposure)
-        self.spinCount.setObjectName("spinCount")
+        self.spinCount.setObjectName(u"spinCount")
         self.spinCount.setMinimum(1)
         self.spinCount.setMaximum(9999)
 
         self.gridLayout_4.addWidget(self.spinCount, 1, 1, 1, 1)
 
         self.butAbort = QPushButton(self.groupExposure)
-        self.butAbort.setObjectName("butAbort")
+        self.butAbort.setObjectName(u"butAbort")
         palette = QPalette()
         brush = QBrush(QColor(0, 0, 0, 255))
         brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -323,9 +287,9 @@ class Ui_CameraWidget(object):
         palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush)
         brush9 = QBrush(QColor(0, 0, 0, 128))
         brush9.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush9)
-        # endif
+#endif
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush1)
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush2)
@@ -343,9 +307,9 @@ class Ui_CameraWidget(object):
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush)
         brush10 = QBrush(QColor(0, 0, 0, 128))
         brush10.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush10)
-        # endif
+#endif
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush4)
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush1)
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush2)
@@ -363,20 +327,20 @@ class Ui_CameraWidget(object):
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush)
         brush11 = QBrush(QColor(0, 0, 0, 128))
         brush11.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush11)
-        # endif
+#endif
         self.butAbort.setPalette(palette)
 
         self.gridLayout_4.addWidget(self.butAbort, 4, 0, 1, 2)
 
         self.label_8 = QLabel(self.groupExposure)
-        self.label_8.setObjectName("label_8")
+        self.label_8.setObjectName(u"label_8")
 
         self.gridLayout_4.addWidget(self.label_8, 1, 0, 1, 1)
 
         self.butExpose = QPushButton(self.groupExposure)
-        self.butExpose.setObjectName("butExpose")
+        self.butExpose.setObjectName(u"butExpose")
         palette1 = QPalette()
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush6)
         brush12 = QBrush(QColor(0, 85, 0, 255))
@@ -405,9 +369,9 @@ class Ui_CameraWidget(object):
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush)
         brush17 = QBrush(QColor(255, 255, 255, 128))
         brush17.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush17)
-        # endif
+#endif
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush6)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush12)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush13)
@@ -425,9 +389,9 @@ class Ui_CameraWidget(object):
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush)
         brush18 = QBrush(QColor(255, 255, 255, 128))
         brush18.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush18)
-        # endif
+#endif
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush15)
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush12)
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush13)
@@ -445,23 +409,24 @@ class Ui_CameraWidget(object):
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush)
         brush19 = QBrush(QColor(255, 255, 255, 128))
         brush19.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush19)
-        # endif
+#endif
         self.butExpose.setPalette(palette1)
 
         self.gridLayout_4.addWidget(self.butExpose, 3, 0, 1, 2)
 
         self.checkBroadcast = QCheckBox(self.groupExposure)
-        self.checkBroadcast.setObjectName("checkBroadcast")
+        self.checkBroadcast.setObjectName(u"checkBroadcast")
         self.checkBroadcast.setChecked(True)
 
         self.gridLayout_4.addWidget(self.checkBroadcast, 2, 1, 1, 1)
 
         self.comboImageType = QComboBox(self.groupExposure)
-        self.comboImageType.setObjectName("comboImageType")
+        self.comboImageType.setObjectName(u"comboImageType")
 
         self.gridLayout_4.addWidget(self.comboImageType, 0, 1, 1, 1)
+
 
         self.verticalLayout.addWidget(self.groupExposure)
 
@@ -470,13 +435,13 @@ class Ui_CameraWidget(object):
         self.verticalLayout.addItem(self.verticalSpacer)
 
         self.labelStatus = QLabel(self.scrollAreaWidgetContents)
-        self.labelStatus.setObjectName("labelStatus")
+        self.labelStatus.setObjectName(u"labelStatus")
         self.labelStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.labelStatus)
 
         self.progressExposure = QProgressBar(self.scrollAreaWidgetContents)
-        self.progressExposure.setObjectName("progressExposure")
+        self.progressExposure.setObjectName(u"progressExposure")
         self.progressExposure.setValue(0)
         self.progressExposure.setTextVisible(True)
         self.progressExposure.setInvertedAppearance(False)
@@ -484,7 +449,7 @@ class Ui_CameraWidget(object):
         self.verticalLayout.addWidget(self.progressExposure)
 
         self.labelExposuresLeft = QLabel(self.scrollAreaWidgetContents)
-        self.labelExposuresLeft.setObjectName("labelExposuresLeft")
+        self.labelExposuresLeft.setObjectName(u"labelExposuresLeft")
         self.labelExposuresLeft.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout.addWidget(self.labelExposuresLeft)
@@ -494,12 +459,12 @@ class Ui_CameraWidget(object):
         self.horizontalLayout_2.addWidget(self.scrollArea)
 
         self.datadisplay = DataDisplayWidget(CameraWidget)
-        self.datadisplay.setObjectName("datadisplay")
+        self.datadisplay.setObjectName(u"datadisplay")
 
         self.horizontalLayout_2.addWidget(self.datadisplay)
 
         self.widgetSidebar = QWidget(CameraWidget)
-        self.widgetSidebar.setObjectName("widgetSidebar")
+        self.widgetSidebar.setObjectName(u"widgetSidebar")
 
         self.horizontalLayout_2.addWidget(self.widgetSidebar)
 
@@ -520,40 +485,39 @@ class Ui_CameraWidget(object):
         self.retranslateUi(CameraWidget)
 
         QMetaObject.connectSlotsByName(CameraWidget)
-
     # setupUi
 
     def retranslateUi(self, CameraWidget):
-        CameraWidget.setWindowTitle(QCoreApplication.translate("CameraWidget", "Form", None))
+        CameraWidget.setWindowTitle(QCoreApplication.translate("CameraWidget", u"Form", None))
         self.groupWindowing.setTitle("")
-        self.label_2.setText(QCoreApplication.translate("CameraWidget", "Top:", None))
-        self.label_3.setText(QCoreApplication.translate("CameraWidget", "Width:", None))
-        self.label.setText(QCoreApplication.translate("CameraWidget", "Left:", None))
-        self.label_4.setText(QCoreApplication.translate("CameraWidget", "Height:", None))
-        self.butFullFrame.setText(QCoreApplication.translate("CameraWidget", "Full Frame", None))
+        self.label_2.setText(QCoreApplication.translate("CameraWidget", u"Top:", None))
+        self.label_3.setText(QCoreApplication.translate("CameraWidget", u"Width:", None))
+        self.label.setText(QCoreApplication.translate("CameraWidget", u"Left:", None))
+        self.label_4.setText(QCoreApplication.translate("CameraWidget", u"Height:", None))
+        self.butFullFrame.setText(QCoreApplication.translate("CameraWidget", u"Full Frame", None))
         self.groupImageFormat.setTitle("")
-        self.label_10.setText(QCoreApplication.translate("CameraWidget", "Format:", None))
+        self.label_10.setText(QCoreApplication.translate("CameraWidget", u"Format:", None))
         self.groupBinning.setTitle("")
-        self.label_5.setText(QCoreApplication.translate("CameraWidget", "Binning:", None))
+        self.label_5.setText(QCoreApplication.translate("CameraWidget", u"Binning:", None))
         self.groupGain.setTitle("")
-        self.buttonSetGain.setText(QCoreApplication.translate("CameraWidget", "...", None))
-        self.label_11.setText(QCoreApplication.translate("CameraWidget", "Gain:", None))
-        self.label_13.setText(QCoreApplication.translate("CameraWidget", "Offset:", None))
-        self.buttonSetOffset.setText(QCoreApplication.translate("CameraWidget", "...", None))
+        self.buttonSetGain.setText(QCoreApplication.translate("CameraWidget", u"...", None))
+        self.label_11.setText(QCoreApplication.translate("CameraWidget", u"Gain:", None))
+        self.label_13.setText(QCoreApplication.translate("CameraWidget", u"Offset:", None))
+        self.buttonSetOffset.setText(QCoreApplication.translate("CameraWidget", u"...", None))
         self.groupExpTime.setTitle("")
-        self.label_12.setText(QCoreApplication.translate("CameraWidget", "ExpTime:", None))
+        self.label_12.setText(QCoreApplication.translate("CameraWidget", u"ExpTime:", None))
         self.spinExpTime.setSuffix("")
-        self.comboExpTimeUnit.setItemText(0, QCoreApplication.translate("CameraWidget", "s", None))
-        self.comboExpTimeUnit.setItemText(1, QCoreApplication.translate("CameraWidget", "ms", None))
-        self.comboExpTimeUnit.setItemText(2, QCoreApplication.translate("CameraWidget", "\u00b5s", None))
+        self.comboExpTimeUnit.setItemText(0, QCoreApplication.translate("CameraWidget", u"s", None))
+        self.comboExpTimeUnit.setItemText(1, QCoreApplication.translate("CameraWidget", u"ms", None))
+        self.comboExpTimeUnit.setItemText(2, QCoreApplication.translate("CameraWidget", u"\u00b5s", None))
 
         self.groupExposure.setTitle("")
-        self.labelImageType.setText(QCoreApplication.translate("CameraWidget", "Type:", None))
-        self.butAbort.setText(QCoreApplication.translate("CameraWidget", "Abort", None))
-        self.label_8.setText(QCoreApplication.translate("CameraWidget", "Count:", None))
-        self.butExpose.setText(QCoreApplication.translate("CameraWidget", "Expose", None))
-        self.checkBroadcast.setText(QCoreApplication.translate("CameraWidget", "Broadcast", None))
-        self.labelStatus.setText(QCoreApplication.translate("CameraWidget", "IDLE", None))
-        self.labelExposuresLeft.setText(QCoreApplication.translate("CameraWidget", "IDLE", None))
-
+        self.labelImageType.setText(QCoreApplication.translate("CameraWidget", u"Type:", None))
+        self.butAbort.setText(QCoreApplication.translate("CameraWidget", u"Abort", None))
+        self.label_8.setText(QCoreApplication.translate("CameraWidget", u"Count:", None))
+        self.butExpose.setText(QCoreApplication.translate("CameraWidget", u"Expose", None))
+        self.checkBroadcast.setText(QCoreApplication.translate("CameraWidget", u"Broadcast", None))
+        self.labelStatus.setText(QCoreApplication.translate("CameraWidget", u"IDLE", None))
+        self.labelExposuresLeft.setText(QCoreApplication.translate("CameraWidget", u"IDLE", None))
     # retranslateUi
+

@@ -8,92 +8,56 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (
-    QCoreApplication,
-    QDate,
-    QDateTime,
-    QLocale,
-    QMetaObject,
-    QObject,
-    QPoint,
-    QRect,
-    QSize,
-    QTime,
-    QUrl,
-    Qt,
-)
-from PySide6.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QCursor,
-    QFont,
-    QFontDatabase,
-    QGradient,
-    QIcon,
-    QImage,
-    QKeySequence,
-    QLinearGradient,
-    QPainter,
-    QPalette,
-    QPixmap,
-    QRadialGradient,
-    QTransform,
-)
-from PySide6.QtWidgets import (
-    QApplication,
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QSizePolicy,
-    QSpacerItem,
-    QVBoxLayout,
-    QWidget,
-)
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QGridLayout, QGroupBox, QHBoxLayout,
+    QLabel, QLineEdit, QPushButton, QSizePolicy,
+    QSpacerItem, QVBoxLayout, QWidget)
 
 class Ui_RoofWidget(object):
     def setupUi(self, RoofWidget):
         if not RoofWidget.objectName():
-            RoofWidget.setObjectName("RoofWidget")
+            RoofWidget.setObjectName(u"RoofWidget")
         RoofWidget.resize(787, 472)
         self.horizontalLayout = QHBoxLayout(RoofWidget)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.groupBox_2 = QGroupBox(RoofWidget)
-        self.groupBox_2.setObjectName("groupBox_2")
+        self.groupBox_2.setObjectName(u"groupBox_2")
         self.gridLayout_2 = QGridLayout(self.groupBox_2)
-        self.gridLayout_2.setObjectName("gridLayout_2")
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.labelAzimuth = QLineEdit(self.groupBox_2)
-        self.labelAzimuth.setObjectName("labelAzimuth")
+        self.labelAzimuth.setObjectName(u"labelAzimuth")
         self.labelAzimuth.setAlignment(Qt.AlignCenter)
         self.labelAzimuth.setReadOnly(True)
 
         self.gridLayout_2.addWidget(self.labelAzimuth, 1, 1, 1, 1)
 
         self.labelStatus = QLineEdit(self.groupBox_2)
-        self.labelStatus.setObjectName("labelStatus")
+        self.labelStatus.setObjectName(u"labelStatus")
         self.labelStatus.setAlignment(Qt.AlignCenter)
         self.labelStatus.setReadOnly(True)
 
         self.gridLayout_2.addWidget(self.labelStatus, 0, 1, 1, 1)
 
         self.label_9 = QLabel(self.groupBox_2)
-        self.label_9.setObjectName("label_9")
+        self.label_9.setObjectName(u"label_9")
 
         self.gridLayout_2.addWidget(self.label_9, 0, 0, 1, 1)
 
         self.label_10 = QLabel(self.groupBox_2)
-        self.label_10.setObjectName("label_10")
+        self.label_10.setObjectName(u"label_10")
 
         self.gridLayout_2.addWidget(self.label_10, 1, 0, 1, 1)
 
         self.buttonOpen = QPushButton(self.groupBox_2)
-        self.buttonOpen.setObjectName("buttonOpen")
+        self.buttonOpen.setObjectName(u"buttonOpen")
         palette = QPalette()
         brush = QBrush(QColor(255, 255, 255, 255))
         brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -128,9 +92,9 @@ class Ui_RoofWidget(object):
         palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush6)
         brush8 = QBrush(QColor(255, 255, 255, 128))
         brush8.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush8)
-        # endif
+#endif
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush1)
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush2)
@@ -148,9 +112,9 @@ class Ui_RoofWidget(object):
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush6)
         brush9 = QBrush(QColor(255, 255, 255, 128))
         brush9.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush9)
-        # endif
+#endif
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush4)
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush1)
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush2)
@@ -168,15 +132,15 @@ class Ui_RoofWidget(object):
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush6)
         brush10 = QBrush(QColor(255, 255, 255, 128))
         brush10.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush10)
-        # endif
+#endif
         self.buttonOpen.setPalette(palette)
 
         self.gridLayout_2.addWidget(self.buttonOpen, 2, 0, 1, 1)
 
         self.buttonClose = QPushButton(self.groupBox_2)
-        self.buttonClose.setObjectName("buttonClose")
+        self.buttonClose.setObjectName(u"buttonClose")
         palette1 = QPalette()
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush6)
         brush11 = QBrush(QColor(255, 255, 127, 255))
@@ -203,9 +167,9 @@ class Ui_RoofWidget(object):
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush6)
         brush15 = QBrush(QColor(0, 0, 0, 128))
         brush15.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush15)
-        # endif
+#endif
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush6)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush11)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush)
@@ -223,9 +187,9 @@ class Ui_RoofWidget(object):
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush6)
         brush16 = QBrush(QColor(0, 0, 0, 128))
         brush16.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush16)
-        # endif
+#endif
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush13)
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush11)
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush)
@@ -243,15 +207,15 @@ class Ui_RoofWidget(object):
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush6)
         brush17 = QBrush(QColor(0, 0, 0, 128))
         brush17.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush17)
-        # endif
+#endif
         self.buttonClose.setPalette(palette1)
 
         self.gridLayout_2.addWidget(self.buttonClose, 2, 1, 1, 1)
 
         self.buttonStop = QPushButton(self.groupBox_2)
-        self.buttonStop.setObjectName("buttonStop")
+        self.buttonStop.setObjectName(u"buttonStop")
         palette2 = QPalette()
         palette2.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush6)
         brush18 = QBrush(QColor(170, 0, 0, 255))
@@ -282,9 +246,9 @@ class Ui_RoofWidget(object):
         palette2.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush6)
         brush24 = QBrush(QColor(0, 0, 0, 128))
         brush24.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette2.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush24)
-        # endif
+#endif
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush6)
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush18)
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush19)
@@ -302,9 +266,9 @@ class Ui_RoofWidget(object):
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush6)
         brush25 = QBrush(QColor(0, 0, 0, 128))
         brush25.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush25)
-        # endif
+#endif
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush21)
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush18)
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush19)
@@ -322,9 +286,9 @@ class Ui_RoofWidget(object):
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush6)
         brush26 = QBrush(QColor(0, 0, 0, 128))
         brush26.setStyle(Qt.BrushStyle.NoBrush)
-        # if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush26)
-        # endif
+#endif
         self.buttonStop.setPalette(palette2)
 
         self.gridLayout_2.addWidget(self.buttonStop, 3, 0, 1, 2)
@@ -338,6 +302,7 @@ class Ui_RoofWidget(object):
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
+
         self.horizontalLayout.addLayout(self.verticalLayout)
 
         self.horizontalSpacer = QSpacerItem(523, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
@@ -349,16 +314,15 @@ class Ui_RoofWidget(object):
         self.retranslateUi(RoofWidget)
 
         QMetaObject.connectSlotsByName(RoofWidget)
-
     # setupUi
 
     def retranslateUi(self, RoofWidget):
-        RoofWidget.setWindowTitle(QCoreApplication.translate("RoofWidget", "Form", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("RoofWidget", "Status", None))
-        self.label_9.setText(QCoreApplication.translate("RoofWidget", "Status:", None))
-        self.label_10.setText(QCoreApplication.translate("RoofWidget", "Azimuth:", None))
-        self.buttonOpen.setText(QCoreApplication.translate("RoofWidget", "Open", None))
-        self.buttonClose.setText(QCoreApplication.translate("RoofWidget", "Close", None))
-        self.buttonStop.setText(QCoreApplication.translate("RoofWidget", "Stop", None))
-
+        RoofWidget.setWindowTitle(QCoreApplication.translate("RoofWidget", u"Form", None))
+        self.groupBox_2.setTitle(QCoreApplication.translate("RoofWidget", u"Status", None))
+        self.label_9.setText(QCoreApplication.translate("RoofWidget", u"Status:", None))
+        self.label_10.setText(QCoreApplication.translate("RoofWidget", u"Azimuth:", None))
+        self.buttonOpen.setText(QCoreApplication.translate("RoofWidget", u"Open", None))
+        self.buttonClose.setText(QCoreApplication.translate("RoofWidget", u"Close", None))
+        self.buttonStop.setText(QCoreApplication.translate("RoofWidget", u"Stop", None))
     # retranslateUi
+

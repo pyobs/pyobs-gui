@@ -8,70 +8,45 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (
-    QCoreApplication,
-    QDate,
-    QDateTime,
-    QLocale,
-    QMetaObject,
-    QObject,
-    QPoint,
-    QRect,
-    QSize,
-    QTime,
-    QUrl,
-    Qt,
-)
-from PySide6.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QCursor,
-    QFont,
-    QFontDatabase,
-    QGradient,
-    QIcon,
-    QImage,
-    QKeySequence,
-    QLinearGradient,
-    QPainter,
-    QPalette,
-    QPixmap,
-    QRadialGradient,
-    QTransform,
-)
-from PySide6.QtWidgets import QApplication, QFrame, QHBoxLayout, QSizePolicy, QVBoxLayout, QWidget
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QSizePolicy,
+    QVBoxLayout, QWidget)
 
 class Ui_WeatherWidget(object):
     def setupUi(self, WeatherWidget):
         if not WeatherWidget.objectName():
-            WeatherWidget.setObjectName("WeatherWidget")
+            WeatherWidget.setObjectName(u"WeatherWidget")
         WeatherWidget.resize(972, 782)
         self.verticalLayout_2 = QVBoxLayout(WeatherWidget)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.frameCurrent = QFrame(WeatherWidget)
-        self.frameCurrent.setObjectName("frameCurrent")
+        self.frameCurrent.setObjectName(u"frameCurrent")
         self.frameCurrent.setFrameShape(QFrame.StyledPanel)
         self.frameCurrent.setFrameShadow(QFrame.Raised)
         self.horizontalLayout = QHBoxLayout(self.frameCurrent)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
 
         self.verticalLayout_2.addWidget(self.frameCurrent)
 
         self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.frameSensor = QFrame(WeatherWidget)
-        self.frameSensor.setObjectName("frameSensor")
+        self.frameSensor.setObjectName(u"frameSensor")
         self.frameSensor.setFrameShape(QFrame.StyledPanel)
         self.frameSensor.setFrameShadow(QFrame.Raised)
         self.verticalLayout = QVBoxLayout(self.frameSensor)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setObjectName(u"verticalLayout")
 
         self.horizontalLayout_2.addWidget(self.frameSensor)
 
         self.framePlot = QFrame(WeatherWidget)
-        self.framePlot.setObjectName("framePlot")
+        self.framePlot.setObjectName(u"framePlot")
         self.framePlot.setFrameShape(QFrame.StyledPanel)
         self.framePlot.setFrameShadow(QFrame.Raised)
 
@@ -86,10 +61,9 @@ class Ui_WeatherWidget(object):
         self.retranslateUi(WeatherWidget)
 
         QMetaObject.connectSlotsByName(WeatherWidget)
-
     # setupUi
 
     def retranslateUi(self, WeatherWidget):
-        WeatherWidget.setWindowTitle(QCoreApplication.translate("WeatherWidget", "Form", None))
-
+        WeatherWidget.setWindowTitle(QCoreApplication.translate("WeatherWidget", u"Form", None))
     # retranslateUi
+

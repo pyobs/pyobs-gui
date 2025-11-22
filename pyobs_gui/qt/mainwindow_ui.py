@@ -8,70 +8,30 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (
-    QCoreApplication,
-    QDate,
-    QDateTime,
-    QLocale,
-    QMetaObject,
-    QObject,
-    QPoint,
-    QRect,
-    QSize,
-    QTime,
-    QUrl,
-    Qt,
-)
-from PySide6.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QCursor,
-    QFont,
-    QFontDatabase,
-    QGradient,
-    QIcon,
-    QImage,
-    QKeySequence,
-    QLinearGradient,
-    QPainter,
-    QPalette,
-    QPixmap,
-    QRadialGradient,
-    QTransform,
-)
-from PySide6.QtWidgets import (
-    QAbstractItemView,
-    QApplication,
-    QFrame,
-    QHBoxLayout,
-    QHeaderView,
-    QLabel,
-    QListView,
-    QListWidget,
-    QListWidgetItem,
-    QMainWindow,
-    QSizePolicy,
-    QSplitter,
-    QStackedWidget,
-    QTableView,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
+    QHeaderView, QLabel, QListView, QListWidget,
+    QListWidgetItem, QMainWindow, QSizePolicy, QSplitter,
+    QStackedWidget, QTableView, QVBoxLayout, QWidget)
 from . import resources_rc
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
-            MainWindow.setObjectName("MainWindow")
+            MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(1374, 916)
         self.centralwidget = QWidget(MainWindow)
-        self.centralwidget.setObjectName("centralwidget")
+        self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.labelAutonomousWarning = QLabel(self.centralwidget)
-        self.labelAutonomousWarning.setObjectName("labelAutonomousWarning")
+        self.labelAutonomousWarning.setObjectName(u"labelAutonomousWarning")
         palette = QPalette()
         brush = QBrush(QColor(0, 0, 0, 255))
         brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -105,7 +65,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.labelAutonomousWarning)
 
         self.labelWeatherWarning = QLabel(self.centralwidget)
-        self.labelWeatherWarning.setObjectName("labelWeatherWarning")
+        self.labelWeatherWarning.setObjectName(u"labelWeatherWarning")
         palette1 = QPalette()
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush)
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Base, brush1)
@@ -130,15 +90,15 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.labelWeatherWarning)
 
         self.splitterLog = QSplitter(self.centralwidget)
-        self.splitterLog.setObjectName("splitterLog")
+        self.splitterLog.setObjectName(u"splitterLog")
         self.splitterLog.setOrientation(Qt.Vertical)
         self.layoutWidget = QWidget(self.splitterLog)
-        self.layoutWidget.setObjectName("layoutWidget")
+        self.layoutWidget.setObjectName(u"layoutWidget")
         self.horizontalLayout = QHBoxLayout(self.layoutWidget)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.listPages = QListWidget(self.layoutWidget)
-        self.listPages.setObjectName("listPages")
+        self.listPages.setObjectName(u"listPages")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -150,7 +110,7 @@ class Ui_MainWindow(object):
         self.listPages.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.listPages.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.listPages.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.listPages.setProperty("showDropIndicator", False)
+        self.listPages.setProperty(u"showDropIndicator", False)
         self.listPages.setDragDropMode(QAbstractItemView.NoDragDrop)
         self.listPages.setDefaultDropAction(Qt.IgnoreAction)
         self.listPages.setIconSize(QSize(32, 32))
@@ -163,20 +123,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.listPages)
 
         self.splitterToolBox = QSplitter(self.layoutWidget)
-        self.splitterToolBox.setObjectName("splitterToolBox")
+        self.splitterToolBox.setObjectName(u"splitterToolBox")
         self.splitterToolBox.setOrientation(Qt.Horizontal)
         self.stackedWidget = QStackedWidget(self.splitterToolBox)
-        self.stackedWidget.setObjectName("stackedWidget")
+        self.stackedWidget.setObjectName(u"stackedWidget")
         self.splitterToolBox.addWidget(self.stackedWidget)
 
         self.horizontalLayout.addWidget(self.splitterToolBox)
 
         self.splitterLog.addWidget(self.layoutWidget)
         self.splitterClients = QSplitter(self.splitterLog)
-        self.splitterClients.setObjectName("splitterClients")
+        self.splitterClients.setObjectName(u"splitterClients")
         self.splitterClients.setOrientation(Qt.Horizontal)
         self.tableLog = QTableView(self.splitterClients)
-        self.tableLog.setObjectName("tableLog")
+        self.tableLog.setObjectName(u"tableLog")
         self.tableLog.setFrameShape(QFrame.NoFrame)
         self.tableLog.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableLog.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -190,7 +150,7 @@ class Ui_MainWindow(object):
         self.tableLog.verticalHeader().setMinimumSectionSize(20)
         self.tableLog.verticalHeader().setDefaultSectionSize(20)
         self.listClients = QListWidget(self.splitterClients)
-        self.listClients.setObjectName("listClients")
+        self.listClients.setObjectName(u"listClients")
         sizePolicy.setHeightForWidth(self.listClients.sizePolicy().hasHeightForWidth())
         self.listClients.setSizePolicy(sizePolicy)
         self.listClients.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -206,17 +166,13 @@ class Ui_MainWindow(object):
 
         self.stackedWidget.setCurrentIndex(-1)
 
-        QMetaObject.connectSlotsByName(MainWindow)
 
+        QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", "pyobs GUI", None))
-        self.labelAutonomousWarning.setText(
-            QCoreApplication.translate("MainWindow", "!!! WARNING: autonomous module(s) active !!!", None)
-        )
-        self.labelWeatherWarning.setText(
-            QCoreApplication.translate("MainWindow", "!!! WARNING: weather module disabled !!!", None)
-        )
-
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"pyobs GUI", None))
+        self.labelAutonomousWarning.setText(QCoreApplication.translate("MainWindow", u"!!! WARNING: autonomous module(s) active !!!", None))
+        self.labelWeatherWarning.setText(QCoreApplication.translate("MainWindow", u"!!! WARNING: weather module disabled !!!", None))
     # retranslateUi
+
