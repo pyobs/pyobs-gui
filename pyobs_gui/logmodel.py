@@ -36,7 +36,7 @@ class LogModel(QtCore.QAbstractTableModel):
             c = Color(pick_for=self._entries[index.row()][index.column()])
             return QtGui.QColor(c.hex)
 
-        return QtCore.QVariant()
+        return None
 
     def headerData(self, section: int, orientation: Any, role: Any = None) -> Any:
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:

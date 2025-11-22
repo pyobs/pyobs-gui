@@ -6,7 +6,6 @@ import qasync
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
-from .mainwindow import MainWindow
 
 
 class GUI(Module, IFitsHeaderBefore):
@@ -37,7 +36,7 @@ class GUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window: MainWindow | None = None
+        self._window: Any | None = None
         self._show_shell = show_shell
         self._show_events = show_events
         self._show_status = show_status
@@ -52,6 +51,8 @@ class GUI(Module, IFitsHeaderBefore):
 
     async def open(self) -> None:
         """Open module."""
+        from .mainwindow import MainWindow
+
         await Module.open(self)
 
         # create and show window

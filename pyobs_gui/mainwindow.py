@@ -1,10 +1,12 @@
 import asyncio
 import os
 from typing import Optional, List, Any, Dict, Tuple
-from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astropy.time import Time
-from colour import Color
-import qtawesome as qta
+from colour import Color  # type: ignore
+
+os.environ["QT_API"] = "pyside6"
+import qtawesome as qta  # type: ignore
 
 from pyobs.comm import Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
@@ -79,7 +81,7 @@ DEFAULT_CONFIG = [
 ]
 
 
-class PagesListWidgetItem(QtWidgets.QListWidgetItem):
+class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
     """ListWidgetItem for the pages list. Always sorts Shell and Events first"""
 
     def __lt__(self, other: QtWidgets.QListWidgetItem) -> bool:
@@ -100,10 +102,10 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
             return special.index(self.text()) < special.index(other.text())
         else:
             # none are
-            return QtWidgets.QListWidgetItem.__lt__(self, other)
+            return bool(QtWidgets.QListWidgetItem.__lt__(self, other))
 
 
-class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
     add_log = QtCore.Signal(list)
     add_command_log = QtCore.Signal(str)
 
@@ -128,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
             sidebar: List of custom widgets for the sidebar.
         """
         QtWidgets.QMainWindow.__init__(self)
-        BaseWindow.__init__(self, **kwargs)
+        BaseWindow.__init__(self)
         self.setupUi(self)  # type: ignore
         self.resize(1300, 800)
 
@@ -140,7 +142,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.show_shell = show_shell
         self.show_events = show_events
         self.show_status = show_status
-        self.warning_task: Optional[asyncio.Task] = None
+        self.warning_task: Optional[asyncio.Task[Any]] = None
 
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
@@ -167,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.events: Optional[EventsWidget] = None
         self.status: Optional[StatusWidget] = None
 
-    async def open(self, **kwargs: Any) -> None:
+    async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
 
         # get module
