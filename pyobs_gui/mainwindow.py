@@ -1,7 +1,7 @@
 import asyncio
 import os
 from typing import Optional, List, Any, Dict, Tuple
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui
 from astropy.time import Time
 from colour import Color
 import qtawesome as qta
@@ -30,7 +30,7 @@ from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
 from .weatherwidget import WeatherWidget
 from .videowidget import VideoWidget
-from .qt.mainwindow import Ui_MainWindow
+from .qt.mainwindow_ui import Ui_MainWindow
 from .logmodel import LogModel, LogModelProxy
 from .eventswidget import EventsWidget
 from .roofwidget import RoofWidget
@@ -104,8 +104,8 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
 
 
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
-    add_log = QtCore.pyqtSignal(list)
-    add_command_log = QtCore.pyqtSignal(str)
+    add_log = QtCore.Signal(list)
+    add_command_log = QtCore.Signal(str)
 
     def __init__(
         self,

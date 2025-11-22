@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Optional, cast, Union, Dict, List
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 from astroplan import Observer
 from astropy.io import fits
 from matplotlib import pyplot as plt
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, parent: Any, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -228,7 +228,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # finish
         return True
 
-    @QtCore.pyqtSlot(name="on_butAutoSave_clicked")
+    @QtCore.Slot(name="on_butAutoSave_clicked")
     def select_autosave_path(self) -> None:
         """Select path for auto-saving."""
 
@@ -241,7 +241,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         else:
             self.textAutoSavePath.clear()
 
-    @QtCore.pyqtSlot(name="on_butSaveTo_clicked")
+    @QtCore.Slot(name="on_butSaveTo_clicked")
     def save_data(self) -> None:
         """Save image."""
 

@@ -3,7 +3,7 @@ import pprint
 from io import BytesIO
 import re
 from typing import Any
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 import inspect
 import tokenize
 from enum import Enum
@@ -106,7 +106,7 @@ class CommandModel(QtCore.QAbstractTableModel):
 
 
 class ShellWidget(BaseWidget, Ui_ShellWidget):
-    add_command_log = QtCore.pyqtSignal(str)
+    add_command_log = QtCore.Signal(str)
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)

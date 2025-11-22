@@ -1,5 +1,5 @@
 from typing import Any
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtCore import Signal
 
 from pyobs.interfaces import IDome, IMotion
 from pyobs.utils.enums import MotionStatus
@@ -8,7 +8,7 @@ from .qt.roofwidget_ui import Ui_RoofWidget
 
 
 class RoofWidget(BaseWidget, Ui_RoofWidget):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)

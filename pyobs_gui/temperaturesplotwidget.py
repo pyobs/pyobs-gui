@@ -4,8 +4,8 @@ from datetime import timezone, timedelta, datetime
 from typing import Any, Dict, Optional
 
 import pandas as pd
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSlot
+from PySide6 import QtWidgets
+from PySide6.QtCore import Slot
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.dates import DateFormatter
@@ -91,11 +91,11 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
             self.ax.legend()
         self.canvas.draw()  # type: ignore
 
-    @pyqtSlot(str)
+    @Slot(str)
     def on_comboShow_currentTextChanged(self, opt: str) -> None:
         self.show_option = opt
 
-    @pyqtSlot()
+    @Slot()
     def on_buttonPickFile_clicked(self) -> None:
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Select log file", self.log_dir, "CSV files (*.csv)")
         if filename is not None:

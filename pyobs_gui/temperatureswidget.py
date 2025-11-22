@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, cast
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 
 from pyobs.interfaces import ITemperatures
 from pyobs.utils.time import Time
@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)

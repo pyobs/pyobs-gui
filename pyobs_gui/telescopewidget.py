@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Any, Tuple, Optional, Union, Dict, List
 
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 from astroplan import Observer
 from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun
 import astropy.units as u
@@ -49,7 +49,7 @@ class COORDS(Enum):
 
 
 class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
@@ -647,27 +647,27 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.stackedMove.setCurrentWidget(self._MOVE_WIDGETS[coord])
         self._DEST_CALC[coord]()
 
-    @QtCore.pyqtSlot(name="on_buttonInit_clicked")
+    @QtCore.Slot(name="on_buttonInit_clicked")
     def _init_telescope(self) -> None:
         if isinstance(self.module, IMotion):
             self.run_background(self.module.init)
 
-    @QtCore.pyqtSlot(name="on_buttonPark_clicked")
+    @QtCore.Slot(name="on_buttonPark_clicked")
     def _park_telescope(self) -> None:
         if isinstance(self.module, IMotion):
             self.run_background(self.module.park)
 
-    @QtCore.pyqtSlot(name="on_buttonStop_clicked")
+    @QtCore.Slot(name="on_buttonStop_clicked")
     def _stop_telescope(self) -> None:
         if isinstance(self.module, IMotion):
             self.run_background(lambda: self.module.stop_motion("ITelescope"))
 
-    @QtCore.pyqtSlot(name="on_buttonSetAltOffset_clicked")
-    @QtCore.pyqtSlot(name="on_buttonSetAzOffset_clicked")
-    @QtCore.pyqtSlot(name="on_buttonSetRaOffset_clicked")
-    @QtCore.pyqtSlot(name="on_buttonSetDecOffset_clicked")
-    @QtCore.pyqtSlot(name="on_buttonResetHorizontalOffsets_clicked")
-    @QtCore.pyqtSlot(name="on_buttonResetEquatorialOffsets_clicked")
+    @QtCore.Slot(name="on_buttonSetAltOffset_clicked")
+    @QtCore.Slot(name="on_buttonSetAzOffset_clicked")
+    @QtCore.Slot(name="on_buttonSetRaOffset_clicked")
+    @QtCore.Slot(name="on_buttonSetDecOffset_clicked")
+    @QtCore.Slot(name="on_buttonResetHorizontalOffsets_clicked")
+    @QtCore.Slot(name="on_buttonResetEquatorialOffsets_clicked")
     def _set_offset(self) -> None:
         """Asks user for new offsets and sets it."""
 

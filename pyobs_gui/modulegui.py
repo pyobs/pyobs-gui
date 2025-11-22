@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple, Any, Optional
 
 import qasync
 from qasync import QEventLoop  # type: ignore   # noqa: F401
-from PyQt5 import QtWidgets, QtGui
+from PySide6 import QtWidgets, QtGui
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module

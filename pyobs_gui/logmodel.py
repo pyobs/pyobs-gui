@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from colour import Color  # type: ignore
-from PyQt5 import QtCore, QtGui
+from PySide6 import QtCore, QtGui
 
 
 class LogModel(QtCore.QAbstractTableModel):
@@ -43,7 +43,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return ["Time", "Source", "Level", "File", "Message"][section]
         return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
 
-    @QtCore.pyqtSlot(list)
+    @QtCore.Slot(list)
     def add_entry(self, entry: Any) -> None:
         self.beginInsertRows(QtCore.QModelIndex(), len(self._entries), len(self._entries))
         self._entries.append(entry)

@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from enum import EnumMeta
 from typing import Any, Type, Dict, Optional, Union, get_origin, get_args, List
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 import inspect
 
 from astroplan import Observer
@@ -87,7 +87,7 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
             self.tableEvents.setRowCount(400)
         return True
 
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_buttonSend_clicked(self) -> None:
         if self.comm is None:
             return

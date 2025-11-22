@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Optional, Union, Dict, List
 
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 class FocusWidget(BaseWidget, Ui_FocusWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)

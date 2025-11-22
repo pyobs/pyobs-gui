@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox
+from PySide6 import QtWidgets
+from PySide6.QtWidgets import QMessageBox
 
 """
 Helper methods

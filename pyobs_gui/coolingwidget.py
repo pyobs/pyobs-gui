@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any
 
-from PyQt5.QtCore import pyqtSignal
+from PySide6.QtCore import Signal
 
 from pyobs.interfaces import ICooling
 from .base import BaseWidget
@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 class CoolingWidget(BaseWidget, Ui_CoolingWidget):
-    signal_update_gui = pyqtSignal()
+    signal_update_gui = Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)

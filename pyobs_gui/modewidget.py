@@ -1,6 +1,6 @@
 import functools
 from typing import Any, cast
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
@@ -13,7 +13,7 @@ from .qt.modewidget_ui import Ui_ModeWidget
 
 
 class ModeWidget(BaseWidget, Ui_ModeWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
@@ -141,7 +141,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(int)
+    @QtCore.Slot(int)
     def set_mode(self, group: int) -> None:
         # ask for value
         mode = self._mode_groups[group]

@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections.abc import Coroutine
 from typing import Any, TypeVar, Callable, Type
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -130,8 +130,8 @@ class BaseWindow:
 
 
 class BaseWidget(BaseWindow, QtWidgets.QWidget):
-    _show_error = QtCore.pyqtSignal(str)
-    _enable_buttons = QtCore.pyqtSignal(list, bool)
+    _show_error = QtCore.Signal(str)
+    _enable_buttons = QtCore.Signal(list, bool)
 
     def __init__(
         self,

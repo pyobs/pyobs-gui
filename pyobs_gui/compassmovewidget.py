@@ -1,5 +1,5 @@
 from typing import Any
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore
 import astropy.units as u
 from astropy.coordinates import SkyCoord, ICRS
 
@@ -21,10 +21,10 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.blue)
         self.colorize_button(self.buttonOffsetWest, QtCore.Qt.blue)
 
-    @QtCore.pyqtSlot(name="on_buttonOffsetNorth_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetSouth_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetEast_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetWest_clicked")
+    @QtCore.Slot(name="on_buttonOffsetNorth_clicked")
+    @QtCore.Slot(name="on_buttonOffsetSouth_clicked")
+    @QtCore.Slot(name="on_buttonOffsetEast_clicked")
+    @QtCore.Slot(name="on_buttonOffsetWest_clicked")
     def _move_offset(self) -> None:
         self.run_background(self.__move_offset, self.sender())
 

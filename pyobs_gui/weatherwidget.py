@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore
 import logging
 
 from pyobs.interfaces import IWeather
@@ -77,7 +77,7 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
 
 
 class WeatherWidget(BaseWidget, Ui_WeatherWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)

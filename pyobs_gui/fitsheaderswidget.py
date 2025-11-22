@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import Any, Optional, List, Dict, Tuple
-from PyQt5 import QtCore
+from PySide6 import QtCore
 
 from .base import BaseWidget
 from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
@@ -63,12 +63,12 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         # return them
         return headers
 
-    @QtCore.pyqtSlot(name="on_buttonAddHeader_clicked")
+    @QtCore.Slot(name="on_buttonAddHeader_clicked")
     def add_header(self) -> None:
         """Increase row count by 1."""
         self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
-    @QtCore.pyqtSlot(name="on_buttonDelHeader_clicked")
+    @QtCore.Slot(name="on_buttonDelHeader_clicked")
     def del_header(self) -> None:
         """Delete current row"""
 

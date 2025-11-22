@@ -32,7 +32,7 @@
   <customwidget>
    <class>CommandInputWidget</class>
    <extends>QLineEdit</extends>
-   <header>commandinputwidget.h</header>
+   <header>..commandinputwidget</header>
   </customwidget>
  </customwidgets>
  <resources/>

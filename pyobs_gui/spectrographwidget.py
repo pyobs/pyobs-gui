@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from typing import Any
-from PyQt5 import QtCore
+from PySide6 import QtCore
 from astroplan import Observer
 from astropy.io import fits
 
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any) -> None:
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
@@ -68,7 +68,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # update GUI
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_butExpose_clicked")
+    @QtCore.Slot(name="on_butExpose_clicked")
     def grab_spectrum(self) -> None:
         if not isinstance(self.module, ISpectrograph):
             return
@@ -80,7 +80,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_butAbort_clicked")
+    @QtCore.Slot(name="on_butAbort_clicked")
     def abort(self) -> None:
         """Abort exposure."""
         if self.module is not None and isinstance(self.module, ISpectrograph):

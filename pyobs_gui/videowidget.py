@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, Optional, cast, Union, Dict, List
 from urllib.parse import urlparse
-from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
+from PySide6 import QtWidgets, QtCore, QtGui, QtNetwork
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
@@ -34,7 +34,7 @@ class ScaledLabel(QtWidgets.QLabel):
 
 
 class VideoWidget(BaseWidget, Ui_VideoWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -175,7 +175,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @QtCore.pyqtSlot(name="on_buttonGrabImage_clicked")
+    @QtCore.Slot(name="on_buttonGrabImage_clicked")
     def grab_image(self) -> None:
         # set image format
         if isinstance(self.module, IImageFormat):
@@ -211,11 +211,11 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_buttonAbort_clicked")
+    @QtCore.Slot(name="on_buttonAbort_clicked")
     def abort_sequence(self) -> None:
         self.exposures_left = 0
 
-    @QtCore.pyqtSlot(float, name="on_spinExpTime_valueChanged")
+    @QtCore.Slot(float, name="on_spinExpTime_valueChanged")
     def exposure_time_changed(self) -> None:
         # get exp_time
         exp_time = self.spinExpTime.value()
@@ -224,7 +224,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         if isinstance(self.module, IExposureTime):
             asyncio.create_task(self.module.set_exposure_time(exp_time))
 
-    @QtCore.pyqtSlot(float, name="on_spinGain_valueChanged")
+    @QtCore.Slot(float, name="on_spinGain_valueChanged")
     def gain_changed(self) -> None:
         # get gain
         gain = self.spinGain.value()
