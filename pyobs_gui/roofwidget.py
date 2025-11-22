@@ -1,4 +1,6 @@
 from typing import Any
+
+import qasync
 from PySide6.QtCore import Signal  # type: ignore
 
 from pyobs.interfaces import IDome, IMotion
@@ -27,20 +29,23 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
 
     async def _init(self) -> None:
         # get status and update gui
-        if self.module is not None and isinstance(self.module, IMotion):
-            self.motion_status = await self.module.get_motion_status()
+        module = self.module
+        if module is not None and isinstance(module, IMotion):
+            self.motion_status = await module.get_motion_status()
         self.signal_update_gui.emit()
 
     async def _update(self) -> None:
         # azimuth and motion status
-        if self.module is not None and isinstance(self.module, IMotion):
-            self.motion_status = await self.module.get_motion_status()
-        if self.module is not None and isinstance(self.module, IDome):
-            _, self.azimuth = await self.module.get_altaz()
+        module = self.module
+        if module is not None and isinstance(module, IMotion):
+            self.motion_status = await module.get_motion_status()
+        if module is not None and isinstance(module, IDome):
+            _, self.azimuth = await module.get_altaz()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
+    @QtCore.Slot()  # type: ignore
     def update_gui(self) -> None:
         """Update the GUI."""
 
@@ -55,16 +60,22 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
         if self.azimuth is None:
             self.labelAzimuth.setText("N/A")
         else:
-            self.labelAzimuth.setText("%.1f°" % self.azimuth)
+            self.labelAzimuth.setText(f"{self.azimuth:.1f}°")
 
-    def open_roof(self) -> None:
-        if self.module is not None and isinstance(self.module, IMotion):
-            self.run_background(self.module.init)
+    @qasync.asyncSlot()  # type: ignore
+    async def open_roof(self) -> None:
+        module = self.module
+        if module is not None and isinstance(module, IMotion):
+            await module.init()
 
-    def close_roof(self) -> None:
-        if self.module is not None and isinstance(self.module, IMotion):
-            self.run_background(self.module.park)
+    @qasync.asyncSlot()  # type: ignore
+    async def close_roof(self) -> None:
+        module = self.module
+        if module is not None and isinstance(module, IMotion):
+            await module.park()
 
-    def stop_roof(self) -> None:
-        if self.module is not None and isinstance(self.module, IMotion):
-            self.run_background(self.module.stop_motion)
+    @qasync.asyncSlot()  # type: ignore
+    async def stop_roof(self) -> None:
+        module = self.module
+        if module is not None and isinstance(module, IMotion):
+            await module.stop_motion()

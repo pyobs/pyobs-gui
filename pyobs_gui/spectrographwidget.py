@@ -62,8 +62,9 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
     async def _init(self) -> None:
         # get status
-        if isinstance(self.module, ISpectrograph):
-            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
+        module = self.module
+        if isinstance(module, ISpectrograph):
+            self.exposure_status = ExposureStatus(await module.get_exposure_status())
 
         # update GUI
         self.signal_update_gui.emit()
