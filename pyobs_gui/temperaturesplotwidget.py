@@ -6,8 +6,10 @@ from typing import Any, Dict, Optional
 import pandas as pd
 from PySide6 import QtWidgets
 from PySide6.QtCore import Slot
+
+os.environ["QT_API"] = "PyQt6"
 from matplotlib import pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.dates import DateFormatter
 
 from pyobs.utils.time import Time
