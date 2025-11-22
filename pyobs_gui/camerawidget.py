@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional, Union, Dict, List
+from typing import Any
 import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
@@ -51,10 +51,10 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)

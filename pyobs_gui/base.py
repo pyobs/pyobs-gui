@@ -320,14 +320,14 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         pal = button.palette()
 
         # change active colors
-        pal.setColor(QtGui.QPalette.Button, background)
+        pal.setColor(QtGui.QPalette.ColorRole.Button, background)
         pal.setColor(
-            QtGui.QPalette.ButtonText,
-            QtCore.Qt.black if black_on_white else QtCore.Qt.white,
+            QtGui.QPalette.ColorRole.ButtonText,
+            QtCore.Qt.GlobalColor.black if black_on_white else QtCore.Qt.GlobalColor.white,
         )
 
         # change disabled colors
-        pal.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtCore.Qt.gray)
+        pal.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Button, QtCore.Qt.GlobalColor.gray)
 
         # set palette again
         button.setPalette(pal)

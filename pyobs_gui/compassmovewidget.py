@@ -16,10 +16,10 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         self.setupUi(self)  # type: ignore
 
         # button colors
-        self.colorize_button(self.buttonOffsetEast, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetNorth, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetWest, QtCore.Qt.blue)
+        self.colorize_button(self.buttonOffsetEast, QtCore.Qt.GlobalColor.blue)
+        self.colorize_button(self.buttonOffsetNorth, QtCore.Qt.GlobalColor.blue)
+        self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.GlobalColor.blue)
+        self.colorize_button(self.buttonOffsetWest, QtCore.Qt.GlobalColor.blue)
 
     @QtCore.Slot(name="on_buttonOffsetNorth_clicked")  # type: ignore
     @QtCore.Slot(name="on_buttonOffsetSouth_clicked")  # type: ignore
@@ -29,13 +29,11 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         self.run_background(self.__move_offset, self.sender())
 
     async def __move_offset(self, sender: QtWidgets.QWidget) -> None:
+        module = self.module
+
         # get offsets
-        if (
-            self.observer is not None
-            and isinstance(self.module, IOffsetsAltAz)
-            and isinstance(self.module, IPointingAltAz)
-        ):
-            alt, az = await self.module.get_altaz()
+        if self.observer is not None and isinstance(module, IOffsetsAltAz) and isinstance(module, IPointingAltAz):
+            alt, az = await module.get_altaz()
             altaz = SkyCoord(
                 alt=alt * u.degree,
                 az=alt * u.degree,
@@ -43,10 +41,10 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
                 location=self.observer.location,
                 frame="altaz",
             )
-            off_alt, off_az = await self.module.get_offsets_altaz()
+            off_alt, off_az = await module.get_offsets_altaz()
             off_ra, off_dec = offset_altaz_to_radec(altaz, off_alt, off_az)
-        elif isinstance(self.module, IOffsetsRaDec):
-            off_ra, off_dec = await self.module.get_offsets_radec()
+        elif isinstance(module, IOffsetsRaDec):
+            off_ra, off_dec = await module.get_offsets_radec()
         else:
             return
 
@@ -64,11 +62,11 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
             off_ra -= user_offset
 
         # move
-        if isinstance(self.module, IOffsetsRaDec):
-            self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
-        elif isinstance(self.module, IOffsetsAltAz) and self.observer is not None:
+        if isinstance(module, IOffsetsRaDec):
+            self.run_background(module.set_offsets_radec, off_ra, off_dec)
+        elif isinstance(module, IOffsetsAltAz) and self.observer is not None:
             off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)
-            self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
+            self.run_background(module.set_offsets_altaz, off_alt, off_az)
         else:
             raise ValueError
 

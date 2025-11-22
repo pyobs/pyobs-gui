@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Optional, List, Dict, Tuple
+from typing import Any
 from PySide6 import QtCore  # type: ignore
 
 from .base import BaseWidget
@@ -15,6 +15,10 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)  # type: ignore
 
+        # signals
+        self.buttonAddHeader.clicked.connect(self.add_header)
+        self.buttonDelHeader.clicked.connect(self.del_header)
+
         # this only works in Linux
         try:
             # set current username
@@ -24,7 +28,7 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         except ModuleNotFoundError:
             pass
 
-    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -63,12 +67,12 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         # return them
         return headers
 
-    @QtCore.Slot(name="on_buttonAddHeader_clicked")
+    @QtCore.Slot()  # type: ignore
     def add_header(self) -> None:
         """Increase row count by 1."""
         self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
-    @QtCore.Slot(name="on_buttonDelHeader_clicked")
+    @QtCore.Slot()  # type: ignore
     def del_header(self) -> None:
         """Delete current row"""
 

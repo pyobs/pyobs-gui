@@ -1,8 +1,11 @@
 import asyncio
 import sys
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 from PySide6 import QtWidgets  # type: ignore
 import qasync  # type: ignore
+
+if TYPE_CHECKING:
+    from .mainwindow import MainWindow
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
@@ -36,7 +39,7 @@ class GUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window: Any | None = None
+        self._window: MainWindow | None = None
         self._show_shell = show_shell
         self._show_events = show_events
         self._show_status = show_status

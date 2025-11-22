@@ -15,12 +15,12 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
         return 5
 
     def data(self, index: QtCore.QModelIndex, role: Any = None) -> Any:
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             # data to display
             d = self._entries[index.row()][index.column()]
             return d
 
-        elif role == QtCore.Qt.TextColorRole and index.column() == 2:
+        elif role == QtCore.Qt.ItemDataRole.ForegroundRole and index.column() == 2:
             # text colors for log level
             return {
                 "INFO": QtGui.QColor("lime"),
@@ -30,7 +30,7 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
                 "CRITICAL": QtGui.QColor("violet"),
             }[self._entries[index.row()][index.column()]]
 
-        elif role == QtCore.Qt.TextColorRole and index.column() == 1:
+        elif role == QtCore.Qt.ItemDataRole.ForegroundRole and index.column() == 1:
             # text colors for senders
             c = Color(pick_for=self._entries[index.row()][index.column()])
             return QtGui.QColor(c.hex)
@@ -38,18 +38,18 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
         return None
 
     def headerData(self, section: int, orientation: Any, role: Any = None) -> Any:
-        if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole and orientation == QtCore.Qt.Orientation.Horizontal:
             return ["Time", "Source", "Level", "File", "Message"][section]
         return QtCore.QAbstractTableModel.headerData(self, section, orientation, role)
 
-    @QtCore.Slot(list)
+    @QtCore.Slot(list)  # type: ignore
     def add_entry(self, entry: Any) -> None:
         self.beginInsertRows(QtCore.QModelIndex(), len(self._entries), len(self._entries))
         self._entries.append(entry)
         self.endInsertRows()
 
 
-class LogModelProxy(QtCore.QSortFilterProxyModel):
+class LogModelProxy(QtCore.QSortFilterProxyModel):  # type: ignore
     def __init__(self, *args: Any):
         QtCore.QSortFilterProxyModel.__init__(self, *args)
         self.setDynamicSortFilter(True)
@@ -59,7 +59,7 @@ class LogModelProxy(QtCore.QSortFilterProxyModel):
     def filterAcceptsRow(self, row: int, parent: QtCore.QModelIndex) -> bool:
         # check sender
         index = self.sourceModel().index(row, 1, parent)
-        sender = str(self.sourceModel().data(index, role=QtCore.Qt.DisplayRole))
+        sender = str(self.sourceModel().data(index, role=QtCore.Qt.ItemDataRole.DisplayRole))
         if sender in self._filter_source:
             return False
 

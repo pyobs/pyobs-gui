@@ -25,15 +25,17 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         self.signal_update_gui.connect(self.update_gui)
 
     async def _init(self) -> None:
-        if isinstance(self.module, ICooling):
-            enabled, setpoint, _ = await self.module.get_cooling()
+        module = self.module
+        if isinstance(module, ICooling):
+            enabled, setpoint, _ = await module.get_cooling()
             self.checkEnabled.setChecked(enabled)
             self.spinSetPoint.setValue(setpoint)
 
     async def _update(self) -> None:
         # get status
-        if isinstance(self.module, ICooling):
-            self._status = await self.module.get_cooling()
+        module = self.module
+        if isinstance(module, ICooling):
+            self._status = await module.get_cooling()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -66,5 +68,6 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         temp = self.spinSetPoint.value()
 
         # send it
-        if isinstance(self.module, ICooling):
-            await self.module.set_cooling(enabled, temp)
+        module = self.module
+        if isinstance(module, ICooling):
+            await module.set_cooling(enabled, temp)

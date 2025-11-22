@@ -1,4 +1,6 @@
-from typing import List, Any, Optional, Union, Dict
+from typing import Any
+
+import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
@@ -19,25 +21,20 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
         self.setupUi(self)  # type: ignore
 
         # variables
-        self._filter: Optional[str] = None
-        self._filters: List[str] = []
+        self._filter: str | None = None
+        self._filters: list[str] = []
         self._motion_status = MotionStatus.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonSetFilter.clicked.connect(self.set_filter)
 
         # button colors
         self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
 
-    async def open(
-        self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-    ) -> None:
+    async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
-        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, **kwargs)
 
         # subscribe to events
         await self.comm.register_event(FilterChangedEvent, self._on_filter_changed)
@@ -45,10 +42,11 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
 
     async def _init(self) -> None:
         # get current filter
-        if isinstance(self.module, IFilters):
-            self._motion_status = await self.module.get_motion_status()
-            self._filter = await self.module.get_filter()
-            self._filters = await self.module.list_filters()
+        module = self.module
+        if isinstance(module, IFilters):
+            self._motion_status = await module.get_motion_status()
+            self._filter = await module.get_filter()
+            self._filters = await module.list_filters()
 
         # update gui
         self.signal_update_gui.emit()
@@ -109,19 +107,21 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
 
     async def _update(self) -> None:
         # get filter and motion status
-        if isinstance(self.module, IFilters):
-            self._filter = await self.module.get_filter()
-            self._motion_status = await self.module.get_motion_status()
+        module = self.module
+        if isinstance(module, IFilters):
+            self._filter = await module.get_filter()
+            self._motion_status = await module.get_motion_status()
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_buttonSetFilter_clicked")
-    def set_filter(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def set_filter(self) -> None:
         # ask for value
+        module = self.module
         new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)
-        if ok and isinstance(self.module, IFilters):
-            self.run_background(self.module.set_filter, new_value)
+        if ok and isinstance(module, IFilters):
+            self.run_background(module.set_filter, new_value)
 
 
 __all__ = ["FilterWidget"]
