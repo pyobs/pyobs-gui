@@ -35,26 +35,26 @@ class WidgetCurrentSensor(QtWidgets.QFrame):  # type: ignore
         self.setLayout(layout)
 
         # font
-        font1 = QtGui.QFont("Times", 8, QtGui.QFont.Normal)
-        font2 = QtGui.QFont("Times", 12, QtGui.QFont.Bold)
+        font1 = QtGui.QFont("Times", 8, QtGui.QFont.Weight.Normal)
+        font2 = QtGui.QFont("Times", 12, QtGui.QFont.Weight.Bold)
 
         # add label
         self._label = QtWidgets.QLabel(label)
         self._label.setFont(font1)
-        self._label.setAlignment(QtCore.Qt.AlignCenter)
+        self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._label)
 
         # add value
         self._value = QtWidgets.QLabel()
         self._value.setFont(font2)
-        self._value.setAlignment(QtCore.Qt.AlignCenter)
+        self._value.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._value)
 
         # add unit
         if unit is not None:
             self._unit = QtWidgets.QLabel(unit)
             self._unit.setFont(font1)
-            self._unit.setAlignment(QtCore.Qt.AlignCenter)
+            self._unit.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(self._unit)
         else:
             self._unit = None
@@ -98,8 +98,9 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
         """Update values from weather module."""
 
         # get current weather
-        if isinstance(self.module, IWeather):
-            self._current_weather = await self.module.get_current_weather()
+        module = self.module
+        if isinstance(module, IWeather):
+            self._current_weather = await module.get_current_weather()
 
         # signal GUI update
         self.signal_update_gui.emit()
