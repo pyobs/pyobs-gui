@@ -27,8 +27,8 @@ class Ui_WeatherWidget(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.frameCurrent = QFrame(WeatherWidget)
         self.frameCurrent.setObjectName(u"frameCurrent")
-        self.frameCurrent.setFrameShape(QFrame.StyledPanel)
-        self.frameCurrent.setFrameShadow(QFrame.Raised)
+        self.frameCurrent.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frameCurrent.setFrameShadow(QFrame.Shadow.Raised)
         self.horizontalLayout = QHBoxLayout(self.frameCurrent)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
 
@@ -38,8 +38,8 @@ class Ui_WeatherWidget(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.frameSensor = QFrame(WeatherWidget)
         self.frameSensor.setObjectName(u"frameSensor")
-        self.frameSensor.setFrameShape(QFrame.StyledPanel)
-        self.frameSensor.setFrameShadow(QFrame.Raised)
+        self.frameSensor.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frameSensor.setFrameShadow(QFrame.Shadow.Raised)
         self.verticalLayout = QVBoxLayout(self.frameSensor)
         self.verticalLayout.setObjectName(u"verticalLayout")
 
@@ -47,8 +47,8 @@ class Ui_WeatherWidget(object):
 
         self.framePlot = QFrame(WeatherWidget)
         self.framePlot.setObjectName(u"framePlot")
-        self.framePlot.setFrameShape(QFrame.StyledPanel)
-        self.framePlot.setFrameShadow(QFrame.Raised)
+        self.framePlot.setFrameShape(QFrame.Shape.StyledPanel)
+        self.framePlot.setFrameShadow(QFrame.Shadow.Raised)
 
         self.horizontalLayout_2.addWidget(self.framePlot)
 

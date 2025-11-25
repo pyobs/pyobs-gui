@@ -28,8 +28,8 @@ class Ui_TemperaturesPlotWidget(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.frame = QFrame(TemperaturesPlotWidget)
         self.frame.setObjectName(u"frame")
-        self.frame.setFrameShape(QFrame.NoFrame)
-        self.frame.setFrameShadow(QFrame.Raised)
+        self.frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.frame.setFrameShadow(QFrame.Shadow.Raised)
 
         self.verticalLayout.addWidget(self.frame)
 
