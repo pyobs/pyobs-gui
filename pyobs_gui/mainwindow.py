@@ -102,7 +102,7 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
             return special.index(self.text()) < special.index(other.text())
         else:
             # none are
-            return bool(QtWidgets.QListWidgetItem.__lt__(self, other))
+            return bool(self.text() < other.text())
 
 
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
@@ -240,7 +240,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         Returns:
 
         """
-
         # add list item
         item = PagesListWidgetItem()
         item.setIcon(icon)
