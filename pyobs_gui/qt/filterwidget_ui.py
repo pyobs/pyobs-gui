@@ -41,7 +41,7 @@ class Ui_FilterWidget(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.textFilter = QLineEdit(self.groupBox_2)
         self.textFilter.setObjectName(u"textFilter")
-        self.textFilter.setAlignment(Qt.AlignCenter)
+        self.textFilter.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.textFilter.setReadOnly(True)
 
         self.horizontalLayout.addWidget(self.textFilter)
@@ -64,7 +64,7 @@ class Ui_FilterWidget(object):
 
         self.textStatus = QLineEdit(self.groupBox_2)
         self.textStatus.setObjectName(u"textStatus")
-        self.textStatus.setAlignment(Qt.AlignCenter)
+        self.textStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.textStatus.setReadOnly(True)
 
         self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.textStatus)

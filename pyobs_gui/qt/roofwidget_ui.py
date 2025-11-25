@@ -34,14 +34,14 @@ class Ui_RoofWidget(object):
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.labelAzimuth = QLineEdit(self.groupBox_2)
         self.labelAzimuth.setObjectName(u"labelAzimuth")
-        self.labelAzimuth.setAlignment(Qt.AlignCenter)
+        self.labelAzimuth.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelAzimuth.setReadOnly(True)
 
         self.gridLayout_2.addWidget(self.labelAzimuth, 1, 1, 1, 1)
 
         self.labelStatus = QLineEdit(self.groupBox_2)
         self.labelStatus.setObjectName(u"labelStatus")
-        self.labelStatus.setAlignment(Qt.AlignCenter)
+        self.labelStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelStatus.setReadOnly(True)
 
         self.gridLayout_2.addWidget(self.labelStatus, 0, 1, 1, 1)

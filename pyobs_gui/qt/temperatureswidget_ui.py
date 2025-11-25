@@ -33,8 +33,8 @@ class Ui_TemperaturesWidget(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.frame = QFrame(self.groupBox)
         self.frame.setObjectName(u"frame")
-        self.frame.setFrameShape(QFrame.NoFrame)
-        self.frame.setFrameShadow(QFrame.Plain)
+        self.frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.frame.setFrameShadow(QFrame.Shadow.Plain)
         self.formLayout = QFormLayout(self.frame)
         self.formLayout.setObjectName(u"formLayout")
 
@@ -50,7 +50,7 @@ class Ui_TemperaturesWidget(object):
         icon = QIcon()
         icon.addFile(u":/resources/chart-line-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonPlotTemps.setIcon(icon)
-        self.buttonPlotTemps.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.buttonPlotTemps.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
         self.verticalLayout_2.addWidget(self.buttonPlotTemps)
 

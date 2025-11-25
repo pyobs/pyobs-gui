@@ -45,7 +45,7 @@ class Ui_FocusWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.labelCurFocus.sizePolicy().hasHeightForWidth())
         self.labelCurFocus.setSizePolicy(sizePolicy)
-        self.labelCurFocus.setAlignment(Qt.AlignCenter)
+        self.labelCurFocus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelCurFocus.setReadOnly(True)
 
         self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.labelCurFocus)
@@ -62,7 +62,7 @@ class Ui_FocusWidget(object):
         self.labelCurFocusBase.setObjectName(u"labelCurFocusBase")
         sizePolicy.setHeightForWidth(self.labelCurFocusBase.sizePolicy().hasHeightForWidth())
         self.labelCurFocusBase.setSizePolicy(sizePolicy)
-        self.labelCurFocusBase.setAlignment(Qt.AlignCenter)
+        self.labelCurFocusBase.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelCurFocusBase.setReadOnly(True)
 
         self.horizontalLayout.addWidget(self.labelCurFocusBase)
@@ -90,7 +90,7 @@ class Ui_FocusWidget(object):
         self.labelCurFocusOffset.setObjectName(u"labelCurFocusOffset")
         sizePolicy.setHeightForWidth(self.labelCurFocusOffset.sizePolicy().hasHeightForWidth())
         self.labelCurFocusOffset.setSizePolicy(sizePolicy)
-        self.labelCurFocusOffset.setAlignment(Qt.AlignCenter)
+        self.labelCurFocusOffset.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelCurFocusOffset.setReadOnly(True)
 
         self.horizontalLayout_2.addWidget(self.labelCurFocusOffset)
@@ -121,7 +121,7 @@ class Ui_FocusWidget(object):
         self.labelCurStatus.setObjectName(u"labelCurStatus")
         sizePolicy.setHeightForWidth(self.labelCurStatus.sizePolicy().hasHeightForWidth())
         self.labelCurStatus.setSizePolicy(sizePolicy)
-        self.labelCurStatus.setAlignment(Qt.AlignCenter)
+        self.labelCurStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelCurStatus.setReadOnly(True)
 
         self.formLayout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.labelCurStatus)

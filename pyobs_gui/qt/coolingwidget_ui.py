@@ -40,7 +40,7 @@ class Ui_CoolingWidget(object):
 
         self.labelStatus = QLineEdit(self.groupBox_2)
         self.labelStatus.setObjectName(u"labelStatus")
-        self.labelStatus.setAlignment(Qt.AlignCenter)
+        self.labelStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelStatus.setReadOnly(True)
 
         self.gridLayout.addWidget(self.labelStatus, 0, 1, 1, 1)
@@ -52,7 +52,7 @@ class Ui_CoolingWidget(object):
 
         self.labelPower = QLineEdit(self.groupBox_2)
         self.labelPower.setObjectName(u"labelPower")
-        self.labelPower.setAlignment(Qt.AlignCenter)
+        self.labelPower.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelPower.setReadOnly(True)
 
         self.gridLayout.addWidget(self.labelPower, 1, 1, 1, 1)

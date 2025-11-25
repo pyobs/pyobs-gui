@@ -37,7 +37,7 @@ class Ui_ModeWidget(object):
 
         self.textStatus = QLineEdit(self.groupBox)
         self.textStatus.setObjectName(u"textStatus")
-        self.textStatus.setAlignment(Qt.AlignCenter)
+        self.textStatus.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.textStatus.setReadOnly(True)
 
         self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.textStatus)

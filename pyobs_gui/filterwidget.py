@@ -27,7 +27,7 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
         self.buttonSetFilter.clicked.connect(self.set_filter)
 
         # button colors
-        self.colorize_button(self.buttonSetFilter, QtCore.Qt.green)
+        self.colorize_button(self.buttonSetFilter, QtCore.Qt.GlobalColor.green)
 
     async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
