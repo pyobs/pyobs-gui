@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
 from pyobs.events import MotionStatusChangedEvent, Event
@@ -28,9 +29,7 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         self.signal_update_gui.connect(self.update_gui)
         self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
         self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
-        module = self.module
-        if isinstance(module, IFocuser):
-            self.buttonResetFocusOffset.clicked.connect(lambda: self.run_background(module.set_focus_offset, 0))
+        self.buttonResetFocusOffset.clicked.connect(self._reset_focus_offset)
 
         # button colors
         self.colorize_button(self.butSetFocusBase, QtCore.Qt.GlobalColor.green)
@@ -66,6 +65,16 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, title, "New value", value, minval, maxval, 2)
         if ok:
             self.run_background(setter, new_value)
+
+    @qasync.asyncSlot()  # type: ignore
+    async def _reset_focus_offset(self) -> None:
+        if isinstance(self.module, IFocuser):
+            await self.module.set_focus_offset(0.0)
+
+    @qasync.asyncSlot(float)  # type: ignore
+    async def _set_focus_offset(self, value: float) -> None:
+        if isinstance(self.module, IFocuser):
+            await self.module.set_focus_offset(value)
 
     async def _init(self) -> None:
         # get status

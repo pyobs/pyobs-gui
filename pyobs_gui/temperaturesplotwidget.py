@@ -4,8 +4,7 @@ from datetime import timezone, timedelta, datetime
 from typing import Any, Dict, Optional
 
 import pandas as pd
-from PySide6 import QtWidgets  # type: ignore
-from PySide6.QtCore import Slot  # type: ignore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 
 os.environ["QT_API"] = "PyQt6"
 from matplotlib import pyplot as plt
@@ -19,7 +18,7 @@ from .qt.temperaturesplotwidget_ui import Ui_TemperaturesPlotWidget
 log = logging.getLogger(__name__)
 
 
-class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
+class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):  # type: ignore
     def __init__(self, **kwargs: Any):
         QtWidgets.QWidget.__init__(self)
         self.setupUi(self)  # type: ignore
@@ -27,12 +26,12 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
         # add plot
         self.figure, self.ax = plt.subplots()
         layout = QtWidgets.QVBoxLayout(self.frame)
-        self.canvas = FigureCanvas(self.figure)  # type: ignore
+        self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
         self.frame.setLayout(layout)
 
         # format time
-        fmt = DateFormatter("%H:%m:%s")  # type: ignore
+        fmt = DateFormatter("%H:%m:%s")
         self.ax.xaxis.set_major_formatter(fmt)
 
         # data
@@ -91,13 +90,13 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):
         if len(d.columns) > 2:
             # only show legend, if data exists
             self.ax.legend()
-        self.canvas.draw()  # type: ignore
+        self.canvas.draw()
 
-    @Slot(str)
+    @QtCore.Slot(str)  # type: ignore
     def on_comboShow_currentTextChanged(self, opt: str) -> None:
         self.show_option = opt
 
-    @Slot()
+    @QtCore.Slot()  # type: ignore
     def on_buttonPickFile_clicked(self) -> None:
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Select log file", self.log_dir, "CSV files (*.csv)")
         if filename is not None:

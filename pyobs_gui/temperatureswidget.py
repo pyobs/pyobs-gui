@@ -58,7 +58,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
                     # create widget
                     widget = QtWidgets.QLineEdit()
                     widget.setReadOnly(True)
-                    widget.setAlignment(QtCore.Qt.AlignHCenter)
+                    widget.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
 
                     # add it to layout
                     layout.addRow(key + ":", widget)
