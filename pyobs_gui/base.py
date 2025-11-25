@@ -38,8 +38,6 @@ class BaseWindow:
     @property
     def module(self) -> Proxy:
         """Returns the first module in the list or None, if list is empty"""
-        if len(self.modules) == 0:
-            raise ValueError("No module.")
         return self.modules[0]
 
     def module_by_name(self, name: str) -> Proxy | None:
@@ -249,7 +247,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             try:
                 # get module state
                 module = self.module
-                if module is not None and isinstance(module, IModule):
+                if isinstance(module, IModule):
                     state = await module.get_state()
                     self.setEnabled(state == ModuleState.READY)
                     if state != ModuleState.READY:
@@ -262,7 +260,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
                 # sleep a little
                 await asyncio.sleep(1)
 
-            except exc.PyObsError:
+            except (exc.PyObsError, IndexError):
                 # ignore these and sleep a little
                 await asyncio.sleep(1)
 

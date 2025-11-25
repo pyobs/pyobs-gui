@@ -260,6 +260,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # store
         self._widgets[client] = widget
 
+    @QtCore.Slot(int)  # type: ignore
     def _change_page(self, idx: int) -> None:
         """Change page.
 
