@@ -7,7 +7,7 @@ from astropy.io import fits
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 
-os.environ["QT_API"] = "PyQt6"
+os.environ["QT_API"] = "PySide6"
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
