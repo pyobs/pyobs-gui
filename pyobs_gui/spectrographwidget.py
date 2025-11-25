@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from typing import Any
+import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 from astroplan import Observer
 from astropy.io import fits
@@ -44,6 +45,8 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.butExpose.clicked.connect(self.grab_spectrum)
+        self.butAbort.clicked.connect(self.abort)
 
     async def open(
         self,
@@ -69,23 +72,23 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # update GUI
         self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_butExpose_clicked")
-    def grab_spectrum(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def grab_spectrum(self) -> None:
         if not isinstance(self.module, ISpectrograph):
             return
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        asyncio.create_task(self.datadisplay.grab_data(broadcast))
+        await self.datadisplay.grab_data(broadcast)
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.Slot(name="on_butAbort_clicked")
-    def abort(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def abort(self) -> None:
         """Abort exposure."""
         if self.module is not None and isinstance(self.module, ISpectrograph):
-            asyncio.create_task(self.module.abort())
+            await self.module.abort()
 
     async def _update(self) -> None:
         # are we exposing?

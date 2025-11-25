@@ -2,13 +2,10 @@ from typing import Any
 
 import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
-from astroplan import Observer
 
-from pyobs.comm import Proxy, Comm
 from pyobs.events import FilterChangedEvent, MotionStatusChangedEvent, Event
 from pyobs.interfaces import IFilters
 from pyobs.utils.enums import MotionStatus
-from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 from .qt.filterwidget_ui import Ui_FilterWidget
 

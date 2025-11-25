@@ -26,6 +26,9 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
 
+        # signals
+        self.buttonSend.clicked.connect(self.buttonSend_clicked)
+
     async def open(
         self,
         modules: Optional[List[Proxy]] = None,
@@ -87,7 +90,7 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
         return True
 
     @QtCore.Slot()  # type: ignore
-    def on_buttonSend_clicked(self) -> None:
+    def buttonSend_clicked(self) -> None:
         if self.comm is None:
             return
 

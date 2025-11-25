@@ -31,6 +31,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonPlotTemps.clicked.connect(self.buttonPlotTemps_clicked)
 
     async def _update(self) -> None:
         # get temps
@@ -74,5 +75,6 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
                 if key not in self._temps:
                     layout.removeRow(widget)
 
-    def on_buttonPlotTemps_clicked(self) -> None:
+    @QtCore.Slot()  # type: ignore
+    def buttonPlotTemps_clicked(self) -> None:
         self._plot_window.show()

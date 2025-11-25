@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 import pandas as pd
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
-os.environ["QT_API"] = "PyQt6"
+os.environ["QT_API"] = "PySide6"
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.dates import DateFormatter
@@ -44,6 +44,10 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):  # t
         # log
         self.log_file = ""
         self.log_dir = os.path.expanduser("~")
+
+        # signals
+        self.comboShow.currentIndexChanged.connect(self.comboShow_currentTextChanged)
+        self.buttonPickFile.clicked.connect(self.buttonPickFile_clicked)
 
     def add_data(self, time: Time, data: Dict[str, float]) -> None:
         # copy data, add time
@@ -93,11 +97,11 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):  # t
         self.canvas.draw()
 
     @QtCore.Slot(str)  # type: ignore
-    def on_comboShow_currentTextChanged(self, opt: str) -> None:
+    def comboShow_currentTextChanged(self, opt: str) -> None:
         self.show_option = opt
 
     @QtCore.Slot()  # type: ignore
-    def on_buttonPickFile_clicked(self) -> None:
+    def buttonPickFile_clicked(self) -> None:
         filename, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Select log file", self.log_dir, "CSV files (*.csv)")
         if filename is not None:
             self.lineLogFile.setText(filename)

@@ -1,7 +1,7 @@
-import asyncio
+import qasync
 import logging
 from typing import Any
-from PySide6.QtCore import Signal  # type: ignore
+from PySide6 import QtCore  # type: ignore
 
 from pyobs.interfaces import ICooling
 from .base import BaseWidget
@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class CoolingWidget(BaseWidget, Ui_CoolingWidget):
-    signal_update_gui = Signal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
@@ -23,6 +23,8 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.checkEnabled.toggled.connect(self.checkEnabled_toggled)
+        self.buttonApply.clicked.connect(self.buttonApply_clicked)
 
     async def _init(self) -> None:
         module = self.module
@@ -56,13 +58,12 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
                 self.labelStatus.setText("N/A" if power is None else "OFF")
                 self.labelPower.clear()
 
-    def on_checkEnabled_toggled(self, enabled: bool) -> None:
+    @QtCore.Slot(bool)  # type: ignore
+    def checkEnabled_toggled(self, enabled: bool) -> None:
         self.spinSetPoint.setEnabled(enabled)
 
-    def on_buttonApply_clicked(self) -> None:
-        asyncio.create_task(self.set_cooling())
-
-    async def set_cooling(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def buttonApply_clicked(self) -> None:
         # get enabled and setpoint temperature
         enabled = self.checkEnabled.isChecked()
         temp = self.spinSetPoint.value()

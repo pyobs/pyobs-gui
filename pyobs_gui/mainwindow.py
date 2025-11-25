@@ -252,7 +252,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.listPages.sortItems()
 
         # open and add widget
-        await widget.open(modules=[proxy], comm=self.comm, observer=self.observer, vfs=self.vfs)
+        await widget.open(
+            modules=[proxy] if proxy is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
+        )
         self.stackedWidget.addWidget(widget)
 
         # store
@@ -282,7 +284,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         for client_name in self.comm.clients:
             # create item
             item = QtWidgets.QListWidgetItem(client_name)
-            item.setCheckState(QtCore.Qt.Checked)
+            item.setCheckState(QtCore.Qt.CheckState.Checked)
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
             self.listClients.addItem(item)
 
@@ -318,8 +320,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         """Resize log table to entries."""
 
         # resize columns
-        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeToContents)
-        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
         # this is a one-time shot, so unconnect signal
         self.log_model.rowsInserted.disconnect(self._resize_log_table)
@@ -328,7 +330,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         """Update log filter."""
 
         # update proxy
-        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
+        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.CheckState.Checked)
 
     async def _check_warning_task(self) -> None:
         while True:
@@ -342,7 +344,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.mastermind_running = False
         for auto_client in autonomous_clients:
             proxy = await self.comm.safe_proxy(auto_client, IAutonomous)
-            if await proxy.is_running():
+            if proxy is not None and await proxy.is_running():
                 self.mastermind_running = True
                 break
 
