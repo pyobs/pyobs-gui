@@ -24,7 +24,7 @@ class Ui_ShellWidget(object):
     def setupUi(self, ShellWidget):
         if not ShellWidget.objectName():
             ShellWidget.setObjectName(u"ShellWidget")
-        ShellWidget.resize(425, 312)
+        ShellWidget.resize(422, 305)
         self.verticalLayout = QVBoxLayout(ShellWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.textCommandLog = QTextBrowser(ShellWidget)

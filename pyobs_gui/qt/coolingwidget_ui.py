@@ -25,7 +25,7 @@ class Ui_CoolingWidget(object):
     def setupUi(self, CoolingWidget):
         if not CoolingWidget.objectName():
             CoolingWidget.setObjectName(u"CoolingWidget")
-        CoolingWidget.resize(210, 161)
+        CoolingWidget.resize(206, 161)
         self.verticalLayout = QVBoxLayout(CoolingWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)

@@ -24,7 +24,7 @@ class Ui_EventsWidget(object):
     def setupUi(self, EventsWidget):
         if not EventsWidget.objectName():
             EventsWidget.setObjectName(u"EventsWidget")
-        EventsWidget.resize(400, 275)
+        EventsWidget.resize(409, 278)
         self.verticalLayout = QVBoxLayout(EventsWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.tableEvents = QTableWidget(EventsWidget)

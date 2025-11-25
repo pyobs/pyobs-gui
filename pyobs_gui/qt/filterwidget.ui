@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>229</width>
-    <height>128</height>
+    <width>227</width>
+    <height>133</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
         <item>
          <widget class="QLineEdit" name="textFilter">
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="readOnly">
            <bool>true</bool>
@@ -65,7 +65,7 @@
       <item row="1" column="1">
        <widget class="QLineEdit" name="textStatus">
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
         <property name="readOnly">
          <bool>true</bool>

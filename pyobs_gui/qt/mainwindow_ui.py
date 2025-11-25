@@ -57,7 +57,6 @@ class Ui_MainWindow(object):
         self.labelAutonomousWarning.setFont(font)
         self.labelAutonomousWarning.setAutoFillBackground(True)
         self.labelAutonomousWarning.setFrameShape(QFrame.Shape.Box)
-        self.labelAutonomousWarning.setFrameShadow(QFrame.Shadow.Plain)
         self.labelAutonomousWarning.setLineWidth(2)
         self.labelAutonomousWarning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelAutonomousWarning.setMargin(0)

@@ -24,7 +24,7 @@ class Ui_FilterWidget(object):
     def setupUi(self, FilterWidget):
         if not FilterWidget.objectName():
             FilterWidget.setObjectName(u"FilterWidget")
-        FilterWidget.resize(229, 128)
+        FilterWidget.resize(227, 133)
         self.verticalLayout = QVBoxLayout(FilterWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.groupBox_2 = QGroupBox(FilterWidget)

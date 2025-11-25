@@ -24,7 +24,7 @@ class Ui_FitsHeadersWidget(object):
     def setupUi(self, FitsHeadersWidget):
         if not FitsHeadersWidget.objectName():
             FitsHeadersWidget.setObjectName(u"FitsHeadersWidget")
-        FitsHeadersWidget.resize(259, 427)
+        FitsHeadersWidget.resize(262, 425)
         self.horizontalLayout = QHBoxLayout(FitsHeadersWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.groupBox = QGroupBox(FitsHeadersWidget)

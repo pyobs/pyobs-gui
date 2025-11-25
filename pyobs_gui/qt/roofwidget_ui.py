@@ -23,7 +23,7 @@ class Ui_RoofWidget(object):
     def setupUi(self, RoofWidget):
         if not RoofWidget.objectName():
             RoofWidget.setObjectName(u"RoofWidget")
-        RoofWidget.resize(787, 472)
+        RoofWidget.resize(776, 458)
         self.horizontalLayout = QHBoxLayout(RoofWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.verticalLayout = QVBoxLayout()

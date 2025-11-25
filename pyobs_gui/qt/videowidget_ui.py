@@ -27,7 +27,7 @@ class Ui_VideoWidget(object):
     def setupUi(self, VideoWidget):
         if not VideoWidget.objectName():
             VideoWidget.setObjectName(u"VideoWidget")
-        VideoWidget.resize(618, 610)
+        VideoWidget.resize(618, 530)
         self.horizontalLayout_2 = QHBoxLayout(VideoWidget)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.tabWidget = QTabWidget(VideoWidget)

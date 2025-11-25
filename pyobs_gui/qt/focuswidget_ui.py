@@ -24,7 +24,7 @@ class Ui_FocusWidget(object):
     def setupUi(self, FocusWidget):
         if not FocusWidget.objectName():
             FocusWidget.setObjectName(u"FocusWidget")
-        FocusWidget.resize(248, 196)
+        FocusWidget.resize(250, 201)
         self.verticalLayout = QVBoxLayout(FocusWidget)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName(u"verticalLayout")

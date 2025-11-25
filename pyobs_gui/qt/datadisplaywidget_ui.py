@@ -24,7 +24,7 @@ class Ui_DataDisplayWidget(object):
     def setupUi(self, DataDisplayWidget):
         if not DataDisplayWidget.objectName():
             DataDisplayWidget.setObjectName(u"DataDisplayWidget")
-        DataDisplayWidget.resize(512, 388)
+        DataDisplayWidget.resize(517, 388)
         self.verticalLayout = QVBoxLayout(DataDisplayWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.tabWidget = QTabWidget(DataDisplayWidget)

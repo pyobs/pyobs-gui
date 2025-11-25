@@ -28,7 +28,7 @@ class Ui_TelescopeWidget(object):
     def setupUi(self, TelescopeWidget):
         if not TelescopeWidget.objectName():
             TelescopeWidget.setObjectName(u"TelescopeWidget")
-        TelescopeWidget.resize(1019, 652)
+        TelescopeWidget.resize(1013, 642)
         self.horizontalLayout_7 = QHBoxLayout(TelescopeWidget)
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
         self.verticalLayout_2 = QVBoxLayout()

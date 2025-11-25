@@ -23,7 +23,7 @@ class Ui_ModeWidget(object):
     def setupUi(self, ModeWidget):
         if not ModeWidget.objectName():
             ModeWidget.setObjectName(u"ModeWidget")
-        ModeWidget.resize(229, 87)
+        ModeWidget.resize(226, 86)
         self.verticalLayout = QVBoxLayout(ModeWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.groupBox = QGroupBox(ModeWidget)

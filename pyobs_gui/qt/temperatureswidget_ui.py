@@ -23,7 +23,7 @@ class Ui_TemperaturesWidget(object):
     def setupUi(self, TemperaturesWidget):
         if not TemperaturesWidget.objectName():
             TemperaturesWidget.setObjectName(u"TemperaturesWidget")
-        TemperaturesWidget.resize(271, 193)
+        TemperaturesWidget.resize(269, 164)
         self.verticalLayout = QVBoxLayout(TemperaturesWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)

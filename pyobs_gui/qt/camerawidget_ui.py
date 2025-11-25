@@ -28,7 +28,7 @@ class Ui_CameraWidget(object):
     def setupUi(self, CameraWidget):
         if not CameraWidget.objectName():
             CameraWidget.setObjectName(u"CameraWidget")
-        CameraWidget.resize(1002, 764)
+        CameraWidget.resize(1014, 764)
         self.horizontalLayout_2 = QHBoxLayout(CameraWidget)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.scrollArea = QScrollArea(CameraWidget)
@@ -42,7 +42,7 @@ class Ui_CameraWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 295, 748))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 294, 748))
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)

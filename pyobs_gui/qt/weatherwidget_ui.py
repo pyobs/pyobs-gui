@@ -22,7 +22,7 @@ class Ui_WeatherWidget(object):
     def setupUi(self, WeatherWidget):
         if not WeatherWidget.objectName():
             WeatherWidget.setObjectName(u"WeatherWidget")
-        WeatherWidget.resize(972, 782)
+        WeatherWidget.resize(719, 552)
         self.verticalLayout_2 = QVBoxLayout(WeatherWidget)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.frameCurrent = QFrame(WeatherWidget)

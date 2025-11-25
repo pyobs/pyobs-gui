@@ -26,7 +26,7 @@ class Ui_SpectrographWidget(object):
     def setupUi(self, SpectrographWidget):
         if not SpectrographWidget.objectName():
             SpectrographWidget.setObjectName(u"SpectrographWidget")
-        SpectrographWidget.resize(881, 677)
+        SpectrographWidget.resize(865, 643)
         self.horizontalLayout_2 = QHBoxLayout(SpectrographWidget)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.scrollArea = QScrollArea(SpectrographWidget)
@@ -40,7 +40,7 @@ class Ui_SpectrographWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 114, 661))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 114, 627))
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)

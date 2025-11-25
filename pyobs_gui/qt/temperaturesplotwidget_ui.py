@@ -23,7 +23,7 @@ class Ui_TemperaturesPlotWidget(object):
     def setupUi(self, TemperaturesPlotWidget):
         if not TemperaturesPlotWidget.objectName():
             TemperaturesPlotWidget.setObjectName(u"TemperaturesPlotWidget")
-        TemperaturesPlotWidget.resize(515, 293)
+        TemperaturesPlotWidget.resize(515, 292)
         self.verticalLayout = QVBoxLayout(TemperaturesPlotWidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.frame = QFrame(TemperaturesPlotWidget)
