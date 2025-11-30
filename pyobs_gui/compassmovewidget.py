@@ -28,13 +28,14 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         self.buttonOffsetSouth.clicked.connect(self._move_offset)
         self.buttonOffsetWest.clicked.connect(self._move_offset)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _move_offset(self) -> None:
-        module = self.module
+    @QtCore.Slot()  # type: ignore
+    def _move_offset(self) -> None:
+        self.run_background(self.__move_offset, self.sender())
 
+    async def __move_offset(self, sender: QtWidgets.QWidget) -> None:
         # get offsets
-        if self.observer is not None and isinstance(module, IOffsetsAltAz) and isinstance(module, IPointingAltAz):
-            alt, az = await module.get_altaz()
+        if isinstance(self.module, IOffsetsAltAz) and isinstance(self.module, IPointingAltAz):
+            alt, az = await self.module.get_altaz()
             altaz = SkyCoord(
                 alt=alt * u.degree,
                 az=alt * u.degree,
@@ -42,10 +43,10 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
                 location=self.observer.location,
                 frame="altaz",
             )
-            off_alt, off_az = await module.get_offsets_altaz()
+            off_alt, off_az = await self.module.get_offsets_altaz()
             off_ra, off_dec = offset_altaz_to_radec(altaz, off_alt, off_az)
-        elif isinstance(module, IOffsetsRaDec):
-            off_ra, off_dec = await module.get_offsets_radec()
+        elif isinstance(self.module, IOffsetsRaDec):
+            off_ra, off_dec = await self.module.get_offsets_radec()
         else:
             return
 
@@ -53,21 +54,21 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         user_offset = self.spinOffset.value() / 3600.0
 
         # who send event?
-        if self.sender() == self.buttonOffsetNorth:
+        if sender == self.buttonOffsetNorth:
             off_dec += user_offset
-        elif self.sender() == self.buttonOffsetSouth:
+        elif sender == self.buttonOffsetSouth:
             off_dec -= user_offset
-        elif self.sender() == self.buttonOffsetEast:
+        elif sender == self.buttonOffsetEast:
             off_ra += user_offset
-        elif self.sender() == self.buttonOffsetWest:
+        elif sender == self.buttonOffsetWest:
             off_ra -= user_offset
 
         # move
-        if isinstance(module, IOffsetsRaDec):
-            await module.set_offsets_radec(off_ra, off_dec)
-        elif isinstance(module, IOffsetsAltAz) and self.observer is not None:
+        if isinstance(self.module, IOffsetsRaDec):
+            self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
+        elif isinstance(self.module, IOffsetsAltAz):
             off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)
-            await module.set_offsets_altaz(off_alt, off_az)
+            self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
         else:
             raise ValueError
 
