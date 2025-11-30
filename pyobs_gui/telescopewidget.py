@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum
 from typing import Any
 
@@ -649,7 +650,6 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         pass
 
     def select_coord_type(self) -> None:
-        return
         # get coordinate system
         text = self.comboMoveType.currentText()
         try:
@@ -677,24 +677,25 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         if isinstance(self.module, IMotion):
             await self.module.stop_motion("ITelescope")
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _set_offset(self) -> None:
-        """Asks user for new offsets and sets it."""
+    @QtCore.Slot()  # type: ignore
+    def _set_offset(self) -> None:
+        """Asks user for new offsets and sets it.
+        This can't be an async slot, since qasync apparently doesn't support self.sender()."""
 
         # first all the reset buttons
         if self.sender() == self.buttonResetHorizontalOffsets:
-            await self.module.set_offsets_altaz(0.0, 0.0)
+            asyncio.create_task(self.module.set_offsets_altaz(0.0, 0.0))
         elif self.sender() == self.buttonResetEquatorialOffsets:
-            await self.module.set_offsets_radec(0, 0.0)
+            asyncio.create_task(self.module.set_offsets_radec(0, 0.0))
         else:
             # now the sets, ask for value
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set offset", 'New offset ["]', 0, -9999, 9999)
             if ok:
                 if self.sender() == self.buttonSetAltOffset:
-                    await self.module.set_offsets_altaz(new_value / 3600.0, self._off_az)
+                    asyncio.create_task(self.module.set_offsets_altaz(new_value / 3600.0, self._off_az))
                 elif self.sender() == self.buttonSetAzOffset:
-                    await self.module.set_offsets_altaz(self._off_alt, new_value / 3600.0)
+                    asyncio.create_task(self.module.set_offsets_altaz(self._off_alt, new_value / 3600.0))
                 elif self.sender() == self.buttonSetRaOffset:
-                    await self.module.set_offsets_radec(new_value / 3600.0, self._off_dec)
+                    asyncio.create_task(self.module.set_offsets_radec(new_value / 3600.0, self._off_dec))
                 elif self.sender() == self.buttonSetDecOffset:
-                    await self.module.set_offsets_radec(self._off_ra, new_value / 3600.0)
+                    asyncio.create_task(self.module.set_offsets_radec(self._off_ra, new_value / 3600.0))
