@@ -11,7 +11,7 @@ dependencies = [
     "qasync>=0.27.1,<0.28",
     "sunpy>=6.1.1,<7",
     "QtAwesome>=1.4.0,<2",
-    "qfitswidget>=0.13.0",
+    "qfitswidget>=0.13.1",
     "pyobs-core>=1.24.0",
     "pyside6>=6.10.1",
 ]
