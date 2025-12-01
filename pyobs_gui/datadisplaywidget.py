@@ -1,19 +1,19 @@
 import logging
 import os
-from typing import Any, Optional, cast, Union, Dict, List
+from typing import Any, cast
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
-from astroplan import Observer
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astropy.io import fits
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+os.environ["QT_API"] = "PySide6"
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from qfitswidget import QFitsWidget  # type: ignore
 
-from pyobs.comm import Proxy, Comm
-from qfitswidget import QFitsWidget
-
+from pyobs.comm import Proxy
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IData, ISpectrograph
 from pyobs.utils.enums import ImageType
@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, parent: Any, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -33,10 +33,10 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
         # variables
         self.new_data = False
-        self.data_filename: Optional[str] = None
-        self.data: Optional[fits.HDUList] = None
-        self.imageLayout: Optional[QtWidgets.QVBoxLayout] = None
-        self.imageView: Optional[QFitsWidget] = None
+        self.data_filename: str | None = None
+        self.data: fits.HDUList | None = None
+        self.imageLayout: QtWidgets.QVBoxLayout | None = None
+        self.imageView: QFitsWidget | None = None
         self.figure: Figure | None = None
         self.ax: Axes | None = None
         self.canvas: FigureCanvas | None = None
@@ -52,16 +52,12 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
         self.checkAutoSave.stateChanged.connect(lambda x: self.textAutoSavePath.setEnabled(x))
+        self.butAutoSave.clicked.connect(self.select_autosave_path)
+        self.butSaveTo.clicked.connect(self.save_data)
 
-    async def open(
-        self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
-    ) -> None:
+    async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
-        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await BaseWidget.open(self, **kwargs)
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
@@ -84,19 +80,20 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
     async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data."""
+        module = self.module
 
         # expose
-        if isinstance(self.module, IData):
-            filename = await self.module.grab_data(broadcast=broadcast)
+        if isinstance(module, IData):
+            filename = await module.grab_data(broadcast=broadcast)
         else:
             raise ValueError("Unknown type")
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(self.module, ISpectrograph):
-                await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, self.module).name)
-            elif isinstance(self.module, IData):
-                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, self.module).name)
+            if isinstance(module, ISpectrograph):
+                await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, cast(object, module)).name)
+            elif isinstance(module, IData):
+                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, cast(object, module)).name)
             else:
                 raise ValueError("Unknown type")
 
@@ -228,7 +225,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # finish
         return True
 
-    @QtCore.pyqtSlot(name="on_butAutoSave_clicked")
+    @QtCore.Slot()  # type: ignore
     def select_autosave_path(self) -> None:
         """Select path for auto-saving."""
 
@@ -241,7 +238,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         else:
             self.textAutoSavePath.clear()
 
-    @QtCore.pyqtSlot(name="on_butSaveTo_clicked")
+    @QtCore.Slot()  # type: ignore
     def save_data(self) -> None:
         """Save image."""
 

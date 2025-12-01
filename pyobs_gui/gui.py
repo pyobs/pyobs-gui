@@ -1,13 +1,14 @@
 import asyncio
 import sys
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
+from PySide6 import QtWidgets  # type: ignore
+import qasync  # type: ignore
 
-import qasync
-from PyQt5 import QtWidgets
+if TYPE_CHECKING:
+    from .mainwindow import MainWindow
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
-from .mainwindow import MainWindow
 
 
 class GUI(Module, IFitsHeaderBefore):
@@ -53,6 +54,8 @@ class GUI(Module, IFitsHeaderBefore):
 
     async def open(self) -> None:
         """Open module."""
+        from .mainwindow import MainWindow
+
         await Module.open(self)
 
         # create and show window

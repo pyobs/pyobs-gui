@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1005</width>
+    <width>1014</width>
     <height>764</height>
    </rect>
   </property>
@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>239</width>
+        <width>294</width>
         <height>748</height>
        </rect>
       </property>
@@ -1324,7 +1324,7 @@
   <customwidget>
    <class>DataDisplayWidget</class>
    <extends>QWidget</extends>
-   <header>datadisplaywidget</header>
+   <header>..datadisplaywidget</header>
   </customwidget>
  </customwidgets>
  <tabstops>

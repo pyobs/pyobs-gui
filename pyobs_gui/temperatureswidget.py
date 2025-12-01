@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, cast
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 
 from pyobs.interfaces import ITemperatures
 from pyobs.utils.time import Time
@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
@@ -31,6 +31,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonPlotTemps.clicked.connect(self.buttonPlotTemps_clicked)
 
     async def _update(self) -> None:
         # get temps
@@ -58,7 +59,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
                     # create widget
                     widget = QtWidgets.QLineEdit()
                     widget.setReadOnly(True)
-                    widget.setAlignment(QtCore.Qt.AlignHCenter)
+                    widget.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
 
                     # add it to layout
                     layout.addRow(key + ":", widget)
@@ -74,5 +75,6 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
                 if key not in self._temps:
                     layout.removeRow(widget)
 
-    def on_buttonPlotTemps_clicked(self) -> None:
+    @QtCore.Slot()  # type: ignore
+    def buttonPlotTemps_clicked(self) -> None:
         self._plot_window.show()

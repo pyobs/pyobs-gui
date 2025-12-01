@@ -1,18 +1,17 @@
-from typing import List, Any
+from typing import Any
+from PySide6 import QtCore, QtWidgets, QtGui  # type: ignore
 
-from PyQt5 import QtCore, QtWidgets, QtGui
 
-
-class CommandInputWidget(QtWidgets.QLineEdit):
-    commandExecuted = QtCore.pyqtSignal(str)
+class CommandInputWidget(QtWidgets.QLineEdit):  # type: ignore
+    commandExecuted = QtCore.Signal(str)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         QtWidgets.QLineEdit.__init__(self, *args, **kwargs)
-        self._history: List[str] = []
+        self._history: list[str] = []
         self._history_index = 0
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
-        if event.key() == QtCore.Qt.Key_Return:
+        if event.key() == QtCore.Qt.Key.Key_Return:
             # get command
             cmd = str(self.text())
             # emit command
@@ -24,7 +23,7 @@ class CommandInputWidget(QtWidgets.QLineEdit):
                 self._history.append(cmd)
             self._history_index = 0
 
-        elif event.key() == QtCore.Qt.Key_Up:
+        elif event.key() == QtCore.Qt.Key.Key_Up:
             # history empty?
             if len(self._history) > 0:
                 # get new history index
@@ -32,7 +31,7 @@ class CommandInputWidget(QtWidgets.QLineEdit):
                 # show text
                 self.setText(self._history[self._history_index])
 
-        elif event.key() == QtCore.Qt.Key_Down:
+        elif event.key() == QtCore.Qt.Key.Key_Down:
             # get new history index
             self._history_index = min(self._history_index + 1, 0)
             # show text or clear it, if we're back to current entry

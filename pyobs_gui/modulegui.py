@@ -1,11 +1,11 @@
 from __future__ import annotations
 import asyncio
 import sys
-from typing import List, Dict, Tuple, Any, Optional
-
-import qasync
-from qasync import QEventLoop  # type: ignore   # noqa: F401
-from PyQt5 import QtWidgets, QtGui
+from typing import Any, cast
+import qasync  # type: ignore
+from pyobs.comm import Proxy
+from qasync import QEventLoop  # noqa: F401
+from PySide6 import QtWidgets, QtGui  # type: ignore
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
@@ -13,13 +13,13 @@ from .base import BaseWindow
 from .mainwindow import MainWindow, DEFAULT_WIDGETS
 
 
-class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
+class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
     def __init__(self, gui_module: ModuleGUI, **kwargs: Any):
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
         self.gui_module = gui_module
 
-    async def open(self, module: Optional[Module] = None, **kwargs: Any) -> None:
+    async def open(self, module: Module | None = None, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
 
         # what do we have?
@@ -30,7 +30,7 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
                 break
 
         # open widgets
-        await BaseWindow.open(self, modules=[module], **kwargs)
+        await BaseWindow.open(self, modules=[cast(Proxy, cast(object, module))], **kwargs)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
@@ -39,11 +39,11 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):
 class ModuleGUI(Module, IFitsHeaderBefore):
     __module__ = "pyobs_gui"
 
-    app: Optional[QtWidgets.QApplication] = None
+    app: QtWidgets.QApplication | None = None
 
     def __init__(
         self,
-        module: Dict[str, Any],
+        module: dict[str, Any],
         *args: Any,
         **kwargs: Any,
     ):
@@ -59,13 +59,13 @@ class ModuleGUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window: Optional[MainWindow] = None
+        self._window: MainWindow | None = None
         self._module = self.add_child_object(module, Module, own_comm=False)
 
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         ModuleGUI.app = QtWidgets.QApplication(sys.argv)
-        return qasync.QEventLoop(ModuleGUI.app)
+        return cast(asyncio.AbstractEventLoop, qasync.QEventLoop(ModuleGUI.app))
 
     async def open(self) -> None:
         """Open module."""
@@ -85,8 +85,8 @@ class ModuleGUI(Module, IFitsHeaderBefore):
         self._window.show()
 
     async def get_fits_header_before(
-        self, namespaces: Optional[List[str]] = None, **kwargs: Any
-    ) -> Dict[str, Tuple[Any, str]]:
+        self, namespaces: list[str] | None = None, **kwargs: Any
+    ) -> dict[str, tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:

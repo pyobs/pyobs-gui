@@ -1,7 +1,9 @@
 import asyncio
 from asyncio import Task
 from typing import Any, Dict, Optional, cast, Union, List
-from PyQt5 import QtWidgets, QtCore
+
+import qasync
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -79,11 +81,12 @@ class StatusItem(QtWidgets.QWidget):
         # store it
         self.last_state = state
 
-    def button_clicked(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def button_clicked(self) -> None:
         """Do button action."""
 
         # for now, it's always clear error
-        asyncio.create_task(self.module.reset_error())
+        await self.module.reset_error()
 
 
 class StatusWidget(BaseWidget):

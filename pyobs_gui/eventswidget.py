@@ -2,9 +2,8 @@ import asyncio
 from datetime import datetime
 from enum import EnumMeta
 from typing import Any, Type, Dict, Optional, Union, get_origin, get_args, List
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
-
 from astroplan import Observer
 
 import pyobs.events
@@ -26,6 +25,9 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
         self.tableEvents.setColumnWidth(0, 80)
         self.tableEvents.setColumnWidth(1, 100)
         self.tableEvents.setColumnWidth(2, 200)
+
+        # signals
+        self.buttonSend.clicked.connect(self.buttonSend_clicked)
 
     async def open(
         self,
@@ -87,8 +89,8 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
             self.tableEvents.setRowCount(400)
         return True
 
-    @QtCore.pyqtSlot()
-    def on_buttonSend_clicked(self) -> None:
+    @QtCore.Slot()  # type: ignore
+    def buttonSend_clicked(self) -> None:
         if self.comm is None:
             return
 
@@ -100,7 +102,7 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
         dlg.exec_()
 
 
-class SendEventDialog(QtWidgets.QDialog):
+class SendEventDialog(QtWidgets.QDialog):  # type: ignore
     def __init__(self, comm: Comm, event: Type[Event], **kwargs: Any):
         QtWidgets.QDialog.__init__(self, **kwargs)
 

@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox
+from PySide6 import QtWidgets  # type: ignore
+from PySide6.QtWidgets import QMessageBox  # type: ignore
 
 """
 Helper methods
@@ -24,9 +24,9 @@ class QAsyncMessageBox:
         parent: QtWidgets.QWidget,
         title: str,
         label: str,
-        buttons: QMessageBox.StandardButton | QMessageBox.StandardButtons = QMessageBox.Ok,
+        buttons: QMessageBox.StandardButton = QMessageBox.StandardButton.Ok,
     ) -> asyncio.Future[Any]:
-        dialog = QMessageBox(QMessageBox.Critical, title, label, buttons, parent)
+        dialog = QMessageBox(QMessageBox.Icon.Critical, title, label, buttons, parent)
         return dialog_async_exec(dialog)
 
     @staticmethod
@@ -34,9 +34,9 @@ class QAsyncMessageBox:
         parent: QtWidgets.QWidget,
         title: str,
         label: str,
-        buttons: QMessageBox.StandardButton | QMessageBox.StandardButtons = QMessageBox.Ok,
+        buttons: QMessageBox.StandardButton = QMessageBox.StandardButton.Ok,
     ) -> asyncio.Future[Any]:
-        dialog = QMessageBox(QMessageBox.Information, title, label, buttons, parent)
+        dialog = QMessageBox(QMessageBox.Icon.Information, title, label, buttons, parent)
         return dialog_async_exec(dialog)
 
     @staticmethod
@@ -44,7 +44,7 @@ class QAsyncMessageBox:
         parent: QtWidgets.QWidget,
         title: str,
         label: str,
-        buttons: QMessageBox.StandardButton | QMessageBox.StandardButtons = QMessageBox.Ok,
+        buttons: QMessageBox.StandardButton = QMessageBox.StandardButton.Ok,
     ) -> asyncio.Future[Any]:
         return QAsyncMessageBox._dialog(parent, title, label, buttons)
 
@@ -53,17 +53,14 @@ class QAsyncMessageBox:
         parent: QtWidgets.QWidget,
         title: str,
         label: str,
-        buttons: QMessageBox.StandardButton | QMessageBox.StandardButtons = QMessageBox.Yes | QMessageBox.No,
+        buttons: QMessageBox.StandardButton = QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
     ) -> asyncio.Future[Any]:
-        dialog = QMessageBox(QMessageBox.Question, title, label, buttons, parent)
+        dialog = QMessageBox(QMessageBox.Icon.Question, title, label, buttons, parent)
         return dialog_async_exec(dialog)
 
     @staticmethod
     def _dialog(
-        parent: QtWidgets.QWidget,
-        title: str,
-        label: str,
-        buttons: QMessageBox.StandardButton | QMessageBox.StandardButtons,
+        parent: QtWidgets.QWidget, title: str, label: str, buttons: QMessageBox.StandardButton
     ) -> asyncio.Future[Any]:
         dialog = QMessageBox(parent)
         dialog.setWindowTitle("Error")

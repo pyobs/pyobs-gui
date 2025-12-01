@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets, uic
+from PySide6 import QtWidgets, uic
 
 
 class CompassMoveWidget(QtWidgets.QWidget):

@@ -4,7 +4,7 @@ import asyncio
 import logging
 from collections.abc import Coroutine
 from typing import Any, TypeVar, Callable, Type
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -38,8 +38,6 @@ class BaseWindow:
     @property
     def module(self) -> Proxy:
         """Returns the first module in the list or None, if list is empty"""
-        if len(self.modules) == 0:
-            raise ValueError("No module.")
         return self.modules[0]
 
     def module_by_name(self, name: str) -> Proxy | None:
@@ -129,9 +127,9 @@ class BaseWindow:
         await widget.open(modules=self.modules, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
-class BaseWidget(BaseWindow, QtWidgets.QWidget):
-    _show_error = QtCore.pyqtSignal(str)
-    _enable_buttons = QtCore.pyqtSignal(list, bool)
+class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
+    _show_error = QtCore.Signal(str)
+    _enable_buttons = QtCore.Signal(list, bool)
 
     def __init__(
         self,
@@ -172,7 +170,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         self.extract_window_button = QtWidgets.QToolButton(self)
         # self.extract_window_button.setText("X")
         self.extract_window_button.setIcon(QtGui.QIcon(":/resources/arrow-up-right-from-square-solid.svg"))
-        self.colorize_button(self.extract_window_button, QtCore.Qt.darkCyan)
+        self.colorize_button(self.extract_window_button, QtCore.Qt.GlobalColor.darkCyan)
         self.extract_window_button.move(self.width() - 20, 0)
         self.extract_window_button.resize(20, 20)
         self.extract_window_button.raise_()
@@ -202,7 +200,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         if self.sidebar_layout is None:
             self.sidebar_layout = QtWidgets.QVBoxLayout()
             self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
-            spacer_item = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            spacer_item = QtWidgets.QSpacerItem(
+                20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding
+            )
             self.sidebar_layout.addItem(spacer_item)
             if hasattr(self, "widgetSidebar"):
                 self.widgetSidebar.setLayout(self.sidebar_layout)
@@ -246,8 +246,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         while True:
             try:
                 # get module state
-                if self.module is not None and isinstance(self.module, IModule):
-                    state = await self.module.get_state()
+                module = self.module
+                if isinstance(module, IModule):
+                    state = await module.get_state()
                     self.setEnabled(state == ModuleState.READY)
                     if state != ModuleState.READY:
                         return
@@ -259,7 +260,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
                 # sleep a little
                 await asyncio.sleep(1)
 
-            except exc.PyObsError:
+            except (exc.PyObsError, IndexError):
                 # ignore these and sleep a little
                 await asyncio.sleep(1)
 
@@ -317,14 +318,14 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):
         pal = button.palette()
 
         # change active colors
-        pal.setColor(QtGui.QPalette.Button, background)
+        pal.setColor(QtGui.QPalette.ColorRole.Button, background)
         pal.setColor(
-            QtGui.QPalette.ButtonText,
-            QtCore.Qt.black if black_on_white else QtCore.Qt.white,
+            QtGui.QPalette.ColorRole.ButtonText,
+            QtCore.Qt.GlobalColor.black if black_on_white else QtCore.Qt.GlobalColor.white,
         )
 
         # change disabled colors
-        pal.setColor(QtGui.QPalette.Disabled, QtGui.QPalette.Button, QtCore.Qt.gray)
+        pal.setColor(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.Button, QtCore.Qt.GlobalColor.gray)
 
         # set palette again
         button.setPalette(pal)

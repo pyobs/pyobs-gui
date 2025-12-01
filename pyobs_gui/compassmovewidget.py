@@ -1,5 +1,6 @@
 from typing import Any
-from PyQt5 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore  # type: ignore
+import qasync  # type: ignore
 import astropy.units as u
 from astropy.coordinates import SkyCoord, ICRS
 
@@ -16,25 +17,24 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         self.setupUi(self)  # type: ignore
 
         # button colors
-        self.colorize_button(self.buttonOffsetEast, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetNorth, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.blue)
-        self.colorize_button(self.buttonOffsetWest, QtCore.Qt.blue)
+        self.colorize_button(self.buttonOffsetEast, QtCore.Qt.GlobalColor.blue)
+        self.colorize_button(self.buttonOffsetNorth, QtCore.Qt.GlobalColor.blue)
+        self.colorize_button(self.buttonOffsetSouth, QtCore.Qt.GlobalColor.blue)
+        self.colorize_button(self.buttonOffsetWest, QtCore.Qt.GlobalColor.blue)
 
-    @QtCore.pyqtSlot(name="on_buttonOffsetNorth_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetSouth_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetEast_clicked")
-    @QtCore.pyqtSlot(name="on_buttonOffsetWest_clicked")
+        # signals
+        self.buttonOffsetEast.clicked.connect(self._move_offset)
+        self.buttonOffsetNorth.clicked.connect(self._move_offset)
+        self.buttonOffsetSouth.clicked.connect(self._move_offset)
+        self.buttonOffsetWest.clicked.connect(self._move_offset)
+
+    @QtCore.Slot()  # type: ignore
     def _move_offset(self) -> None:
         self.run_background(self.__move_offset, self.sender())
 
     async def __move_offset(self, sender: QtWidgets.QWidget) -> None:
         # get offsets
-        if (
-            self.observer is not None
-            and isinstance(self.module, IOffsetsAltAz)
-            and isinstance(self.module, IPointingAltAz)
-        ):
+        if isinstance(self.module, IOffsetsAltAz) and isinstance(self.module, IPointingAltAz):
             alt, az = await self.module.get_altaz()
             altaz = SkyCoord(
                 alt=alt * u.degree,
@@ -66,7 +66,7 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         # move
         if isinstance(self.module, IOffsetsRaDec):
             self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
-        elif isinstance(self.module, IOffsetsAltAz) and self.observer is not None:
+        elif isinstance(self.module, IOffsetsAltAz):
             off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)
             self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
         else:
