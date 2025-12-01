@@ -1,6 +1,6 @@
 [project]
 name = "pyobs-gui"
-version = "1.5.0"
+version = "1.5.1"
 description = "A remote GUI for pyobs"
 authors = [{ name = "Tim-Oliver Husser", email = "thusser@uni-goettingen.de" }]
 requires-python = ">=3.11,<3.14"
