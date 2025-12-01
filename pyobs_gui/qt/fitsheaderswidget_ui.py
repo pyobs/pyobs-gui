@@ -1,78 +1,115 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from ..reading ui file 'fitsheaderswidget.ui'
-#
-# Created by: PyQt5 UI code generator 5.14.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'fitsheaderswidget.ui'
+##
+## Created by: Qt User Interface Compiler version 6.10.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QFormLayout, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QSizePolicy, QSpacerItem, QTableWidget, QTableWidgetItem,
+    QToolButton, QWidget)
 
 class Ui_FitsHeadersWidget(object):
     def setupUi(self, FitsHeadersWidget):
-        FitsHeadersWidget.setObjectName("FitsHeadersWidget")
-        FitsHeadersWidget.resize(259, 427)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(FitsHeadersWidget)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.groupBox = QtWidgets.QGroupBox(FitsHeadersWidget)
-        self.groupBox.setObjectName("groupBox")
-        self.formLayout = QtWidgets.QFormLayout(self.groupBox)
-        self.formLayout.setObjectName("formLayout")
-        self.checkAddHeaders = QtWidgets.QCheckBox(self.groupBox)
-        self.checkAddHeaders.setObjectName("checkAddHeaders")
-        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.checkAddHeaders)
-        self.label = QtWidgets.QLabel(self.groupBox)
-        self.label.setObjectName("label")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label)
-        self.textObject = QtWidgets.QLineEdit(self.groupBox)
-        self.textObject.setObjectName("textObject")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.textObject)
-        self.label_3 = QtWidgets.QLabel(self.groupBox)
-        self.label_3.setObjectName("label_3")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_3)
-        self.textUser = QtWidgets.QLineEdit(self.groupBox)
-        self.textUser.setObjectName("textUser")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.textUser)
-        self.tableAdditionalHeaders = QtWidgets.QTableWidget(self.groupBox)
+        if not FitsHeadersWidget.objectName():
+            FitsHeadersWidget.setObjectName(u"FitsHeadersWidget")
+        FitsHeadersWidget.resize(262, 425)
+        self.horizontalLayout = QHBoxLayout(FitsHeadersWidget)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.groupBox = QGroupBox(FitsHeadersWidget)
+        self.groupBox.setObjectName(u"groupBox")
+        self.formLayout = QFormLayout(self.groupBox)
+        self.formLayout.setObjectName(u"formLayout")
+        self.checkAddHeaders = QCheckBox(self.groupBox)
+        self.checkAddHeaders.setObjectName(u"checkAddHeaders")
+
+        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.checkAddHeaders)
+
+        self.label = QLabel(self.groupBox)
+        self.label.setObjectName(u"label")
+
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.label)
+
+        self.textObject = QLineEdit(self.groupBox)
+        self.textObject.setObjectName(u"textObject")
+
+        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.textObject)
+
+        self.label_3 = QLabel(self.groupBox)
+        self.label_3.setObjectName(u"label_3")
+
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.LabelRole, self.label_3)
+
+        self.textUser = QLineEdit(self.groupBox)
+        self.textUser.setObjectName(u"textUser")
+
+        self.formLayout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.textUser)
+
+        self.tableAdditionalHeaders = QTableWidget(self.groupBox)
+        if (self.tableAdditionalHeaders.columnCount() < 2):
+            self.tableAdditionalHeaders.setColumnCount(2)
+        __qtablewidgetitem = QTableWidgetItem()
+        self.tableAdditionalHeaders.setHorizontalHeaderItem(0, __qtablewidgetitem)
+        __qtablewidgetitem1 = QTableWidgetItem()
+        self.tableAdditionalHeaders.setHorizontalHeaderItem(1, __qtablewidgetitem1)
+        self.tableAdditionalHeaders.setObjectName(u"tableAdditionalHeaders")
         self.tableAdditionalHeaders.setColumnCount(2)
-        self.tableAdditionalHeaders.setObjectName("tableAdditionalHeaders")
-        self.tableAdditionalHeaders.setRowCount(0)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableAdditionalHeaders.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableAdditionalHeaders.setHorizontalHeaderItem(1, item)
         self.tableAdditionalHeaders.horizontalHeader().setDefaultSectionSize(50)
         self.tableAdditionalHeaders.horizontalHeader().setStretchLastSection(True)
         self.tableAdditionalHeaders.verticalHeader().setVisible(False)
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.SpanningRole, self.tableAdditionalHeaders)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
-        self.buttonAddHeader = QtWidgets.QToolButton(self.groupBox)
-        self.buttonAddHeader.setObjectName("buttonAddHeader")
+
+        self.formLayout.setWidget(3, QFormLayout.ItemRole.SpanningRole, self.tableAdditionalHeaders)
+
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_2.addItem(self.horizontalSpacer)
+
+        self.buttonAddHeader = QToolButton(self.groupBox)
+        self.buttonAddHeader.setObjectName(u"buttonAddHeader")
+
         self.horizontalLayout_2.addWidget(self.buttonAddHeader)
-        self.buttonDelHeader = QtWidgets.QToolButton(self.groupBox)
-        self.buttonDelHeader.setObjectName("buttonDelHeader")
+
+        self.buttonDelHeader = QToolButton(self.groupBox)
+        self.buttonDelHeader.setObjectName(u"buttonDelHeader")
+
         self.horizontalLayout_2.addWidget(self.buttonDelHeader)
-        self.formLayout.setLayout(4, QtWidgets.QFormLayout.SpanningRole, self.horizontalLayout_2)
+
+
+        self.formLayout.setLayout(4, QFormLayout.ItemRole.SpanningRole, self.horizontalLayout_2)
+
+
         self.horizontalLayout.addWidget(self.groupBox)
 
+
         self.retranslateUi(FitsHeadersWidget)
-        QtCore.QMetaObject.connectSlotsByName(FitsHeadersWidget)
+
+        QMetaObject.connectSlotsByName(FitsHeadersWidget)
+    # setupUi
 
     def retranslateUi(self, FitsHeadersWidget):
-        _translate = QtCore.QCoreApplication.translate
-        FitsHeadersWidget.setWindowTitle(_translate("FitsHeadersWidget", "Form"))
-        self.groupBox.setTitle(_translate("FitsHeadersWidget", "FITS headers"))
-        self.checkAddHeaders.setText(_translate("FitsHeadersWidget", "Add headers"))
-        self.label.setText(_translate("FitsHeadersWidget", "OBJECT:"))
-        self.label_3.setText(_translate("FitsHeadersWidget", "USER:"))
-        item = self.tableAdditionalHeaders.horizontalHeaderItem(0)
-        item.setText(_translate("FitsHeadersWidget", "Key"))
-        item = self.tableAdditionalHeaders.horizontalHeaderItem(1)
-        item.setText(_translate("FitsHeadersWidget", "Value"))
-        self.buttonAddHeader.setText(_translate("FitsHeadersWidget", "+"))
-        self.buttonDelHeader.setText(_translate("FitsHeadersWidget", "-"))
+        FitsHeadersWidget.setWindowTitle(QCoreApplication.translate("FitsHeadersWidget", u"Form", None))
+        self.groupBox.setTitle(QCoreApplication.translate("FitsHeadersWidget", u"FITS headers", None))
+        self.checkAddHeaders.setText(QCoreApplication.translate("FitsHeadersWidget", u"Add headers", None))
+        self.label.setText(QCoreApplication.translate("FitsHeadersWidget", u"OBJECT:", None))
+        self.label_3.setText(QCoreApplication.translate("FitsHeadersWidget", u"USER:", None))
+        ___qtablewidgetitem = self.tableAdditionalHeaders.horizontalHeaderItem(0)
+        ___qtablewidgetitem.setText(QCoreApplication.translate("FitsHeadersWidget", u"Key", None));
+        ___qtablewidgetitem1 = self.tableAdditionalHeaders.horizontalHeaderItem(1)
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("FitsHeadersWidget", u"Value", None));
+        self.buttonAddHeader.setText(QCoreApplication.translate("FitsHeadersWidget", u"+", None))
+        self.buttonDelHeader.setText(QCoreApplication.translate("FitsHeadersWidget", u"-", None))
+    # retranslateUi
+

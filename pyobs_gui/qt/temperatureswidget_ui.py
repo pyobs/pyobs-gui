@@ -1,55 +1,71 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from ..reading ui file 'temperatureswidget.ui'
-#
-# Created by: PyQt5 UI code generator 5.14.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'temperatureswidget.ui'
+##
+## Created by: Qt User Interface Compiler version 6.10.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QFormLayout, QFrame, QGroupBox,
+    QSizePolicy, QToolButton, QVBoxLayout, QWidget)
+from . import resources_rc
 
 class Ui_TemperaturesWidget(object):
     def setupUi(self, TemperaturesWidget):
-        TemperaturesWidget.setObjectName("TemperaturesWidget")
-        TemperaturesWidget.resize(271, 193)
-        self.verticalLayout = QtWidgets.QVBoxLayout(TemperaturesWidget)
+        if not TemperaturesWidget.objectName():
+            TemperaturesWidget.setObjectName(u"TemperaturesWidget")
+        TemperaturesWidget.resize(269, 164)
+        self.verticalLayout = QVBoxLayout(TemperaturesWidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.groupBox = QtWidgets.QGroupBox(TemperaturesWidget)
-        self.groupBox.setObjectName("groupBox")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBox)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.frame = QtWidgets.QFrame(self.groupBox)
-        self.frame.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.frame.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.frame.setObjectName("frame")
-        self.formLayout = QtWidgets.QFormLayout(self.frame)
-        self.formLayout.setObjectName("formLayout")
+        self.groupBox = QGroupBox(TemperaturesWidget)
+        self.groupBox.setObjectName(u"groupBox")
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.frame = QFrame(self.groupBox)
+        self.frame.setObjectName(u"frame")
+        self.frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.frame.setFrameShadow(QFrame.Shadow.Plain)
+        self.formLayout = QFormLayout(self.frame)
+        self.formLayout.setObjectName(u"formLayout")
+
         self.verticalLayout_2.addWidget(self.frame)
-        self.buttonPlotTemps = QtWidgets.QToolButton(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+
+        self.buttonPlotTemps = QToolButton(self.groupBox)
+        self.buttonPlotTemps.setObjectName(u"buttonPlotTemps")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.buttonPlotTemps.sizePolicy().hasHeightForWidth())
         self.buttonPlotTemps.setSizePolicy(sizePolicy)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/resources/chart-line-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon = QIcon()
+        icon.addFile(u":/resources/chart-line-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonPlotTemps.setIcon(icon)
-        self.buttonPlotTemps.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.buttonPlotTemps.setObjectName("buttonPlotTemps")
+        self.buttonPlotTemps.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+
         self.verticalLayout_2.addWidget(self.buttonPlotTemps)
+
+
         self.verticalLayout.addWidget(self.groupBox)
 
+
         self.retranslateUi(TemperaturesWidget)
-        QtCore.QMetaObject.connectSlotsByName(TemperaturesWidget)
+
+        QMetaObject.connectSlotsByName(TemperaturesWidget)
+    # setupUi
 
     def retranslateUi(self, TemperaturesWidget):
-        _translate = QtCore.QCoreApplication.translate
-        TemperaturesWidget.setWindowTitle(_translate("TemperaturesWidget", "Form"))
-        self.groupBox.setTitle(_translate("TemperaturesWidget", "Temperatures"))
-        self.buttonPlotTemps.setText(_translate("TemperaturesWidget", "Plot && log temperatures"))
+        TemperaturesWidget.setWindowTitle(QCoreApplication.translate("TemperaturesWidget", u"Form", None))
+        self.groupBox.setTitle(QCoreApplication.translate("TemperaturesWidget", u"Temperatures", None))
+        self.buttonPlotTemps.setText(QCoreApplication.translate("TemperaturesWidget", u"Plot && log temperatures", None))
+    # retranslateUi
 
-
-from . import resources_rc

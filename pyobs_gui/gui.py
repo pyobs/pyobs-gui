@@ -1,29 +1,29 @@
 import asyncio
 import sys
-from typing import List, Dict, Tuple, Any, Optional
+from typing import Any, cast, TYPE_CHECKING
+from PySide6 import QtWidgets  # type: ignore
+import qasync  # type: ignore
 
-import qasync
-from qasync import QEventLoop  # type: ignore   # noqa: F401
-from PyQt5 import QtWidgets
+if TYPE_CHECKING:
+    from .mainwindow import MainWindow
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
-from .mainwindow import MainWindow
 
 
 class GUI(Module, IFitsHeaderBefore):
     __module__ = "pyobs_gui"
 
-    app: Optional[QtWidgets.QApplication] = None
+    app: QtWidgets.QApplication | None = None
 
     def __init__(
         self,
         show_shell: bool = True,
         show_events: bool = True,
         show_status: bool = True,
-        show_modules: Optional[List[str]] = None,
-        widgets: Optional[List[Dict[str, Any]]] = None,
-        sidebar: Optional[List[Dict[str, Any]]] = None,
+        show_modules: list[str] | None = None,
+        widgets: list[dict[str, Any]] | None = None,
+        sidebar: list[dict[str, Any]] | None = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -39,7 +39,7 @@ class GUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window: Optional[MainWindow] = None
+        self._window: MainWindow | None = None
         self._show_shell = show_shell
         self._show_events = show_events
         self._show_status = show_status
@@ -50,10 +50,12 @@ class GUI(Module, IFitsHeaderBefore):
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         GUI.app = QtWidgets.QApplication(sys.argv)
-        return qasync.QEventLoop(GUI.app)
+        return cast(asyncio.AbstractEventLoop, qasync.QEventLoop(GUI.app))
 
     async def open(self) -> None:
         """Open module."""
+        from .mainwindow import MainWindow
+
         await Module.open(self)
 
         # create and show window
@@ -74,8 +76,8 @@ class GUI(Module, IFitsHeaderBefore):
         self._window.show()
 
     async def get_fits_header_before(
-        self, namespaces: Optional[List[str]] = None, **kwargs: Any
-    ) -> Dict[str, Tuple[Any, str]]:
+        self, namespaces: list[str] | None = None, **kwargs: Any
+    ) -> dict[str, tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:

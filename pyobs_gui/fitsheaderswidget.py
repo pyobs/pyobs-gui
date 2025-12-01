@@ -1,8 +1,7 @@
 import logging
 import os
-from typing import Any, Optional, List, Dict, Tuple
-
-from PyQt5 import QtCore, QtWidgets
+from typing import Any
+from PySide6 import QtCore  # type: ignore
 
 from .base import BaseWidget
 from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
@@ -11,11 +10,14 @@ from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
 log = logging.getLogger(__name__)
 
 
-class FitsHeadersWidget(QtWidgets.QWidget, BaseWidget, Ui_FitsHeadersWidget):
+class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
+
+        # signals
+        self.buttonAddHeader.clicked.connect(self.add_header)
+        self.buttonDelHeader.clicked.connect(self.del_header)
 
         # this only works in Linux
         try:
@@ -26,7 +28,7 @@ class FitsHeadersWidget(QtWidgets.QWidget, BaseWidget, Ui_FitsHeadersWidget):
         except ModuleNotFoundError:
             pass
 
-    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -53,22 +55,24 @@ class FitsHeadersWidget(QtWidgets.QWidget, BaseWidget, Ui_FitsHeadersWidget):
         # addition headers?
         for row in range(self.tableAdditionalHeaders.rowCount()):
             # get key and value
-            key = self.tableAdditionalHeaders.item(row, 0).text()
-            value = self.tableAdditionalHeaders.item(row, 1).text()
+            item = self.tableAdditionalHeaders.item(row, 0)
+            if item is not None:
+                key = item.text()
+                value = item.text()
 
-            # add it
-            if len(key) > 0 and len(value) > 0:
-                headers[key] = value
+                # add it
+                if len(key) > 0 and len(value) > 0:
+                    headers[key] = (str(value), "")
 
         # return them
         return headers
 
-    @QtCore.pyqtSlot(name="on_buttonAddHeader_clicked")
+    @QtCore.Slot()  # type: ignore
     def add_header(self) -> None:
         """Increase row count by 1."""
         self.tableAdditionalHeaders.setRowCount(self.tableAdditionalHeaders.rowCount() + 1)
 
-    @QtCore.pyqtSlot(name="on_buttonDelHeader_clicked")
+    @QtCore.Slot()  # type: ignore
     def del_header(self) -> None:
         """Delete current row"""
 

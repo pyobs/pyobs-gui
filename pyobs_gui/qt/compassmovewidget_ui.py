@@ -1,70 +1,84 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from ..reading ui file 'compassmovewidget.ui'
-#
-# Created by: PyQt5 UI code generator 5.14.2
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'compassmovewidget.ui'
+##
+## Created by: Qt User Interface Compiler version 6.10.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QGridLayout, QPushButton, QSizePolicy,
+    QSpinBox, QWidget)
+from . import resources_rc
 
 class Ui_CompassMoveWidget(object):
     def setupUi(self, CompassMoveWidget):
-        CompassMoveWidget.setObjectName("CompassMoveWidget")
+        if not CompassMoveWidget.objectName():
+            CompassMoveWidget.setObjectName(u"CompassMoveWidget")
         CompassMoveWidget.resize(276, 126)
-        self.gridLayout = QtWidgets.QGridLayout(CompassMoveWidget)
-        self.gridLayout.setObjectName("gridLayout")
-        self.buttonOffsetNorth = QtWidgets.QPushButton(CompassMoveWidget)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/resources/arrow-alt-circle-up-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.gridLayout = QGridLayout(CompassMoveWidget)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.buttonOffsetNorth = QPushButton(CompassMoveWidget)
+        self.buttonOffsetNorth.setObjectName(u"buttonOffsetNorth")
+        icon = QIcon()
+        icon.addFile(u":/resources/arrow-alt-circle-up-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonOffsetNorth.setIcon(icon)
-        self.buttonOffsetNorth.setObjectName("buttonOffsetNorth")
+
         self.gridLayout.addWidget(self.buttonOffsetNorth, 0, 1, 1, 1)
-        self.buttonOffsetEast = QtWidgets.QPushButton(CompassMoveWidget)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-left-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
-        )
+
+        self.buttonOffsetEast = QPushButton(CompassMoveWidget)
+        self.buttonOffsetEast.setObjectName(u"buttonOffsetEast")
+        icon1 = QIcon()
+        icon1.addFile(u":/resources/arrow-alt-circle-left-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonOffsetEast.setIcon(icon1)
-        self.buttonOffsetEast.setObjectName("buttonOffsetEast")
+
         self.gridLayout.addWidget(self.buttonOffsetEast, 1, 0, 1, 1)
-        self.spinOffset = QtWidgets.QSpinBox(CompassMoveWidget)
-        self.spinOffset.setPrefix("")
+
+        self.spinOffset = QSpinBox(CompassMoveWidget)
+        self.spinOffset.setObjectName(u"spinOffset")
         self.spinOffset.setMaximum(999)
         self.spinOffset.setSingleStep(10)
-        self.spinOffset.setProperty("value", 30)
-        self.spinOffset.setObjectName("spinOffset")
+        self.spinOffset.setValue(30)
+
         self.gridLayout.addWidget(self.spinOffset, 1, 1, 1, 1)
-        self.buttonOffsetWest = QtWidgets.QPushButton(CompassMoveWidget)
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-right-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
-        )
+
+        self.buttonOffsetWest = QPushButton(CompassMoveWidget)
+        self.buttonOffsetWest.setObjectName(u"buttonOffsetWest")
+        icon2 = QIcon()
+        icon2.addFile(u":/resources/arrow-alt-circle-right-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonOffsetWest.setIcon(icon2)
-        self.buttonOffsetWest.setObjectName("buttonOffsetWest")
+
         self.gridLayout.addWidget(self.buttonOffsetWest, 1, 2, 1, 1)
-        self.buttonOffsetSouth = QtWidgets.QPushButton(CompassMoveWidget)
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(
-            QtGui.QPixmap(":/resources/arrow-alt-circle-down-solid.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off
-        )
+
+        self.buttonOffsetSouth = QPushButton(CompassMoveWidget)
+        self.buttonOffsetSouth.setObjectName(u"buttonOffsetSouth")
+        icon3 = QIcon()
+        icon3.addFile(u":/resources/arrow-alt-circle-down-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonOffsetSouth.setIcon(icon3)
-        self.buttonOffsetSouth.setObjectName("buttonOffsetSouth")
+
         self.gridLayout.addWidget(self.buttonOffsetSouth, 2, 1, 1, 1)
 
+
         self.retranslateUi(CompassMoveWidget)
-        QtCore.QMetaObject.connectSlotsByName(CompassMoveWidget)
+
+        QMetaObject.connectSlotsByName(CompassMoveWidget)
+    # setupUi
 
     def retranslateUi(self, CompassMoveWidget):
-        _translate = QtCore.QCoreApplication.translate
-        CompassMoveWidget.setWindowTitle(_translate("CompassMoveWidget", "Form"))
-        self.buttonOffsetNorth.setText(_translate("CompassMoveWidget", "N"))
-        self.buttonOffsetEast.setText(_translate("CompassMoveWidget", "E"))
-        self.spinOffset.setSuffix(_translate("CompassMoveWidget", '"'))
-        self.buttonOffsetWest.setText(_translate("CompassMoveWidget", "W"))
-        self.buttonOffsetSouth.setText(_translate("CompassMoveWidget", "S"))
+        CompassMoveWidget.setWindowTitle(QCoreApplication.translate("CompassMoveWidget", u"Form", None))
+        self.buttonOffsetNorth.setText(QCoreApplication.translate("CompassMoveWidget", u"N", None))
+        self.buttonOffsetEast.setText(QCoreApplication.translate("CompassMoveWidget", u"E", None))
+        self.spinOffset.setSuffix(QCoreApplication.translate("CompassMoveWidget", u"\"", None))
+        self.spinOffset.setPrefix("")
+        self.buttonOffsetWest.setText(QCoreApplication.translate("CompassMoveWidget", u"W", None))
+        self.buttonOffsetSouth.setText(QCoreApplication.translate("CompassMoveWidget", u"S", None))
+    # retranslateUi
 
-
-from . import resources_rc

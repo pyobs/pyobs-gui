@@ -1,8 +1,7 @@
-import asyncio
+import qasync
 import logging
-
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSignal
+from typing import Any
+from PySide6 import QtCore  # type: ignore
 
 from pyobs.interfaces import ICooling
 from .base import BaseWidget
@@ -12,30 +11,33 @@ from .qt.coolingwidget_ui import Ui_CoolingWidget
 log = logging.getLogger(__name__)
 
 
-class CoolingWidget(QtWidgets.QWidget, BaseWidget, Ui_CoolingWidget):
-    signal_update_gui = pyqtSignal()
+class CoolingWidget(BaseWidget, Ui_CoolingWidget):
+    signal_update_gui = QtCore.Signal()
 
-    def __init__(self, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # status
-        self._status = None
+        self._status: tuple[bool, float, float] | None = None
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.checkEnabled.toggled.connect(self.checkEnabled_toggled)
+        self.buttonApply.clicked.connect(self.buttonApply_clicked)
 
     async def _init(self) -> None:
-        if isinstance(self.module, ICooling):
-            enabled, setpoint, _ = await self.module.get_cooling()
+        module = self.module
+        if isinstance(module, ICooling):
+            enabled, setpoint, _ = await module.get_cooling()
             self.checkEnabled.setChecked(enabled)
             self.spinSetPoint.setValue(setpoint)
 
     async def _update(self) -> None:
         # get status
-        if isinstance(self.module, ICooling):
-            self._status = await self.module.get_cooling()
+        module = self.module
+        if isinstance(module, ICooling):
+            self._status = await module.get_cooling()
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -56,17 +58,17 @@ class CoolingWidget(QtWidgets.QWidget, BaseWidget, Ui_CoolingWidget):
                 self.labelStatus.setText("N/A" if power is None else "OFF")
                 self.labelPower.clear()
 
-    def on_checkEnabled_toggled(self, enabled: bool) -> None:
+    @QtCore.Slot(bool)  # type: ignore
+    def checkEnabled_toggled(self, enabled: bool) -> None:
         self.spinSetPoint.setEnabled(enabled)
 
-    def on_buttonApply_clicked(self) -> None:
-        asyncio.create_task(self.set_cooling())
-
-    async def set_cooling(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def buttonApply_clicked(self) -> None:
         # get enabled and setpoint temperature
         enabled = self.checkEnabled.isChecked()
         temp = self.spinSetPoint.value()
 
         # send it
-        if isinstance(self.module, ICooling):
-            await self.module.set_cooling(enabled, temp)
+        module = self.module
+        if isinstance(module, ICooling):
+            await module.set_cooling(enabled, temp)

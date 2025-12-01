@@ -2,11 +2,12 @@ import asyncio
 import logging
 from typing import Any, Optional, cast, Union, Dict, List
 from urllib.parse import urlparse
-from PyQt5 import QtWidgets, QtCore, QtGui, QtNetwork
+
+import qasync  # type: ignore
+from PySide6 import QtWidgets, QtCore, QtGui, QtNetwork  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
-
 from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IGain
 from pyobs.modules import Module
 from pyobs.utils.enums import ImageFormat, ImageType
@@ -17,15 +18,15 @@ from .qt.videowidget_ui import Ui_VideoWidget
 log = logging.getLogger(__name__)
 
 
-class ScaledLabel(QtWidgets.QLabel):
+class ScaledLabel(QtWidgets.QLabel):  # type: ignore
     def __init__(self, **kwargs: Any):
         QtWidgets.QLabel.__init__(self, **kwargs)
-        self._pixmap = None
+        self._pixmap: QtGui.QPixmap | None = None
         self.setMinimumSize(QtCore.QSize(10, 10))
 
     def setPixmap(self, pixmap: QtGui.QPixmap) -> None:
         self._pixmap = pixmap
-        scaled = pixmap.scaled(self.width(), self.height(), QtCore.Qt.KeepAspectRatio)
+        scaled = pixmap.scaled(self.width(), self.height(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
         QtWidgets.QLabel.setPixmap(self, scaled)
 
     def resizeEvent(self, event: Any) -> None:
@@ -33,13 +34,12 @@ class ScaledLabel(QtWidgets.QLabel):
             self.setPixmap(self._pixmap)
 
 
-class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+class VideoWidget(BaseWidget, Ui_VideoWidget):
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # store
         self.host: Optional[str] = None
@@ -53,6 +53,10 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonGrabImage.clicked.connect(self.grab_image)
+        self.buttonAbort.clicked.connect(self.abort_sequence)
+        self.spinExpTime.valueChanged.connect(self.exposure_time_changed)
+        self.spinGain.valueChanged.connect(self.gain_changed)
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -91,15 +95,19 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
         self.groupGain.setVisible(isinstance(self.module, IGain))
 
         # get video stream URL and open it
-        if not isinstance(self.module, IVideo) or self.module is None:
+        if not isinstance(self.module, IVideo):
             log.error("Module is not an IVideo.")
             return
         video_path = await self.module.get_video()
+        if not isinstance(self.vfs, VirtualFileSystem):
+            log.error("Video is not available.")
+            return
         video_file = self.vfs.open_file(video_path, "r")
 
         # we heed a HttpFile
+        module = cast(Module, cast(object, self.module))
         if not isinstance(video_file, HttpFile):
-            log.error("VFS path to video of module %s must be an HttpFile.", cast(Module, self.module).name)
+            log.error("VFS path to video of module %s must be an HttpFile.", module.name)
             return
 
         # analyse URL
@@ -108,12 +116,16 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
         # scheme must be http
         # TODO: how to do HTTPS?
         if o.scheme != "http":
-            log.error("URL scheme to video of module %s must be HTTP.", cast(Module, self.module).name)
+            log.error("URL scheme to video of module %s must be HTTP.", module.name)
             return
 
         # get info
-        (self.host, self.port) = tuple(o.netloc.split(":")[:2]) if ":" in o.netloc else (o.netloc, 80)
-        self.path = o.path
+        if ":" in o.netloc:
+            s = o.netloc.split(":")[:2]
+            self.host, self.port = s[0], int(s[1])
+        else:
+            self.host, self.port = (o.netloc, 80)
+        self.path = str(o.path)
 
         # get initial values
         if isinstance(self.module, IExposureTime):
@@ -176,12 +188,12 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @QtCore.pyqtSlot(name="on_buttonGrabImage_clicked")
-    def grab_image(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def grab_image(self) -> None:
         # set image format
         if isinstance(self.module, IImageFormat):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
-            self.module.set_image_format(image_format)
+            await self.module.set_image_format(image_format)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
@@ -212,27 +224,27 @@ class VideoWidget(QtWidgets.QWidget, BaseWidget, Ui_VideoWidget):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_buttonAbort_clicked")
+    @QtCore.Slot()  # type: ignore
     def abort_sequence(self) -> None:
         self.exposures_left = 0
 
-    @QtCore.pyqtSlot(float, name="on_spinExpTime_valueChanged")
-    def exposure_time_changed(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def exposure_time_changed(self) -> None:
         # get exp_time
         exp_time = self.spinExpTime.value()
 
         # set it
         if isinstance(self.module, IExposureTime):
-            asyncio.create_task(self.module.set_exposure_time(exp_time))
+            await self.module.set_exposure_time(exp_time)
 
-    @QtCore.pyqtSlot(float, name="on_spinGain_valueChanged")
-    def gain_changed(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def gain_changed(self) -> None:
         # get gain
         gain = self.spinGain.value()
 
         # set it
         if isinstance(self.module, IGain):
-            asyncio.create_task(self.module.set_gain(gain))
+            await self.module.set_gain(gain)
 
 
 __all__ = ["VideoWidget"]

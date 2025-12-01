@@ -1,10 +1,12 @@
 import asyncio
 import os
 from typing import Optional, List, Any, Dict, Tuple
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astropy.time import Time
-from colour import Color
-import qtawesome as qta
+from colour import Color  # type: ignore
+
+os.environ["QT_API"] = "pyside6"
+import qtawesome as qta  # type: ignore
 
 from pyobs.comm import Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
@@ -30,7 +32,7 @@ from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
 from .weatherwidget import WeatherWidget
 from .videowidget import VideoWidget
-from .qt.mainwindow import Ui_MainWindow
+from .qt.mainwindow_ui import Ui_MainWindow
 from .logmodel import LogModel, LogModelProxy
 from .eventswidget import EventsWidget
 from .roofwidget import RoofWidget
@@ -79,7 +81,7 @@ DEFAULT_CONFIG = [
 ]
 
 
-class PagesListWidgetItem(QtWidgets.QListWidgetItem):
+class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
     """ListWidgetItem for the pages list. Always sorts Shell and Events first"""
 
     def __lt__(self, other: QtWidgets.QListWidgetItem) -> bool:
@@ -100,12 +102,12 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):
             return special.index(self.text()) < special.index(other.text())
         else:
             # none are
-            return QtWidgets.QListWidgetItem.__lt__(self, other)
+            return bool(self.text() < other.text())
 
 
-class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
-    add_log = QtCore.pyqtSignal(list)
-    add_command_log = QtCore.pyqtSignal(str)
+class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
+    add_log = QtCore.Signal(list)
+    add_command_log = QtCore.Signal(str)
 
     def __init__(
         self,
@@ -128,8 +130,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
             sidebar: List of custom widgets for the sidebar.
         """
         QtWidgets.QMainWindow.__init__(self)
-        BaseWindow.__init__(self, **kwargs)
-        self.setupUi(self)
+        BaseWindow.__init__(self)
+        self.setupUi(self)  # type: ignore
         self.resize(1300, 800)
 
         # store stuff
@@ -140,7 +142,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.show_shell = show_shell
         self.show_events = show_events
         self.show_status = show_status
-        self.warning_task: Optional[asyncio.Task] = None
+        self.warning_task: Optional[asyncio.Task[Any]] = None
 
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
@@ -167,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.events: Optional[EventsWidget] = None
         self.status: Optional[StatusWidget] = None
 
-    async def open(self, **kwargs: Any) -> None:
+    async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
 
         # get module
@@ -238,7 +240,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         Returns:
 
         """
-
         # add list item
         item = PagesListWidgetItem()
         item.setIcon(icon)
@@ -250,12 +251,15 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.listPages.sortItems()
 
         # open and add widget
-        await widget.open(modules=[proxy], comm=self.comm, observer=self.observer, vfs=self.vfs)
+        await widget.open(
+            modules=[proxy] if proxy is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
+        )
         self.stackedWidget.addWidget(widget)
 
         # store
         self._widgets[client] = widget
 
+    @QtCore.Slot(int)  # type: ignore
     def _change_page(self, idx: int) -> None:
         """Change page.
 
@@ -280,7 +284,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         for client_name in self.comm.clients:
             # create item
             item = QtWidgets.QListWidgetItem(client_name)
-            item.setCheckState(QtCore.Qt.Checked)
+            item.setCheckState(QtCore.Qt.CheckState.Checked)
             item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
             self.listClients.addItem(item)
 
@@ -316,8 +320,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         """Resize log table to entries."""
 
         # resize columns
-        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeToContents)
-        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableLog.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        self.tableLog.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
         # this is a one-time shot, so unconnect signal
         self.log_model.rowsInserted.disconnect(self._resize_log_table)
@@ -326,7 +330,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         """Update log filter."""
 
         # update proxy
-        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.Checked)
+        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.CheckState.Checked)
 
     async def _check_warning_task(self) -> None:
         while True:
@@ -340,7 +344,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         self.mastermind_running = False
         for auto_client in autonomous_clients:
             proxy = await self.comm.safe_proxy(auto_client, IAutonomous)
-            if await proxy.is_running():
+            if proxy is not None and await proxy.is_running():
                 self.mastermind_running = True
                 break
 
@@ -447,7 +451,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):
         await self._check_warnings()
         return True
 
-    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> Dict[str, Tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
         """Returns FITS header for the current status of this module.
 
         Args:

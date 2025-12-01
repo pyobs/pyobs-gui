@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>248</width>
-    <height>196</height>
+    <width>250</width>
+    <height>201</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,7 +51,7 @@
          </sizepolicy>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -79,7 +79,7 @@
            </sizepolicy>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="readOnly">
            <bool>true</bool>
@@ -120,7 +120,7 @@
            </sizepolicy>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
           <property name="readOnly">
            <bool>true</bool>
@@ -167,7 +167,7 @@
          </sizepolicy>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
         <property name="readOnly">
          <bool>true</bool>

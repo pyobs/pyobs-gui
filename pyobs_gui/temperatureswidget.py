@@ -1,6 +1,6 @@
 import logging
-from typing import Any, Dict
-from PyQt5 import QtWidgets, QtCore
+from typing import Any, Dict, cast
+from PySide6 import QtWidgets, QtCore  # type: ignore
 
 from pyobs.interfaces import ITemperatures
 from pyobs.utils.time import Time
@@ -11,13 +11,12 @@ from .temperaturesplotwidget import TemperaturesPlotWidget
 log = logging.getLogger(__name__)
 
 
-class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # status
         self._temps: Dict[str, float] = {}
@@ -32,6 +31,7 @@ class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.buttonPlotTemps.clicked.connect(self.buttonPlotTemps_clicked)
 
     async def _update(self) -> None:
         # get temps
@@ -48,7 +48,7 @@ class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
             self.setEnabled(True)
 
             # get layout
-            layout = self.frame.layout()
+            layout = cast(QtWidgets.QFormLayout, self.frame.layout())
 
             # loop temps
             for key in sorted(self._temps.keys()):
@@ -59,7 +59,7 @@ class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
                     # create widget
                     widget = QtWidgets.QLineEdit()
                     widget.setReadOnly(True)
-                    widget.setAlignment(QtCore.Qt.AlignHCenter)
+                    widget.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
 
                     # add it to layout
                     layout.addRow(key + ":", widget)
@@ -75,5 +75,6 @@ class TemperaturesWidget(QtWidgets.QWidget, BaseWidget, Ui_TemperaturesWidget):
                 if key not in self._temps:
                     layout.removeRow(widget)
 
-    def on_buttonPlotTemps_clicked(self) -> None:
+    @QtCore.Slot()  # type: ignore
+    def buttonPlotTemps_clicked(self) -> None:
         self._plot_window.show()

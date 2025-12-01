@@ -1,7 +1,8 @@
 import asyncio
 import logging
-from typing import Optional, Any, Union, Dict, List
-from PyQt5 import QtCore, QtWidgets
+from typing import Any
+import qasync  # type: ignore
+from PySide6 import QtCore  # type: ignore
 from astroplan import Observer
 from astropy.io import fits
 
@@ -18,18 +19,17 @@ from .qt.spectrographwidget_ui import Ui_SpectrographWidget
 log = logging.getLogger(__name__)
 
 
-class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any) -> None:
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_spectrum = False
-        self.spectrum_filename: Optional[str] = None
-        self.spectrum: Optional[fits.PrimaryHDU] = None
+        self.spectrum_filename: str | None = None
+        self.spectrum: fits.PrimaryHDU | None = None
         self.status = None
         self.exposure_status = ExposureStatus.IDLE
 
@@ -45,46 +45,50 @@ class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.butExpose.clicked.connect(self.grab_spectrum)
+        self.butAbort.clicked.connect(self.abort)
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
         await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        if self.comm is not None:
+            await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
     async def _init(self) -> None:
         # get status
-        if isinstance(self.module, ISpectrograph):
-            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
+        module = self.module
+        if isinstance(module, ISpectrograph):
+            self.exposure_status = ExposureStatus(await module.get_exposure_status())
 
         # update GUI
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_butExpose_clicked")
-    def grab_spectrum(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def grab_spectrum(self) -> None:
         if not isinstance(self.module, ISpectrograph):
             return
 
         # expose
         broadcast = self.checkBroadcast.isChecked()
-        asyncio.create_task(self.datadisplay.grab_data(broadcast))
+        await self.datadisplay.grab_data(broadcast)
 
         # signal GUI update
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_butAbort_clicked")
-    def abort(self) -> None:
+    @qasync.asyncSlot()  # type: ignore
+    async def abort(self) -> None:
         """Abort exposure."""
-        if isinstance(self, ISpectrograph):
-            asyncio.create_task(self.module.abort())
+        if self.module is not None and isinstance(self.module, ISpectrograph):
+            await self.module.abort()
 
     async def _update(self) -> None:
         # are we exposing?
@@ -97,8 +101,8 @@ class SpectrographWidget(QtWidgets.QWidget, BaseWidget, Ui_SpectrographWidget):
 
         else:
             # reset
-            self.exposure_time_left = 0
-            self.exposure_progress = 0
+            self.exposure_time_left = 0.0
+            self.exposure_progress = 0.0
 
         # signal GUI update
         self.signal_update_gui.emit()

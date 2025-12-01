@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 import logging
 
 from pyobs.interfaces import IWeather
@@ -26,7 +26,7 @@ AVERAGE_SENSOR_FIELDS = [
 ]
 
 
-class WidgetCurrentSensor(QtWidgets.QFrame):
+class WidgetCurrentSensor(QtWidgets.QFrame):  # type: ignore
     def __init__(self, label: str, unit: str, **kwargs: Any):
         QtWidgets.QFrame.__init__(self, **kwargs)
 
@@ -35,26 +35,26 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
         self.setLayout(layout)
 
         # font
-        font1 = QtGui.QFont("Times", 8, QtGui.QFont.Normal)
-        font2 = QtGui.QFont("Times", 12, QtGui.QFont.Bold)
+        font1 = QtGui.QFont("Times", 8, QtGui.QFont.Weight.Normal)
+        font2 = QtGui.QFont("Times", 12, QtGui.QFont.Weight.Bold)
 
         # add label
         self._label = QtWidgets.QLabel(label)
         self._label.setFont(font1)
-        self._label.setAlignment(QtCore.Qt.AlignCenter)
+        self._label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._label)
 
         # add value
         self._value = QtWidgets.QLabel()
         self._value.setFont(font2)
-        self._value.setAlignment(QtCore.Qt.AlignCenter)
+        self._value.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._value)
 
         # add unit
         if unit is not None:
             self._unit = QtWidgets.QLabel(unit)
             self._unit.setFont(font1)
-            self._unit.setAlignment(QtCore.Qt.AlignCenter)
+            self._unit.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(self._unit)
         else:
             self._unit = None
@@ -76,13 +76,12 @@ class WidgetCurrentSensor(QtWidgets.QFrame):
             self._unit.setStyleSheet(stylesheet)
 
 
-class WeatherWidget(QtWidgets.QWidget, BaseWidget, Ui_WeatherWidget):
-    signal_update_gui = QtCore.pyqtSignal()
+class WeatherWidget(BaseWidget, Ui_WeatherWidget):
+    signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # weather info
         self._current_weather: Dict[str, Any] = {}
@@ -99,8 +98,9 @@ class WeatherWidget(QtWidgets.QWidget, BaseWidget, Ui_WeatherWidget):
         """Update values from weather module."""
 
         # get current weather
-        if isinstance(self.module, IWeather):
-            self._current_weather = await self.module.get_current_weather()
+        module = self.module
+        if isinstance(module, IWeather):
+            self._current_weather = await module.get_current_weather()
 
         # signal GUI update
         self.signal_update_gui.emit()

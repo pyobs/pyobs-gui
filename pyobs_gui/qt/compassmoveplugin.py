@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QIcon
-from PyQt5.QtDesigner import QPyDesignerCustomWidgetPlugin
+from PySide6.QtGui import QIcon
+from PySide6.QtDesigner import QPyDesignerCustomWidgetPlugin
 
 from compassmovewidget import CompassMoveWidget
 

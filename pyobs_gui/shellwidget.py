@@ -2,13 +2,12 @@ import asyncio
 import pprint
 from io import BytesIO
 import re
-from typing import Any, Optional, List, Tuple, Union, Dict
-from PyQt5 import QtWidgets, QtCore
+from typing import Any
+from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
 import tokenize
 from enum import Enum
 import logging
-
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
@@ -33,12 +32,12 @@ class ParserState(Enum):
     CLOSE = 7
 
 
-class CommandModel(QtCore.QAbstractTableModel):
+class CommandModel(QtCore.QAbstractTableModel):  # type: ignore
     def __init__(self, comm: Comm, *args: Any, **kwargs: Any):
         QtCore.QAbstractTableModel.__init__(self, *args, **kwargs)
 
         # create model
-        self.commands: List[Tuple[str, str, str, str]] = []
+        self.commands: list[tuple[str, str, str, str]] = []
         self.comm = comm
 
     async def init(self) -> None:
@@ -88,36 +87,35 @@ class CommandModel(QtCore.QAbstractTableModel):
         # sort
         self.commands.sort(key=lambda m: m[0])
 
-    def doc(self, command: str) -> Optional[str]:
+    def doc(self, command: str) -> str | None:
         for c in self.commands:
             if c[0] == command:
                 return c[3]
         return None
 
-    def rowCount(self, parent: Optional[Any] = None, *args: Any, **kwargs: Any) -> int:
+    def rowCount(self, parent: Any | None = None, *args: Any, **kwargs: Any) -> int:
         return len(self.commands)
 
-    def columnCount(self, parent: Optional[Any] = None, *args: Any, **kwargs: Any) -> int:
+    def columnCount(self, parent: Any | None = None, *args: Any, **kwargs: Any) -> int:
         return 3
 
     def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
-        if role == QtCore.Qt.DisplayRole:
-            return self.commands[index.row()][index.column()]
-        return QtCore.QVariant()
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
+            return str(self.commands[index.row()][index.column()])
+        return ""
 
 
-class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
-    add_command_log = QtCore.pyqtSignal(str)
+class ShellWidget(BaseWidget, Ui_ShellWidget):
+    add_command_log = QtCore.Signal(str)
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
         self.command_number = 0
 
         # commands
-        self.command_model = None
-        self.completer = None
+        self.command_model: CommandModel | None = None
+        self.completer: QtWidgets.QCompleter | None = None
         self.command_regexp = re.compile(r"(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)")
         self.args_regexp = re.compile(r'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
@@ -128,10 +126,10 @@ class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
@@ -141,10 +139,10 @@ class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
 
         # create completer
         self.completer = QtWidgets.QCompleter(self)
-        self.completer.setCompletionMode(QtWidgets.QCompleter.PopupCompletion)
-        self.completer.setCompletionRole(QtCore.Qt.DisplayRole)
+        self.completer.setCompletionMode(QtWidgets.QCompleter.CompletionMode.PopupCompletion)
+        self.completer.setCompletionRole(QtCore.Qt.ItemDataRole.DisplayRole)
         self.completer.setCompletionColumn(0)
-        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
         self.completer.setModel(self.command_model)
         self.textCommandInput.setCompleter(self.completer)
 
@@ -156,11 +154,11 @@ class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
         table_view.setMinimumHeight(50)
         table_view.horizontalHeader().hide()
         table_view.horizontalHeader().setStretchLastSection(False)
-        table_view.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
-        table_view.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
-        table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        table_view.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        table_view.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        table_view.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        table_view.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        table_view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+        table_view.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
 
         # await self.command_model.init()
         await self.update_client_list()
@@ -169,19 +167,19 @@ class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
             await self.comm.register_event(ModuleOpenedEvent, self._module_changed)
             await self.comm.register_event(ModuleClosedEvent, self._module_changed)
 
-    def _add_command_log(self, msg: str, color: Optional[str] = None) -> None:
+    def _add_command_log(self, msg: str, color: str | None = None) -> None:
         if color is not None:
             msg = '<span style="color:%s;">%s</span>' % (color, msg)
         self.add_command_log.emit(msg)
 
-    def _parse_command(self, cmd: str) -> Tuple[str, str, List[Any]]:
+    def _parse_command(self, cmd: str) -> tuple[str, str, list[Any]]:
         # tokenize command
         tokens = tokenize.tokenize(BytesIO(cmd.encode("utf-8")).readline)
 
         # init values
-        module: Optional[str] = None
-        command: Optional[str] = None
-        params: List[Any] = []
+        module: str | None = None
+        command: str | None = None
+        params: list[Any] = []
         sign = 1
 
         # we start here
@@ -321,5 +319,6 @@ class ShellWidget(QtWidgets.QWidget, BaseWidget, Ui_ShellWidget):
 
     async def update_client_list(self) -> None:
         # create model for commands
-        await self.command_model.init()
-        self.completer.setModel(self.command_model)
+        if self.command_model is not None and self.completer is not None:
+            await self.command_model.init()
+            self.completer.setModel(self.command_model)

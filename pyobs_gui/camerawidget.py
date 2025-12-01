@@ -1,8 +1,7 @@
-import asyncio
 import logging
-import os
-from typing import Any, Optional, Union, Dict, List
-from PyQt5 import QtWidgets, QtCore
+from typing import Any
+import qasync  # type: ignore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
@@ -32,14 +31,13 @@ from .qt.camerawidget_ui import Ui_CameraWidget
 log = logging.getLogger(__name__)
 
 
-class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
-    signal_update_gui = QtCore.pyqtSignal()
-    signal_new_image = QtCore.pyqtSignal(NewImageEvent, str)
+class CameraWidget(BaseWidget, Ui_CameraWidget):
+    signal_update_gui = QtCore.Signal()
+    signal_new_image = QtCore.Signal(NewImageEvent, str)
 
     def __init__(self, **kwargs: Any):
-        QtWidgets.QWidget.__init__(self)
         BaseWidget.__init__(self, update_func=self._update, **kwargs)
-        self.setupUi(self)
+        self.setupUi(self)  # type: ignore
 
         # variables
         self.new_image = False
@@ -53,10 +51,10 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
@@ -86,9 +84,18 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
+        self.butFullFrame.clicked.connect(self.set_full_frame)
+        self.comboBinning.currentTextChanged.connect(self.set_full_frame)
+        self.checkBroadcast.stateChanged.connect(self.broadcast_changed)
+        self.comboImageType.currentTextChanged.connect(self.image_type_changed)
+        self.butExpose.clicked.connect(self.expose)
+        self.butAbort.clicked.connect(self.abort)
+        self.buttonSetGain.clicked.connect(self.set_gain)
+        self.buttonSetOffset.clicked.connect(self.set_offset)
 
         # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
+        if self.comm is not None:
+            await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
 
         # fill sidebar
         await self.add_to_sidebar(self.create_widget(FitsHeadersWidget, module=self.module))
@@ -100,14 +107,16 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             await self.add_to_sidebar(self.create_widget(TemperaturesWidget, module=self.module))
 
     async def _init(self) -> None:
+        module = self.module
+
         # get status
-        if isinstance(self.module, ICamera):
-            self.exposure_status = ExposureStatus(await self.module.get_exposure_status())
+        if isinstance(module, ICamera):
+            self.exposure_status = ExposureStatus(await module.get_exposure_status())
 
         # get binnings
-        if isinstance(self.module, IBinning):
+        if isinstance(module, IBinning):
             # get binnings
-            binnings = ["%dx%d" % tuple(binning) for binning in await self.module.list_binnings()]
+            binnings = ["%dx%d" % tuple(binning) for binning in await module.list_binnings()]
 
             # set it
             self.comboBinning.clear()
@@ -117,9 +126,9 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             self.comboBinning.setCurrentIndex(0)
 
         # get image formats
-        if isinstance(self.module, IImageFormat):
+        if isinstance(module, IImageFormat):
             # get formats
-            image_formats = [ImageFormat(f) for f in await self.module.list_image_formats()]
+            image_formats = [ImageFormat(f) for f in await module.list_image_formats()]
 
             # set it
             self.comboImageFormat.clear()
@@ -133,20 +142,23 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             else:
                 self.comboImageFormat.setCurrentIndex(0)
 
+        # get gain and offset
+        if isinstance(module, IGain):
+            self.textGain.setText(f"{await module.get_gain()}")
+            self.textOffset.setText(f"{await module.get_offset()}")
+
         # set full frame
         await self.set_full_frame()
 
         # update GUI
         self.signal_update_gui.emit()
 
-    @QtCore.pyqtSlot(name="on_butFullFrame_clicked")
-    def _set_full_frame(self) -> None:
-        asyncio.create_task(self.set_full_frame())
-
+    @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:
-        if isinstance(self.module, IWindow):
+        module = self.module
+        if isinstance(module, IWindow):
             # get full frame
-            left, top, width, height = await self.module.get_full_frame()
+            left, top, width, height = await module.get_full_frame()
 
             # get binning
             binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinning) else 1
@@ -163,11 +175,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             self.spinWindowWidth.setValue(int(width / binning))
             self.spinWindowHeight.setValue(int(height / binning))
 
-    @QtCore.pyqtSlot(str, name="on_comboBinning_currentTextChanged")
-    def binning_changed(self, binning: str) -> None:
-        self.on_butFullFrame_clicked()
-
-    @QtCore.pyqtSlot(int, name="on_checkBroadcast_stateChanged")
+    @QtCore.Slot(int)  # type: ignore
     def broadcast_changed(self, state: int) -> None:
         if state == 0:
             r = QtWidgets.QMessageBox.question(
@@ -175,13 +183,13 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
                 "pyobs",
                 "When disabling the broadcast, new images will not processed (and "
                 "saved) within the pyobs network. Continue?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No,
             )
-            if r == QtWidgets.QMessageBox.No:
+            if r == QtWidgets.QMessageBox.StandardButton.No:
                 self.checkBroadcast.setChecked(True)
 
-    @QtCore.pyqtSlot(str, name="on_comboImageType_currentTextChanged")
+    @QtCore.Slot(str)  # type: ignore
     def image_type_changed(self, image_type: str) -> None:
         if image_type == "BIAS":
             self.spinExpTime.setValue(0)
@@ -189,16 +197,14 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         else:
             self.spinExpTime.setEnabled(True)
 
-    @QtCore.pyqtSlot(name="on_butExpose_clicked")
-    def _expose(self) -> None:
-        asyncio.create_task(self.expose())
-
+    @qasync.asyncSlot()  # type: ignore
     async def expose(self) -> None:
+        module = self.module
         # set binning
-        if isinstance(self.module, IBinning):
+        if isinstance(module, IBinning):
             binning = int(self.comboBinning.currentText()[0])
             try:
-                await self.module.set_binning(binning, binning)
+                await module.set_binning(binning, binning)
             except:
                 log.exception("bla")
                 QtWidgets.QMessageBox.information(self, "Error", "Could not set binning.")
@@ -207,22 +213,22 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             binning = 1
 
         # set window
-        if isinstance(self.module, IWindow):
+        if isinstance(module, IWindow):
             left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
             width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
             try:
-                await self.module.set_window(left, top, width * binning, height * binning)
+                await module.set_window(left, top, width * binning, height * binning)
             except:
                 QtWidgets.QMessageBox.information(self, "Error", "Could not set window.")
                 return
 
         # set image format
-        if isinstance(self.module, IImageFormat):
+        if isinstance(module, IImageFormat):
             image_format = ImageFormat[self.comboImageFormat.currentText()]
-            await self.module.set_image_format(image_format)
+            await module.set_image_format(image_format)
 
         # set exposure time
-        if isinstance(self.module, IExposureTime):
+        if isinstance(module, IExposureTime):
             # get exp_time
             exp_time = self.spinExpTime.value()
 
@@ -233,17 +239,13 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
                 exp_time /= 1e6
 
             # set it
-            await self.module.set_exposure_time(exp_time)
+            await module.set_exposure_time(exp_time)
 
         # set image type
         image_type = ImageType.OBJECT
-        if isinstance(self.module, IImageType):
+        if isinstance(module, IImageType):
             image_type = ImageType(self.comboImageType.currentText().lower())
-            await self.module.set_image_type(image_type)
-
-        # set gain
-        if isinstance(self.module, IGain):
-            await self.module.set_gain(self.spinGain.value())
+            await module.set_image_type(image_type)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
@@ -260,16 +262,10 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             # signal GUI update
             self.signal_update_gui.emit()
 
-    def plot(self) -> None:
-        """Show image."""
-        self.imageView.display(self.image)
-
-    @QtCore.pyqtSlot(name="on_butAbort_clicked")
-    def _abort(self) -> None:
-        asyncio.create_task(self.abort())
-
+    @qasync.asyncSlot()  # type: ignore
     async def abort(self) -> None:
         """Abort exposure."""
+        module = self.module
 
         # do we have a running exposure?
         if self.exposures_left == 0:
@@ -280,17 +276,18 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
             # abort sequence
             self.exposures_left = 0
         else:
-            if isinstance(self.module, ICamera):
-                await self.module.abort()
+            if isinstance(module, IAbortable):
+                await module.abort()
 
     async def _update(self) -> None:
+        module = self.module
         # are we exposing?
         if self.exposure_status == ExposureStatus.EXPOSING:
             # get camera status
-            if isinstance(self.module, IExposureTime):
-                self.exposure_time_left = await self.module.get_exposure_time_left()
-            if isinstance(self.module, ICamera):
-                self.exposure_progress = await self.module.get_exposure_progress()
+            if isinstance(module, IExposureTime):
+                self.exposure_time_left = await module.get_exposure_time_left()
+            if isinstance(module, ICamera):
+                self.exposure_progress = await module.get_exposure_progress()
 
         else:
             # reset
@@ -337,43 +334,6 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         else:
             self.labelExposuresLeft.setText("")
 
-        # trigger image update
-        if self.new_image and self.image_filename is not None:
-            # set filename
-            self.tabWidget.setTabText(0, os.path.basename(self.image_filename))
-
-            # plot image
-            self.plot()
-
-            # set fits headers
-            self.show_fits_headers()
-
-            # reset
-            self.new_image = False
-
-    def show_fits_headers(self) -> None:
-        # check
-        if self.image is None:
-            return
-
-        # get all header cards
-        headers = {}
-        for card in self.image.header.cards:
-            headers[card.keyword] = (card.value, card.comment)
-
-        # prepare table
-        self.tableFitsHeader.setRowCount(len(headers))
-
-        # set headers
-        for i, key in enumerate(sorted(headers.keys())):
-            self.tableFitsHeader.setItem(i, 0, QtWidgets.QTableWidgetItem(key))
-            self.tableFitsHeader.setItem(i, 1, QtWidgets.QTableWidgetItem(str(headers[key][0])))
-            self.tableFitsHeader.setItem(i, 2, QtWidgets.QTableWidgetItem(headers[key][1]))
-
-        # adjust column widths
-        self.tableFitsHeader.resizeColumnToContents(0)
-        self.tableFitsHeader.resizeColumnToContents(1)
-
     async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
         """Called when exposure status of module changed.
 
@@ -383,7 +343,7 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         """
 
         # ignore events from wrong sender
-        if self.module is None or sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
+        if sender != self.module.name or not isinstance(event, ExposureStatusChangedEvent):
             return False
 
         # store new status
@@ -392,3 +352,27 @@ class CameraWidget(QtWidgets.QWidget, BaseWidget, Ui_CameraWidget):
         # trigger GUI update
         self.signal_update_gui.emit()
         return True
+
+    @qasync.asyncSlot()  # type: ignore
+    async def set_gain(self) -> None:
+        module = self.module
+        if not isinstance(module, IGain):
+            return
+        value = float(self.textGain.text())
+        new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set camera gain", "New value", value, 0.0, 10000.0, 2)
+        if ok:
+            self.textGain.setText(str(new_value))
+            await module.set_gain(new_value)
+
+    @qasync.asyncSlot()  # type: ignore
+    async def set_offset(self) -> None:
+        module = self.module
+        if not isinstance(module, IGain):
+            return
+        value = float(self.textOffset.text())
+        new_value, ok = QtWidgets.QInputDialog.getDouble(
+            self, "Set camera gain offset", "New value", value, 0.0, 60000.0, 2
+        )
+        if ok:
+            self.textOffset.setText(str(new_value))
+            await module.set_offset(new_value)
