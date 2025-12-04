@@ -13,6 +13,7 @@ from astroplan import Observer
 from pyobs.comm import Comm, Proxy
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
 from pyobs.utils import exceptions as exc
+from pyobs.utils.shellcommand import ShellCommand
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 from .qt.shellwidget_ui import Ui_ShellWidget
@@ -172,133 +173,23 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
             msg = '<span style="color:%s;">%s</span>' % (color, msg)
         self.add_command_log.emit(msg)
 
-    def _parse_command(self, cmd: str) -> tuple[str, str, list[Any]]:
-        # tokenize command
-        tokens = tokenize.tokenize(BytesIO(cmd.encode("utf-8")).readline)
-
-        # init values
-        module: str | None = None
-        command: str | None = None
-        params: list[Any] = []
-        sign = 1
-
-        # we start here
-        state = ParserState.START
-
-        # loop tokens
-        for t in tokens:
-            if state == ParserState.START:
-                # first token is always ENCODING
-                if t.type != tokenize.ENCODING:
-                    raise ValueError("Invalid command.")
-                state = ParserState.MODULE
-
-            elif state == ParserState.MODULE:
-                # 2nd token is always a NAME with the command
-                if t.type != tokenize.NAME:
-                    raise ValueError("Invalid command.")
-                module = t.string
-                state = ParserState.MODSEP
-
-            elif state == ParserState.MODSEP:
-                # 3rd token is always a point
-                if t.type != tokenize.OP or t.string != ".":
-                    raise ValueError("Invalid command.")
-                state = ParserState.COMMAND
-
-            elif state == ParserState.COMMAND:
-                # 4th token is always a NAME with the command
-                if t.type != tokenize.NAME:
-                    raise ValueError("Invalid command.")
-                command = t.string
-                state = ParserState.OPEN
-
-            elif state == ParserState.OPEN:
-                # 5th token is always an OP with an opening bracket
-                if t.type != tokenize.OP or t.string != "(":
-                    raise ValueError("Invalid parameters.")
-                state = ParserState.PARAM
-
-            elif state == ParserState.PARAM:
-                # if params list is empty, we accept an OP with a closing bracket, otherwise it must be
-                # a NUMBER or STRING
-                if len(params) == 0 and t.type == tokenize.OP and t.string == ")":
-                    state = ParserState.CLOSE
-                elif t.type == tokenize.OP and t.string == "-":
-                    sign = -1
-                elif t.type == tokenize.NUMBER or t.type == tokenize.STRING:
-                    if t.type == tokenize.STRING:
-                        if t.string[0] == t.string[-1] and t.string[0] in ['"', '"']:
-                            params.append(t.string[1:-1])
-                        else:
-                            params.append(t.string)
-                    else:
-                        params.append(sign * float(t.string))
-                    sign = 1
-                    state = ParserState.PARAMSEP
-                else:
-                    raise ValueError("Invalid parameters.")
-
-            elif state == ParserState.PARAMSEP:
-                # following a PARAM, there must be an OP, either a comma, or a closing bracket
-                if t.type != tokenize.OP:
-                    raise ValueError("Invalid parameters.")
-                if t.string == ",":
-                    state = ParserState.PARAM
-                elif t.string == ")":
-                    state = ParserState.CLOSE
-                else:
-                    raise ValueError("Invalid parameters.")
-
-            elif state == ParserState.CLOSE:
-                # must be a closing bracket
-                if t.type not in [tokenize.NEWLINE, tokenize.ENDMARKER]:
-                    raise ValueError("Expecting end of command after closing bracket.")
-
-                # return results
-                if module is None or command is None:
-                    raise ValueError("Found end of command without module and/or command.")
-                return module, command, params
-
-        # if we came here, something went wrong
-        raise ValueError("Invalid parameters.")
-
     def execute_command(self, command: str) -> None:
         asyncio.create_task(self._execute_command(command))
 
     async def _execute_command(self, command: str) -> None:
-        # log command
-        self.command_number += 1
-        self._add_command_log("$ (#%d) %s" % (self.command_number, command))
-
-        # parse command
         try:
-            client, command, params = self._parse_command(command)
+            cmd = ShellCommand.parse(command)
+            self._add_command_log(str(cmd))
         except Exception as e:
-            self._add_command_log("(#%d): %s" % (self.command_number, str(e)), "red")
-            return
-
-        # get proxy
-        try:
-            proxy = await self.comm.proxy(client)
-        except ValueError:
-            self._add_command_log(f"(#{self.command_number}): Could not find module: {str(client)}", "red")
+            self._add_command_log(f"$ {command}")
+            self._add_command_log(f"{str(e)}", "red")
             return
 
         # execute command
-        try:
-            response = await proxy.execute(command, *params)
-        except ValueError as e:
-            log.exception(f"(#{self.command_number}): Something has gone wrong.")
-            self._add_command_log(f"(#{self.command_number}): Invalid parameter: {str(e)}", "red")
-            return
-        except exc.RemoteError as e:
-            self._add_command_log(f"(#{self.command_number}) Exception raised: {str(e)}", "red")
-            return
+        response = await cmd.execute(self.comm)
 
         # log response
-        msg = "OK" if response is None else pprint.pformat(response)
-        self._add_command_log("(#%d) %s" % (self.command_number, msg), "lime")
+        self._add_command_log(str(response), response.color)
 
     def _update_docs(self) -> None:
         return

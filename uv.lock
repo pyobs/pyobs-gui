@@ -579,6 +579,15 @@ wheels = [
 ]
 
 [[package]]
+name = "dacite"
+version = "1.9.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/a0/7ca79796e799a3e782045d29bf052b5cde7439a2bbb17f15ff44f7aacc63/dacite-1.9.2.tar.gz", hash = "sha256:6ccc3b299727c7aa17582f0021f6ae14d5de47c7227932c47fec4cdfefd26f09", size = 22420, upload-time = "2025-02-05T09:27:29.757Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/35/386550fd60316d1e37eccdda609b074113298f23cef5bddb2049823fe666/dacite-1.9.2-py3-none-any.whl", hash = "sha256:053f7c3f5128ca2e9aceb66892b1a3c8936d02c686e707bee96e19deef4bc4a0", size = 16600, upload-time = "2025-02-05T09:27:24.345Z" },
+]
+
+[[package]]
 name = "dbus-next"
 version = "0.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1694,7 +1703,7 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "1.26.1"
+version = "1.34.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1702,8 +1711,8 @@ dependencies = [
     { name = "astropy" },
     { name = "astroquery" },
     { name = "colour" },
+    { name = "dacite" },
     { name = "dbus-next" },
-    { name = "matplotlib" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "paramiko" },
@@ -1716,14 +1725,14 @@ dependencies = [
     { name = "slixmpp" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/e2/81d2010de83d90a778602ca6d4959f9d64e62e60c0d008decd5fc1e8093c/pyobs_core-1.26.1.tar.gz", hash = "sha256:0aafec1aafc07e07b421ce9fa42968edf852ba265e8c22116dbec17e8b4d108c", size = 211232, upload-time = "2025-07-24T13:23:09.37Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fc/6d/175f2d6e16623767d7e730c43c2607033727774d16b57a33b219f5e5125b/pyobs_core-1.34.0.tar.gz", hash = "sha256:4b16a94db4d1261e69d3461174a146a480c0f322bf417dee36ceb7a0d4928443", size = 261566, upload-time = "2025-12-04T17:46:55.92Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/fc/3a76ad395e1733e8d83d337a6743d1b70f6c98d60452164bf6ff1a1ac46f/pyobs_core-1.26.1-py3-none-any.whl", hash = "sha256:0451752d8137f38b1fe41afd691a15f55379195520e8317f32d527c044602f76", size = 367219, upload-time = "2025-07-24T13:23:07.898Z" },
+    { url = "https://files.pythonhosted.org/packages/47/34/19e29b178086ed282c769405a22066736714f1cda7d372483b7bc6600bb1/pyobs_core-1.34.0-py3-none-any.whl", hash = "sha256:d0d2c3cda01255f99f8d0926649cae2d511b9af8e07d022aaffb0c9849260949", size = 441072, upload-time = "2025-12-04T17:46:57.561Z" },
 ]
 
 [[package]]
 name = "pyobs-gui"
-version = "1.4.1"
+version = "1.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "colour" },
@@ -1755,7 +1764,7 @@ dev = [
 requires-dist = [
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
-    { name = "pyobs-core", specifier = ">=1.24.0" },
+    { name = "pyobs-core", specifier = ">=1.34.0" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.28" },
     { name = "qfitswidget", specifier = ">=0.13.1" },
