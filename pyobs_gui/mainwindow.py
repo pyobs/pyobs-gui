@@ -213,12 +213,16 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         await self.comm.register_event(ModuleOpenedEvent, self._client_connected)
         await self.comm.register_event(ModuleClosedEvent, self._client_disconnected)
 
-        # create other nav buttons and views
-        for client_name in self.comm.clients:
-            await self._client_connected(Event(), client_name)
+        # add clients
+        asyncio.create_task(self._init_clients())
 
         # add timer for checking warnings
         self.warning_task = asyncio.create_task(self._check_warning_task())
+
+    async def _init_clients(self) -> None:
+        # create other nav buttons and views
+        for client_name in self.comm.clients:
+            await self._client_connected(Event(), client_name)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.warning_task is not None:
