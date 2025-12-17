@@ -126,12 +126,16 @@ class StatusWidget(BaseWidget):
             await self.comm.register_event(ModuleOpenedEvent, self._module_opened)
             await self.comm.register_event(ModuleClosedEvent, self._module_closed)
 
-            # add all existing modules
-            for mod in self.comm.clients:
-                await self._module_opened(ModuleOpenedEvent(), mod)
+            # add clients
+            asyncio.create_task(self._init_clients())
 
         # trigger status updates
-        # self._status_task = asyncio.create_task(self._update_status())
+        self._status_task = asyncio.create_task(self._update_status())
+
+    async def _init_clients(self) -> None:
+        # create other nav buttons and views
+        for client_name in self.comm.clients:
+            await self._module_opened(ModuleOpenedEvent(), client_name)
 
     async def _module_opened(self, event: Event, sender: str) -> bool:
         """Called when module was opened."""
