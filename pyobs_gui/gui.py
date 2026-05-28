@@ -69,9 +69,9 @@ class GUI(Module, IFitsHeaderBefore):
         )
         await self._window.open(
             module=self,
-            comm=self.comm,
-            vfs=self.vfs,
-            observer=self.observer,
+            comm=self._comm,
+            vfs=self._vfs,
+            observer=self._observer,
         )
         self._window.show()
 
