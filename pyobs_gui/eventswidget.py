@@ -191,7 +191,7 @@ class SendEventDialog(QtWidgets.QDialog):  # type: ignore
 
         # create event and send it
         event = self._event(**values)
-        asyncio.create_task(self.comm.send_event(event))
+        asyncio.create_task(self._comm.send_event(event))
 
         # accept dialog
         self.accept()
