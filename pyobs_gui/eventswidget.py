@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 from enum import EnumMeta
-from typing import Any, Type, Dict, Optional, Union, get_origin, get_args, List
+from typing import Any, Type, get_origin, get_args, Union
 from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
 from astroplan import Observer
@@ -31,10 +31,10 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
@@ -177,7 +177,7 @@ class SendEventDialog(QtWidgets.QDialog):  # type: ignore
         """Actually send event."""
 
         # collect values
-        values: Dict[str, Any] = {}
+        values: dict[str, Any] = {}
         for name, (checkbox, widget, ann) in self._widgets.items():
             if checkbox is not None and not checkbox.isChecked():
                 values[name] = None

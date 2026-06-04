@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any, Optional, cast, Union, Dict, List
+from typing import Any, cast
 from urllib.parse import urlparse
 
 import qasync  # type: ignore
@@ -42,9 +42,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self.setupUi(self)  # type: ignore
 
         # store
-        self.host: Optional[str] = None
-        self.port: Optional[int] = None
-        self.path: Optional[str] = None
+        self.host: str | None = None
+        self.port: int | None = None
+        self.path: str | None = None
         self.exposures_left = 0
 
         # add live view
@@ -78,10 +78,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
     async def open(
         self,
-        modules: Optional[List[Proxy]] = None,
-        comm: Optional[Comm] = None,
-        observer: Optional[Observer] = None,
-        vfs: Optional[Union[VirtualFileSystem, Dict[str, Any]]] = None,
+        modules: list[Proxy] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
