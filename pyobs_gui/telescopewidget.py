@@ -35,7 +35,6 @@ from .compassmovewidget import CompassMoveWidget
 from .qt.telescopewidget_ui import Ui_TelescopeWidget
 from .base import BaseWidget
 
-
 log = logging.getLogger(__name__)
 
 
@@ -266,7 +265,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.setEnabled(True)
 
         # show motion status
-        self.labelStatus.setText(self._motion_status.value.upper())
+        self.labelStatus.setText(self._motion_status.upper())
 
         # (de)activate buttons
         self.buttonInit.setEnabled(self._motion_status == MotionStatus.PARKED)

@@ -9,7 +9,6 @@ from pyobs.utils.enums import MotionStatus
 from .base import BaseWidget
 from .qt.focuswidget_ui import Ui_FocusWidget
 
-
 log = logging.getLogger(__name__)
 
 
@@ -95,7 +94,7 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
     def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
-        self.labelCurStatus.setText(self._motion_status.name)
+        self.labelCurStatus.setText(self._motion_status)
         self.labelCurFocusBase.setText("" if self._focus is None else f"{self._focus:.3f}")
         self.labelCurFocusOffset.setText("" if self._focus_offset is None else f"{self._focus_offset:.3f}")
         self.labelCurFocus.setText(
