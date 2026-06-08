@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Task
-from typing import Any, Dict, Optional, cast, Union, List
+from typing import Any, cast
 
 import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
@@ -48,8 +48,8 @@ class StatusItem(QtWidgets.QWidget):
         self.module = cast(IModule, proxy)
 
         # remember last
-        self.last_state: Optional[ModuleState] = None
-        self.last_error: Optional[str] = None
+        self.last_state: ModuleState | None = None
+        self.last_error: str | None = None
 
     async def update_status(self) -> None:
         """Update status of module and display it."""

@@ -39,7 +39,6 @@ from .roofwidget import RoofWidget
 from .shellwidget import ShellWidget
 from .spectrographwidget import SpectrographWidget
 
-
 DEFAULT_WIDGETS = {
     ICamera: CameraWidget,
     ITelescope: TelescopeWidget,
@@ -79,6 +78,14 @@ DEFAULT_CONFIG = [
     {"widget": SpectrographWidget, "interfaces": "ISpectrograph", "icon": "ei.graph"},
     {"widget": FilterWidget, "interfaces": "IFilters", "icon": "mdi.air-filter"},
 ]
+
+
+def _is_float(s: str) -> bool:
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
@@ -307,7 +314,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             return False
 
         # date
-        time = Time(entry.time, format="unix")
+        if _is_float(entry.time):
+            time = Time(entry.time, format="unix")
+        else:
+            time = Time(entry.time)
 
         # define new row and emit
         row = [
