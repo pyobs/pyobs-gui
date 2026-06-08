@@ -2,7 +2,7 @@ import asyncio
 import os
 from typing import Optional, List, Any, Dict, Tuple
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
-from astropy.time import Time
+from pyobs.utils.time import Time
 from colour import Color  # type: ignore
 
 os.environ["QT_API"] = "pyside6"
