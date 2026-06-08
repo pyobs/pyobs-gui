@@ -51,7 +51,7 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
     def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
-        self.textStatus.setText(self._motion_status.name)
+        self.textStatus.setText(self._motion_status)
         self.textFilter.setText("" if self._filter is None else self._filter)
         initialized = self._motion_status in [
             MotionStatus.SLEWING,

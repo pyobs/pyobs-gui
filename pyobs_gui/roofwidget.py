@@ -53,7 +53,7 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
 
         # set status
         if self.motion_status is not None:
-            self.labelStatus.setText(self.motion_status.value)
+            self.labelStatus.setText(self.motion_status)
 
         # open
         if self.azimuth is None:

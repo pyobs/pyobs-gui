@@ -74,7 +74,7 @@ class StatusItem(QtWidgets.QWidget):
             self.last_error = error
 
         else:
-            self.labelStatus.setText(f"{state.value.upper()}")
+            self.labelStatus.setText(f"{state.upper()}")
             self.setStyleSheet("background-color: yellow; color: black;")
             self.buttonAction.setVisible(False)
 
