@@ -295,7 +295,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.buttonResetEquatorialOffsets.setEnabled(initialized)
 
         # coordinates
-        if self._ra_dec is not None:
+        if self._ra_dec is not None and not np.isnan(self._ra_dec.ra.deg):
             self.labelCurRA.setText(self._ra_dec.ra.to_string(unit=u.hour, sep=":", precision=3))
             self.labelCurDec.setText(self._ra_dec.dec.to_string(unit=u.deg, sep=":", precision=3))
         else:
