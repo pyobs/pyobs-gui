@@ -48,7 +48,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
             self.setEnabled(True)
 
             # get layout
-            layout = cast(QtWidgets.QFormLayout, self.frame.layout())
+            layout = cast("QtWidgets.QFormLayout", self.frame.layout())
 
             # loop temps
             for key in sorted(self._temps.keys()):

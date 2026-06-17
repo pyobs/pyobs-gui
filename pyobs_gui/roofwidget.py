@@ -1,11 +1,15 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, TYPE_CHECKING
 import qasync  # type: ignore
 from qtpy import QtCore  # type: ignore
 
 from pyobs.interfaces import IDome, IMotion
-from pyobs.utils.enums import MotionStatus
 from .base import BaseWidget
 from .qt.roofwidget_ui import Ui_RoofWidget
+
+if TYPE_CHECKING:
+    from pyobs.utils.enums import MotionStatus
 
 
 class RoofWidget(BaseWidget, Ui_RoofWidget):

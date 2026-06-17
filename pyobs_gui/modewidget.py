@@ -69,7 +69,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
                 button.clicked.connect(functools.partial(self.set_mode, i))
                 layout.addWidget(button)
                 self._mode_widgets.append((current, button))
-                cast(QtWidgets.QFormLayout, self.groupBox.layout()).addRow(self._mode_groups[i], layout)
+                cast("QtWidgets.QFormLayout", self.groupBox.layout()).addRow(self._mode_groups[i], layout)
 
         # update gui
         self.signal_update_gui.emit()

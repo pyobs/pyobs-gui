@@ -1,19 +1,21 @@
 import asyncio
 import logging
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlparse
 
 import qasync  # type: ignore
-from PySide6 import QtWidgets, QtCore, QtGui, QtNetwork  # type: ignore
 from astroplan import Observer
-
-from pyobs.comm import Proxy, Comm
-from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IGain
-from pyobs.modules import Module
+from pyobs.comm import Comm, Proxy
+from pyobs.interfaces import IExposureTime, IGain, IImageFormat, IImageType, IVideo
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
+from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
+
 from .base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
+
+if TYPE_CHECKING:
+    from pyobs.modules import Module
 
 log = logging.getLogger(__name__)
 
@@ -105,7 +107,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         video_file = self.vfs.open_file(video_path, "r")
 
         # we heed a HttpFile
-        module = cast(Module, cast(object, self.module))
+        module = cast("Module", cast("object", self.module))
         if not isinstance(video_file, HttpFile):
             log.error("VFS path to video of module %s must be an HttpFile.", module.name)
             return

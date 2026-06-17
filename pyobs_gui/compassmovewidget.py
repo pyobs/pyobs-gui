@@ -1,6 +1,5 @@
 from typing import Any
 from PySide6 import QtWidgets, QtCore  # type: ignore
-import qasync  # type: ignore
 import astropy.units as u
 from astropy.coordinates import SkyCoord, ICRS
 

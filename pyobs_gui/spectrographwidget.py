@@ -1,19 +1,22 @@
-import asyncio
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import Any, TYPE_CHECKING
 import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
-from astroplan import Observer
-from astropy.io import fits
 
-from pyobs.comm import Proxy, Comm
 from pyobs.events import ExposureStatusChangedEvent, Event
 from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
 from pyobs.utils.enums import ExposureStatus
-from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 
 from .qt.spectrographwidget_ui import Ui_SpectrographWidget
+
+if TYPE_CHECKING:
+    from astroplan import Observer
+    from pyobs.vfs import VirtualFileSystem
+    from pyobs.comm import Proxy, Comm
+    from astropy.io import fits
 
 
 log = logging.getLogger(__name__)

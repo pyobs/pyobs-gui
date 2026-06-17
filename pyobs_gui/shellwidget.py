@@ -1,18 +1,14 @@
 import asyncio
-import pprint
-from io import BytesIO
 import re
 from typing import Any
 from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
-import tokenize
 from enum import Enum
 import logging
 from astroplan import Observer
 
 from pyobs.comm import Comm, Proxy
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
-from pyobs.utils import exceptions as exc
 from pyobs.utils.shellcommand import ShellCommand
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget

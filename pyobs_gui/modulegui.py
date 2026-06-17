@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 import sys
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 import qasync  # type: ignore
-from pyobs.comm import Proxy
 from qasync import QEventLoop  # noqa: F401
 from PySide6 import QtWidgets, QtGui  # type: ignore
 
@@ -12,6 +10,10 @@ from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
 from .base import BaseWindow
 from .mainwindow import MainWindow, DEFAULT_WIDGETS
+
+if TYPE_CHECKING:
+    import asyncio
+    from pyobs.comm import Proxy
 
 
 class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
@@ -31,7 +33,7 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
                 break
 
         # open widgets
-        await BaseWindow.open(self, modules=[cast(Proxy, cast(object, module))], **kwargs)
+        await BaseWindow.open(self, modules=[cast("Proxy", cast("object", module))], **kwargs)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
@@ -66,7 +68,7 @@ class ModuleGUI(Module, IFitsHeaderBefore):
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         ModuleGUI.app = QtWidgets.QApplication(sys.argv)
-        return cast(asyncio.AbstractEventLoop, qasync.QEventLoop(ModuleGUI.app))
+        return cast("asyncio.AbstractEventLoop", qasync.QEventLoop(ModuleGUI.app))
 
     async def open(self) -> None:
         """Open module."""

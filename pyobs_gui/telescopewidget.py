@@ -27,7 +27,6 @@ from pyobs.interfaces import (
 )
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
-from pyobs.vfs import VirtualFileSystem
 from .filterwidget import FilterWidget
 from .focuswidget import FocusWidget
 from .temperatureswidget import TemperaturesWidget

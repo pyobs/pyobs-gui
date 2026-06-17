@@ -14,6 +14,7 @@ dependencies = [
     "qfitswidget>=0.13.1",
     "pyobs-core==1.49.0",
     "pyside6>=6.10.1",
+    "astroplan>=0.10.1",
 ]
 
 [dependency-groups]

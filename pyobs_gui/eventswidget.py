@@ -46,7 +46,7 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
                 await self.comm.register_event(cls, self._handle_event)
 
                 # get c'tor
-                ctor = getattr(cls, "__init__")
+                ctor = cls.__init__
                 sig = inspect.signature(ctor)
                 params = (
                     []
@@ -119,7 +119,7 @@ class SendEventDialog(QtWidgets.QDialog):  # type: ignore
         layout.addWidget(title)
 
         # get c'tor and its params
-        ctor = getattr(event, "__init__")
+        ctor = event.__init__
         sig = inspect.signature(ctor)
 
         # add input for every param
@@ -138,11 +138,11 @@ class SendEventDialog(QtWidgets.QDialog):  # type: ignore
 
                 # create widget
                 widget: QtWidgets.QSpinBox | QtWidgets.QDoubleSpinBox | QtWidgets.QComboBox | QtWidgets.QLineEdit
-                if ann == int:
+                if ann is int:
                     widget = QtWidgets.QSpinBox()
                     widget.setMinimum(-100000)
                     widget.setMaximum(100000)
-                elif ann == float:
+                elif ann is float:
                     widget = QtWidgets.QDoubleSpinBox()
                     widget.setMinimum(-1e5)
                     widget.setMaximum(1e5)

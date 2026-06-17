@@ -45,7 +45,7 @@ class StatusItem(QtWidgets.QWidget):
         # store
         self.comm = comm
         self.name = proxy.name
-        self.module = cast(IModule, proxy)
+        self.module = cast("IModule", proxy)
 
         # remember last
         self.last_state: ModuleState | None = None
@@ -200,7 +200,7 @@ class StatusWidget(BaseWidget):
             futures = []
             for row in range(self.table.rowCount()):
                 # get widget and update it
-                widget = cast(StatusItem, self.table.cellWidget(row, 2))
+                widget = cast("StatusItem", self.table.cellWidget(row, 2))
                 if widget is not None:
                     futures.append(asyncio.create_task(widget.update_status()))
 

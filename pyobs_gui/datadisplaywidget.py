@@ -1,25 +1,29 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 import numpy as np
 from PySide6 import QtWidgets, QtCore  # type: ignore
-from astropy.io import fits
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
 
 os.environ["QT_API"] = "PySide6"
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 from qfitswidget import QFitsWidget  # type: ignore
 
-from pyobs.comm import Proxy
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IData, ISpectrograph
 from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    from pyobs.comm import Proxy
+    from matplotlib.axes import Axes
+    from astropy.io import fits
 
 log = logging.getLogger(__name__)
 
@@ -91,9 +95,9 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
             if isinstance(module, ISpectrograph):
-                await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, cast(object, module)).name)
+                await self._on_new_data(NewSpectrumEvent(filename), cast("Proxy", cast("object", module)).name)
             elif isinstance(module, IData):
-                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, cast(object, module)).name)
+                await self._on_new_data(NewImageEvent(filename, image_type), cast("Proxy", cast("object", module)).name)
             else:
                 raise ValueError("Unknown type")
 
