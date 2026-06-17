@@ -2,18 +2,22 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Coroutine
-from typing import Any, TypeVar, Callable, Type
-from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
-from astroplan import Observer
+from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar
 
-from pyobs.comm import Comm, Proxy
+import pyobs.utils.exceptions as exc
 from pyobs.interfaces import IModule
 from pyobs.object import create_object
 from pyobs.utils.enums import ModuleState
-from pyobs.vfs import VirtualFileSystem
-import pyobs.utils.exceptions as exc
+from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
+
 from .utils import QAsyncMessageBox
+
+if TYPE_CHECKING:
+    from collections.abc import Coroutine
+
+    from astroplan import Observer
+    from pyobs.comm import Comm, Proxy
+    from pyobs.vfs import VirtualFileSystem
 
 log = logging.getLogger(__name__)
 
