@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar, overload
 
 import pyobs.utils.exceptions as exc
 from pyobs.interfaces import IModule
@@ -85,6 +85,10 @@ class BaseWindow:
         modules = self.modules_by_interface(interface)
         return None if len(modules) == 0 else modules[0]
 
+    @overload
+    def create_widget(self, config: type[WidgetClass], **kwargs: Any) -> WidgetClass: ...
+    @overload
+    def create_widget(self, config: dict[str, Any], **kwargs: Any) -> "BaseWidget": ...
     def create_widget(self, config: dict[str, Any] | type, **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
 

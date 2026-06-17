@@ -419,9 +419,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # custom sidebar?
         for csw in self.custom_sidebar_widgets:
             if csw["module"] == client:
-                widget.add_to_sidebar(self.create_widget(csw["widget"], module=proxy))
+                await widget.add_to_sidebar(self.create_widget(csw["widget"], module=proxy))
 
         # add it
+        if icon is None:
+            icon = qta.icon(DEFAULT_ICONS[None])
         await self._add_client(client, icon, widget, proxy)
 
         # check mastermind

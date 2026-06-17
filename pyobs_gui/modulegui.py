@@ -9,7 +9,7 @@ from PySide6 import QtWidgets, QtGui  # type: ignore
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
 from .base import BaseWindow
-from .mainwindow import MainWindow, DEFAULT_WIDGETS
+from .mainwindow import DEFAULT_WIDGETS
 
 if TYPE_CHECKING:
     import asyncio
@@ -62,7 +62,7 @@ class ModuleGUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window: MainWindow | None = None
+        self._window: ModuleWindow | None = None
         self._module = self.add_child_object(module, Module, own_comm=False)
 
     @staticmethod
@@ -99,6 +99,6 @@ class ModuleGUI(Module, IFitsHeaderBefore):
             Dictionary containing FITS headers.
         """
         if self._window is not None:
-            return self._window.get_fits_headers(namespaces)
+            return self._window.get_fits_headers(namespaces)  # pyrefly: ignore [missing-attribute]
         else:
             return {}

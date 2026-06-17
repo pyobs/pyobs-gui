@@ -32,12 +32,15 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         self.run_background(self.__move_offset, self.sender())
 
     async def __move_offset(self, sender: QtWidgets.QWidget) -> None:
+        if self.observer is None:
+            return
+
         # get offsets
         if isinstance(self.module, IOffsetsAltAz) and isinstance(self.module, IPointingAltAz):
             alt, az = await self.module.get_altaz()
             altaz = SkyCoord(
-                alt=alt * u.degree,
-                az=alt * u.degree,
+                alt=alt * u.degree,  # pyrefly: ignore [missing-attribute]
+                az=az * u.degree,  # pyrefly: ignore [missing-attribute]
                 obstime=Time.now(),
                 location=self.observer.location,
                 frame="altaz",
@@ -66,7 +69,7 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         if isinstance(self.module, IOffsetsRaDec):
             self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
         elif isinstance(self.module, IOffsetsAltAz):
-            off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)
+            off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)  # noqa: E501
             self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
         else:
             raise ValueError
