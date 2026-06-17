@@ -19,7 +19,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black>=25.1.0,<26",
-    "flake8>=7.3.0",
+    "ruff>=0.11.0",
     "matplotlib-stubs>=0.1.0",
     "mypy>=1.17.0",
     "pandas-stubs>=2.3.0.250703",
@@ -38,3 +38,17 @@ build-backend = "hatchling.build"
 [tool.black]
 line-length = 120
 target-version = ['py311']
+
+[tool.ruff]
+line-length = 120
+exclude = [".git", ".venv", "__pycache__", "docs", "build", "dist", "pyobs_gui/qt/"]
+
+[tool.ruff.lint]
+select = ["B", "C90", "E", "F", "W", "TCH"]
+ignore = ["E203", "E266", "E501", "F403", "E722"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 30
