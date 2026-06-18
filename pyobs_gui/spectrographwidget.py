@@ -118,7 +118,6 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # set message
         self.labelStatus.setText(msg)
 
-
     async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
         """Called when exposure status of module changed.
 
@@ -137,4 +136,3 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # trigger GUI update
         self.signal_update_gui.emit()
         return True
-

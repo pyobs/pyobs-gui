@@ -13,7 +13,7 @@ class CommandInputWidget(QtWidgets.QLineEdit):  # type: ignore
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         if event.key() == QtCore.Qt.Key.Key_Return:
             # get command
-            cmd = str(self.text())
+            cmd = self.text()
             # emit command
             self.commandExecuted.emit(cmd)
             # clear text field

@@ -109,7 +109,7 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
             return special.index(self.text()) < special.index(other.text())
         else:
             # none are
-            return bool(self.text() < other.text())
+            return self.text() < other.text()
 
 
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
@@ -235,7 +235,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if self.warning_task is not None:
             self.warning_task.cancel()
         if self.module is not None:
-            self.module.quit()
+            # quit() exists on Module but is not declared on Proxy
+            self.module.quit()  # pyrefly: ignore [missing-attribute] —
 
     async def _add_client(
         self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None
@@ -322,7 +323,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # define new row and emit
         row = [
             time.iso.split()[1],
-            str(sender),
+            sender,
             entry.level,
             "%s:%d" % (os.path.basename(entry.filename), entry.line),
             entry.message,
@@ -344,7 +345,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         """Update log filter."""
 
         # update proxy
-        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.CheckState.Checked)
+        self.log_proxy.filter_source(item.text(), item.checkState() == QtCore.Qt.CheckState.Checked)
 
     async def _check_warning_task(self) -> None:
         while True:

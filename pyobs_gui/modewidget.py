@@ -85,7 +85,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
             MotionStatus.POSITIONED,
         ]
         for i in range(len(self._mode_groups)):
-            self._mode_widgets[i][0].setText(str(self._modes[i]))
+            self._mode_widgets[i][0].setText(self._modes[i])
             self._mode_widgets[i][1].setEnabled(initialized)
 
     async def _on_mode_changed(self, event: Event, sender: str) -> bool:

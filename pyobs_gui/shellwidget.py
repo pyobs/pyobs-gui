@@ -98,7 +98,7 @@ class CommandModel(QtCore.QAbstractTableModel):  # type: ignore
 
     def data(self, index: QtCore.QModelIndex | QtCore.QPersistentModelIndex, role: int = 0) -> Any:
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
-            return str(self.commands[index.row()][index.column()])
+            return self.commands[index.row()][index.column()]
         return None
 
 

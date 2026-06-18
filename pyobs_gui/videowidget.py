@@ -127,7 +127,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             self.host, self.port = s[0], int(s[1])
         else:
             self.host, self.port = (o.netloc, 80)
-        self.path = str(o.path)
+        self.path = o.path
 
         # get initial values
         if isinstance(self.module, IExposureTime):
@@ -144,7 +144,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
         # connect socket
         if self.host is not None and self.port is not None and self.path is not None:
-            self.socket.connectToHost(self.host, int(self.port))
+            self.socket.connectToHost(self.host, self.port)
             self.socket.write(b"GET %s HTTP/1.1\r\n\r\n" % bytes(self.path, "UTF-8"))
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
