@@ -13,3 +13,10 @@ repos:
     rev: v0.11.0
     hooks:
       - id: ruff
+  - repo: local
+    hooks:
+      - id: pyrefly
+        name: pyrefly
+        entry: uv run pyrefly check
+        language: system
+        pass_filenames: false
