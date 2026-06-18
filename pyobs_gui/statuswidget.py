@@ -102,7 +102,7 @@ class StatusWidget(BaseWidget):
         # table settings
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Module", "Version", "Status"])
-        self.table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
+        self.table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
         self.table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setMinimumSectionSize(200)

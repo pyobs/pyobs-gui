@@ -96,10 +96,10 @@ class CommandModel(QtCore.QAbstractTableModel):  # type: ignore
     def columnCount(self, parent: Any | None = None, *args: Any, **kwargs: Any) -> int:
         return 3
 
-    def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
+    def data(self, index: QtCore.QModelIndex | QtCore.QPersistentModelIndex, role: int = 0) -> Any:
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
             return str(self.commands[index.row()][index.column()])
-        return ""
+        return None
 
 
 class ShellWidget(BaseWidget, Ui_ShellWidget):
@@ -196,7 +196,7 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
             cmd = cmd[: cmd.index("(")]
 
         # get documentation
-        doc = self.command_model.doc(cmd)
+        doc = self.command_model.doc(cmd) if self.command_model is not None else ""
         if not doc:
             doc = ""
 

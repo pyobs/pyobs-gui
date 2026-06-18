@@ -8,7 +8,7 @@ from PySide6 import QtWidgets, QtCore  # type: ignore
 from matplotlib import pyplot as plt
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT  # pyrefly: ignore [missing-module-attribute]
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from qfitswidget import QFitsWidget  # type: ignore
 

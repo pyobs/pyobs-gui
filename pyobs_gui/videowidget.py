@@ -194,6 +194,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
     async def grab_image(self) -> None:
         # set image format
         if isinstance(self.module, IImageFormat):
+            # pyrefly: ignore [missing-attribute]
             image_format = ImageFormat[self.comboImageFormat.currentText()]
             await self.module.set_image_format(image_format)
 

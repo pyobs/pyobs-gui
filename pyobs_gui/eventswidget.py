@@ -168,7 +168,7 @@ class SendEventDialog(QtWidgets.QDialog):  # type: ignore
                 layout.addRow(p, widget_layout)
 
         # add dialog button box
-        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self._send_event)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

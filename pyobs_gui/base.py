@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger(__name__)
 
-WidgetClass = TypeVar("WidgetClass")
+WidgetClass = TypeVar("WidgetClass", bound="BaseWidget")
 
 
 class BaseWindow:

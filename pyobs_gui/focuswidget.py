@@ -55,7 +55,7 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
 
         # base of offset?
         title = "Focus offset" if offset else "Focus"
-        value = self._focus_offset if offset else self._focus
+        value = (self._focus_offset if offset else self._focus) or 0.0
         minval = -5 if offset else 0
         maxval = 5 if offset else 100
         setter = module.set_focus_offset if offset else module.set_focus

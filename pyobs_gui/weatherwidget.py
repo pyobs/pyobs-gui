@@ -51,6 +51,7 @@ class WidgetCurrentSensor(QtWidgets.QFrame):  # type: ignore
         layout.addWidget(self._value)
 
         # add unit
+        self._unit: QtWidgets.QLabel | None
         if unit is not None:
             self._unit = QtWidgets.QLabel(unit)
             self._unit.setFont(font1)

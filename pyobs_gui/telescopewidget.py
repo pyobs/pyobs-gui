@@ -135,6 +135,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.buttonResetHorizontalOffsets.clicked.connect(self._set_offset)
         self.buttonResetEquatorialOffsets.clicked.connect(self._set_offset)
 
+    # pyrefly: ignore [bad-override]
     async def open(self, **kwargs: Any) -> None:
         """Open module."""
         await BaseWidget.open(self, **kwargs)
@@ -186,7 +187,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         if isinstance(self.module, IPointingRaDec) and self.observer is not None:
             ra, dec = await self.module.get_radec()
             self._ra_dec = SkyCoord(
+                # pyrefly: ignore [missing-attribute]
                 ra=ra * u.deg,
+                # pyrefly: ignore [missing-attribute]
                 dec=dec * u.deg,
                 frame="icrs",
                 location=self.observer.location,
@@ -199,7 +202,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         if isinstance(self.module, IPointingAltAz) and self.observer is not None:
             alt, az = await self.module.get_altaz()
             self._alt_az = SkyCoord(
+                # pyrefly: ignore [missing-attribute]
                 alt=alt * u.deg,
+                # pyrefly: ignore [missing-attribute]
                 az=az * u.deg,
                 frame="altaz",
                 location=self.observer.location,
@@ -238,6 +243,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             raise ValueError("No Alt/Az coordinates available.")
         # convert to ra/dec
         p0 = self._alt_az.icrs
+        # pyrefly: ignore [missing-attribute]
         p1 = self._alt_az.spherical_offsets_by(az * u.degree, alt * u.degree).icrs
         # astropy hot-fix
         p0 = SkyCoord(ra=p0.ra, dec=p0.dec, frame="icrs")
@@ -255,6 +261,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             obstime=self._ra_dec.obstime,
         )
         p0 = self._ra_dec.transform_to(altaz)
+        # pyrefly: ignore [missing-attribute]
         p1 = self._ra_dec.spherical_offsets_by(ra * u.degree, dec * u.degree).transform_to(altaz)
         daz, dalt = p0.spherical_offsets_to(p1)
         return float(dalt.degree), float(daz.degree)
@@ -322,6 +329,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self.textOffsetAlt.setText("N/A" if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.0,))
             self.textOffsetAz.setText("N/A" if self._off_az is None else '%.2f"' % (self._off_az * 3600.0,))
 
+    # pyrefly: ignore [bad-override]
     def move(self) -> None:
         # get coordinate system
         text = self.comboMoveType.currentText()
@@ -333,6 +341,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             ra = self.textMoveRA.text()
             dec = self.textMoveDec.text()
             try:
+                # pyrefly: ignore [missing-attribute]
                 coords = SkyCoord(ra + " " + dec, frame=ICRS, unit=(u.hour, u.deg))
             except ValueError:
                 # could not create coordinates
@@ -394,6 +403,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             # to stonyhurst lat/lon
             alpha = np.arccos(mu)
             dsun = get_sun(Time.now()).distance  # distance earth <-> sun
+            # pyrefly: ignore [missing-attribute]
             rsun = astropy.constants.R_sun  # radius of sun
 
             # get the angle between target and the line between earth and sun
@@ -414,6 +424,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             elif isinstance(self.module, IPointingHGS):
                 # alternatively, convert helio projective coordinates to Heliographic Stonyhurst
                 stony = heliproj.transform_to(HeliographicStonyhurst)
+                # pyrefly: ignore [missing-attribute]
                 lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
 
                 # run it
@@ -468,6 +479,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # always use first result
         for r in result:
             # build sky coord
+            # pyrefly: ignore [missing-attribute]
             c = SkyCoord(r["ra"] * u.deg, r["dec"] * u.deg, frame="icrs")
             ra, dec = c.to_string("hmsdms").split(" ")
 
@@ -508,7 +520,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             QtWidgets.QApplication.restoreOverrideCursor()
 
         # always use first result
+        # pyrefly: ignore [missing-attribute]
         coord = SkyCoord(eph["RA"][0] * u.deg, eph["DEC"][0] * u.deg, frame="icrs")
+        # pyrefly: ignore [missing-attribute]
         self.textMoveRA.setText(coord.ra.to_string(unit=u.hour, sep=" "))
         self.textMoveDec.setText(coord.dec.to_string(sep=" "))
 
@@ -534,6 +548,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         QtWidgets.QApplication.restoreOverrideCursor()
 
         # set them
+        # pyrefly: ignore [missing-attribute]
         self.textMoveRA.setText(body_coords.ra.to_string(unit=u.hour, sep=" ", precision=2))
         self.textMoveDec.setText(body_coords.dec.to_string(sep=" ", precision=2))
 
@@ -588,7 +603,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         # create SkyCoord
         alt_az = SkyCoord(
+            # pyrefly: ignore [missing-attribute]
             alt=self.spinMoveAlt.value() * u.deg,
+            # pyrefly: ignore [missing-attribute]
             az=self.spinMoveAz.value() * u.deg,
             frame=AltAz,
             location=self.observer.location,
@@ -617,6 +634,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             ra_dec = SkyCoord(
                 self.textMoveRA.text() + " " + self.textMoveDec.text(),
                 frame=ICRS,
+                # pyrefly: ignore [missing-attribute]
                 unit=(u.hour, u.deg),
             )
         except ValueError:
@@ -689,18 +707,24 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         # first all the reset buttons
         if self.sender() == self.buttonResetHorizontalOffsets:
+            # pyrefly: ignore [missing-attribute]
             asyncio.create_task(self.module.set_offsets_altaz(0.0, 0.0))
         elif self.sender() == self.buttonResetEquatorialOffsets:
+            # pyrefly: ignore [missing-attribute]
             asyncio.create_task(self.module.set_offsets_radec(0, 0.0))
         else:
             # now the sets, ask for value
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set offset", 'New offset ["]', 0, -9999, 9999)
             if ok:
                 if self.sender() == self.buttonSetAltOffset:
+                    # pyrefly: ignore [missing-attribute]
                     asyncio.create_task(self.module.set_offsets_altaz(new_value / 3600.0, self._off_az))
                 elif self.sender() == self.buttonSetAzOffset:
+                    # pyrefly: ignore [missing-attribute]
                     asyncio.create_task(self.module.set_offsets_altaz(self._off_alt, new_value / 3600.0))
                 elif self.sender() == self.buttonSetRaOffset:
+                    # pyrefly: ignore [missing-attribute]
                     asyncio.create_task(self.module.set_offsets_radec(new_value / 3600.0, self._off_dec))
                 elif self.sender() == self.buttonSetDecOffset:
+                    # pyrefly: ignore [missing-attribute]
                     asyncio.create_task(self.module.set_offsets_radec(self._off_ra, new_value / 3600.0))
