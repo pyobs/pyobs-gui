@@ -6,7 +6,7 @@ import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 
 from pyobs.events import ExposureStatusChangedEvent, Event
-from pyobs.interfaces import IAbortable, ISpectrograph, IExposureTime
+from pyobs.interfaces import IAbortable, ISpectrograph
 from pyobs.utils.enums import ExposureStatus
 from .base import BaseWidget
 
@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from astroplan import Observer
     from pyobs.vfs import VirtualFileSystem
     from pyobs.comm import Proxy, Comm
-    from astropy.io import fits
 
 
 log = logging.getLogger(__name__)
@@ -30,9 +29,6 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         self.setupUi(self)  # type: ignore
 
         # variables
-        self.new_spectrum = False
-        self.spectrum_filename: str | None = None
-        self.spectrum: fits.PrimaryHDU | None = None
         self.status = None
         self.exposure_status = ExposureStatus.IDLE
 
@@ -90,24 +86,10 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     @qasync.asyncSlot()  # type: ignore
     async def abort(self) -> None:
         """Abort exposure."""
-        if self.module is not None and isinstance(self.module, ISpectrograph):
+        if self.module is not None and isinstance(self.module, IAbortable):
             await self.module.abort()
 
     async def _update(self) -> None:
-        # are we exposing?
-        if self.exposure_status == ExposureStatus.EXPOSING:
-            # get camera status
-            if isinstance(self.module, IExposureTime):
-                self.exposure_time_left = await self.module.get_exposure_time_left()
-            if isinstance(self.module, ISpectrograph):
-                self.exposure_progress = await self.module.get_exposure_progress()
-
-        else:
-            # reset
-            self.exposure_time_left = 0.0
-            self.exposure_progress = 0.0
-
-        # signal GUI update
         self.signal_update_gui.emit()
 
     def update_gui(self) -> None:
@@ -136,16 +118,6 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # set message
         self.labelStatus.setText(msg)
 
-        # trigger image update
-        if self.new_spectrum:
-            # set filename
-            # self.tabWidget.setTabText(0, os.path.basename(self.spectrum_filename))
-
-            # plot image
-            self.plot()
-
-            # reset
-            self.new_spectrum = False
 
     async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
         """Called when exposure status of module changed.
@@ -165,3 +137,4 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # trigger GUI update
         self.signal_update_gui.emit()
         return True
+
