@@ -27,7 +27,7 @@ WidgetClass = TypeVar("WidgetClass", bound="BaseWidget")
 class BaseWindow:
     def __init__(self) -> None:
         """Base class for MainWindow and all widgets."""
-        self.modules: list[Proxy] = []
+        self.modules: list[str] = []
         self._comm: Comm | None = None
         self.observer: Observer | None = None
         self.vfs: VirtualFileSystem | dict[str, Any] | None = None
@@ -40,29 +40,11 @@ class BaseWindow:
         return self._comm
 
     @property
-    def module(self) -> Proxy:
+    def module(self) -> str:
         """Returns the first module in the list or None, if list is empty"""
         return self.modules[0]
 
-    def module_by_name(self, name: str) -> Proxy | None:
-        """Return the module with the given name or None, if not exists.
-
-        Args:
-            name: Name of module to return.
-
-        Returns:
-            Module or None.
-        """
-
-        # loop all modules and check name
-        for module in self.modules:
-            if module.name == name:
-                return module
-
-        # nothing found
-        return None
-
-    def modules_by_interface(self, interface: Any) -> list[Proxy]:
+    def modules_by_interface(self, interface: Any) -> list[str]:
         """Returns all modules that implement the given interface.
 
         Args:
@@ -73,7 +55,7 @@ class BaseWindow:
         """
         return list(filter(lambda m: isinstance(m, interface), self.modules))
 
-    def module_by_interface(self, interface: Any) -> Proxy | None:
+    def module_by_interface(self, interface: Any) -> str | None:
         """Returns first modules that implement the given interface, or None, if no exist.
 
         Args:
@@ -116,7 +98,7 @@ class BaseWindow:
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,

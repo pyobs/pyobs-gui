@@ -65,22 +65,21 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        if isinstance(self.module, ISpectrograph):
+        if await self.comm.has_proxy(self.module, ISpectrograph):
             self.figure, self.ax = plt.subplots()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
             self.imageLayout.addWidget(self.plotTools)
             self.imageLayout.addWidget(self.canvas)
-        elif isinstance(self.module, IData):
+        elif await self.comm.has_proxy(self.module, IData):
             self.imageView = QFitsWidget()
             self.imageLayout.addWidget(self.imageView)
         else:
             raise ValueError("Unknown type")
 
         # subscribe to events
-        if self.comm is not None:
-            await self.comm.register_event(NewImageEvent, self._on_new_data)
-            await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+        await self.comm.register_event(NewImageEvent, self._on_new_data)
+        await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
 
     async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
         """Grab data."""

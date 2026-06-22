@@ -189,7 +189,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if self.show_shell:
             # add shell nav button and view
             self.shell = self.create_widget(ShellWidget)
-            await self._add_client("Shell", qta.icon("msc.terminal-powershell"), self.shell, None)
+            await self._add_client("Shell", qta.icon("msc.terminal-powershell"), self.shell)
         else:
             self.shell = None
 
@@ -197,16 +197,16 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if self.show_events:
             # add events nav button and view
             self.events = self.create_widget(EventsWidget)
-            await self._add_client("Events", qta.icon("msc.symbol-event"), self.events, None)
+            await self._add_client("Events", qta.icon("msc.symbol-event"), self.events)
         else:
             self.events = None
 
         # status
-        if self.show_status:
-            self.status = self.create_widget(StatusWidget)
-            await self._add_client("Status", qta.icon("fa5s.wifi"), self.status, None)
-        else:
-            self.status = None
+        # if self.show_status:
+        #    self.status = self.create_widget(StatusWidget)
+        #    await self._add_client("Status", qta.icon("fa5s.wifi"), self.status, None)
+        # else:
+        #    self.status = None
 
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
@@ -238,16 +238,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             # quit() exists on Module but is not declared on Proxy
             self.module.quit()  # pyrefly: ignore [missing-attribute] —
 
-    async def _add_client(
-        self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None
-    ) -> None:
+    async def _add_client(self, client: str, icon: QtGui.QIcon, widget: BaseWidget) -> None:
         """
 
         Args:
             client: Name of client to add.
             icon: Icon for client in nav list.
             widget: Widget to add for client.
-            proxy: Proxy for client.
+            module: Module name of client.
 
         Returns:
 
@@ -264,7 +262,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # open and add widget
         await widget.open(
-            modules=[proxy] if proxy is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
+            modules=[client] if client is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
         )
         self.stackedWidget.addWidget(widget)
 
@@ -394,21 +392,19 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # update client list
         await self._update_client_list()
 
-        # get proxy
-        proxy = await self.comm.proxy(client)
-
         # what do we have?
-        widget, icon = None, None
-        for interface, klass in DEFAULT_WIDGETS.items():
-            if isinstance(proxy, interface):
-                widget = self.create_widget(klass, module=proxy)
-                icon = qta.icon(DEFAULT_ICONS[interface])
-                break
+        async with self.comm.proxy(client) as proxy:
+            widget, icon = None, None
+            for interface, klass in DEFAULT_WIDGETS.items():
+                if isinstance(proxy, interface):
+                    widget = self.create_widget(klass, module=client)
+                    icon = qta.icon(DEFAULT_ICONS[interface])
+                    break
 
         # look at custom widgets
         for cw in self.custom_widgets:
             if cw["module"] == client:
-                widget = self.create_widget(cw["widget"], module=proxy)
+                widget = self.create_widget(cw["widget"], module=client)
 
                 # got an icon?
                 icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(DEFAULT_ICONS[None])
@@ -420,12 +416,12 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # custom sidebar?
         for csw in self.custom_sidebar_widgets:
             if csw["module"] == client:
-                await widget.add_to_sidebar(self.create_widget(csw["widget"], module=proxy))
+                await widget.add_to_sidebar(self.create_widget(csw["widget"], module=client))
 
         # add it
         if icon is None:
             icon = qta.icon(DEFAULT_ICONS[None])
-        await self._add_client(client, icon, widget, proxy)
+        await self._add_client(client, icon, widget)
 
         # check mastermind
         await self._check_warnings()

@@ -15,7 +15,7 @@ from pyobs_gui.base import BaseWidget
 
 
 class StatusItem(QtWidgets.QWidget):
-    def __init__(self, comm: Comm, proxy: Proxy):
+    def __init__(self, comm: Comm, module: str):
         QtWidgets.QWidget.__init__(self)
 
         # allow for background
@@ -44,8 +44,8 @@ class StatusItem(QtWidgets.QWidget):
 
         # store
         self.comm = comm
-        self.name = proxy.name
-        self.module = cast("IModule", proxy)
+        self.name = module
+        self.module = module
 
         # remember last
         self.last_state: ModuleState | None = None
@@ -145,8 +145,7 @@ class StatusWidget(BaseWidget):
         # add module
         if self.comm is None:
             return False
-        proxy = await self.comm.proxy(sender)
-        await self._add_module(proxy)
+        await self._add_module(sender)
         return True
 
     async def _module_closed(self, event: Event, sender: str) -> bool:
@@ -164,21 +163,22 @@ class StatusWidget(BaseWidget):
         # success
         return True
 
-    async def _add_module(self, module: Proxy) -> None:
+    async def _add_module(self, module: str) -> None:
         # add row
         row = self.table.rowCount()
         self.table.setRowCount(row + 1)
 
         # set module name
-        item = QtWidgets.QTableWidgetItem(module.name)
+        item = QtWidgets.QTableWidgetItem(module)
         item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.table.setItem(row, 0, item)
 
         # set version
-        if isinstance(module, IModule):
-            item = QtWidgets.QTableWidgetItem(await module.get_version())
-            item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.table.setItem(row, 1, item)
+        async with self.comm.safe_proxy(module, IModule) as proxy:
+            if proxy is not None:
+                item = QtWidgets.QTableWidgetItem(await module.get_version())
+                item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row, 1, item)
 
         # add widget for status
         if self.comm is not None:
