@@ -64,6 +64,9 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
 
+        # states
+        self._gain_state: IGain.State | None = None
+
         # before first update, disable mys
         self.setEnabled(False)
 
@@ -142,10 +145,8 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                     self.comboImageFormat.setCurrentIndex(0)
 
         # get gain and offset
-        async with self.comm.safe_proxy(self.module, IGain) as proxy:
-            if proxy is not None:
-                self.textGain.setText(f"{await proxy.get_gain()}")
-                self.textOffset.setText(f"{await proxy.get_offset()}")
+        if await self.comm.has_proxy(self.module, IGain):
+            await self.comm.subscribe_state(self.module, IGain, self._update_gain)
 
         # set full frame
         if await self.comm.has_proxy(self.module, IWindow):
@@ -153,6 +154,11 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
         # update GUI
         self.signal_update_gui.emit()
+
+    def _update_gain(self, state: IGain.State):
+        self._gain_state = state
+        self.textGain.setText(f"{state.gain}")
+        self.textOffset.setText(f"{state.offset}")
 
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:
@@ -359,24 +365,24 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def set_gain(self) -> None:
-        module = self.module
-        if not isinstance(module, IGain):
-            return
-        value = float(self.textGain.text())
+        try:
+            value = float(self.textGain.text())
+        except ValueError:
+            value = 0.0
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set camera gain", "New value", value, 0.0, 10000.0, 2)
         if ok:
-            self.textGain.setText(str(new_value))
-            await module.set_gain(new_value)
+            async with self.comm.proxy(self.module, IGain) as proxy:
+                await proxy.set_gain(new_value)
 
     @qasync.asyncSlot()  # type: ignore
     async def set_offset(self) -> None:
-        module = self.module
-        if not isinstance(module, IGain):
-            return
-        value = float(self.textOffset.text())
+        try:
+            value = float(self.textOffset.text())
+        except ValueError:
+            value = 0.0
         new_value, ok = QtWidgets.QInputDialog.getDouble(
             self, "Set camera gain offset", "New value", value, 0.0, 60000.0, 2
         )
         if ok:
-            self.textOffset.setText(str(new_value))
-            await module.set_offset(new_value)
+            async with self.comm.proxy(self.module, IGain) as proxy:
+                await proxy.set_offset(new_value)
