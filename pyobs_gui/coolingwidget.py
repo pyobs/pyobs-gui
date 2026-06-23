@@ -4,7 +4,6 @@ from typing import Any
 from PySide6 import QtCore  # type: ignore
 
 from pyobs.interfaces import ICooling
-from pyobs.interfaces.ICooling import CoolingState
 from .base import BaseWidget
 from .qt.coolingwidget_ui import Ui_CoolingWidget
 
@@ -19,7 +18,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         self.setupUi(self)  # type: ignore
 
         # state
-        self.state: CoolingState | None = None
+        self.state: ICooling.State | None = None
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -31,7 +30,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         await self.comm.subscribe_state(self.module, ICooling, self._update_state)
         print("done")
 
-    def _update_state(self, state: CoolingState) -> None:
+    def _update_state(self, state: ICooling.State) -> None:
         print("_update_state")
         self.state = state
         self.signal_update_gui.emit()
