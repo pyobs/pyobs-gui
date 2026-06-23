@@ -64,9 +64,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
 
-        # states
-        self._gain_state: IGain.State | None = None
-
         # before first update, disable mys
         self.setEnabled(False)
 
@@ -93,8 +90,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.comboImageType.currentTextChanged.connect(self.image_type_changed)
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
-        self.buttonSetGain.clicked.connect(self.set_gain)
-        self.buttonSetOffset.clicked.connect(self.set_offset)
 
         # subscribe to events
         await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
@@ -117,6 +112,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         async with self.comm.safe_proxy(self.module, IBinning) as proxy:
             if proxy is not None:
                 # get binnings
+                # binnings = [f"{binning.x}x{binning.y}" for binning in await proxy.list_binnings()]
                 binnings = ["%dx%d" % tuple(binning) for binning in await proxy.list_binnings()]
 
                 # set it
@@ -144,9 +140,11 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 else:
                     self.comboImageFormat.setCurrentIndex(0)
 
-        # get gain and offset
-        if await self.comm.has_proxy(self.module, IGain):
-            await self.comm.subscribe_state(self.module, IGain, self._update_gain)
+        # gain
+        async with self.comm.safe_proxy(self.module, IGain) as proxy:
+            if proxy is not None:
+                self.spinGain.setValue(await proxy.get_gain())
+                self.spinGainOffset.setValue(await proxy.get_offset())
 
         # set full frame
         if await self.comm.has_proxy(self.module, IWindow):
@@ -154,11 +152,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
         # update GUI
         self.signal_update_gui.emit()
-
-    def _update_gain(self, state: IGain.State):
-        self._gain_state = state
-        self.textGain.setText(f"{state.gain}")
-        self.textOffset.setText(f"{state.offset}")
 
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:

@@ -26,12 +26,9 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         self.buttonApply.clicked.connect(self.buttonApply_clicked)
 
     async def _init(self) -> None:
-        print("_init", self.module)
         await self.comm.subscribe_state(self.module, ICooling, self._update_state)
-        print("done")
 
     def _update_state(self, state: ICooling.State) -> None:
-        print("_update_state")
         self.state = state
         self.signal_update_gui.emit()
 

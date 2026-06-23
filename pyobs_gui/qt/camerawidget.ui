@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>294</width>
+        <width>295</width>
         <height>748</height>
        </rect>
       </property>
@@ -56,13 +56,10 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spinWindowWidth">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>9999</number>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Left:</string>
             </property>
            </widget>
           </item>
@@ -73,6 +70,23 @@
             </property>
            </widget>
           </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="spinWindowWidth">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QPushButton" name="butFullFrame">
+            <property name="text">
+             <string>Full Frame</string>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
@@ -80,10 +94,10 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Left:</string>
+             <string>Height:</string>
             </property>
            </widget>
           </item>
@@ -94,13 +108,6 @@
             </property>
             <property name="maximum">
              <number>9999</number>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Height:</string>
             </property>
            </widget>
           </item>
@@ -115,13 +122,6 @@
            <widget class="QSpinBox" name="spinWindowTop">
             <property name="maximum">
              <number>9999</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QPushButton" name="butFullFrame">
-            <property name="text">
-             <string>Full Frame</string>
             </property>
            </widget>
           </item>
@@ -177,22 +177,14 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
-          <item row="0" column="3">
-           <widget class="QToolButton" name="buttonSetGain">
+         <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_13">
             <property name="text">
-             <string>...</string>
-            </property>
-            <property name="icon">
-             <iconset resource="resources.qrc">
-              <normaloff>:/resources/edit-solid.svg</normaloff>:/resources/edit-solid.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLineEdit" name="textGain">
-            <property name="readOnly">
-             <bool>true</bool>
+             <string>Offset:</string>
             </property>
            </widget>
           </item>
@@ -204,53 +196,22 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
+           <widget class="QSpinBox" name="spinGain">
+            <property name="minimum">
+             <number>1</number>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_13">
-            <property name="text">
-             <string>Offset:</string>
+            <property name="maximum">
+             <number>9999</number>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
+           <widget class="QSpinBox" name="spinGainOffset">
+            <property name="minimum">
+             <number>1</number>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="textOffset">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QToolButton" name="buttonSetOffset">
-            <property name="text">
-             <string>...</string>
-            </property>
-            <property name="icon">
-             <iconset resource="resources.qrc">
-              <normaloff>:/resources/edit-solid.svg</normaloff>:/resources/edit-solid.svg</iconset>
+            <property name="maximum">
+             <number>9999</number>
             </property>
            </widget>
           </item>
