@@ -158,22 +158,22 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         async with self.comm.safe_proxy(self.module, IWindow) as proxy:
             if proxy is not None:
                 # get full frame
-                left, top, width, height = await proxy.get_full_frame()
+                window = await proxy.get_full_frame()
 
                 # get binning
                 binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinning) else 1
 
                 # max values
-                self.spinWindowLeft.setMaximum(int(width / binning))
-                self.spinWindowTop.setMaximum(int(height / binning))
-                self.spinWindowWidth.setMaximum(int(width / binning))
-                self.spinWindowHeight.setMaximum(int(height / binning))
+                self.spinWindowLeft.setMaximum(int(window.width / binning))
+                self.spinWindowTop.setMaximum(int(window.height / binning))
+                self.spinWindowWidth.setMaximum(int(window.width / binning))
+                self.spinWindowHeight.setMaximum(int(window.height / binning))
 
                 # set it
-                self.spinWindowLeft.setValue(left)
-                self.spinWindowTop.setValue(top)
-                self.spinWindowWidth.setValue(int(width / binning))
-                self.spinWindowHeight.setValue(int(height / binning))
+                self.spinWindowLeft.setValue(window.x)
+                self.spinWindowTop.setValue(window.y)
+                self.spinWindowWidth.setValue(int(window.width / binning))
+                self.spinWindowHeight.setValue(int(window.height / binning))
 
     @QtCore.Slot(int)  # type: ignore
     def broadcast_changed(self, state: int) -> None:
