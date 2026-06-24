@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>239</width>
+        <width>238</width>
         <height>748</height>
        </rect>
       </property>
@@ -128,52 +128,52 @@
           <item row="0" column="1">
            <widget class="WatchedLabel" name="labelWindowLeft">
             <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="text">
              <string>-</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="WatchedLabel" name="labelWindowTop">
             <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="text">
              <string>-</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
            <widget class="WatchedLabel" name="labelWindowWidth">
             <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="text">
              <string>-</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
            <widget class="WatchedLabel" name="labelWindowHeight">
             <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="text">
              <string>-</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -260,7 +260,7 @@
           <item row="1" column="2">
            <widget class="ModifiedSpinBox" name="spinGainOffset">
             <property name="minimum">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="maximum">
              <number>9999</number>
@@ -270,26 +270,26 @@
           <item row="0" column="1">
            <widget class="WatchedLabel" name="labelGain">
             <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="text">
              <string>-</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="WatchedLabel" name="labelGainOffset">
             <property name="frameShape">
-             <enum>QFrame::Shape::Box</enum>
+             <enum>QFrame::Shape::NoFrame</enum>
             </property>
             <property name="text">
              <string>-</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignCenter</set>
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>

@@ -43,7 +43,7 @@ class Ui_CameraWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 239, 748))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 238, 748))
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
@@ -110,29 +110,29 @@ class Ui_CameraWidget(object):
 
         self.labelWindowLeft = WatchedLabel(self.groupWindowing)
         self.labelWindowLeft.setObjectName(u"labelWindowLeft")
-        self.labelWindowLeft.setFrameShape(QFrame.Shape.Box)
-        self.labelWindowLeft.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.labelWindowLeft.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowLeft.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowLeft, 0, 1, 1, 1)
 
         self.labelWindowTop = WatchedLabel(self.groupWindowing)
         self.labelWindowTop.setObjectName(u"labelWindowTop")
-        self.labelWindowTop.setFrameShape(QFrame.Shape.Box)
-        self.labelWindowTop.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.labelWindowTop.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowTop.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowTop, 1, 1, 1, 1)
 
         self.labelWindowWidth = WatchedLabel(self.groupWindowing)
         self.labelWindowWidth.setObjectName(u"labelWindowWidth")
-        self.labelWindowWidth.setFrameShape(QFrame.Shape.Box)
-        self.labelWindowWidth.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.labelWindowWidth.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowWidth.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowWidth, 2, 1, 1, 1)
 
         self.labelWindowHeight = WatchedLabel(self.groupWindowing)
         self.labelWindowHeight.setObjectName(u"labelWindowHeight")
-        self.labelWindowHeight.setFrameShape(QFrame.Shape.Box)
-        self.labelWindowHeight.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.labelWindowHeight.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowHeight.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowHeight, 3, 1, 1, 1)
 
@@ -202,22 +202,22 @@ class Ui_CameraWidget(object):
 
         self.spinGainOffset = ModifiedSpinBox(self.groupGain)
         self.spinGainOffset.setObjectName(u"spinGainOffset")
-        self.spinGainOffset.setMinimum(1)
+        self.spinGainOffset.setMinimum(0)
         self.spinGainOffset.setMaximum(9999)
 
         self.gridLayout.addWidget(self.spinGainOffset, 1, 2, 1, 1)
 
         self.labelGain = WatchedLabel(self.groupGain)
         self.labelGain.setObjectName(u"labelGain")
-        self.labelGain.setFrameShape(QFrame.Shape.Box)
-        self.labelGain.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.labelGain.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelGain.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.gridLayout.addWidget(self.labelGain, 0, 1, 1, 1)
 
         self.labelGainOffset = WatchedLabel(self.groupGain)
         self.labelGainOffset.setObjectName(u"labelGainOffset")
-        self.labelGainOffset.setFrameShape(QFrame.Shape.Box)
-        self.labelGainOffset.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.labelGainOffset.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelGainOffset.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.gridLayout.addWidget(self.labelGainOffset, 1, 1, 1, 1)
 

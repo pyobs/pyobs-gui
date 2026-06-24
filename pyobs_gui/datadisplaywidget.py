@@ -81,24 +81,20 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         await self.comm.register_event(NewImageEvent, self._on_new_data)
         await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
 
-    async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
+    async def grab_data(self, broadcast: bool) -> None:
         """Grab data."""
         module = self.module
 
         # expose
-        if isinstance(module, IData):
-            filename = await module.grab_data(broadcast=broadcast)
-        else:
-            raise ValueError("Unknown type")
+        async with self.comm.proxy(module, IData) as proxy:
+            filename = await proxy.grab_data(broadcast=broadcast)
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(module, ISpectrograph):
+            if await self.comm.has_proxy(module, ISpectrograph):
                 await self._on_new_data(NewSpectrumEvent(filename), cast("Proxy", cast("object", module)).name)
-            elif isinstance(module, IData):
-                await self._on_new_data(NewImageEvent(filename, image_type), cast("Proxy", cast("object", module)).name)
             else:
-                raise ValueError("Unknown type")
+                await self._on_new_data(NewImageEvent(filename, None), cast("Proxy", cast("object", module)).name)
 
         # signal GUI update
         self.signal_update_gui.emit()

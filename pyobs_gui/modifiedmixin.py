@@ -3,6 +3,8 @@ from typing import Self
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import QLabel, QLineEdit, QSpinBox, QDoubleSpinBox
 
+from .watchedlabel import WatchedLabel
+
 
 class ModifiedMixin:
     """Mixin for QLineEdit, QSpinBox, QDoubleSpinBox subclasses."""
@@ -10,10 +12,12 @@ class ModifiedMixin:
     committed = Signal(object)
 
     _NORMAL_STYLE = ""
-    _MODIFIED_STYLE = "background-color: #ffcccc;"
+    _MODIFIED_STYLE = "background-color: #ff0000;"
 
-    def init_modified(self, label: QLabel = None) -> Self:
+    def init_modified(self, label: WatchedLabel | None = None) -> Self:
         self._ref_label = label
+        if label is not None:
+            label.text_changed.connect(self._mark_modified)
         return self
 
     def _is_dirty(self) -> bool:
