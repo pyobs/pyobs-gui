@@ -15,13 +15,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
-    QFrame, QGridLayout, QGroupBox, QHBoxLayout,
-    QLabel, QProgressBar, QPushButton, QScrollArea,
-    QSizePolicy, QSpacerItem, QSpinBox, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QSpinBox, QVBoxLayout, QWidget)
 
 from ..datadisplaywidget import DataDisplayWidget
+from ..modifiedmixin import (ModifiedDoubleSpinBox, ModifiedSpinBox)
+from ..watchedlabel import WatchedLabel
 from . import resources_rc
 
 class Ui_CameraWidget(object):
@@ -61,14 +62,14 @@ class Ui_CameraWidget(object):
 
         self.gridLayout_2.addWidget(self.label_3, 2, 0, 1, 1)
 
-        self.spinWindowWidth = QSpinBox(self.groupWindowing)
+        self.spinWindowWidth = ModifiedSpinBox(self.groupWindowing)
         self.spinWindowWidth.setObjectName(u"spinWindowWidth")
         self.spinWindowWidth.setMinimum(1)
         self.spinWindowWidth.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowWidth, 2, 2, 1, 1)
 
-        self.spinWindowLeft = QSpinBox(self.groupWindowing)
+        self.spinWindowLeft = ModifiedSpinBox(self.groupWindowing)
         self.spinWindowLeft.setObjectName(u"spinWindowLeft")
         self.spinWindowLeft.setMaximum(9999)
 
@@ -94,41 +95,41 @@ class Ui_CameraWidget(object):
 
         self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
 
-        self.spinWindowTop = QSpinBox(self.groupWindowing)
+        self.spinWindowTop = ModifiedSpinBox(self.groupWindowing)
         self.spinWindowTop.setObjectName(u"spinWindowTop")
         self.spinWindowTop.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowTop, 1, 2, 1, 1)
 
-        self.spinWindowHeight = QSpinBox(self.groupWindowing)
+        self.spinWindowHeight = ModifiedSpinBox(self.groupWindowing)
         self.spinWindowHeight.setObjectName(u"spinWindowHeight")
         self.spinWindowHeight.setMinimum(1)
         self.spinWindowHeight.setMaximum(9999)
 
         self.gridLayout_2.addWidget(self.spinWindowHeight, 3, 2, 1, 1)
 
-        self.labelWindowLeft = QLabel(self.groupWindowing)
+        self.labelWindowLeft = WatchedLabel(self.groupWindowing)
         self.labelWindowLeft.setObjectName(u"labelWindowLeft")
         self.labelWindowLeft.setFrameShape(QFrame.Shape.Box)
         self.labelWindowLeft.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowLeft, 0, 1, 1, 1)
 
-        self.labelWindowTop = QLabel(self.groupWindowing)
+        self.labelWindowTop = WatchedLabel(self.groupWindowing)
         self.labelWindowTop.setObjectName(u"labelWindowTop")
         self.labelWindowTop.setFrameShape(QFrame.Shape.Box)
         self.labelWindowTop.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowTop, 1, 1, 1, 1)
 
-        self.labelWindowWidth = QLabel(self.groupWindowing)
+        self.labelWindowWidth = WatchedLabel(self.groupWindowing)
         self.labelWindowWidth.setObjectName(u"labelWindowWidth")
         self.labelWindowWidth.setFrameShape(QFrame.Shape.Box)
         self.labelWindowWidth.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout_2.addWidget(self.labelWindowWidth, 2, 1, 1, 1)
 
-        self.labelWindowHeight = QLabel(self.groupWindowing)
+        self.labelWindowHeight = WatchedLabel(self.groupWindowing)
         self.labelWindowHeight.setObjectName(u"labelWindowHeight")
         self.labelWindowHeight.setFrameShape(QFrame.Shape.Box)
         self.labelWindowHeight.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -192,28 +193,28 @@ class Ui_CameraWidget(object):
 
         self.gridLayout.addWidget(self.label_13, 1, 0, 1, 1)
 
-        self.spinGain = QSpinBox(self.groupGain)
+        self.spinGain = ModifiedSpinBox(self.groupGain)
         self.spinGain.setObjectName(u"spinGain")
         self.spinGain.setMinimum(1)
         self.spinGain.setMaximum(9999)
 
         self.gridLayout.addWidget(self.spinGain, 0, 2, 1, 1)
 
-        self.spinGainOffset = QSpinBox(self.groupGain)
+        self.spinGainOffset = ModifiedSpinBox(self.groupGain)
         self.spinGainOffset.setObjectName(u"spinGainOffset")
         self.spinGainOffset.setMinimum(1)
         self.spinGainOffset.setMaximum(9999)
 
         self.gridLayout.addWidget(self.spinGainOffset, 1, 2, 1, 1)
 
-        self.labelGain = QLabel(self.groupGain)
+        self.labelGain = WatchedLabel(self.groupGain)
         self.labelGain.setObjectName(u"labelGain")
         self.labelGain.setFrameShape(QFrame.Shape.Box)
         self.labelGain.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.gridLayout.addWidget(self.labelGain, 0, 1, 1, 1)
 
-        self.labelGainOffset = QLabel(self.groupGain)
+        self.labelGainOffset = WatchedLabel(self.groupGain)
         self.labelGainOffset.setObjectName(u"labelGainOffset")
         self.labelGainOffset.setFrameShape(QFrame.Shape.Box)
         self.labelGainOffset.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -237,7 +238,7 @@ class Ui_CameraWidget(object):
 
         self.layoutExpTime = QHBoxLayout()
         self.layoutExpTime.setObjectName(u"layoutExpTime")
-        self.spinExpTime = QDoubleSpinBox(self.groupExpTime)
+        self.spinExpTime = ModifiedDoubleSpinBox(self.groupExpTime)
         self.spinExpTime.setObjectName(u"spinExpTime")
         self.spinExpTime.setDecimals(1)
         self.spinExpTime.setMaximum(999.000000000000000)
@@ -258,7 +259,7 @@ class Ui_CameraWidget(object):
 
         self.gridLayout_5.addLayout(self.layoutExpTime, 0, 2, 1, 1)
 
-        self.labelExpTime = QLabel(self.groupExpTime)
+        self.labelExpTime = WatchedLabel(self.groupExpTime)
         self.labelExpTime.setObjectName(u"labelExpTime")
         self.labelExpTime.setFrameShape(QFrame.Shape.Box)
         self.labelExpTime.setAlignment(Qt.AlignmentFlag.AlignCenter)

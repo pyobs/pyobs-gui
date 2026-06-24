@@ -27,7 +27,6 @@ from .filterwidget import FilterWidget
 from .temperatureswidget import TemperaturesWidget
 from .fitsheaderswidget import FitsHeadersWidget
 from .qt.camerawidget_ui import Ui_CameraWidget
-from .widgetcommitted import WidgetCommitted
 
 log = logging.getLogger(__name__)
 
@@ -50,10 +49,10 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.exposure_time_left = 0.0
         self.exposure_progress = 0.0
 
-        self._watch(self.spinWindowLeft, self.labelWindowLeft).committed.connect(self._window_changed)
-        self._watch(self.spinWindowTop, self.labelWindowTop).committed.connect(self._window_changed)
-        self._watch(self.spinWindowWidth, self.labelWindowWidth).committed.connect(self._window_changed)
-        self._watch(self.spinWindowHeight, self.labelWindowHeight).committed.connect(self._window_changed)
+        self.spinWindowLeft.init_modified(self.labelWindowLeft).committed.connect(self._window_changed)
+        self.spinWindowTop.init_modified(self.labelWindowTop).committed.connect(self._window_changed)
+        self.spinWindowWidth.init_modified(self.labelWindowWidth).committed.connect(self._window_changed)
+        self.spinWindowHeight.init_modified(self.labelWindowHeight).committed.connect(self._window_changed)
 
     async def open(
         self,
@@ -163,6 +162,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.signal_update_gui.emit()
 
     def _update_window(self, state: IWindow.State):
+        print("update window")
         self.labelWindowLeft.setText(str(state.x))
         self.labelWindowTop.setText(str(state.y))
         self.labelWindowWidth.setText(str(state.width))

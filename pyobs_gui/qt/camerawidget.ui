@@ -64,7 +64,7 @@
            </widget>
           </item>
           <item row="2" column="2">
-           <widget class="QSpinBox" name="spinWindowWidth">
+           <widget class="ModifiedSpinBox" name="spinWindowWidth">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -74,7 +74,7 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QSpinBox" name="spinWindowLeft">
+           <widget class="ModifiedSpinBox" name="spinWindowLeft">
             <property name="maximum">
              <number>9999</number>
             </property>
@@ -109,14 +109,14 @@
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QSpinBox" name="spinWindowTop">
+           <widget class="ModifiedSpinBox" name="spinWindowTop">
             <property name="maximum">
              <number>9999</number>
             </property>
            </widget>
           </item>
           <item row="3" column="2">
-           <widget class="QSpinBox" name="spinWindowHeight">
+           <widget class="ModifiedSpinBox" name="spinWindowHeight">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -126,7 +126,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLabel" name="labelWindowLeft">
+           <widget class="WatchedLabel" name="labelWindowLeft">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -139,7 +139,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="labelWindowTop">
+           <widget class="WatchedLabel" name="labelWindowTop">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -152,7 +152,7 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLabel" name="labelWindowWidth">
+           <widget class="WatchedLabel" name="labelWindowWidth">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -165,7 +165,7 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLabel" name="labelWindowHeight">
+           <widget class="WatchedLabel" name="labelWindowHeight">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -248,7 +248,7 @@
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QSpinBox" name="spinGain">
+           <widget class="ModifiedSpinBox" name="spinGain">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -258,7 +258,7 @@
            </widget>
           </item>
           <item row="1" column="2">
-           <widget class="QSpinBox" name="spinGainOffset">
+           <widget class="ModifiedSpinBox" name="spinGainOffset">
             <property name="minimum">
              <number>1</number>
             </property>
@@ -268,7 +268,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLabel" name="labelGain">
+           <widget class="WatchedLabel" name="labelGain">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -281,7 +281,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLabel" name="labelGainOffset">
+           <widget class="WatchedLabel" name="labelGainOffset">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -312,7 +312,7 @@
           <item row="0" column="2">
            <layout class="QHBoxLayout" name="layoutExpTime" stretch="1,0">
             <item>
-             <widget class="QDoubleSpinBox" name="spinExpTime">
+             <widget class="ModifiedDoubleSpinBox" name="spinExpTime">
               <property name="suffix">
                <string/>
               </property>
@@ -352,7 +352,7 @@
            </layout>
           </item>
           <item row="0" column="1">
-           <widget class="QLabel" name="labelExpTime">
+           <widget class="WatchedLabel" name="labelExpTime">
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -1377,6 +1377,21 @@
    <class>DataDisplayWidget</class>
    <extends>QWidget</extends>
    <header>..datadisplaywidget</header>
+  </customwidget>
+  <customwidget>
+   <class>WatchedLabel</class>
+   <extends>QLabel</extends>
+   <header>..watchedlabel</header>
+  </customwidget>
+  <customwidget>
+   <class>ModifiedSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>..modifiedmixin</header>
+  </customwidget>
+  <customwidget>
+   <class>ModifiedDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>..modifiedmixin</header>
   </customwidget>
  </customwidgets>
  <tabstops>

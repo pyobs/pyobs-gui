@@ -11,7 +11,6 @@ from pyobs.utils.enums import ModuleState
 from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
 
 from .utils import QAsyncMessageBox
-from .widgetcommitted import WidgetCommitted
 
 if TYPE_CHECKING:
     from collections.abc import Coroutine
@@ -151,14 +150,6 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
 
         # has it been initialized?
         self._initialized = False
-
-        # watchers
-        self._watchers = []
-
-    def _watch(self, widget, label) -> WidgetCommitted:
-        w = WidgetCommitted(widget, label)
-        self._watchers.append(w)
-        return w
 
     def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
         if self.extract_window_button:
