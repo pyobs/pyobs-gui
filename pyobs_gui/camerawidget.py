@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 import qasync  # type: ignore
-from PySide6 import QtWidgets, QtCore  # type: ignore
+from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
@@ -27,6 +27,7 @@ from .filterwidget import FilterWidget
 from .temperatureswidget import TemperaturesWidget
 from .fitsheaderswidget import FitsHeadersWidget
 from .qt.camerawidget_ui import Ui_CameraWidget
+from .widgetcommitted import WidgetCommitted
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +49,11 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.exposures_left = 0
         self.exposure_time_left = 0.0
         self.exposure_progress = 0.0
+
+        self._watch(self.spinWindowLeft, self.labelWindowLeft).committed.connect(self._window_changed)
+        self._watch(self.spinWindowTop, self.labelWindowTop).committed.connect(self._window_changed)
+        self._watch(self.spinWindowWidth, self.labelWindowWidth).committed.connect(self._window_changed)
+        self._watch(self.spinWindowHeight, self.labelWindowHeight).committed.connect(self._window_changed)
 
     async def open(
         self,
@@ -150,8 +156,21 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         if await self.comm.has_proxy(self.module, IWindow):
             await self.set_full_frame()
 
+        # states
+        await self.comm.subscribe_state(self.module, IWindow, self._update_window)
+
         # update GUI
         self.signal_update_gui.emit()
+
+    def _update_window(self, state: IWindow.State):
+        self.labelWindowLeft.setText(str(state.x))
+        self.labelWindowTop.setText(str(state.y))
+        self.labelWindowWidth.setText(str(state.width))
+        self.labelWindowHeight.setText(str(state.height))
+
+    @qasync.asyncSlot()
+    async def _window_changed(self):
+        print("ok")
 
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:

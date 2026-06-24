@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>295</width>
+        <width>239</width>
         <height>748</height>
        </rect>
       </property>
@@ -52,25 +52,18 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
+         <layout class="QGridLayout" name="gridLayout_2" columnstretch="2,1,2">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Left:</string>
+             <string>Width:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Top:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
+          <item row="2" column="2">
            <widget class="QSpinBox" name="spinWindowWidth">
             <property name="minimum">
              <number>1</number>
@@ -80,17 +73,17 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QPushButton" name="butFullFrame">
-            <property name="text">
-             <string>Full Frame</string>
+          <item row="0" column="2">
+           <widget class="QSpinBox" name="spinWindowLeft">
+            <property name="maximum">
+             <number>9999</number>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_3">
+          <item row="4" column="0" colspan="3">
+           <widget class="QPushButton" name="butFullFrame">
             <property name="text">
-             <string>Width:</string>
+             <string>Full Frame</string>
             </property>
            </widget>
           </item>
@@ -101,7 +94,28 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Top:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Left:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QSpinBox" name="spinWindowTop">
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
            <widget class="QSpinBox" name="spinWindowHeight">
             <property name="minimum">
              <number>1</number>
@@ -112,16 +126,54 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="spinWindowLeft">
-            <property name="maximum">
-             <number>9999</number>
+           <widget class="QLabel" name="labelWindowLeft">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QSpinBox" name="spinWindowTop">
-            <property name="maximum">
-             <number>9999</number>
+           <widget class="QLabel" name="labelWindowTop">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="labelWindowWidth">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="labelWindowHeight">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -177,17 +229,10 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
+         <layout class="QGridLayout" name="gridLayout" columnstretch="2,1,2">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_13">
-            <property name="text">
-             <string>Offset:</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
@@ -195,7 +240,14 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>Offset:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
            <widget class="QSpinBox" name="spinGain">
             <property name="minimum">
              <number>1</number>
@@ -205,13 +257,39 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="1" column="2">
            <widget class="QSpinBox" name="spinGainOffset">
             <property name="minimum">
              <number>1</number>
             </property>
             <property name="maximum">
              <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelGain">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="labelGainOffset">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -223,7 +301,7 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout_5">
+         <layout class="QGridLayout" name="gridLayout_5" columnstretch="2,1,2">
           <item row="0" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
@@ -231,7 +309,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="0" column="2">
            <layout class="QHBoxLayout" name="layoutExpTime" stretch="1,0">
             <item>
              <widget class="QDoubleSpinBox" name="spinExpTime">
@@ -239,7 +317,7 @@
                <string/>
               </property>
               <property name="decimals">
-               <number>3</number>
+               <number>1</number>
               </property>
               <property name="maximum">
                <double>999.000000000000000</double>
@@ -273,6 +351,19 @@
             </item>
            </layout>
           </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="labelExpTime">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -285,10 +376,13 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelImageType">
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="checkBroadcast">
             <property name="text">
-             <string>Type:</string>
+             <string>Broadcast</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -751,12 +845,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Count:</string>
-            </property>
-           </widget>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboImageType"/>
           </item>
           <item row="3" column="0" colspan="2">
            <widget class="QPushButton" name="butExpose">
@@ -1207,18 +1297,19 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="checkBroadcast">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Broadcast</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Count:</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboImageType"/>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelImageType">
+            <property name="text">
+             <string>Type:</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
