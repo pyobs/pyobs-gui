@@ -100,12 +100,12 @@ async with self.comm.proxy(self.module, ICooling) as proxy:
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
 - `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.alt/az`
 
-**`telescopewidget.py`**
-- `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- `get_radec()` → `subscribe_state(module, IPointingRaDec, cb)` → `state.ra/dec`
-- `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.alt/az`
-- `get_offsets_radec()` → `subscribe_state(module, IOffsetsRaDec, cb)` → `state.dra/ddec`
-- Remove `MotionStatusChangedEvent` handler
+~~**`telescopewidget.py`**~~ ✓ Done
+- IMotion/IPointingRaDec/IPointingAltAz/IOffsetsRaDec/IOffsetsAltAz all via `subscribe_state`
+- `open()` caches `await comm.get_interfaces(module)` → used for interface checks and conditional subscriptions
+- All `isinstance(self.module, IXxx)` replaced with `IXxx in self._interfaces`
+- Move/offset RPC calls use proxy helpers (`_do_move_radec`, `_do_set_offsets_altaz`, etc.)
+- Removed `_update()` polling and `MotionStatusChangedEvent` handler
 
 **`camerawidget.py`**
 - `get_exposure_status()` → `subscribe_state(module, IExposure, cb)` → `state.status`
