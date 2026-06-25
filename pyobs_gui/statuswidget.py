@@ -1,6 +1,5 @@
 import asyncio
-from asyncio import Task
-from typing import Any, cast
+from typing import Any
 
 import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
@@ -15,91 +14,68 @@ from pyobs_gui.base import BaseWidget
 
 
 class StatusItem(QtWidgets.QWidget):
+    signal_presence = QtCore.Signal(object, str)
+
     def __init__(self, comm: Comm, module: str):
         QtWidgets.QWidget.__init__(self)
 
-        # allow for background
         self.setAutoFillBackground(True)
 
-        # add layout
         layout = QtWidgets.QHBoxLayout()
-
-        # add fields
-        self.labelStatus = QtWidgets.QLabel()
-        self.labelStatus.setText("UNKNOWN")
+        self.labelStatus = QtWidgets.QLabel("UNKNOWN")
         self.labelStatus.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.buttonAction = QtWidgets.QPushButton()
-        self.buttonAction.setText("Clear error")
+        self.buttonAction = QtWidgets.QPushButton("Clear error")
         self.buttonAction.setVisible(False)
         layout.addWidget(self.labelStatus)
         layout.addWidget(self.buttonAction)
-
-        # set layout
         layout.setStretch(0, 3)
         layout.setStretch(1, 1)
         self.setLayout(layout)
 
-        # connect
+        self.signal_presence.connect(self._apply_presence)
         self.buttonAction.clicked.connect(self.button_clicked)
 
-        # store
         self.comm = comm
         self.name = module
-        self.module = module
 
-        # remember last
-        self.last_state: ModuleState | None = None
-        self.last_error: str | None = None
+    def on_presence_changed(self, state: ModuleState, error_string: str) -> None:
+        """Presence callback — emits signal so Qt update happens on the main thread."""
+        self.signal_presence.emit(state, error_string)
 
-    async def update_status(self) -> None:
-        """Update status of module and display it."""
-        # get state and error string
-        state = await self.module.get_state()
-
-        # if nothing changed, end here
-        if state == self.last_state:
-            return
-
-        # set status
+    @QtCore.Slot(object, str)  # type: ignore
+    def _apply_presence(self, state: ModuleState, error_string: str) -> None:
         if state == ModuleState.READY:
             self.labelStatus.setText("READY")
             self.setStyleSheet("background-color: lime; color: black;")
             self.buttonAction.setVisible(False)
-
         elif state == ModuleState.ERROR:
-            error = await self.module.get_error_string()
-            self.labelStatus.setText(f"ERROR: {error}")
+            self.labelStatus.setText(f"ERROR: {error_string}")
             self.setStyleSheet("background-color: red; color: black;")
             self.buttonAction.setVisible(True)
-            self.last_error = error
-
+        elif state == ModuleState.CLOSED:
+            self.labelStatus.setText("OFFLINE")
+            self.setStyleSheet("background-color: gray; color: white;")
+            self.buttonAction.setVisible(False)
         else:
-            self.labelStatus.setText(f"{state.upper()}")
+            self.labelStatus.setText(state.value.upper())
             self.setStyleSheet("background-color: yellow; color: black;")
             self.buttonAction.setVisible(False)
 
-        # store it
-        self.last_state = state
-
     @qasync.asyncSlot()  # type: ignore
     async def button_clicked(self) -> None:
-        """Do button action."""
-
-        # for now, it's always clear error
-        await self.module.reset_error()
+        async with self.comm.proxy(self.name, IModule) as proxy:
+            await proxy.reset_error()
 
 
 class StatusWidget(BaseWidget):
     def __init__(self, **kwargs: Any):
-        BaseWidget.__init__(self, update_func=self._update_status, **kwargs)
+        BaseWidget.__init__(self, **kwargs)
 
-        # create table
         self.table = QtWidgets.QTableWidget()
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.table)
         self.setLayout(layout)
 
-        # table settings
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Module", "Version", "Status"])
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
@@ -108,9 +84,6 @@ class StatusWidget(BaseWidget):
         self.table.horizontalHeader().setMinimumSectionSize(200)
         self.table.verticalHeader().hide()
 
-        # stuff
-        self._status_task: Task[Any] | None = None
-
     async def open(
         self,
         modules: list[Proxy] | None = None,
@@ -118,95 +91,57 @@ class StatusWidget(BaseWidget):
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
     ) -> None:
-        """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         if self.comm is not None:
-            # register events
             await self.comm.register_event(ModuleOpenedEvent, self._module_opened)
             await self.comm.register_event(ModuleClosedEvent, self._module_closed)
-
-            # add clients
             asyncio.create_task(self._init_clients())
 
-        # trigger status updates
-        self._status_task = asyncio.create_task(self._update_status())
-
     async def _init_clients(self) -> None:
-        # create other nav buttons and views
         for client_name in self.comm.clients:
             await self._module_opened(ModuleOpenedEvent(), client_name)
 
     async def _module_opened(self, event: Event, sender: str) -> bool:
-        """Called when module was opened."""
         if not isinstance(event, ModuleOpenedEvent):
             return False
-
-        # add module
         if self.comm is None:
             return False
         await self._add_module(sender)
         return True
 
     async def _module_closed(self, event: Event, sender: str) -> bool:
-        """Called when module was closed."""
         if not isinstance(event, ModuleClosedEvent):
             return False
-
-        # find and remove it
         for row in range(self.table.rowCount()):
             item = self.table.item(row, 0)
             if item is not None and item.text() == sender:
                 self.table.removeRow(row)
                 break
-
-        # success
         return True
 
     async def _add_module(self, module: str) -> None:
-        # add row
         row = self.table.rowCount()
         self.table.setRowCount(row + 1)
 
-        # set module name
-        item = QtWidgets.QTableWidgetItem(module)
-        item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.table.setItem(row, 0, item)
+        name_item = QtWidgets.QTableWidgetItem(module)
+        name_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.table.setItem(row, 0, name_item)
 
-        # set version
-        async with self.comm.safe_proxy(module, IModule) as proxy:
-            if proxy is not None:
-                item = QtWidgets.QTableWidgetItem(await module.get_version())
-                item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.table.setItem(row, 1, item)
+        # version from capabilities (read once, static)
+        caps = await self.comm.get_capabilities(module, IModule)
+        if caps is not None:
+            ver_item = QtWidgets.QTableWidgetItem(caps.version)
+            ver_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.table.setItem(row, 1, ver_item)
 
-        # add widget for status
-        if self.comm is not None:
-            widget = StatusItem(self.comm, module)
-            item = QtWidgets.QTableWidgetItem()
-            item.setSizeHint(widget.minimumSizeHint())
-            self.table.setItem(row, 2, item)
-            self.table.setCellWidget(row, 2, widget)
+        # status widget — subscribe_presence delivers current state immediately
+        widget = StatusItem(self.comm, module)
+        size_item = QtWidgets.QTableWidgetItem()
+        size_item.setSizeHint(widget.minimumSizeHint())
+        self.table.setItem(row, 2, size_item)
+        self.table.setCellWidget(row, 2, widget)
+        await self.comm.subscribe_presence(module, widget.on_presence_changed)
 
-        # sort
         self.table.resizeRowsToContents()
         self.table.sortItems(0)
-
-    async def _update_status(self) -> None:
-        """Update status for all modules."""
-
-        while True:
-            # loop all rows
-            futures = []
-            for row in range(self.table.rowCount()):
-                # get widget and update it
-                widget = cast("StatusItem", self.table.cellWidget(row, 2))
-                if widget is not None:
-                    futures.append(asyncio.create_task(widget.update_status()))
-
-            # await futures
-            for fut in futures:
-                await fut
-
-            # sleep a little
-            await asyncio.sleep(5)
