@@ -85,11 +85,11 @@ async with self.comm.proxy(self.module, ICooling) as proxy:
 
 ### ✗ Needs updating
 
-**`filterwidget.py`**
+~~**`filterwidget.py`**~~ ✓ Done
 - `get_filter()` → `subscribe_state(module, IFilters, cb)` → `state.filter`
 - `list_filters()` → `get_capabilities(module, IFilters)` → `.filters`
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- Remove `MotionStatusChangedEvent` and `FilterChangedEvent` handlers
+- Removed `MotionStatusChangedEvent`, `FilterChangedEvent` handlers and polling `_update`
 
 **`focuswidget.py`**
 - `get_focus()` → `subscribe_state(module, IFocuser, cb)` → `state.focus`
