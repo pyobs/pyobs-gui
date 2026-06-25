@@ -91,11 +91,10 @@ async with self.comm.proxy(self.module, ICooling) as proxy:
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
 - Removed `MotionStatusChangedEvent`, `FilterChangedEvent` handlers and polling `_update`
 
-**`focuswidget.py`**
-- `get_focus()` → `subscribe_state(module, IFocuser, cb)` → `state.focus`
-- `get_focus_offset()` → `subscribe_state(module, IFocusOffset, cb)` → `state.focus_offset`
+~~**`focuswidget.py`**~~ ✓ Done
+- `get_focus()`/`get_focus_offset()` → single `subscribe_state(module, IFocuser, cb)` → `state.focus`/`state.focus_offset`
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- Remove `MotionStatusChangedEvent` handler
+- Removed `MotionStatusChangedEvent` handler and polling `_update`
 
 **`roofwidget.py`**
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
