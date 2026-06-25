@@ -194,25 +194,27 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:
-        full_frame = await self.comm.get_capabilities(self.module, IWindow)
-        print(full_frame)
-        if full_frame is not None:
+        caps = await self.comm.get_capabilities(self.module, IWindow)
+        print(caps)
+        if caps is not None:
+            full_frame = caps.full_frame
+
             # get binning
             binning = 1
             if self.comboBinning.count() > 0 and await self.comm.has_proxy(self.module, IBinning):
                 binning = int(self.comboBinning.currentText()[0])
 
             # max values
-            self.spinWindowLeft.setMaximum(int(full_frame.full_frame_width / binning))
-            self.spinWindowTop.setMaximum(int(full_frame.full_frame_height / binning))
-            self.spinWindowWidth.setMaximum(int(full_frame.full_frame_width / binning))
-            self.spinWindowHeight.setMaximum(int(full_frame.full_frame_height / binning))
+            self.spinWindowLeft.setMaximum(int(full_frame.width / binning))
+            self.spinWindowTop.setMaximum(int(full_frame.height / binning))
+            self.spinWindowWidth.setMaximum(int(full_frame.width / binning))
+            self.spinWindowHeight.setMaximum(int(full_frame.height / binning))
 
             # set it
-            self.spinWindowLeft.setValue(full_frame.full_frame_x)
-            self.spinWindowTop.setValue(full_frame.full_frame_y)
-            self.spinWindowWidth.setValue(int(full_frame.full_frame_width / binning))
-            self.spinWindowHeight.setValue(int(full_frame.full_frame_height / binning))
+            self.spinWindowLeft.setValue(full_frame.x)
+            self.spinWindowTop.setValue(full_frame.y)
+            self.spinWindowWidth.setValue(int(full_frame.width / binning))
+            self.spinWindowHeight.setValue(int(full_frame.height / binning))
 
     @QtCore.Slot(int)  # type: ignore
     def broadcast_changed(self, state: int) -> None:
