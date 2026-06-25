@@ -194,25 +194,25 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:
-        async with self.comm.safe_proxy(self.module, IWindow) as proxy:
-            if proxy is not None:
-                # get full frame
-                window = proxy.state(IWindow)  # type: ignore
+        full_frame = await self.comm.get_capabilities(self.module, IWindow)
+        print(full_frame)
+        if full_frame is not None:
+            # get binning
+            binning = 1
+            if self.comboBinning.count() > 0 and await self.comm.has_proxy(self.module, IBinning):
+                binning = int(self.comboBinning.currentText()[0])
 
-                # get binning
-                binning = int(self.comboBinning.currentText()[0]) if isinstance(self.module, IBinning) else 1
+            # max values
+            self.spinWindowLeft.setMaximum(int(full_frame.full_frame_width / binning))
+            self.spinWindowTop.setMaximum(int(full_frame.full_frame_height / binning))
+            self.spinWindowWidth.setMaximum(int(full_frame.full_frame_width / binning))
+            self.spinWindowHeight.setMaximum(int(full_frame.full_frame_height / binning))
 
-                # max values
-                self.spinWindowLeft.setMaximum(int(window.width / binning))
-                self.spinWindowTop.setMaximum(int(window.height / binning))
-                self.spinWindowWidth.setMaximum(int(window.width / binning))
-                self.spinWindowHeight.setMaximum(int(window.height / binning))
-
-                # set it
-                self.spinWindowLeft.setValue(window.x)
-                self.spinWindowTop.setValue(window.y)
-                self.spinWindowWidth.setValue(int(window.width / binning))
-                self.spinWindowHeight.setValue(int(window.height / binning))
+            # set it
+            self.spinWindowLeft.setValue(full_frame.full_frame_x)
+            self.spinWindowTop.setValue(full_frame.full_frame_y)
+            self.spinWindowWidth.setValue(int(full_frame.full_frame_width / binning))
+            self.spinWindowHeight.setValue(int(full_frame.full_frame_height / binning))
 
     @QtCore.Slot(int)  # type: ignore
     def broadcast_changed(self, state: int) -> None:
