@@ -202,11 +202,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             self.events = None
 
         # status
-        # if self.show_status:
-        #    self.status = self.create_widget(StatusWidget)
-        #    await self._add_client("Status", qta.icon("fa5s.wifi"), self.status, None)
-        # else:
-        #    self.status = None
+        if self.show_status:
+            self.status = self.create_widget(StatusWidget)
+            await self._add_client("Status", qta.icon("fa5s.wifi"), self.status)
+        else:
+            self.status = None
 
         # change page
         self.listPages.currentRowChanged.connect(self._change_page)
