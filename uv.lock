@@ -2402,7 +2402,7 @@ dev = [
 requires-dist = [
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
-    { name = "pyobs-core", specifier = "==1.49.0" },
+    { name = "pyobs-core", specifier = ">=1.49.0,<2" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.28" },
     { name = "qfitswidget", specifier = ">=0.13.1" },

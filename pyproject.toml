@@ -12,7 +12,7 @@ dependencies = [
     "sunpy[all]>=7.0.1",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget>=0.13.1",
-    "pyobs-core==1.49.0",
+    "pyobs-core>=1.49.0,<2",
     "pyside6>=6.10.1",
 ]
 
