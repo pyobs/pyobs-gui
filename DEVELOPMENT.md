@@ -26,9 +26,6 @@ async def _on_state(self, state: ICooling.State) -> None:
 
 ### Capabilities
 ```python
-caps = await self.comm.get_capabilities(self.module, IModule)
-# caps.version: str, caps.label: str
-
 caps = await self.comm.get_capabilities(self.module, IWindow)
 # caps is an IWindow.Capabilities instance or None
 if caps is not None:
@@ -51,14 +48,14 @@ caps = await self.comm.get_capabilities(self.module, IVideo)
 ```python
 # Subscribe — callback fires immediately with current state, then on every change
 await self.comm.subscribe_presence(self.module, self._on_presence)
- 
+
 def _on_presence(self, state: ModuleState, error_string: str) -> None:
     # ModuleState: READY, ERROR, LOCAL, CLOSED
     if state == ModuleState.ERROR:
         self.label_status.setText(f"ERROR: {error_string}")
     else:
         self.label_status.setText(state.value)
- 
+
 # Or read synchronously (no subscription):
 result = self.comm.get_client_state(self.module)
 # result: tuple[ModuleState, str] | None
@@ -78,65 +75,61 @@ async with self.comm.proxy(self.module, ICooling) as proxy:
 - **`coolingwidget.py`** — already uses `subscribe_state(ICooling)`. Done.
 - **`modifiedmixin.py`** — `ModifiedMixin`, `ModifiedLineEdit`, `ModifiedSpinBox`,
   `ModifiedDoubleSpinBox` implemented for dirty-state red highlight.
-- **`statuswidget.py`** — fully rewritten. Version from `get_capabilities(module, IModule)` →
-  `caps.version`; presence via `subscribe_presence(module, widget.on_presence_changed)`;
-  no polling loop, no RPC `get_state`/`get_error_string`/`get_version`. CLOSED state
-  shown as "OFFLINE". `reset_error()` called via `comm.proxy(name, IModule)`.
 
 ### ✗ Needs updating
 
-~~**`filterwidget.py`**~~ ✓ Done
+**`statuswidget.py`**
+- `get_state()` → `comm.subscribe_presence(module, cb)` → callback arg 0
+- `get_error_string()` → callback arg 1
+- `get_version()` → `comm.get_capabilities(module, IModule)` → `.version`
+- Replace polling timer with `subscribe_presence` per module
+
+**`filterwidget.py`**
 - `get_filter()` → `subscribe_state(module, IFilters, cb)` → `state.filter`
 - `list_filters()` → `get_capabilities(module, IFilters)` → `.filters`
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- Removed `MotionStatusChangedEvent`, `FilterChangedEvent` handlers and polling `_update`
+- Remove `MotionStatusChangedEvent` and `FilterChangedEvent` handlers
 
-~~**`focuswidget.py`**~~ ✓ Done
-- `get_focus()`/`get_focus_offset()` → single `subscribe_state(module, IFocuser, cb)` → `state.focus`/`state.focus_offset`
+**`focuswidget.py`**
+- `get_focus()` → `subscribe_state(module, IFocuser, cb)` → `state.focus`
+- `get_focus_offset()` → `subscribe_state(module, IFocusOffset, cb)` → `state.focus_offset`
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- Removed `MotionStatusChangedEvent` handler and polling `_update`
+- Remove `MotionStatusChangedEvent` handler
 
-~~**`roofwidget.py`**~~ ✓ Done
+**`roofwidget.py`**
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.az`
-- RPC button handlers use `comm.proxy(module, IMotion)` instead of direct `module.init/park/stop_motion`
+- `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.alt/az`
 
-~~**`telescopewidget.py`**~~ ✓ Done
-- IMotion/IPointingRaDec/IPointingAltAz/IOffsetsRaDec/IOffsetsAltAz all via `subscribe_state`
-- `open()` caches `await comm.get_interfaces(module)` → used for interface checks and conditional subscriptions
-- All `isinstance(self.module, IXxx)` replaced with `IXxx in self._interfaces`
-- Move/offset RPC calls use proxy helpers (`_do_move_radec`, `_do_set_offsets_altaz`, etc.)
-- Removed `_update()` polling and `MotionStatusChangedEvent` handler
+**`telescopewidget.py`**
+- `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
+- `get_radec()` → `subscribe_state(module, IPointingRaDec, cb)` → `state.ra/dec`
+- `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.alt/az`
+- `get_offsets_radec()` → `subscribe_state(module, IOffsetsRaDec, cb)` → `state.dra/ddec`
+- Remove `MotionStatusChangedEvent` handler
 
-~~**`camerawidget.py`**~~ ✓ Done
+**`camerawidget.py`**
 - `get_exposure_status()` → `subscribe_state(module, IExposure, cb)` → `state.status`
 - `list_binnings()` → `get_capabilities(module, IBinning)` → `.binnings`
 - `list_image_formats()` → `get_capabilities(module, IImageFormat)` → `.image_formats`
 - Remove `ExposureStatusChangedEvent` handler
-- `_update_exposure_time` now updates `spinExpTime` from `IExposureTime.State.exposure_time`
-- Removed dead `set_gain`/`set_offset` methods (referenced missing UI elements)
 
-~~**`spectrographwidget.py`**~~ ✓ Done
+**`spectrographwidget.py`**
 - `get_exposure_status()` → `subscribe_state(module, IExposure, cb)` → `state.status`
 - Remove `ExposureStatusChangedEvent` handler
-- `IAbortable` visibility check moved to `open()` via `comm.has_proxy`
 
-~~**`videowidget.py`**~~ ✓ Done
+**`videowidget.py`**
 - `get_video()` → `get_capabilities(module, IVideo)` → `.url`
 - `get_exposure_time()` → `subscribe_state(module, IExposureTime, cb)` → `state.exposure_time`
 - `get_gain()` → `subscribe_state(module, IGain, cb)` → `state.gain`
-- All `isinstance(self.module, ...)` replaced with `comm.has_proxy` / `comm.safe_proxy`
 
-~~**`temperatureswidget.py`**~~ ✓ Done
+**`temperatureswidget.py`**
 - `get_temperatures()` → `subscribe_state(module, ITemperatures, cb)` → `state.readings`
-- `ITemperatures.State.readings` is `list[ITemperatures.Temperature]` with `.name`/`.value`
 
-~~**`modewidget.py`**~~ ✓ Done
+**`modewidget.py`**
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- `list_mode_groups()` / `list_modes()` / `get_mode()` — still RPC via `comm.proxy(module, IMode)`
+- `list_mode_groups()` / `list_modes()` / `get_mode()` — these are still RPC
   (no State/Capabilities replacement yet in pyobs-core for IMode)
-- Removed `MotionStatusChangedEvent` handler; kept `ModeChangedEvent`
-- `set_mode` now uses `comm.proxy(module, IMode)` instead of direct call
+- Remove `MotionStatusChangedEvent` handler; keep `ModeChangedEvent` for now
 
 ---
 
@@ -172,6 +165,34 @@ Key points:
 - **`_init`** is called once when the module connects; re-called on reconnect
 - Callbacks from `subscribe_state` are called from the asyncio event loop —
   use `QMetaObject.invokeMethod` or signals if updating Qt widgets from them
+
+---
+
+## Testing
+
+Test configs live in `test/` in the pyobs-gui repo. Each is a `MultiModule`
+that runs the relevant dummy module and the GUI in a single process via
+`LocalComm` — no XMPP server needed.
+
+```bash
+cd pyobs-gui
+mkdir -p /tmp/pyobs-test      # shared VFS cache dir for camera images
+pyobs test/camera.yaml       # camerawidget, coolingwidget, filterwidget, temperatureswidget
+pyobs test/telescope.yaml    # telescopewidget, focuswidget
+pyobs test/roof.yaml         # roofwidget
+pyobs test/spectrograph.yaml # spectrographwidget
+pyobs test/mode.yaml         # modewidget
+pyobs test/full.yaml         # all of the above together
+```
+
+### Missing: DummyVideo
+`videowidget` has no dummy module yet — `BaseVideo` is abstract and requires
+a real video source. Options:
+1. Write a `DummyVideo` in pyobs-core that serves a static MJPEG stream or
+   returns a fixed URL string
+2. Test `videowidget` manually against a real video source
+
+For now, `videowidget` is excluded from the test configs.
 
 ---
 
