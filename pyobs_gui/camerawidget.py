@@ -4,8 +4,8 @@ import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astroplan import Observer
 
-from pyobs.comm import Proxy, Comm
-from pyobs.events import ExposureStatusChangedEvent, NewImageEvent, Event
+from pyobs.comm import Comm
+from pyobs.events import NewImageEvent
 from pyobs.interfaces import (
     IAbortable,
     IExposureTime,
@@ -99,9 +99,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
 
-        # subscribe to events
-        await self.comm.register_event(ExposureStatusChangedEvent, self._on_exposure_status_changed)
-
         # fill sidebar
         await self.add_to_sidebar(self.create_widget(FitsHeadersWidget, module=self.module))
         if await self.comm.has_proxy(self.module, IFilters):
@@ -119,27 +116,24 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 await self.set_full_frame()
 
         # binning
-        async with self.comm.safe_proxy(self.module, IBinning) as proxy:
-            if proxy is not None:
-                binnings = [f"{binning.x}x{binning.y}" for binning in await proxy.list_binnings()]
-                self.comboBinning.clear()
-                self.comboBinning.addItems(binnings)
-                await self.comm.subscribe_state(self.module, IBinning, self._update_binning)
+        binning_caps = await self.comm.get_capabilities(self.module, IBinning)
+        if binning_caps is not None:
+            binnings = [f"{b.x}x{b.y}" for b in binning_caps.binnings]
+            self.comboBinning.clear()
+            self.comboBinning.addItems(binnings)
+            await self.comm.subscribe_state(self.module, IBinning, self._update_binning)
 
-        # gain
-        async with self.comm.safe_proxy(self.module, IGain) as proxy:
-            if proxy is not None:
-                await self.comm.subscribe_state(self.module, IGain, self._update_gain)
-                self.spinGain.setValue(proxy.state(IGain).gain)
-                self.spinGainOffset.setValue(proxy.state(IGain).offset)
+        # gain — initial values delivered by subscription callback
+        if await self.comm.has_proxy(self.module, IGain):
+            await self.comm.subscribe_state(self.module, IGain, self._update_gain)
 
         # image format
-        async with self.comm.safe_proxy(self.module, IImageFormat) as proxy:
-            if proxy is not None:
-                image_formats = [ImageFormat(f) for f in await proxy.list_image_formats()]
-                self.comboImageFormat.clear()
-                self.comboImageFormat.addItems([f.name for f in image_formats])
-                await self.comm.subscribe_state(self.module, IImageFormat, self._update_image_format)
+        image_format_caps = await self.comm.get_capabilities(self.module, IImageFormat)
+        if image_format_caps is not None:
+            image_formats = [ImageFormat(f) for f in image_format_caps.image_formats]
+            self.comboImageFormat.clear()
+            self.comboImageFormat.addItems([f.name for f in image_formats])
+            await self.comm.subscribe_state(self.module, IImageFormat, self._update_image_format)
 
         async with self.comm.safe_proxy(self.module, IImageType) as proxy:
             if proxy is not None:
@@ -178,10 +172,11 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
     def _update_exposure(self, state: IExposure.State):
         self.exposure_status = state.status
         self.exposure_progress = state.progress
+        self.exposure_time_left = state.exposure_time_left
         self.update_gui()
 
     def _update_exposure_time(self, state: IExposureTime.State):
-        self.exposure_time_left = state.exposure_time_left
+        self.spinExpTime.setValue(state.exposure_time)
         self.update_gui()
 
     @qasync.asyncSlot()
@@ -195,7 +190,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:
         caps = await self.comm.get_capabilities(self.module, IWindow)
-        print(caps)
         if caps is not None:
             full_frame = caps.full_frame
 
@@ -307,46 +301,3 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             self.labelExposuresLeft.setText("%d exposure(s) left" % self.exposures_left)
         else:
             self.labelExposuresLeft.setText("")
-
-    async def _on_exposure_status_changed(self, event: Event, sender: str) -> bool:
-        """Called when exposure status of module changed.
-
-        Args:
-            event: Status change event.
-            sender: Name of sender.
-        """
-
-        # ignore events from wrong sender
-        if sender != self.module or not isinstance(event, ExposureStatusChangedEvent):
-            return False
-
-        # store new status
-        self.exposure_status = event.current
-
-        # trigger GUI update
-        self.signal_update_gui.emit()
-        return True
-
-    @qasync.asyncSlot()  # type: ignore
-    async def set_gain(self) -> None:
-        try:
-            value = float(self.textGain.text())
-        except ValueError:
-            value = 0.0
-        new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set camera gain", "New value", value, 0.0, 10000.0, 2)
-        if ok:
-            async with self.comm.proxy(self.module, IGain) as proxy:
-                await proxy.set_gain(new_value)
-
-    @qasync.asyncSlot()  # type: ignore
-    async def set_offset(self) -> None:
-        try:
-            value = float(self.textOffset.text())
-        except ValueError:
-            value = 0.0
-        new_value, ok = QtWidgets.QInputDialog.getDouble(
-            self, "Set camera gain offset", "New value", value, 0.0, 60000.0, 2
-        )
-        if ok:
-            async with self.comm.proxy(self.module, IGain) as proxy:
-                await proxy.set_offset(new_value)
