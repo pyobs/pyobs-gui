@@ -168,6 +168,25 @@ Key points:
 
 ---
 
+## pyobs-core changes required for MultiModule + GUI
+
+Two changes to pyobs-core are needed to run the test configs:
+
+**`application.py`** — `MultiModule.new_event_loop()` detection: when the top-level
+class doesn't override `new_event_loop`, walk the `modules` dict and use the first
+child class that does (e.g. `pyobs_gui.GUI` creates the Qt event loop).
+
+**`module.py`** — Quit propagation via `_quit_parent`:
+- `Module._quit_parent: Callable | None` — if set, `quit()` delegates to it instead
+  of stopping the loop directly
+- `MultiModule.__init__` sets `mod._quit_parent = self.quit` on every child
+- `MultiModule.quit()` clears `_quit_parent` on each child before calling `quit()` to
+  avoid infinite recursion, then calls `super().quit()` to stop the loop
+
+Both are in pyobs-core `develop`.
+
+---
+
 ## Testing
 
 Test configs live in `test/` in the pyobs-gui repo. Each is a `MultiModule`
