@@ -179,7 +179,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
+        if sender != self.module:
             return False
 
         # wrong type
