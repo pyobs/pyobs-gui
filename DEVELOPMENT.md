@@ -96,9 +96,10 @@ async with self.comm.proxy(self.module, ICooling) as proxy:
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
 - Removed `MotionStatusChangedEvent` handler and polling `_update`
 
-**`roofwidget.py`**
+~~**`roofwidget.py`**~~ ✓ Done
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.alt/az`
+- `get_altaz()` → `subscribe_state(module, IPointingAltAz, cb)` → `state.az`
+- RPC button handlers use `comm.proxy(module, IMotion)` instead of direct `module.init/park/stop_motion`
 
 ~~**`telescopewidget.py`**~~ ✓ Done
 - IMotion/IPointingRaDec/IPointingAltAz/IOffsetsRaDec/IOffsetsAltAz all via `subscribe_state`
@@ -107,29 +108,35 @@ async with self.comm.proxy(self.module, ICooling) as proxy:
 - Move/offset RPC calls use proxy helpers (`_do_move_radec`, `_do_set_offsets_altaz`, etc.)
 - Removed `_update()` polling and `MotionStatusChangedEvent` handler
 
-**`camerawidget.py`**
+~~**`camerawidget.py`**~~ ✓ Done
 - `get_exposure_status()` → `subscribe_state(module, IExposure, cb)` → `state.status`
 - `list_binnings()` → `get_capabilities(module, IBinning)` → `.binnings`
 - `list_image_formats()` → `get_capabilities(module, IImageFormat)` → `.image_formats`
 - Remove `ExposureStatusChangedEvent` handler
+- `_update_exposure_time` now updates `spinExpTime` from `IExposureTime.State.exposure_time`
+- Removed dead `set_gain`/`set_offset` methods (referenced missing UI elements)
 
-**`spectrographwidget.py`**
+~~**`spectrographwidget.py`**~~ ✓ Done
 - `get_exposure_status()` → `subscribe_state(module, IExposure, cb)` → `state.status`
 - Remove `ExposureStatusChangedEvent` handler
+- `IAbortable` visibility check moved to `open()` via `comm.has_proxy`
 
-**`videowidget.py`**
+~~**`videowidget.py`**~~ ✓ Done
 - `get_video()` → `get_capabilities(module, IVideo)` → `.url`
 - `get_exposure_time()` → `subscribe_state(module, IExposureTime, cb)` → `state.exposure_time`
 - `get_gain()` → `subscribe_state(module, IGain, cb)` → `state.gain`
+- All `isinstance(self.module, ...)` replaced with `comm.has_proxy` / `comm.safe_proxy`
 
-**`temperatureswidget.py`**
+~~**`temperatureswidget.py`**~~ ✓ Done
 - `get_temperatures()` → `subscribe_state(module, ITemperatures, cb)` → `state.readings`
+- `ITemperatures.State.readings` is `list[ITemperatures.Temperature]` with `.name`/`.value`
 
-**`modewidget.py`**
+~~**`modewidget.py`**~~ ✓ Done
 - `get_motion_status()` → `subscribe_state(module, IMotion, cb)` → `state.status`
-- `list_mode_groups()` / `list_modes()` / `get_mode()` — these are still RPC
+- `list_mode_groups()` / `list_modes()` / `get_mode()` — still RPC via `comm.proxy(module, IMode)`
   (no State/Capabilities replacement yet in pyobs-core for IMode)
-- Remove `MotionStatusChangedEvent` handler; keep `ModeChangedEvent` for now
+- Removed `MotionStatusChangedEvent` handler; kept `ModeChangedEvent`
+- `set_mode` now uses `comm.proxy(module, IMode)` instead of direct call
 
 ---
 
