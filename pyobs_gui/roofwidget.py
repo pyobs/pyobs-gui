@@ -4,7 +4,7 @@ from typing import Any, TYPE_CHECKING
 import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 
-from pyobs.interfaces import IMotion, IPointingAltAz
+from pyobs.interfaces import IMotion, MotionState, IPointingAltAz, AltAzState
 from .base import BaseWidget
 from .qt.roofwidget_ui import Ui_RoofWidget
 
@@ -33,11 +33,11 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
         await self.comm.subscribe_state(self.module, IPointingAltAz, self._on_pointing_state)
 
-    def _on_motion_state(self, state: IMotion.State) -> None:
+    def _on_motion_state(self, state: MotionState) -> None:
         self._motion_status = state.status
         self.signal_update_gui.emit()
 
-    def _on_pointing_state(self, state: IPointingAltAz.State) -> None:
+    def _on_pointing_state(self, state: AltAzState) -> None:
         self._azimuth = state.az
         self.signal_update_gui.emit()
 

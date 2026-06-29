@@ -5,7 +5,7 @@ from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
 from pyobs.events import Event, ModeChangedEvent
-from pyobs.interfaces import IMode, IMotion
+from pyobs.interfaces import IMode, ModeState, IMotion, MotionState
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
@@ -70,7 +70,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
 
         self.signal_update_gui.emit()
 
-    def _on_motion_state(self, state: IMotion.State) -> None:
+    def _on_motion_state(self, state: MotionState) -> None:
         self._motion_status = state.status
         self.signal_update_gui.emit()
 
@@ -87,7 +87,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
             self._mode_widgets[i][0].setText(self._modes[i])
             self._mode_widgets[i][1].setEnabled(initialized)
 
-    def _on_mode_state(self, state: IMode.State) -> None:
+    def _on_mode_state(self, state: ModeState) -> None:
         self._modes = [state.modes.get(g, "") for g in self._mode_groups]
         self.signal_update_gui.emit()
 

@@ -3,7 +3,7 @@ from typing import Any
 import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
-from pyobs.interfaces import IFilters, IMotion
+from pyobs.interfaces import IFilters, FilterState, IMotion, MotionState
 from pyobs.utils.enums import MotionStatus
 from .base import BaseWidget
 from .qt.filterwidget_ui import Ui_FilterWidget
@@ -38,11 +38,11 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
         await self.comm.subscribe_state(self.module, IFilters, self._on_filter_state)
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
-    def _on_filter_state(self, state: IFilters.State) -> None:
+    def _on_filter_state(self, state: FilterState) -> None:
         self._filter = state.filter
         self.signal_update_gui.emit()
 
-    def _on_motion_state(self, state: IMotion.State) -> None:
+    def _on_motion_state(self, state: MotionState) -> None:
         self._motion_status = state.status
         self.signal_update_gui.emit()
 

@@ -2,7 +2,7 @@ import logging
 from typing import Any, Dict, cast
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
-from pyobs.interfaces import ITemperatures
+from pyobs.interfaces import ITemperatures, TemperaturesState
 from pyobs.utils.time import Time
 from .base import BaseWidget
 from .qt.temperatureswidget_ui import Ui_TemperaturesWidget
@@ -36,7 +36,7 @@ class TemperaturesWidget(BaseWidget, Ui_TemperaturesWidget):
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, ITemperatures, self._on_temperatures_state)
 
-    def _on_temperatures_state(self, state: ITemperatures.State) -> None:
+    def _on_temperatures_state(self, state: TemperaturesState) -> None:
         self._temps = {t.name: t.value for t in state.readings}
         self._plot_widget.add_data(Time.now(), self._temps)
         self.signal_update_gui.emit()

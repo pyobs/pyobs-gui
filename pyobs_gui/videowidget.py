@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 import qasync  # type: ignore
 from astroplan import Observer
 from pyobs.comm import Comm, Proxy
-from pyobs.interfaces import IExposureTime, IGain, IImageFormat, IImageType, IVideo
+from pyobs.interfaces import IExposureTime, ExposureTimeState, IGain, GainState, IImageFormat, IImageType, ImageTypeState, IVideo
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
 from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
@@ -150,13 +150,13 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # update GUI
         self.signal_update_gui.emit()
 
-    def _on_exposure_time_state(self, state: IExposureTime.State) -> None:
+    def _on_exposure_time_state(self, state: ExposureTimeState) -> None:
         self.spinExpTime.setValue(state.exposure_time)
 
-    def _on_gain_state(self, state: IGain.State) -> None:
+    def _on_gain_state(self, state: GainState) -> None:
         self.spinGain.setValue(state.gain)
 
-    def _on_image_type_state(self, state: IImageType.State) -> None:
+    def _on_image_type_state(self, state: ImageTypeState) -> None:
         self.comboImageType.setCurrentText(state.image_type.name)
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:

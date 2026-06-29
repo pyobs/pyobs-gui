@@ -4,7 +4,7 @@ from typing import Any
 import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
-from pyobs.interfaces import IFocuser, IMotion
+from pyobs.interfaces import IFocuser, FocuserState, IMotion, MotionState
 from pyobs.utils.enums import MotionStatus
 from .base import BaseWidget
 from .qt.focuswidget_ui import Ui_FocusWidget
@@ -39,12 +39,12 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         await self.comm.subscribe_state(self.module, IFocuser, self._on_focuser_state)
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
-    def _on_focuser_state(self, state: IFocuser.State) -> None:
+    def _on_focuser_state(self, state: FocuserState) -> None:
         self._focus = state.focus
         self._focus_offset = state.focus_offset
         self.signal_update_gui.emit()
 
-    def _on_motion_state(self, state: IMotion.State) -> None:
+    def _on_motion_state(self, state: MotionState) -> None:
         self._motion_status = state.status
         self.signal_update_gui.emit()
 

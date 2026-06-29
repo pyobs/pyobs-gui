@@ -5,7 +5,7 @@ from typing import Any, TYPE_CHECKING
 import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 
-from pyobs.interfaces import IAbortable, IExposure, ISpectrograph
+from pyobs.interfaces import IAbortable, IExposure, ExposureState, ISpectrograph
 from pyobs.utils.enums import ExposureStatus
 from .base import BaseWidget
 
@@ -54,7 +54,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IExposure, self._on_exposure_state)
 
-    def _on_exposure_state(self, state: IExposure.State) -> None:
+    def _on_exposure_state(self, state: ExposureState) -> None:
         self.exposure_status = state.status
         self.signal_update_gui.emit()
 

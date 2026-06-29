@@ -9,16 +9,23 @@ from pyobs.events import NewImageEvent
 from pyobs.interfaces import (
     IAbortable,
     IExposureTime,
+    ExposureTimeState,
     IImageType,
+    ImageTypeState,
     IImageFormat,
+    ImageFormatState,
     IBinning,
+    BinningState,
     IWindow,
+    WindowState,
     IFilters,
     ICooling,
     ITemperatures,
     ICamera,
     IGain,
+    GainState,
     IExposure,
+    ExposureState,
 )
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.vfs import VirtualFileSystem
@@ -150,32 +157,32 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         # update GUI
         self.signal_update_gui.emit()
 
-    def _update_window(self, state: IWindow.State):
+    def _update_window(self, state: WindowState):
         self.labelWindowLeft.setText(str(state.x))
         self.labelWindowTop.setText(str(state.y))
         self.labelWindowWidth.setText(str(state.width))
         self.labelWindowHeight.setText(str(state.height))
 
-    def _update_binning(self, state: IBinning.State):
+    def _update_binning(self, state: BinningState):
         self.comboBinning.setCurrentText(f"{state.x}x{state.y}")
 
-    def _update_gain(self, state: IGain.State):
+    def _update_gain(self, state: GainState):
         self.labelGain.setText(str(state.gain))
         self.labelGainOffset.setText(str(state.offset))
 
-    def _update_image_format(self, state: IImageFormat.State):
+    def _update_image_format(self, state: ImageFormatState):
         self.comboImageFormat.setCurrentText(state.image_format.name)
 
-    def _update_image_type(self, state: IImageType.State):
+    def _update_image_type(self, state: ImageTypeState):
         self.comboImageType.setCurrentText(state.image_type.name)
 
-    def _update_exposure(self, state: IExposure.State):
+    def _update_exposure(self, state: ExposureState):
         self.exposure_status = state.status
         self.exposure_progress = state.progress
         self.exposure_time_left = state.exposure_time_left
         self.update_gui()
 
-    def _update_exposure_time(self, state: IExposureTime.State):
+    def _update_exposure_time(self, state: ExposureTimeState):
         self.spinExpTime.setValue(state.exposure_time)
         self.update_gui()
 

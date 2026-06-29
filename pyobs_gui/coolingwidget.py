@@ -3,7 +3,7 @@ import logging
 from typing import Any
 from PySide6 import QtCore  # type: ignore
 
-from pyobs.interfaces import ICooling
+from pyobs.interfaces import ICooling, CoolingState
 from .base import BaseWidget
 from .qt.coolingwidget_ui import Ui_CoolingWidget
 
@@ -18,7 +18,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         self.setupUi(self)  # type: ignore
 
         # state
-        self.state: ICooling.State | None = None
+        self.state: CoolingState | None = None
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -28,7 +28,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, ICooling, self._update_state)
 
-    def _update_state(self, state: ICooling.State) -> None:
+    def _update_state(self, state: CoolingState) -> None:
         self.state = state
         self.signal_update_gui.emit()
 

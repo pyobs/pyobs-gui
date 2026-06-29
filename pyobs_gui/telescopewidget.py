@@ -14,15 +14,20 @@ from sunpy.coordinates.frames import Helioprojective, HeliographicStonyhurst  # 
 
 from pyobs.interfaces import (
     IPointingRaDec,
+    RaDecState,
     IPointingAltAz,
+    AltAzState,
     IPointingHelioprojective,
     IPointingHGS,
     IOffsetsRaDec,
+    RaDecOffsetState,
     IOffsetsAltAz,
+    AltAzOffsetState,
     IFilters,
     IFocuser,
     ITemperatures,
     IMotion,
+    MotionState,
 )
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
@@ -180,11 +185,11 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     # State callbacks
     # -------------------------------------------------------------------------
 
-    def _on_motion_state(self, state: IMotion.State) -> None:
+    def _on_motion_state(self, state: MotionState) -> None:
         self._motion_status = state.status
         self.signal_update_gui.emit()
 
-    def _on_radec_state(self, state: IPointingRaDec.State) -> None:
+    def _on_radec_state(self, state: RaDecState) -> None:
         if self.observer is not None:
             self._ra_dec = SkyCoord(
                 ra=state.ra * u.deg,
@@ -197,7 +202,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self._ra_dec = None
         self.signal_update_gui.emit()
 
-    def _on_altaz_state(self, state: IPointingAltAz.State) -> None:
+    def _on_altaz_state(self, state: AltAzState) -> None:
         if self.observer is not None:
             self._alt_az = SkyCoord(
                 alt=state.alt * u.deg,
@@ -210,7 +215,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self._alt_az = None
         self.signal_update_gui.emit()
 
-    def _on_offsets_radec_state(self, state: IOffsetsRaDec.State) -> None:
+    def _on_offsets_radec_state(self, state: RaDecOffsetState) -> None:
         self._off_ra = state.ra
         self._off_dec = state.dec
         if self._ra_dec is not None:
@@ -219,7 +224,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self._off_alt, self._off_az = None, None
         self.signal_update_gui.emit()
 
-    def _on_offsets_altaz_state(self, state: IOffsetsAltAz.State) -> None:
+    def _on_offsets_altaz_state(self, state: AltAzOffsetState) -> None:
         self._off_alt = state.alt
         self._off_az = state.az
         if self._alt_az is not None:
