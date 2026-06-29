@@ -15,7 +15,6 @@ from .base import BaseWidget
 
 from .qt.spectrographwidget_ui import Ui_SpectrographWidget
 
-
 log = logging.getLogger(__name__)
 
 
@@ -40,9 +39,6 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         # before first update, disable myself
         self.setEnabled(False)
 
-        # hide single controls
-        self.butAbort.setVisible(isinstance(self.module, IAbortable))
-
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
         self.butExpose.clicked.connect(self.grab_spectrum)
@@ -58,6 +54,9 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
         await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
+
+        # hide single controls
+        self.butAbort.setVisible(isinstance(self.module, IAbortable))
 
         # subscribe to events
         if self.comm is not None:
