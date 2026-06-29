@@ -204,14 +204,18 @@ pyobs test/mode.yaml         # modewidget
 pyobs test/full.yaml         # all of the above together
 ```
 
-### Missing: DummyVideo
-`videowidget` has no dummy module yet — `BaseVideo` is abstract and requires
-a real video source. Options:
-1. Write a `DummyVideo` in pyobs-core that serves a static MJPEG stream or
-   returns a fixed URL string
-2. Test `videowidget` manually against a real video source
+### DummyVideo
+`DummyVideo` is now in pyobs-core (`pyobs.modules.camera.dummyvideo.DummyVideo`).
+Implements `IVideo` and `IExposureTime`. Generates noise frames at configurable FPS.
+Use `test/video.yaml` or `test/full.yaml` to test `videowidget`.
 
-For now, `videowidget` is excluded from the test configs.
+---
+
+## Phase 4 status: COMPLETE ✓
+
+All widgets migrated to state/capabilities API. Only remaining RPC calls are
+`list_mode_groups()`, `list_modes()`, `get_mode()` in `modewidget.py` — kept
+as RPC since `IMode` has no State/Capabilities yet in pyobs-core.
 
 ---
 
