@@ -4,8 +4,8 @@ from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Proxy, Comm
-from pyobs.events import MotionStatusChangedEvent, Event, ModeChangedEvent
-from pyobs.interfaces import IFilters, IMode, IMotion
+from pyobs.events import Event, ModeChangedEvent
+from pyobs.interfaces import IMode, IMotion
 from pyobs.utils.enums import MotionStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
@@ -16,10 +16,10 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
     signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
-        BaseWidget.__init__(self, update_func=self._update, update_interval=10, **kwargs)
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)  # type: ignore
 
-        # variables
+        # cached state
         self._mode_groups: list[str] = []
         self._mode_options: list[list[str]] = [[]]
         self._modes: list[str] = []
@@ -39,23 +39,17 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
-        # subscribe to events
         await self.comm.register_event(ModeChangedEvent, self._on_mode_changed)
-        await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
 
     async def _init(self) -> None:
-        module = self.module
+        await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
-        if isinstance(module, IMotion):
-            self._motion_status = await module.get_motion_status()
+        if await self.comm.has_proxy(self.module, IMode):
+            async with self.comm.proxy(self.module, IMode) as proxy:
+                self._mode_groups = await proxy.list_mode_groups()
+                self._mode_options = [await proxy.list_modes(i) for i in range(len(self._mode_groups))]
+                self._modes = [await proxy.get_mode(i) for i in range(len(self._mode_groups))]
 
-        # get current filter
-        if isinstance(module, IMode):
-            self._mode_groups = await module.list_mode_groups()
-            self._mode_options = [await module.list_modes(i) for i in range(len(self._mode_groups))]
-            await self._update_modes()
-
-            # add widgets
             self._mode_widgets = []
             for i in range(len(self._mode_groups)):
                 layout = QtWidgets.QHBoxLayout()
@@ -71,11 +65,13 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
                 self._mode_widgets.append((current, button))
                 cast("QtWidgets.QFormLayout", self.groupBox.layout()).addRow(self._mode_groups[i], layout)
 
-        # update gui
+        self.signal_update_gui.emit()
+
+    def _on_motion_state(self, state: IMotion.State) -> None:
+        self._motion_status = state.status
         self.signal_update_gui.emit()
 
     def update_gui(self) -> None:
-        # enable myself and set filter
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
         initialized = self._motion_status in [
@@ -89,72 +85,26 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
             self._mode_widgets[i][1].setEnabled(initialized)
 
     async def _on_mode_changed(self, event: Event, sender: str) -> bool:
-        """Called when mode changed.
-
-        Args:
-            event: Mode change event.
-            sender: Name of sender.
-        """
-
-        # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, ModeChangedEvent):
+        if sender != self.module or not isinstance(event, ModeChangedEvent):
             return False
 
-        # store new filter
         g = self._mode_groups.index(event.group)
         self._modes[g] = event.mode
-
-        # trigger GUI update
         self.signal_update_gui.emit()
         return True
-
-    async def _on_motion_status_changed(self, event: Event, sender: str) -> bool:
-        """Called when motion status of module changed.
-
-        Args:
-            event: Status change event.
-            sender: Name of sender.
-        """
-
-        # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
-            return False
-
-        # store new status
-        if "IMode" in event.interfaces:
-            self._motion_status = event.interfaces["IMode"]
-        else:
-            self._motion_status = event.status
-
-        # trigger GUI update
-        self.signal_update_gui.emit()
-        return True
-
-    async def _update_modes(self) -> None:
-        module = self.module
-        if isinstance(module, IMode):
-            self._modes = [await module.get_mode(i) for i in range(len(self._mode_groups))]
-
-    async def _update(self) -> None:
-        # get mode and motion status
-        module = self.module
-        if isinstance(module, IFilters):
-            await self._update_modes()
-            self._motion_status = await module.get_motion_status()
-
-        # signal GUI update
-        self.signal_update_gui.emit()
 
     @QtCore.Slot(int)  # type: ignore
     def set_mode(self, group: int) -> None:
-        # ask for value
         mode = self._mode_groups[group]
         new_value, ok = QtWidgets.QInputDialog.getItem(
             self, f"Set {mode}", f"New {mode}", self._mode_options[group], 0, False
         )
-        module = self.module
-        if ok and isinstance(module, IMode):
-            self.run_background(module.set_mode, new_value, group)
+        if ok:
+            async def _do_set_mode() -> None:
+                async with self.comm.proxy(self.module, IMode) as proxy:
+                    await proxy.set_mode(new_value, group)
+
+            self.run_background(_do_set_mode)
 
 
 __all__ = ["ModeWidget"]
