@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 import qasync  # type: ignore
-from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
+from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
 from pyobs.comm import Comm
@@ -21,7 +21,6 @@ from pyobs.interfaces import (
     IFilters,
     ICooling,
     ITemperatures,
-    ICamera,
     IGain,
     GainState,
     IExposure,

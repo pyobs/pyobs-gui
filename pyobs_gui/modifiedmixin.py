@@ -1,7 +1,7 @@
 from typing import Self
 
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtWidgets import QLabel, QLineEdit, QSpinBox, QDoubleSpinBox
+from PySide6.QtWidgets import QLineEdit, QSpinBox, QDoubleSpinBox
 
 from .watchedlabel import WatchedLabel
 

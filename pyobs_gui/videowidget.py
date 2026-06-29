@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any
 from urllib.parse import urlparse
 
 import qasync  # type: ignore
@@ -14,8 +14,6 @@ from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
 from .base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
 
-if TYPE_CHECKING:
-    from pyobs.modules import Module
 
 log = logging.getLogger(__name__)
 

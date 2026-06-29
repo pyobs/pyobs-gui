@@ -5,7 +5,7 @@ from typing import Any, TYPE_CHECKING
 import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 
-from pyobs.interfaces import IAbortable, IExposure, ExposureState, ISpectrograph
+from pyobs.interfaces import IAbortable, IExposure, ExposureState
 from pyobs.utils.enums import ExposureStatus
 from .base import BaseWidget
 

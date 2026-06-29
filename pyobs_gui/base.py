@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Coroutine
 
     from astroplan import Observer
-    from pyobs.comm import Comm, Proxy
+    from pyobs.comm import Comm
     from pyobs.vfs import VirtualFileSystem
 
 log = logging.getLogger(__name__)

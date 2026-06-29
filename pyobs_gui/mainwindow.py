@@ -8,7 +8,6 @@ from colour import Color  # type: ignore
 os.environ["QT_API"] = "pyside6"
 import qtawesome as qta  # type: ignore
 
-from pyobs.comm import Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     ICamera,
