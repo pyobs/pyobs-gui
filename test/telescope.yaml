@@ -7,10 +7,6 @@ location:
   latitude: 51.560583
   elevation: 201
 
-shared:
-  world:
-    class: pyobs.utils.simulation.SimWorld
-
 modules:
   telescope:
     class: pyobs.modules.telescope.DummyTelescope

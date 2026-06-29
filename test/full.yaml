@@ -7,10 +7,6 @@ location:
   latitude: 51.560583
   elevation: 201
 
-shared:
-  world:
-    class: pyobs.utils.simulation.SimWorld
-
 vfs: &vfs
   class: pyobs.vfs.VirtualFileSystem
   roots:
@@ -22,6 +18,7 @@ modules:
   camera:
     class: pyobs.modules.camera.DummyCamera
     name: camera
+    telescope: telescope
     vfs: *vfs
     comm:
       class: pyobs.comm.local.LocalComm
