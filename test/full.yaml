@@ -13,6 +13,9 @@ vfs: &vfs
     cache:
       class: pyobs.vfs.LocalFile
       root: /tmp/pyobs-test/
+    webcam:
+      class: pyobs.vfs.HttpFile
+      download: http://localhost:37077/
 
 modules:
   camera:
@@ -44,6 +47,15 @@ modules:
     comm:
       class: pyobs.comm.local.LocalComm
       name: mode
+
+  video:
+    class: pyobs.modules.camera.dummyvideo.DummyVideo
+    name: video
+    port: 37077
+    vfs: *vfs
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: video
 
   gui:
     class: pyobs_gui.GUI
