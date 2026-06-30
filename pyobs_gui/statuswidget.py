@@ -5,7 +5,7 @@ import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
-from pyobs.comm import Comm, Proxy
+from pyobs.comm import Comm
 from pyobs.events import Event, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IModule
 from pyobs.utils.enums import ModuleState
@@ -86,7 +86,7 @@ class StatusWidget(BaseWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
