@@ -39,7 +39,7 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         """
 
         # check sender
-        if "sender" in kwargs and kwargs["sender"] != self.module.name:
+        if "sender" in kwargs and kwargs["sender"] != self.module:
             return {}
 
         # don't want to send headers?
