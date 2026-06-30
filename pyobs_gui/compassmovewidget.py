@@ -36,19 +36,26 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
             return
 
         # get offsets
-        if isinstance(self.module, IOffsetsAltAz) and isinstance(self.module, IPointingAltAz):
-            alt, az = await self.module.get_altaz()
+        altaz = None
+        has_offsets_altaz = await self.comm.has_proxy(self.module, IOffsetsAltAz)
+        has_pointing_altaz = await self.comm.has_proxy(self.module, IPointingAltAz)
+        has_offsets_radec = await self.comm.has_proxy(self.module, IOffsetsRaDec)
+        if has_offsets_altaz and has_pointing_altaz:
+            async with self.comm.proxy(self.module, IPointingAltAz) as p:
+                alt, az = await p.get_altaz()  # type: ignore[attr-defined]
             altaz = SkyCoord(
-                alt=alt * u.degree,  # pyrefly: ignore [missing-attribute]
-                az=az * u.degree,  # pyrefly: ignore [missing-attribute]
+                alt=alt * u.degree,  # type: ignore[attr-defined]
+                az=az * u.degree,  # type: ignore[attr-defined]
                 obstime=Time.now(),
                 location=self.observer.location,
                 frame="altaz",
             )
-            off_alt, off_az = await self.module.get_offsets_altaz()
+            async with self.comm.proxy(self.module, IOffsetsAltAz) as p:
+                off_alt, off_az = await p.get_offsets_altaz()  # type: ignore[attr-defined]
             off_ra, off_dec = offset_altaz_to_radec(altaz, off_alt, off_az)
-        elif isinstance(self.module, IOffsetsRaDec):
-            off_ra, off_dec = await self.module.get_offsets_radec()
+        elif has_offsets_radec:
+            async with self.comm.proxy(self.module, IOffsetsRaDec) as p:
+                off_ra, off_dec = await p.get_offsets_radec()  # type: ignore[attr-defined]
         else:
             return
 
@@ -66,11 +73,13 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
             off_ra -= user_offset
 
         # move
-        if isinstance(self.module, IOffsetsRaDec):
-            self.run_background(self.module.set_offsets_radec, off_ra, off_dec)
-        elif isinstance(self.module, IOffsetsAltAz):
+        if has_offsets_radec:
+            async with self.comm.proxy(self.module, IOffsetsRaDec) as p:
+                await p.set_offsets_radec(off_ra, off_dec)
+        elif has_offsets_altaz and altaz is not None:
             off_alt, off_az = offset_radec_to_altaz(altaz.transform_to(ICRS()), off_ra, off_dec, self.observer.location)  # noqa: E501
-            self.run_background(self.module.set_offsets_altaz, off_alt, off_az)
+            async with self.comm.proxy(self.module, IOffsetsAltAz) as p:
+                await p.set_offsets_altaz(off_alt, off_az)
         else:
             raise ValueError
 
