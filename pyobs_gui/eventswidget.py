@@ -7,7 +7,7 @@ import inspect
 from astroplan import Observer
 
 import pyobs.events
-from pyobs.comm import Comm, Proxy
+from pyobs.comm import Comm
 from pyobs.events import LogEvent, Event
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
@@ -31,7 +31,7 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
