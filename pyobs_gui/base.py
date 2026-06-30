@@ -2,28 +2,31 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Coroutine
-from typing import Any, TypeVar, Callable, Type
-from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
-from astroplan import Observer
+from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar, overload
 
-from pyobs.comm import Comm, Proxy
-from pyobs.interfaces import IModule
+import pyobs.utils.exceptions as exc
 from pyobs.object import create_object
 from pyobs.utils.enums import ModuleState
-from pyobs.vfs import VirtualFileSystem
-import pyobs.utils.exceptions as exc
+from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
+
 from .utils import QAsyncMessageBox
+
+if TYPE_CHECKING:
+    from collections.abc import Coroutine
+
+    from astroplan import Observer
+    from pyobs.comm import Comm
+    from pyobs.vfs import VirtualFileSystem
 
 log = logging.getLogger(__name__)
 
-WidgetClass = TypeVar("WidgetClass")
+WidgetClass = TypeVar("WidgetClass", bound="BaseWidget")
 
 
 class BaseWindow:
     def __init__(self) -> None:
         """Base class for MainWindow and all widgets."""
-        self.modules: list[Proxy] = []
+        self.modules: list[str] = []
         self._comm: Comm | None = None
         self.observer: Observer | None = None
         self.vfs: VirtualFileSystem | dict[str, Any] | None = None
@@ -36,29 +39,11 @@ class BaseWindow:
         return self._comm
 
     @property
-    def module(self) -> Proxy:
+    def module(self) -> str:
         """Returns the first module in the list or None, if list is empty"""
         return self.modules[0]
 
-    def module_by_name(self, name: str) -> Proxy | None:
-        """Return the module with the given name or None, if not exists.
-
-        Args:
-            name: Name of module to return.
-
-        Returns:
-            Module or None.
-        """
-
-        # loop all modules and check name
-        for module in self.modules:
-            if module.name == name:
-                return module
-
-        # nothing found
-        return None
-
-    def modules_by_interface(self, interface: Any) -> list[Proxy]:
+    def modules_by_interface(self, interface: Any) -> list[str]:
         """Returns all modules that implement the given interface.
 
         Args:
@@ -69,7 +54,7 @@ class BaseWindow:
         """
         return list(filter(lambda m: isinstance(m, interface), self.modules))
 
-    def module_by_interface(self, interface: Any) -> Proxy | None:
+    def module_by_interface(self, interface: Any) -> str | None:
         """Returns first modules that implement the given interface, or None, if no exist.
 
         Args:
@@ -81,6 +66,10 @@ class BaseWindow:
         modules = self.modules_by_interface(interface)
         return None if len(modules) == 0 else modules[0]
 
+    @overload
+    def create_widget(self, config: type[WidgetClass], **kwargs: Any) -> WidgetClass: ...
+    @overload
+    def create_widget(self, config: dict[str, Any], **kwargs: Any) -> "BaseWidget": ...
     def create_widget(self, config: dict[str, Any] | type, **kwargs: Any) -> "BaseWidget":
         """Creates new widget.
 
@@ -108,7 +97,7 @@ class BaseWindow:
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
@@ -247,8 +236,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             try:
                 # get module state
                 module = self.module
-                if isinstance(module, IModule):
-                    state = await module.get_state()
+                client_state = self.comm.get_client_state(module)
+                if client_state is not None:
+                    state, _ = client_state
                     self.setEnabled(state == ModuleState.READY)
                     if state != ModuleState.READY:
                         return

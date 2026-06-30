@@ -1,0 +1,18 @@
+# Test config for spectrographwidget
+# Run with: pyobs spectrograph.yaml
+class: pyobs.modules.MultiModule
+
+modules:
+  spectrograph:
+    class: pyobs.modules.camera.DummySpectrograph
+    name: spectrograph
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: spectrograph
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

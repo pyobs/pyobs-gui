@@ -1,6 +1,6 @@
 [project]
 name = "pyobs-gui"
-version = "1.8.3"
+version = "2.0.0.dev1"
 description = "A remote GUI for pyobs"
 authors = [{ name = "Tim-Oliver Husser", email = "thusser@uni-goettingen.de" }]
 requires-python = ">=3.11,<3.14"
@@ -12,16 +12,19 @@ dependencies = [
     "sunpy[all]>=7.0.1",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget>=0.13.1",
-    "pyobs-core==1.49.0",
+    "pyobs-core>=2.0.0.dev6,<3",
     "pyside6>=6.10.1",
+    "astroplan>=0.10.1",
+    "astropy>=7.0.1,<8",
 ]
 
 [dependency-groups]
 dev = [
     "black>=25.1.0,<26",
-    "flake8>=7.3.0",
+    "ruff>=0.11.0",
     "matplotlib-stubs>=0.1.0",
     "mypy>=1.17.0",
+    "pyrefly>=0.17.0",
     "pandas-stubs>=2.3.0.250703",
     "pre-commit>=4.2.0,<5",
     "pyside6-stubs>=6.7.3.0",
@@ -38,3 +41,31 @@ build-backend = "hatchling.build"
 [tool.black]
 line-length = 120
 target-version = ['py311']
+
+[tool.ruff]
+line-length = 120
+exclude = [".git", ".venv", "__pycache__", "docs", "build", "dist", "pyobs_gui/qt/"]
+
+[tool.ruff.lint]
+select = ["B", "C90", "E", "F", "W", "TCH"]
+ignore = ["E203", "E266", "E501", "F403", "E722"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 30
+
+[tool.pyrefly]
+project-includes = ["pyobs_gui"]
+project-excludes = ["**/docs/", "**/qt/"]
+python-version = "3.11.0"
+preset = "legacy"
+ignore-missing-imports = [
+    "astropy.*",
+    "astroplan.*",
+    "qasync.*",
+]
+
+[tool.pyrefly.errors]
+redundant-cast = "warn"

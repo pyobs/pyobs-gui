@@ -1,25 +1,28 @@
+from __future__ import annotations
+
 import logging
 import os
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 import numpy as np
 from PySide6 import QtWidgets, QtCore  # type: ignore
-from astropy.io import fits
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT  # pyrefly: ignore [missing-module-attribute]
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 from qfitswidget import QFitsWidget  # type: ignore
 
-from pyobs.comm import Proxy
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IData, ISpectrograph
-from pyobs.utils.enums import ImageType
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
+    from pyobs.comm import Proxy
+    from matplotlib.axes import Axes
+    from astropy.io import fits
 
 log = logging.getLogger(__name__)
 
@@ -61,41 +64,36 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
-        if isinstance(self.module, ISpectrograph):
+        if await self.comm.has_proxy(self.module, ISpectrograph):
             self.figure, self.ax = plt.subplots()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
             self.imageLayout.addWidget(self.plotTools)
             self.imageLayout.addWidget(self.canvas)
-        elif isinstance(self.module, IData):
+        elif await self.comm.has_proxy(self.module, IData):
             self.imageView = QFitsWidget()
             self.imageLayout.addWidget(self.imageView)
         else:
             raise ValueError("Unknown type")
 
         # subscribe to events
-        if self.comm is not None:
-            await self.comm.register_event(NewImageEvent, self._on_new_data)
-            await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+        await self.comm.register_event(NewImageEvent, self._on_new_data)
+        await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
 
-    async def grab_data(self, broadcast: bool, image_type: ImageType = ImageType.OBJECT) -> None:
+    async def grab_data(self, broadcast: bool) -> None:
         """Grab data."""
         module = self.module
 
         # expose
-        if isinstance(module, IData):
-            filename = await module.grab_data(broadcast=broadcast)
-        else:
-            raise ValueError("Unknown type")
+        async with self.comm.proxy(module, IData) as proxy:
+            filename = await proxy.grab_data(broadcast=broadcast)
 
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
-            if isinstance(module, ISpectrograph):
-                await self._on_new_data(NewSpectrumEvent(filename), cast(Proxy, cast(object, module)).name)
-            elif isinstance(module, IData):
-                await self._on_new_data(NewImageEvent(filename, image_type), cast(Proxy, cast(object, module)).name)
+            if await self.comm.has_proxy(module, ISpectrograph):
+                await self._on_new_data(NewSpectrumEvent(filename), cast("Proxy", cast("object", module)).name)
             else:
-                raise ValueError("Unknown type")
+                await self._on_new_data(NewImageEvent(filename, None), cast("Proxy", cast("object", module)).name)
 
         # signal GUI update
         self.signal_update_gui.emit()
@@ -180,7 +178,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         """
 
         # ignore events from wrong sender
-        if sender != self.module.name:
+        if sender != self.module:
             return False
 
         # wrong type

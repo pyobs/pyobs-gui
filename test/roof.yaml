@@ -1,0 +1,18 @@
+# Test config for roofwidget
+# Run with: pyobs roof.yaml
+class: pyobs.modules.MultiModule
+
+modules:
+  roof:
+    class: pyobs.modules.roof.DummyRoof
+    name: roof
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: roof
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

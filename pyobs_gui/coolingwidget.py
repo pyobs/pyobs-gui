@@ -3,10 +3,9 @@ import logging
 from typing import Any
 from PySide6 import QtCore  # type: ignore
 
-from pyobs.interfaces import ICooling
+from pyobs.interfaces import ICooling, CoolingState
 from .base import BaseWidget
 from .qt.coolingwidget_ui import Ui_CoolingWidget
-
 
 log = logging.getLogger(__name__)
 
@@ -15,11 +14,11 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
     signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
-        BaseWidget.__init__(self, update_func=self._update, **kwargs)
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)  # type: ignore
 
-        # status
-        self._status: tuple[bool, float, float] | None = None
+        # state
+        self.state: CoolingState | None = None
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -27,35 +26,21 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         self.buttonApply.clicked.connect(self.buttonApply_clicked)
 
     async def _init(self) -> None:
-        module = self.module
-        if isinstance(module, ICooling):
-            enabled, setpoint, _ = await module.get_cooling()
-            self.checkEnabled.setChecked(enabled)
-            self.spinSetPoint.setValue(setpoint)
+        await self.comm.subscribe_state(self.module, ICooling, self._update_state)
 
-    async def _update(self) -> None:
-        # get status
-        module = self.module
-        if isinstance(module, ICooling):
-            self._status = await module.get_cooling()
-
-        # signal GUI update
+    def _update_state(self, state: CoolingState) -> None:
+        self.state = state
         self.signal_update_gui.emit()
 
     def update_gui(self) -> None:
-        if self._status is not None:
-            # enable myself
+        if self.state is not None:
             self.setEnabled(True)
 
-            # split values
-            enabled, set_point, power = self._status
-
-            # set it
-            if enabled:
-                self.labelStatus.setText("N/A" if set_point is None else "%.1f°C" % set_point)
-                self.labelPower.setText("N/A" if power is None else "%d%%" % power)
+            if self.state.enabled:
+                self.labelStatus.setText("N/A" if self.state.setpoint is None else f"{self.state.setpoint:.1f}°C")
+                self.labelPower.setText("N/A" if self.state.power is None else f"{self.state.power:d}%")
             else:
-                self.labelStatus.setText("N/A" if power is None else "OFF")
+                self.labelStatus.setText("OFF")
                 self.labelPower.clear()
 
     @QtCore.Slot(bool)  # type: ignore
@@ -64,11 +49,7 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def buttonApply_clicked(self) -> None:
-        # get enabled and setpoint temperature
         enabled = self.checkEnabled.isChecked()
         temp = self.spinSetPoint.value()
-
-        # send it
-        module = self.module
-        if isinstance(module, ICooling):
-            await module.set_cooling(enabled, temp)
+        async with self.comm.proxy(self.module, ICooling) as proxy:
+            await proxy.set_cooling(enabled, temp)

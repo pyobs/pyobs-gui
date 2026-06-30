@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Optional, List, Any, Dict, Tuple
+from typing import Optional, List, Any, Dict
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from pyobs.utils.time import Time
 from colour import Color  # type: ignore
@@ -8,7 +8,6 @@ from colour import Color  # type: ignore
 os.environ["QT_API"] = "pyside6"
 import qtawesome as qta  # type: ignore
 
-from pyobs.comm import Proxy
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     ICamera,
@@ -109,7 +108,7 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
             return special.index(self.text()) < special.index(other.text())
         else:
             # none are
-            return bool(self.text() < other.text())
+            return self.text() < other.text()
 
 
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
@@ -189,7 +188,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if self.show_shell:
             # add shell nav button and view
             self.shell = self.create_widget(ShellWidget)
-            await self._add_client("Shell", qta.icon("msc.terminal-powershell"), self.shell, None)
+            await self._add_client("Shell", qta.icon("msc.terminal-powershell"), self.shell)
         else:
             self.shell = None
 
@@ -197,14 +196,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if self.show_events:
             # add events nav button and view
             self.events = self.create_widget(EventsWidget)
-            await self._add_client("Events", qta.icon("msc.symbol-event"), self.events, None)
+            await self._add_client("Events", qta.icon("msc.symbol-event"), self.events)
         else:
             self.events = None
 
         # status
         if self.show_status:
             self.status = self.create_widget(StatusWidget)
-            await self._add_client("Status", qta.icon("fa5s.wifi"), self.status, None)
+            await self._add_client("Status", qta.icon("fa5s.wifi"), self.status)
         else:
             self.status = None
 
@@ -235,18 +234,17 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if self.warning_task is not None:
             self.warning_task.cancel()
         if self.module is not None:
-            self.module.quit()
+            # quit() exists on Module but is not declared on Proxy
+            self.module.quit()  # pyrefly: ignore [missing-attribute] —
 
-    async def _add_client(
-        self, client: str, icon: QtGui.QIcon, widget: BaseWidget, proxy: Optional[Proxy] = None
-    ) -> None:
+    async def _add_client(self, client: str, icon: QtGui.QIcon, widget: BaseWidget) -> None:
         """
 
         Args:
             client: Name of client to add.
             icon: Icon for client in nav list.
             widget: Widget to add for client.
-            proxy: Proxy for client.
+            module: Module name of client.
 
         Returns:
 
@@ -263,7 +261,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # open and add widget
         await widget.open(
-            modules=[proxy] if proxy is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
+            modules=[client] if client is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
         )
         self.stackedWidget.addWidget(widget)
 
@@ -322,7 +320,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # define new row and emit
         row = [
             time.iso.split()[1],
-            str(sender),
+            sender,
             entry.level,
             "%s:%d" % (os.path.basename(entry.filename), entry.line),
             entry.message,
@@ -344,7 +342,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         """Update log filter."""
 
         # update proxy
-        self.log_proxy.filter_source(str(item.text()), item.checkState() == QtCore.Qt.CheckState.Checked)
+        self.log_proxy.filter_source(item.text(), item.checkState() == QtCore.Qt.CheckState.Checked)
 
     async def _check_warning_task(self) -> None:
         while True:
@@ -357,10 +355,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         autonomous_clients = await self.comm.clients_with_interface(IAutonomous)
         self.mastermind_running = False
         for auto_client in autonomous_clients:
-            proxy = await self.comm.safe_proxy(auto_client, IAutonomous)
-            if proxy is not None and await proxy.is_running():
-                self.mastermind_running = True
-                break
+            async with self.comm.safe_proxy(auto_client, IAutonomous) as proxy:
+                if proxy is not None and await proxy.is_running():
+                    self.mastermind_running = True
+                    break
 
         # got any?
         self.labelAutonomousWarning.setVisible(self.mastermind_running)
@@ -369,8 +367,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         weather_clients = await self.comm.clients_with_interface(IWeather)
         if len(weather_clients) > 0:
             # found one or more, just take the first one
-            weather = await self.comm.proxy(weather_clients[0])
-            self.labelWeatherWarning.setVisible(not await weather.is_running())
+            async with self.comm.proxy(weather_clients[0]) as weather:
+                self.labelWeatherWarning.setVisible(not await weather.is_running())
         else:
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)
@@ -393,21 +391,19 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # update client list
         await self._update_client_list()
 
-        # get proxy
-        proxy = await self.comm.proxy(client)
-
         # what do we have?
-        widget, icon = None, None
-        for interface, klass in DEFAULT_WIDGETS.items():
-            if isinstance(proxy, interface):
-                widget = self.create_widget(klass, module=proxy)
-                icon = qta.icon(DEFAULT_ICONS[interface])
-                break
+        async with self.comm.proxy(client) as proxy:
+            widget, icon = None, None
+            for interface, klass in DEFAULT_WIDGETS.items():
+                if isinstance(proxy, interface):
+                    widget = self.create_widget(klass, module=client)
+                    icon = qta.icon(DEFAULT_ICONS[interface])
+                    break
 
         # look at custom widgets
         for cw in self.custom_widgets:
             if cw["module"] == client:
-                widget = self.create_widget(cw["widget"], module=proxy)
+                widget = self.create_widget(cw["widget"], module=client)
 
                 # got an icon?
                 icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(DEFAULT_ICONS[None])
@@ -419,10 +415,12 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # custom sidebar?
         for csw in self.custom_sidebar_widgets:
             if csw["module"] == client:
-                widget.add_to_sidebar(self.create_widget(csw["widget"], module=proxy))
+                await widget.add_to_sidebar(self.create_widget(csw["widget"], module=client))
 
         # add it
-        await self._add_client(client, icon, widget, proxy)
+        if icon is None:
+            icon = qta.icon(DEFAULT_ICONS[None])
+        await self._add_client(client, icon, widget)
 
         # check mastermind
         await self._check_warnings()

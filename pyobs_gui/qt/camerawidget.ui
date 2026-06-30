@@ -33,7 +33,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>294</width>
+        <width>238</width>
         <height>748</height>
        </rect>
       </property>
@@ -52,27 +52,10 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
+         <layout class="QGridLayout" name="gridLayout_2" columnstretch="2,1,2">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spinWindowWidth">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>9999</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Top:</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
@@ -80,20 +63,27 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Left:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QSpinBox" name="spinWindowHeight">
+          <item row="2" column="2">
+           <widget class="ModifiedSpinBox" name="spinWindowWidth">
             <property name="minimum">
              <number>1</number>
             </property>
             <property name="maximum">
              <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="ModifiedSpinBox" name="spinWindowLeft">
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="3">
+           <widget class="QPushButton" name="butFullFrame">
+            <property name="text">
+             <string>Full Frame</string>
             </property>
            </widget>
           </item>
@@ -104,24 +94,86 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="spinWindowLeft">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Top:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Left:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="ModifiedSpinBox" name="spinWindowTop">
             <property name="maximum">
              <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="ModifiedSpinBox" name="spinWindowHeight">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="WatchedLabel" name="labelWindowLeft">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QSpinBox" name="spinWindowTop">
-            <property name="maximum">
-             <number>9999</number>
+           <widget class="WatchedLabel" name="labelWindowTop">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QPushButton" name="butFullFrame">
+          <item row="2" column="1">
+           <widget class="WatchedLabel" name="labelWindowWidth">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
             <property name="text">
-             <string>Full Frame</string>
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="WatchedLabel" name="labelWindowHeight">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -177,44 +229,16 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
-          <item row="0" column="3">
-           <widget class="QToolButton" name="buttonSetGain">
-            <property name="text">
-             <string>...</string>
-            </property>
-            <property name="icon">
-             <iconset resource="resources.qrc">
-              <normaloff>:/resources/edit-solid.svg</normaloff>:/resources/edit-solid.svg</iconset>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLineEdit" name="textGain">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
+         <layout class="QGridLayout" name="gridLayout" columnstretch="2,1,2">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
              <string>Gain:</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="1">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_13">
@@ -223,34 +247,49 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
+          <item row="0" column="2">
+           <widget class="ModifiedSpinBox" name="spinGain">
+            <property name="minimum">
+             <number>1</number>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="textOffset">
-            <property name="readOnly">
-             <bool>true</bool>
+            <property name="maximum">
+             <number>9999</number>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QToolButton" name="buttonSetOffset">
-            <property name="text">
-             <string>...</string>
+          <item row="1" column="2">
+           <widget class="ModifiedSpinBox" name="spinGainOffset">
+            <property name="minimum">
+             <number>0</number>
             </property>
-            <property name="icon">
-             <iconset resource="resources.qrc">
-              <normaloff>:/resources/edit-solid.svg</normaloff>:/resources/edit-solid.svg</iconset>
+            <property name="maximum">
+             <number>9999</number>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="WatchedLabel" name="labelGain">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="WatchedLabel" name="labelGainOffset">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -262,7 +301,7 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QGridLayout" name="gridLayout_5">
+         <layout class="QGridLayout" name="gridLayout_5" columnstretch="2,1,2">
           <item row="0" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
@@ -270,15 +309,15 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="0" column="2">
            <layout class="QHBoxLayout" name="layoutExpTime" stretch="1,0">
             <item>
-             <widget class="QDoubleSpinBox" name="spinExpTime">
+             <widget class="ModifiedDoubleSpinBox" name="spinExpTime">
               <property name="suffix">
                <string/>
               </property>
               <property name="decimals">
-               <number>3</number>
+               <number>1</number>
               </property>
               <property name="maximum">
                <double>999.000000000000000</double>
@@ -312,6 +351,19 @@
             </item>
            </layout>
           </item>
+          <item row="0" column="1">
+           <widget class="WatchedLabel" name="labelExpTime">
+            <property name="frameShape">
+             <enum>QFrame::Shape::Box</enum>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -324,10 +376,13 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="labelImageType">
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="checkBroadcast">
             <property name="text">
-             <string>Type:</string>
+             <string>Broadcast</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -790,12 +845,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Count:</string>
-            </property>
-           </widget>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="comboImageType"/>
           </item>
           <item row="3" column="0" colspan="2">
            <widget class="QPushButton" name="butExpose">
@@ -1246,18 +1297,19 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="checkBroadcast">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Broadcast</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
+             <string>Count:</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="comboImageType"/>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelImageType">
+            <property name="text">
+             <string>Type:</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -1325,6 +1377,21 @@
    <class>DataDisplayWidget</class>
    <extends>QWidget</extends>
    <header>..datadisplaywidget</header>
+  </customwidget>
+  <customwidget>
+   <class>WatchedLabel</class>
+   <extends>QLabel</extends>
+   <header>..watchedlabel</header>
+  </customwidget>
+  <customwidget>
+   <class>ModifiedSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>..modifiedmixin</header>
+  </customwidget>
+  <customwidget>
+   <class>ModifiedDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>..modifiedmixin</header>
   </customwidget>
  </customwidgets>
  <tabstops>

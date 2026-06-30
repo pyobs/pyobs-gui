@@ -1,0 +1,32 @@
+# Test config for camerawidget / coolingwidget / filterwidget / temperatureswidget
+# Run with: pyobs test/camera.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+vfs: &vfs
+  class: pyobs.vfs.VirtualFileSystem
+  roots:
+    cache:
+      class: pyobs.vfs.LocalFile
+      root: /tmp/pyobs-test/
+
+modules:
+  camera:
+    class: pyobs.modules.camera.DummyCamera
+    name: camera
+    vfs: *vfs
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: camera
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    vfs: *vfs
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

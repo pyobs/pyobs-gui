@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-import asyncio
 import sys
-from typing import Any, cast
+from typing import Any, cast, TYPE_CHECKING
 import qasync  # type: ignore
-from pyobs.comm import Proxy
 from qasync import QEventLoop  # noqa: F401
 from PySide6 import QtWidgets, QtGui  # type: ignore
 
 from pyobs.interfaces import IFitsHeaderBefore
 from pyobs.modules import Module
 from .base import BaseWindow
-from .mainwindow import MainWindow, DEFAULT_WIDGETS
+from .mainwindow import DEFAULT_WIDGETS
+
+if TYPE_CHECKING:
+    import asyncio
 
 
 class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
@@ -31,7 +32,8 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
                 break
 
         # open widgets
-        await BaseWindow.open(self, modules=[cast(Proxy, cast(object, module))], **kwargs)
+        modules = [module.name] if module is not None else []
+        await BaseWindow.open(self, modules=modules, **kwargs)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
@@ -60,13 +62,13 @@ class ModuleGUI(Module, IFitsHeaderBefore):
 
         # init module
         Module.__init__(self, *args, **kwargs)
-        self._window: MainWindow | None = None
+        self._window: ModuleWindow | None = None
         self._module = self.add_child_object(module, Module, own_comm=False)
 
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         ModuleGUI.app = QtWidgets.QApplication(sys.argv)
-        return cast(asyncio.AbstractEventLoop, qasync.QEventLoop(ModuleGUI.app))
+        return cast("asyncio.AbstractEventLoop", qasync.QEventLoop(ModuleGUI.app))
 
     async def open(self) -> None:
         """Open module."""
@@ -97,6 +99,6 @@ class ModuleGUI(Module, IFitsHeaderBefore):
             Dictionary containing FITS headers.
         """
         if self._window is not None:
-            return self._window.get_fits_headers(namespaces)
+            return self._window.get_fits_headers(namespaces)  # pyrefly: ignore [missing-attribute]
         else:
             return {}

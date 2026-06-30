@@ -1,19 +1,28 @@
 import asyncio
 import logging
-from typing import Any, cast
+from typing import Any
 from urllib.parse import urlparse
 
 import qasync  # type: ignore
-from PySide6 import QtWidgets, QtCore, QtGui, QtNetwork  # type: ignore
 from astroplan import Observer
-
-from pyobs.comm import Proxy, Comm
-from pyobs.interfaces import IExposureTime, IImageType, IImageFormat, IVideo, IGain
-from pyobs.modules import Module
+from pyobs.comm import Comm
+from pyobs.interfaces import (
+    IExposureTime,
+    ExposureTimeState,
+    IGain,
+    GainState,
+    IImageFormat,
+    IImageType,
+    ImageTypeState,
+    IVideo,
+)
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
+from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
+
 from .base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
+
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +70,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # before first update, disable mys
         self.setEnabled(False)
 
+        # interfaces cache
+        self._interfaces: list = []
+
         # init buffer
         self.buffer = b""
 
@@ -78,7 +90,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
@@ -88,53 +100,71 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
 
     async def _init(self) -> None:
+        # get interfaces for visibility checks
+        self._interfaces = await self.comm.get_interfaces(self.module)
+        has_image_type = IImageType in self._interfaces
+        has_exposure_time = IExposureTime in self._interfaces
+        has_gain = IGain in self._interfaces
+
         # hide single controls, if necessary
-        self.labelImageType.setVisible(isinstance(self.module, IImageType))
-        self.comboImageType.setVisible(isinstance(self.module, IImageType))
-        self.groupExposure.setVisible(isinstance(self.module, IExposureTime))
-        self.groupGain.setVisible(isinstance(self.module, IGain))
+        self.labelImageType.setVisible(has_image_type)
+        self.comboImageType.setVisible(has_image_type)
+        self.groupExposure.setVisible(has_exposure_time)
+        self.groupGain.setVisible(has_gain)
 
-        # get video stream URL and open it
-        if not isinstance(self.module, IVideo):
-            log.error("Module is not an IVideo.")
+        # get video URL from capabilities
+        caps = await self.comm.get_capabilities(self.module, IVideo)
+        if caps is None:
+            log.error("Module %s has no IVideo capabilities.", self.module)
             return
-        video_path = await self.module.get_video()
         if not isinstance(self.vfs, VirtualFileSystem):
-            log.error("Video is not available.")
+            log.error("Video is not available — no VFS.")
             return
-        video_file = self.vfs.open_file(video_path, "r")
 
-        # we heed a HttpFile
-        module = cast(Module, cast(object, self.module))
+        # open VFS file in executor to avoid blocking the event loop
+        loop = asyncio.get_running_loop()
+        try:
+            video_file = await loop.run_in_executor(None, self.vfs.open_file, caps.video, "r")
+        except Exception as e:
+            log.error("Could not open video VFS path %s: %s", caps.video, e)
+            return
+
         if not isinstance(video_file, HttpFile):
-            log.error("VFS path to video of module %s must be an HttpFile.", module.name)
+            log.error("VFS path to video of module %s must be an HttpFile.", self.module)
             return
 
-        # analyse URL
+        # parse URL
         o = urlparse(video_file.url)
-
-        # scheme must be http
-        # TODO: how to do HTTPS?
         if o.scheme != "http":
-            log.error("URL scheme to video of module %s must be HTTP.", module.name)
+            log.error("URL scheme to video of module %s must be HTTP.", self.module)
             return
 
-        # get info
         if ":" in o.netloc:
             s = o.netloc.split(":")[:2]
             self.host, self.port = s[0], int(s[1])
         else:
             self.host, self.port = (o.netloc, 80)
-        self.path = str(o.path)
+        self.path = o.path
 
-        # get initial values
-        if isinstance(self.module, IExposureTime):
-            self.spinExpTime.setValue(await self.module.get_exposure_time())
-        if isinstance(self.module, IGain):
-            self.spinGain.setValue(await self.module.get_gain())
+        # subscribe to state
+        if has_exposure_time:
+            await self.comm.subscribe_state(self.module, IExposureTime, self._on_exposure_time_state)
+        if has_gain:
+            await self.comm.subscribe_state(self.module, IGain, self._on_gain_state)
+        if has_image_type:
+            await self.comm.subscribe_state(self.module, IImageType, self._on_image_type_state)
 
         # update GUI
         self.signal_update_gui.emit()
+
+    def _on_exposure_time_state(self, state: ExposureTimeState) -> None:
+        self.spinExpTime.setValue(state.exposure_time)
+
+    def _on_gain_state(self, state: GainState) -> None:
+        self.spinGain.setValue(state.gain)
+
+    def _on_image_type_state(self, state: ImageTypeState) -> None:
+        self.comboImageType.setCurrentText(state.image_type.name)
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:
         # call base
@@ -142,7 +172,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
         # connect socket
         if self.host is not None and self.port is not None and self.path is not None:
-            self.socket.connectToHost(self.host, int(self.port))
+            self.socket.connectToHost(self.host, self.port)
             self.socket.write(b"GET %s HTTP/1.1\r\n\r\n" % bytes(self.path, "UTF-8"))
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
@@ -191,9 +221,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
     @qasync.asyncSlot()  # type: ignore
     async def grab_image(self) -> None:
         # set image format
-        if isinstance(self.module, IImageFormat):
-            image_format = ImageFormat[self.comboImageFormat.currentText()]
-            await self.module.set_image_format(image_format)
+        if IImageFormat in self._interfaces:
+            image_format = ImageFormat[self.comboImageFormat.currentText()]  # type: ignore[attr-defined]
+            async with self.comm.proxy(self.module, IImageFormat) as proxy:
+                await proxy.set_image_format(image_format)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
@@ -211,8 +242,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # do exposure(s)
         while self.exposures_left > 0:
             # set image type
-            if isinstance(self.module, IImageType):
-                await self.module.set_image_type(image_type)
+            if IImageType in self._interfaces:
+                async with self.comm.proxy(self.module, IImageType) as proxy:
+                    await proxy.set_image_type(image_type)
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
@@ -234,8 +266,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         exp_time = self.spinExpTime.value()
 
         # set it
-        if isinstance(self.module, IExposureTime):
-            await self.module.set_exposure_time(exp_time)
+        if IExposureTime in self._interfaces:
+            async with self.comm.proxy(self.module, IExposureTime) as proxy:
+                await proxy.set_exposure_time(exp_time)
 
     @qasync.asyncSlot()  # type: ignore
     async def gain_changed(self) -> None:
@@ -243,8 +276,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         gain = self.spinGain.value()
 
         # set it
-        if isinstance(self.module, IGain):
-            await self.module.set_gain(gain)
+        if IGain in self._interfaces:
+            async with self.comm.proxy(self.module, IGain) as proxy:
+                await proxy.set_gain(gain)
 
 
 __all__ = ["VideoWidget"]

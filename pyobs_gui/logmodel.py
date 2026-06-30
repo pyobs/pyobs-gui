@@ -14,7 +14,7 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
     def columnCount(self, parent: Any = None, *args: Any, **kwargs: Any) -> int:
         return 5
 
-    def data(self, index: QtCore.QModelIndex, role: Any = None) -> Any:
+    def data(self, index: QtCore.QModelIndex | QtCore.QPersistentModelIndex, role: int = 0) -> Any:
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
             # data to display
             d = self._entries[index.row()][index.column()]

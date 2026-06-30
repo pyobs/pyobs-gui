@@ -1,10 +1,10 @@
 import logging
 from typing import Any
+
 import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
-from pyobs.events import MotionStatusChangedEvent, Event
-from pyobs.interfaces import IFocuser
+from pyobs.interfaces import IFocuser, FocuserState, IMotion, MotionState
 from pyobs.utils.enums import MotionStatus
 from .base import BaseWidget
 from .qt.focuswidget_ui import Ui_FocusWidget
@@ -16,18 +16,18 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
     signal_update_gui = QtCore.Signal()
 
     def __init__(self, **kwargs: Any):
-        BaseWidget.__init__(self, update_func=self._update, update_interval=5, **kwargs)
+        BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)  # type: ignore
 
-        # variables
+        # cached state
         self._focus: float | None = None
         self._focus_offset: float | None = None
         self._motion_status = MotionStatus.UNKNOWN
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
-        self.butSetFocusBase.clicked.connect(lambda: self._set_focus(False))
-        self.butSetFocusOffset.clicked.connect(lambda: self._set_focus(True))
+        self.butSetFocusBase.clicked.connect(self._set_focus_base)
+        self.butSetFocusOffset.clicked.connect(self._set_focus_offset)
         self.buttonResetFocusOffset.clicked.connect(self._reset_focus_offset)
 
         # button colors
@@ -35,64 +35,20 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         self.colorize_button(self.butSetFocusOffset, QtCore.Qt.GlobalColor.green)
         self.colorize_button(self.buttonResetFocusOffset, QtCore.Qt.GlobalColor.yellow)
 
-    async def open(self, **kwargs: Any) -> None:  # type: ignore
-        """Open module."""
-        await BaseWidget.open(self, **kwargs)
-
-        # subscribe to events
-        if self.comm is not None:
-            await self.comm.register_event(MotionStatusChangedEvent, self._on_motion_status_changed)
-
-    def _set_focus(self, offset: bool = False) -> None:
-        """Asks user for new focus (offset) and sets it.
-
-        Args:
-            offset: If False, base focus is set, otherwise offset.
-        """
-        module = self.module
-        if not isinstance(module, IFocuser):
-            return
-
-        # base of offset?
-        title = "Focus offset" if offset else "Focus"
-        value = self._focus_offset if offset else self._focus
-        minval = -5 if offset else 0
-        maxval = 5 if offset else 100
-        setter = module.set_focus_offset if offset else module.set_focus
-
-        # ask for value
-        new_value, ok = QtWidgets.QInputDialog.getDouble(self, title, "New value", value, minval, maxval, 2)
-        if ok:
-            self.run_background(setter, new_value)
-
-    @qasync.asyncSlot()  # type: ignore
-    async def _reset_focus_offset(self) -> None:
-        if isinstance(self.module, IFocuser):
-            await self.module.set_focus_offset(0.0)
-
-    @qasync.asyncSlot(float)  # type: ignore
-    async def _set_focus_offset(self, value: float) -> None:
-        if isinstance(self.module, IFocuser):
-            await self.module.set_focus_offset(value)
-
     async def _init(self) -> None:
-        # get status
-        try:
-            module = self.module
-            if isinstance(module, IFocuser):
-                self._focus = await module.get_focus()
-                self._focus_offset = await module.get_focus_offset()
-                self._motion_status = await module.get_motion_status()
-        except:
-            self._focus = None
-            self._focus_offset = None
-            self._motion_status = MotionStatus.UNKNOWN
+        await self.comm.subscribe_state(self.module, IFocuser, self._on_focuser_state)
+        await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
-        # update GUI
+    def _on_focuser_state(self, state: FocuserState) -> None:
+        self._focus = state.focus
+        self._focus_offset = state.focus_offset
+        self.signal_update_gui.emit()
+
+    def _on_motion_state(self, state: MotionState) -> None:
+        self._motion_status = state.status
         self.signal_update_gui.emit()
 
     def update_gui(self) -> None:
-        # enable myself and set filter
         self.setEnabled(True)
         self.labelCurStatus.setText(self._motion_status)
         self.labelCurFocusBase.setText("" if self._focus is None else f"{self._focus:.3f}")
@@ -110,38 +66,26 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         self.butSetFocusOffset.setEnabled(initialized)
         self.butSetFocusBase.setEnabled(initialized)
 
-    async def _on_motion_status_changed(self, event: Event, sender: str) -> bool:
-        """Called when motion status of module changed.
+    @qasync.asyncSlot()  # type: ignore
+    async def _set_focus_base(self) -> None:
+        value = self._focus or 0.0
+        new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Focus", "New value", value, 0, 100, 2)
+        if ok:
+            async with self.comm.proxy(self.module, IFocuser) as proxy:
+                await proxy.set_focus(new_value)
 
-        Args:
-            event: Status change event.
-            sender: Name of sender.
-        """
+    @qasync.asyncSlot()  # type: ignore
+    async def _set_focus_offset(self) -> None:
+        value = self._focus_offset or 0.0
+        new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Focus offset", "New value", value, -5, 5, 2)
+        if ok:
+            async with self.comm.proxy(self.module, IFocuser) as proxy:
+                await proxy.set_focus_offset(new_value)
 
-        # ignore events from wrong sender
-        if sender != self.module.name or not isinstance(event, MotionStatusChangedEvent):
-            return False
-
-        # store new status
-        if "IFocuser" in event.interfaces:
-            self._motion_status = event.interfaces["IFocuser"]
-        else:
-            self._motion_status = event.status
-
-        # trigger GUI update
-        self.signal_update_gui.emit()
-        return True
-
-    async def _update(self) -> None:
-        # get focus and motion status
-        module = self.module
-        if isinstance(module, IFocuser):
-            self._focus = await module.get_focus()
-            self._focus_offset = await module.get_focus_offset()
-            self._motion_status = await module.get_motion_status()
-
-        # signal GUI update
-        self.signal_update_gui.emit()
+    @qasync.asyncSlot()  # type: ignore
+    async def _reset_focus_offset(self) -> None:
+        async with self.comm.proxy(self.module, IFocuser) as proxy:
+            await proxy.set_focus_offset(0.0)
 
 
 __all__ = ["FocusWidget"]

@@ -15,13 +15,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
     QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QProgressBar, QPushButton, QScrollArea,
-    QSizePolicy, QSpacerItem, QSpinBox, QToolButton,
-    QVBoxLayout, QWidget)
+    QProgressBar, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QSpinBox, QVBoxLayout, QWidget)
 
 from ..datadisplaywidget import DataDisplayWidget
+from ..modifiedmixin import (ModifiedDoubleSpinBox, ModifiedSpinBox)
+from ..watchedlabel import WatchedLabel
 from . import resources_rc
 
 class Ui_CameraWidget(object):
@@ -42,7 +43,7 @@ class Ui_CameraWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 294, 748))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 238, 748))
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
@@ -56,57 +57,88 @@ class Ui_CameraWidget(object):
         self.gridLayout_2 = QGridLayout(self.groupWindowing)
         self.gridLayout_2.setSpacing(0)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.spinWindowWidth = QSpinBox(self.groupWindowing)
-        self.spinWindowWidth.setObjectName(u"spinWindowWidth")
-        self.spinWindowWidth.setMinimum(1)
-        self.spinWindowWidth.setMaximum(9999)
-
-        self.gridLayout_2.addWidget(self.spinWindowWidth, 2, 1, 1, 1)
-
-        self.label_2 = QLabel(self.groupWindowing)
-        self.label_2.setObjectName(u"label_2")
-
-        self.gridLayout_2.addWidget(self.label_2, 1, 0, 1, 1)
-
         self.label_3 = QLabel(self.groupWindowing)
         self.label_3.setObjectName(u"label_3")
 
         self.gridLayout_2.addWidget(self.label_3, 2, 0, 1, 1)
 
-        self.label = QLabel(self.groupWindowing)
-        self.label.setObjectName(u"label")
+        self.spinWindowWidth = ModifiedSpinBox(self.groupWindowing)
+        self.spinWindowWidth.setObjectName(u"spinWindowWidth")
+        self.spinWindowWidth.setMinimum(1)
+        self.spinWindowWidth.setMaximum(9999)
 
-        self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.spinWindowWidth, 2, 2, 1, 1)
 
-        self.spinWindowHeight = QSpinBox(self.groupWindowing)
-        self.spinWindowHeight.setObjectName(u"spinWindowHeight")
-        self.spinWindowHeight.setMinimum(1)
-        self.spinWindowHeight.setMaximum(9999)
+        self.spinWindowLeft = ModifiedSpinBox(self.groupWindowing)
+        self.spinWindowLeft.setObjectName(u"spinWindowLeft")
+        self.spinWindowLeft.setMaximum(9999)
 
-        self.gridLayout_2.addWidget(self.spinWindowHeight, 3, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.spinWindowLeft, 0, 2, 1, 1)
+
+        self.butFullFrame = QPushButton(self.groupWindowing)
+        self.butFullFrame.setObjectName(u"butFullFrame")
+
+        self.gridLayout_2.addWidget(self.butFullFrame, 4, 0, 1, 3)
 
         self.label_4 = QLabel(self.groupWindowing)
         self.label_4.setObjectName(u"label_4")
 
         self.gridLayout_2.addWidget(self.label_4, 3, 0, 1, 1)
 
-        self.spinWindowLeft = QSpinBox(self.groupWindowing)
-        self.spinWindowLeft.setObjectName(u"spinWindowLeft")
-        self.spinWindowLeft.setMaximum(9999)
+        self.label_2 = QLabel(self.groupWindowing)
+        self.label_2.setObjectName(u"label_2")
 
-        self.gridLayout_2.addWidget(self.spinWindowLeft, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.label_2, 1, 0, 1, 1)
 
-        self.spinWindowTop = QSpinBox(self.groupWindowing)
+        self.label = QLabel(self.groupWindowing)
+        self.label.setObjectName(u"label")
+
+        self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
+
+        self.spinWindowTop = ModifiedSpinBox(self.groupWindowing)
         self.spinWindowTop.setObjectName(u"spinWindowTop")
         self.spinWindowTop.setMaximum(9999)
 
-        self.gridLayout_2.addWidget(self.spinWindowTop, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.spinWindowTop, 1, 2, 1, 1)
 
-        self.butFullFrame = QPushButton(self.groupWindowing)
-        self.butFullFrame.setObjectName(u"butFullFrame")
+        self.spinWindowHeight = ModifiedSpinBox(self.groupWindowing)
+        self.spinWindowHeight.setObjectName(u"spinWindowHeight")
+        self.spinWindowHeight.setMinimum(1)
+        self.spinWindowHeight.setMaximum(9999)
 
-        self.gridLayout_2.addWidget(self.butFullFrame, 4, 0, 1, 2)
+        self.gridLayout_2.addWidget(self.spinWindowHeight, 3, 2, 1, 1)
 
+        self.labelWindowLeft = WatchedLabel(self.groupWindowing)
+        self.labelWindowLeft.setObjectName(u"labelWindowLeft")
+        self.labelWindowLeft.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowLeft.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.labelWindowLeft, 0, 1, 1, 1)
+
+        self.labelWindowTop = WatchedLabel(self.groupWindowing)
+        self.labelWindowTop.setObjectName(u"labelWindowTop")
+        self.labelWindowTop.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowTop.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.labelWindowTop, 1, 1, 1, 1)
+
+        self.labelWindowWidth = WatchedLabel(self.groupWindowing)
+        self.labelWindowWidth.setObjectName(u"labelWindowWidth")
+        self.labelWindowWidth.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowWidth.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.labelWindowWidth, 2, 1, 1, 1)
+
+        self.labelWindowHeight = WatchedLabel(self.groupWindowing)
+        self.labelWindowHeight.setObjectName(u"labelWindowHeight")
+        self.labelWindowHeight.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelWindowHeight.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.labelWindowHeight, 3, 1, 1, 1)
+
+        self.gridLayout_2.setColumnStretch(0, 2)
+        self.gridLayout_2.setColumnStretch(1, 1)
+        self.gridLayout_2.setColumnStretch(2, 2)
 
         self.verticalLayout.addWidget(self.groupWindowing)
 
@@ -149,51 +181,49 @@ class Ui_CameraWidget(object):
         self.groupGain = QGroupBox(self.scrollAreaWidgetContents)
         self.groupGain.setObjectName(u"groupGain")
         self.gridLayout = QGridLayout(self.groupGain)
+        self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.buttonSetGain = QToolButton(self.groupGain)
-        self.buttonSetGain.setObjectName(u"buttonSetGain")
-        icon = QIcon()
-        icon.addFile(u":/resources/edit-solid.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
-        self.buttonSetGain.setIcon(icon)
-
-        self.gridLayout.addWidget(self.buttonSetGain, 0, 3, 1, 1)
-
-        self.textGain = QLineEdit(self.groupGain)
-        self.textGain.setObjectName(u"textGain")
-        self.textGain.setReadOnly(True)
-
-        self.gridLayout.addWidget(self.textGain, 0, 2, 1, 1)
-
         self.label_11 = QLabel(self.groupGain)
         self.label_11.setObjectName(u"label_11")
 
         self.gridLayout.addWidget(self.label_11, 0, 0, 1, 1)
-
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer, 0, 1, 1, 1)
 
         self.label_13 = QLabel(self.groupGain)
         self.label_13.setObjectName(u"label_13")
 
         self.gridLayout.addWidget(self.label_13, 1, 0, 1, 1)
 
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.spinGain = ModifiedSpinBox(self.groupGain)
+        self.spinGain.setObjectName(u"spinGain")
+        self.spinGain.setMinimum(1)
+        self.spinGain.setMaximum(9999)
 
-        self.gridLayout.addItem(self.horizontalSpacer_2, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.spinGain, 0, 2, 1, 1)
 
-        self.textOffset = QLineEdit(self.groupGain)
-        self.textOffset.setObjectName(u"textOffset")
-        self.textOffset.setReadOnly(True)
+        self.spinGainOffset = ModifiedSpinBox(self.groupGain)
+        self.spinGainOffset.setObjectName(u"spinGainOffset")
+        self.spinGainOffset.setMinimum(0)
+        self.spinGainOffset.setMaximum(9999)
 
-        self.gridLayout.addWidget(self.textOffset, 1, 2, 1, 1)
+        self.gridLayout.addWidget(self.spinGainOffset, 1, 2, 1, 1)
 
-        self.buttonSetOffset = QToolButton(self.groupGain)
-        self.buttonSetOffset.setObjectName(u"buttonSetOffset")
-        self.buttonSetOffset.setIcon(icon)
+        self.labelGain = WatchedLabel(self.groupGain)
+        self.labelGain.setObjectName(u"labelGain")
+        self.labelGain.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelGain.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
-        self.gridLayout.addWidget(self.buttonSetOffset, 1, 3, 1, 1)
+        self.gridLayout.addWidget(self.labelGain, 0, 1, 1, 1)
 
+        self.labelGainOffset = WatchedLabel(self.groupGain)
+        self.labelGainOffset.setObjectName(u"labelGainOffset")
+        self.labelGainOffset.setFrameShape(QFrame.Shape.NoFrame)
+        self.labelGainOffset.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.gridLayout.addWidget(self.labelGainOffset, 1, 1, 1, 1)
+
+        self.gridLayout.setColumnStretch(0, 2)
+        self.gridLayout.setColumnStretch(1, 1)
+        self.gridLayout.setColumnStretch(2, 2)
 
         self.verticalLayout.addWidget(self.groupGain)
 
@@ -208,9 +238,9 @@ class Ui_CameraWidget(object):
 
         self.layoutExpTime = QHBoxLayout()
         self.layoutExpTime.setObjectName(u"layoutExpTime")
-        self.spinExpTime = QDoubleSpinBox(self.groupExpTime)
+        self.spinExpTime = ModifiedDoubleSpinBox(self.groupExpTime)
         self.spinExpTime.setObjectName(u"spinExpTime")
-        self.spinExpTime.setDecimals(3)
+        self.spinExpTime.setDecimals(1)
         self.spinExpTime.setMaximum(999.000000000000000)
         self.spinExpTime.setValue(1.000000000000000)
 
@@ -227,8 +257,18 @@ class Ui_CameraWidget(object):
 
         self.layoutExpTime.setStretch(0, 1)
 
-        self.gridLayout_5.addLayout(self.layoutExpTime, 0, 1, 1, 1)
+        self.gridLayout_5.addLayout(self.layoutExpTime, 0, 2, 1, 1)
 
+        self.labelExpTime = WatchedLabel(self.groupExpTime)
+        self.labelExpTime.setObjectName(u"labelExpTime")
+        self.labelExpTime.setFrameShape(QFrame.Shape.Box)
+        self.labelExpTime.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.gridLayout_5.addWidget(self.labelExpTime, 0, 1, 1, 1)
+
+        self.gridLayout_5.setColumnStretch(0, 2)
+        self.gridLayout_5.setColumnStretch(1, 1)
+        self.gridLayout_5.setColumnStretch(2, 2)
 
         self.verticalLayout.addWidget(self.groupExpTime)
 
@@ -237,10 +277,11 @@ class Ui_CameraWidget(object):
         self.gridLayout_4 = QGridLayout(self.groupExposure)
         self.gridLayout_4.setSpacing(0)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.labelImageType = QLabel(self.groupExposure)
-        self.labelImageType.setObjectName(u"labelImageType")
+        self.checkBroadcast = QCheckBox(self.groupExposure)
+        self.checkBroadcast.setObjectName(u"checkBroadcast")
+        self.checkBroadcast.setChecked(True)
 
-        self.gridLayout_4.addWidget(self.labelImageType, 0, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.checkBroadcast, 2, 1, 1, 1)
 
         self.spinCount = QSpinBox(self.groupExposure)
         self.spinCount.setObjectName(u"spinCount")
@@ -334,10 +375,10 @@ class Ui_CameraWidget(object):
 
         self.gridLayout_4.addWidget(self.butAbort, 4, 0, 1, 2)
 
-        self.label_8 = QLabel(self.groupExposure)
-        self.label_8.setObjectName(u"label_8")
+        self.comboImageType = QComboBox(self.groupExposure)
+        self.comboImageType.setObjectName(u"comboImageType")
 
-        self.gridLayout_4.addWidget(self.label_8, 1, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.comboImageType, 0, 1, 1, 1)
 
         self.butExpose = QPushButton(self.groupExposure)
         self.butExpose.setObjectName(u"butExpose")
@@ -416,16 +457,15 @@ class Ui_CameraWidget(object):
 
         self.gridLayout_4.addWidget(self.butExpose, 3, 0, 1, 2)
 
-        self.checkBroadcast = QCheckBox(self.groupExposure)
-        self.checkBroadcast.setObjectName(u"checkBroadcast")
-        self.checkBroadcast.setChecked(True)
+        self.label_8 = QLabel(self.groupExposure)
+        self.label_8.setObjectName(u"label_8")
 
-        self.gridLayout_4.addWidget(self.checkBroadcast, 2, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.label_8, 1, 0, 1, 1)
 
-        self.comboImageType = QComboBox(self.groupExposure)
-        self.comboImageType.setObjectName(u"comboImageType")
+        self.labelImageType = QLabel(self.groupExposure)
+        self.labelImageType.setObjectName(u"labelImageType")
 
-        self.gridLayout_4.addWidget(self.comboImageType, 0, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.labelImageType, 0, 0, 1, 1)
 
 
         self.verticalLayout.addWidget(self.groupExposure)
@@ -490,20 +530,24 @@ class Ui_CameraWidget(object):
     def retranslateUi(self, CameraWidget):
         CameraWidget.setWindowTitle(QCoreApplication.translate("CameraWidget", u"Form", None))
         self.groupWindowing.setTitle("")
-        self.label_2.setText(QCoreApplication.translate("CameraWidget", u"Top:", None))
         self.label_3.setText(QCoreApplication.translate("CameraWidget", u"Width:", None))
-        self.label.setText(QCoreApplication.translate("CameraWidget", u"Left:", None))
-        self.label_4.setText(QCoreApplication.translate("CameraWidget", u"Height:", None))
         self.butFullFrame.setText(QCoreApplication.translate("CameraWidget", u"Full Frame", None))
+        self.label_4.setText(QCoreApplication.translate("CameraWidget", u"Height:", None))
+        self.label_2.setText(QCoreApplication.translate("CameraWidget", u"Top:", None))
+        self.label.setText(QCoreApplication.translate("CameraWidget", u"Left:", None))
+        self.labelWindowLeft.setText(QCoreApplication.translate("CameraWidget", u"-", None))
+        self.labelWindowTop.setText(QCoreApplication.translate("CameraWidget", u"-", None))
+        self.labelWindowWidth.setText(QCoreApplication.translate("CameraWidget", u"-", None))
+        self.labelWindowHeight.setText(QCoreApplication.translate("CameraWidget", u"-", None))
         self.groupImageFormat.setTitle("")
         self.label_10.setText(QCoreApplication.translate("CameraWidget", u"Format:", None))
         self.groupBinning.setTitle("")
         self.label_5.setText(QCoreApplication.translate("CameraWidget", u"Binning:", None))
         self.groupGain.setTitle("")
-        self.buttonSetGain.setText(QCoreApplication.translate("CameraWidget", u"...", None))
         self.label_11.setText(QCoreApplication.translate("CameraWidget", u"Gain:", None))
         self.label_13.setText(QCoreApplication.translate("CameraWidget", u"Offset:", None))
-        self.buttonSetOffset.setText(QCoreApplication.translate("CameraWidget", u"...", None))
+        self.labelGain.setText(QCoreApplication.translate("CameraWidget", u"-", None))
+        self.labelGainOffset.setText(QCoreApplication.translate("CameraWidget", u"-", None))
         self.groupExpTime.setTitle("")
         self.label_12.setText(QCoreApplication.translate("CameraWidget", u"ExpTime:", None))
         self.spinExpTime.setSuffix("")
@@ -511,12 +555,13 @@ class Ui_CameraWidget(object):
         self.comboExpTimeUnit.setItemText(1, QCoreApplication.translate("CameraWidget", u"ms", None))
         self.comboExpTimeUnit.setItemText(2, QCoreApplication.translate("CameraWidget", u"\u00b5s", None))
 
+        self.labelExpTime.setText(QCoreApplication.translate("CameraWidget", u"-", None))
         self.groupExposure.setTitle("")
-        self.labelImageType.setText(QCoreApplication.translate("CameraWidget", u"Type:", None))
-        self.butAbort.setText(QCoreApplication.translate("CameraWidget", u"Abort", None))
-        self.label_8.setText(QCoreApplication.translate("CameraWidget", u"Count:", None))
-        self.butExpose.setText(QCoreApplication.translate("CameraWidget", u"Expose", None))
         self.checkBroadcast.setText(QCoreApplication.translate("CameraWidget", u"Broadcast", None))
+        self.butAbort.setText(QCoreApplication.translate("CameraWidget", u"Abort", None))
+        self.butExpose.setText(QCoreApplication.translate("CameraWidget", u"Expose", None))
+        self.label_8.setText(QCoreApplication.translate("CameraWidget", u"Count:", None))
+        self.labelImageType.setText(QCoreApplication.translate("CameraWidget", u"Type:", None))
         self.labelStatus.setText(QCoreApplication.translate("CameraWidget", u"IDLE", None))
         self.labelExposuresLeft.setText(QCoreApplication.translate("CameraWidget", u"IDLE", None))
     # retranslateUi

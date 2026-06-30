@@ -1,18 +1,14 @@
 import asyncio
-import pprint
-from io import BytesIO
 import re
 from typing import Any
 from PySide6 import QtWidgets, QtCore  # type: ignore
 import inspect
-import tokenize
 from enum import Enum
 import logging
 from astroplan import Observer
 
-from pyobs.comm import Comm, Proxy
+from pyobs.comm import Comm
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
-from pyobs.utils import exceptions as exc
 from pyobs.utils.shellcommand import ShellCommand
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
@@ -100,10 +96,10 @@ class CommandModel(QtCore.QAbstractTableModel):  # type: ignore
     def columnCount(self, parent: Any | None = None, *args: Any, **kwargs: Any) -> int:
         return 3
 
-    def data(self, index: QtCore.QModelIndex, role: Any = None) -> str:
+    def data(self, index: QtCore.QModelIndex | QtCore.QPersistentModelIndex, role: int = 0) -> Any:
         if role == QtCore.Qt.ItemDataRole.DisplayRole:
-            return str(self.commands[index.row()][index.column()])
-        return ""
+            return self.commands[index.row()][index.column()]
+        return None
 
 
 class ShellWidget(BaseWidget, Ui_ShellWidget):
@@ -127,7 +123,7 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
@@ -200,7 +196,7 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
             cmd = cmd[: cmd.index("(")]
 
         # get documentation
-        doc = self.command_model.doc(cmd)
+        doc = self.command_model.doc(cmd) if self.command_model is not None else ""
         if not doc:
             doc = ""
 

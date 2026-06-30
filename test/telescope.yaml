@@ -1,0 +1,23 @@
+# Test config for telescopewidget / focuswidget
+# Run with: pyobs telescope.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+modules:
+  telescope:
+    class: pyobs.modules.telescope.DummyTelescope
+    name: telescope
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: telescope
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

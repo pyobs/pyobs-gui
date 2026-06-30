@@ -14,7 +14,6 @@ from matplotlib.dates import DateFormatter
 from pyobs.utils.time import Time
 from .qt.temperaturesplotwidget_ui import Ui_TemperaturesPlotWidget
 
-
 log = logging.getLogger(__name__)
 
 
@@ -55,12 +54,11 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):  # t
         data_copy.update({"time": time.to_datetime()})
         df = pd.DataFrame({k: [v] for k, v in data_copy.items()})
 
-        # init data
-        if self.data is None:
-            self.data = pd.DataFrame(columns=df.columns)
-
-        # append
-        self.data = pd.concat([self.data, df], ignore_index=True, axis=0)
+        # init data or append
+        if self.data is None or self.data.empty:
+            self.data = df.copy()
+        else:
+            self.data = pd.concat([self.data, df], ignore_index=True, axis=0)
 
         # save?
         if self.checkLogFile.isChecked() and self.log_file != "":

@@ -50,7 +50,7 @@ class GUI(Module, IFitsHeaderBefore):
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         GUI.app = QtWidgets.QApplication(sys.argv)
-        return cast(asyncio.AbstractEventLoop, qasync.QEventLoop(GUI.app))
+        return cast("asyncio.AbstractEventLoop", qasync.QEventLoop(GUI.app))
 
     async def open(self) -> None:
         """Open module."""
