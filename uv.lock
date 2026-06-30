@@ -2325,7 +2325,7 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "2.0.0.dev1"
+version = "2.0.0.dev5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2354,9 +2354,9 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/02/6b13992f9e7686094b53ad3b239b0a1c5999184a381af2d9c5947183190d/pyobs_core-2.0.0.dev1.tar.gz", hash = "sha256:f3356cd246611eca2e4e317575604b16aaccf1d81ae8fb27e3cee4311a344b21", size = 297142, upload-time = "2026-06-22T17:42:22.103Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/63/80/cacb30a7f9f4cad8ab3c4c64d5dec86e485d5f951099f2e14b05f2e8a60c/pyobs_core-2.0.0.dev5.tar.gz", hash = "sha256:d65b91ebd3a9e8e0ab54aa7f21970f4bfa7025eea49dbb1aa56c436e82c53c0e", size = 297626, upload-time = "2026-06-30T08:11:37.744Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/80/b2/6475939449b9323dece6551d8a18dd40c8c4fbeecef339cf2c219e39b33d/pyobs_core-2.0.0.dev1-py3-none-any.whl", hash = "sha256:e9428b697ecc9908dc061c71a96dda0345d987b59999ae7c90ceb10aa906bb2a", size = 508799, upload-time = "2026-06-22T17:42:20.456Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/ae/3fb978f20fed81c64de2f92b683cfdea266f769cb2f50cdf05f6b0e063ea/pyobs_core-2.0.0.dev5-py3-none-any.whl", hash = "sha256:afaf5a6c19b5b5e0979bf6f6880fd6e74fb88d4f8e6d175dbd527156c85403c3", size = 505762, upload-time = "2026-06-30T08:11:35.776Z" },
 ]
 
 [[package]]
@@ -2399,7 +2399,7 @@ requires-dist = [
     { name = "astropy", specifier = ">=7.0.1,<8" },
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
-    { name = "pyobs-core", specifier = ">=2.0.0.dev1,<3" },
+    { name = "pyobs-core", specifier = ">=2.0.0.dev5,<3" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.28" },
     { name = "qfitswidget", specifier = ">=0.13.1" },

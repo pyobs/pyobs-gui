@@ -115,9 +115,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # open VFS file in executor to avoid blocking the event loop
         loop = asyncio.get_running_loop()
         try:
-            video_file = await loop.run_in_executor(None, self.vfs.open_file, caps.url, "r")
+            video_file = await loop.run_in_executor(None, self.vfs.open_file, caps.video, "r")
         except Exception as e:
-            log.error("Could not open video VFS path %s: %s", caps.url, e)
+            log.error("Could not open video VFS path %s: %s", caps.video, e)
             return
 
         if not isinstance(video_file, HttpFile):
