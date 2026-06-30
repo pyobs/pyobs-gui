@@ -3,7 +3,7 @@ from typing import Any, cast
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from astroplan import Observer
 
-from pyobs.comm import Proxy, Comm
+from pyobs.comm import Comm
 from pyobs.events import Event, ModeChangedEvent
 from pyobs.interfaces import IMode, ModeState, IMotion, MotionState
 from pyobs.utils.enums import MotionStatus
@@ -31,7 +31,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
