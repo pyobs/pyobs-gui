@@ -6,7 +6,16 @@ from urllib.parse import urlparse
 import qasync  # type: ignore
 from astroplan import Observer
 from pyobs.comm import Comm
-from pyobs.interfaces import IExposureTime, ExposureTimeState, IGain, GainState, IImageFormat, IImageType, ImageTypeState, IVideo
+from pyobs.interfaces import (
+    IExposureTime,
+    ExposureTimeState,
+    IGain,
+    GainState,
+    IImageFormat,
+    IImageType,
+    ImageTypeState,
+    IVideo,
+)
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
 from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore

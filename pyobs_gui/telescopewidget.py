@@ -269,7 +269,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         self.buttonInit.setEnabled(self._motion_status == MotionStatus.PARKED)
         self.buttonPark.setEnabled(
-            self._motion_status not in [
+            self._motion_status
+            not in [
                 MotionStatus.PARKED,
                 MotionStatus.ERROR,
                 MotionStatus.PARKING,
