@@ -5,7 +5,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar, overload
 
 import pyobs.utils.exceptions as exc
-from pyobs.interfaces import IModule
 from pyobs.object import create_object
 from pyobs.utils.enums import ModuleState
 from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
@@ -237,8 +236,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             try:
                 # get module state
                 module = self.module
-                if isinstance(module, IModule):
-                    state = await module.get_state()
+                client_state = self.comm.get_client_state(module)
+                if client_state is not None:
+                    state, _ = client_state
                     self.setEnabled(state == ModuleState.READY)
                     if state != ModuleState.READY:
                         return
