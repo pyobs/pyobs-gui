@@ -13,7 +13,6 @@ from .mainwindow import DEFAULT_WIDGETS
 
 if TYPE_CHECKING:
     import asyncio
-    from pyobs.comm import Proxy
 
 
 class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
@@ -33,7 +32,8 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
                 break
 
         # open widgets
-        await BaseWindow.open(self, modules=[cast("Proxy", cast("object", module))], **kwargs)
+        modules = [module.name] if module is not None else []
+        await BaseWindow.open(self, modules=modules, **kwargs)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
