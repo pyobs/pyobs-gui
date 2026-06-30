@@ -355,10 +355,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         autonomous_clients = await self.comm.clients_with_interface(IAutonomous)
         self.mastermind_running = False
         for auto_client in autonomous_clients:
-            proxy = await self.comm.safe_proxy(auto_client, IAutonomous)
-            if proxy is not None and await proxy.is_running():
-                self.mastermind_running = True
-                break
+            async with self.comm.safe_proxy(auto_client, IAutonomous) as proxy:
+                if proxy is not None and await proxy.is_running():
+                    self.mastermind_running = True
+                    break
 
         # got any?
         self.labelAutonomousWarning.setVisible(self.mastermind_running)
@@ -367,8 +367,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         weather_clients = await self.comm.clients_with_interface(IWeather)
         if len(weather_clients) > 0:
             # found one or more, just take the first one
-            weather = await self.comm.proxy(weather_clients[0])
-            self.labelWeatherWarning.setVisible(not await weather.is_running())
+            async with self.comm.proxy(weather_clients[0]) as weather:
+                self.labelWeatherWarning.setVisible(not await weather.is_running())
         else:
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)
