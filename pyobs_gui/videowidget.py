@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import qasync  # type: ignore
 from astroplan import Observer
-from pyobs.comm import Comm, Proxy
+from pyobs.comm import Comm
 from pyobs.interfaces import IExposureTime, ExposureTimeState, IGain, GainState, IImageFormat, IImageType, ImageTypeState, IVideo
 from pyobs.utils.enums import ImageFormat, ImageType
 from pyobs.vfs import HttpFile, VirtualFileSystem
@@ -81,7 +81,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
@@ -213,9 +213,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
     async def grab_image(self) -> None:
         # set image format
         if IImageFormat in self._interfaces:
-            # pyrefly: ignore [missing-attribute]
-            image_format = ImageFormat[self.comboImageFormat.currentText()]
-            await self.module.set_image_format(image_format)
+            image_format = ImageFormat[self.comboImageFormat.currentText()]  # type: ignore[attr-defined]
+            async with self.comm.proxy(self.module, IImageFormat) as proxy:
+                await proxy.set_image_format(image_format)
 
         # set initial image count
         self.exposures_left = self.spinCount.value()
@@ -234,7 +234,8 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         while self.exposures_left > 0:
             # set image type
             if IImageType in self._interfaces:
-                await self.module.set_image_type(image_type)
+                async with self.comm.proxy(self.module, IImageType) as proxy:
+                    await proxy.set_image_type(image_type)
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
@@ -257,7 +258,8 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
         # set it
         if IExposureTime in self._interfaces:
-            await self.module.set_exposure_time(exp_time)
+            async with self.comm.proxy(self.module, IExposureTime) as proxy:
+                await proxy.set_exposure_time(exp_time)
 
     @qasync.asyncSlot()  # type: ignore
     async def gain_changed(self) -> None:
@@ -266,7 +268,8 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
         # set it
         if IGain in self._interfaces:
-            await self.module.set_gain(gain)
+            async with self.comm.proxy(self.module, IGain) as proxy:
+                await proxy.set_gain(gain)
 
 
 __all__ = ["VideoWidget"]
