@@ -14,7 +14,7 @@ from .qt.spectrographwidget_ui import Ui_SpectrographWidget
 if TYPE_CHECKING:
     from astroplan import Observer
     from pyobs.vfs import VirtualFileSystem
-    from pyobs.comm import Proxy, Comm
+    from pyobs.comm import Comm
 
 
 log = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
