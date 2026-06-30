@@ -192,8 +192,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     def _on_radec_state(self, state: RaDecState) -> None:
         if self.observer is not None:
             self._ra_dec = SkyCoord(
-                ra=state.ra * u.deg,
-                dec=state.dec * u.deg,
+                ra=state.ra * u.deg,  # type: ignore[attr-defined]
+                dec=state.dec * u.deg,  # type: ignore[attr-defined]
                 frame="icrs",
                 location=self.observer.location,
                 obstime=Time.now(),
@@ -205,8 +205,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     def _on_altaz_state(self, state: AltAzState) -> None:
         if self.observer is not None:
             self._alt_az = SkyCoord(
-                alt=state.alt * u.deg,
-                az=state.az * u.deg,
+                alt=state.alt * u.deg,  # type: ignore[attr-defined]
+                az=state.az * u.deg,  # type: ignore[attr-defined]
                 frame="altaz",
                 location=self.observer.location,
                 obstime=Time.now(),
