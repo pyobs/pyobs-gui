@@ -7,7 +7,7 @@ from enum import Enum
 import logging
 from astroplan import Observer
 
-from pyobs.comm import Comm, Proxy
+from pyobs.comm import Comm
 from pyobs.events import ModuleOpenedEvent, Event, ModuleClosedEvent
 from pyobs.utils.shellcommand import ShellCommand
 from pyobs.vfs import VirtualFileSystem
@@ -123,7 +123,7 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
 
     async def open(
         self,
-        modules: list[Proxy] | None = None,
+        modules: list[str] | None = None,
         comm: Comm | None = None,
         observer: Observer | None = None,
         vfs: VirtualFileSystem | dict[str, Any] | None = None,
