@@ -170,6 +170,7 @@ class StatusWidget(BaseWidget):
         self.tree.setColumnCount(3)
         self.tree.setHeaderLabels(["Module", "Version", "Status"])
         self.tree.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
+        self.tree.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.tree.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tree.header().setStretchLastSection(True)
         self.tree.header().setMinimumSectionSize(200)
