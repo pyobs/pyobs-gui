@@ -277,7 +277,7 @@ class StatusWidget(BaseWidget):
                     self._add_detail_row(item, f"{prefix} {_format_dataclass_html(caps, self._colors)}")
 
         for interface in interfaces:
-            if interface.state is not None:
+            if interface.has_own_state():
                 prefix = _html_prefix(self._colors["state"], f"State ({interface.__name__}):")
                 label = self._add_detail_row(item, prefix)
                 updater = StateItem(label, prefix, self._colors)
