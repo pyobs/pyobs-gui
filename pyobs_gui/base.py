@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
     from astroplan import Observer
     from pyobs.comm import Comm
+    from pyobs.interfaces import FitsHeaderEntry
     from pyobs.vfs import VirtualFileSystem
 
 log = logging.getLogger(__name__)
@@ -287,7 +288,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         for w in widgets:
             w.setEnabled(enable)
 
-    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, FitsHeaderEntry]:
         """Returns FITS header for the current status of this module.
 
         Args:

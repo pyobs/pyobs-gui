@@ -3,6 +3,8 @@ import os
 from typing import Any
 from PySide6 import QtCore  # type: ignore
 
+from pyobs.interfaces import FitsHeaderEntry
+
 from .base import BaseWidget
 from .qt.fitsheaderswidget_ui import Ui_FitsHeadersWidget
 
@@ -28,7 +30,7 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
         except ModuleNotFoundError:
             pass
 
-    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, FitsHeaderEntry]:
         """Returns FITS header for the current status of this module.
 
         Args:
@@ -47,9 +49,9 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
             return {}
 
         # define basic headers
-        headers = {
-            "OBJECT": (self.textObject.text(), "Observed object"),
-            "USER": (self.textUser.text(), "Name of user"),
+        headers: dict[str, FitsHeaderEntry] = {
+            "OBJECT": FitsHeaderEntry(self.textObject.text(), "Observed object"),
+            "USER": FitsHeaderEntry(self.textUser.text(), "Name of user"),
         }
 
         # addition headers?
@@ -62,7 +64,7 @@ class FitsHeadersWidget(BaseWidget, Ui_FitsHeadersWidget):
 
                 # add it
                 if len(key) > 0 and len(value) > 0:
-                    headers[key] = (str(value), "")
+                    headers[key] = FitsHeaderEntry(str(value), "")
 
         # return them
         return headers

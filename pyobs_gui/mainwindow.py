@@ -10,6 +10,7 @@ import qtawesome as qta  # type: ignore
 
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
+    FitsHeaderEntry,
     ICamera,
     ITelescope,
     IRoof,
@@ -463,7 +464,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         await self._check_warnings()
         return True
 
-    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> dict[str, tuple[Any, str]]:
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> dict[str, FitsHeaderEntry]:
         """Returns FITS header for the current status of this module.
 
         Args:

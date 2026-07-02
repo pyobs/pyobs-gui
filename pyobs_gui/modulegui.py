@@ -6,7 +6,7 @@ import qasync  # type: ignore
 from qasync import QEventLoop  # noqa: F401
 from PySide6 import QtWidgets, QtGui  # type: ignore
 
-from pyobs.interfaces import IFitsHeaderBefore
+from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 from .base import BaseWindow
 from .mainwindow import DEFAULT_WIDGETS
@@ -89,7 +89,7 @@ class ModuleGUI(Module, IFitsHeaderBefore):
 
     async def get_fits_header_before(
         self, namespaces: list[str] | None = None, **kwargs: Any
-    ) -> dict[str, tuple[Any, str]]:
+    ) -> dict[str, FitsHeaderEntry]:
         """Returns FITS header for the current status of this module.
 
         Args:
