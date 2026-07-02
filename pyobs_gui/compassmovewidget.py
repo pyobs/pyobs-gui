@@ -42,20 +42,27 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
         has_offsets_radec = await self.comm.has_proxy(self.module, IOffsetsRaDec)
         if has_offsets_altaz and has_pointing_altaz:
             async with self.comm.proxy(self.module, IPointingAltAz) as p:
-                alt, az = await p.get_altaz()  # type: ignore[attr-defined]
+                altaz_state = await p.wait_for_state(IPointingAltAz, timeout=5.0)
+            if altaz_state is None:
+                return
             altaz = SkyCoord(
-                alt=alt * u.degree,  # type: ignore[attr-defined]
-                az=az * u.degree,  # type: ignore[attr-defined]
+                alt=altaz_state.alt * u.degree,
+                az=altaz_state.az * u.degree,
                 obstime=Time.now(),
                 location=self.observer.location,
                 frame="altaz",
             )
             async with self.comm.proxy(self.module, IOffsetsAltAz) as p:
-                off_alt, off_az = await p.get_offsets_altaz()  # type: ignore[attr-defined]
-            off_ra, off_dec = offset_altaz_to_radec(altaz, off_alt, off_az)
+                offset_state = await p.wait_for_state(IOffsetsAltAz, timeout=5.0)
+            if offset_state is None:
+                return
+            off_ra, off_dec = offset_altaz_to_radec(altaz, offset_state.alt, offset_state.az)
         elif has_offsets_radec:
             async with self.comm.proxy(self.module, IOffsetsRaDec) as p:
-                off_ra, off_dec = await p.get_offsets_radec()  # type: ignore[attr-defined]
+                offset_state = await p.wait_for_state(IOffsetsRaDec, timeout=5.0)
+            if offset_state is None:
+                return
+            off_ra, off_dec = offset_state.ra, offset_state.dec
         else:
             return
 
