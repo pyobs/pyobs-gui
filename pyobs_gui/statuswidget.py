@@ -174,6 +174,13 @@ class StatusWidget(BaseWidget):
         self.tree.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tree.header().setStretchLastSection(True)
         self.tree.header().setMinimumSectionSize(200)
+        self.tree.itemClicked.connect(self._toggle_expanded)
+
+    @staticmethod
+    def _toggle_expanded(item: QtWidgets.QTreeWidgetItem, column: int) -> None:
+        """Let a click anywhere in a module row expand/collapse it, not just its arrow."""
+        if item.childCount() > 0:
+            item.setExpanded(not item.isExpanded())
 
     async def open(
         self,
