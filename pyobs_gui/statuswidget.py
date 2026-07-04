@@ -176,6 +176,11 @@ class StatusWidget(BaseWidget):
         self.tree.header().setMinimumSectionSize(200)
         self.tree.itemClicked.connect(self._toggle_expanded)
 
+        # presence callback per module, so _module_closed can unsubscribe it -- otherwise a
+        # callback bound to a since-removed StatusItem lingers in the comm layer and blows up
+        # on the module's next presence update
+        self._presence_callbacks: dict[str, Any] = {}
+
     @staticmethod
     def _toggle_expanded(item: QtWidgets.QTreeWidgetItem, column: int) -> None:
         """Let a click anywhere in a module row expand/collapse it, not just its arrow."""
@@ -216,6 +221,10 @@ class StatusWidget(BaseWidget):
             if item is not None and item.text(0) == sender:
                 self.tree.takeTopLevelItem(row)
                 break
+
+        callback = self._presence_callbacks.pop(sender, None)
+        if callback is not None and self.comm is not None:
+            await self.comm.unsubscribe_presence(sender, callback)
         return True
 
     async def _add_module(self, module: str) -> None:
@@ -233,6 +242,7 @@ class StatusWidget(BaseWidget):
         widget = StatusItem(self.comm, module)
         item.setSizeHint(2, widget.minimumSizeHint())
         self.tree.setItemWidget(item, 2, widget)
+        self._presence_callbacks[module] = widget.on_presence_changed
         await self.comm.subscribe_presence(module, widget.on_presence_changed)
 
         try:
