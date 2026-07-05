@@ -1,0 +1,23 @@
+# Test config for the (proposed) AcquisitionWidget / IAcquisition
+# Run with: pyobs test/acquisition.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+modules:
+  acquisition:
+    class: pyobs.modules.pointing.DummyAcquisition
+    name: acquisition
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: acquisition
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

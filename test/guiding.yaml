@@ -1,0 +1,23 @@
+# Test config for the (proposed) AutoGuidingWidget / IAutoGuiding
+# Run with: pyobs test/guiding.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+modules:
+  guiding:
+    class: pyobs.modules.pointing.DummyAutoGuiding
+    name: guiding
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: guiding
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui
