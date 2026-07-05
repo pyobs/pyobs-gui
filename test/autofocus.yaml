@@ -1,0 +1,23 @@
+# Test config for the (proposed) AutoFocusWidget / IAutoFocus
+# Run with: pyobs test/autofocus.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+modules:
+  autofocus:
+    class: pyobs.modules.focus.DummyAutoFocus
+    name: autofocus
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: autofocus
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

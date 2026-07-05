@@ -12,6 +12,7 @@ import pyobs.utils.exceptions as exc
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     FitsHeaderEntry,
+    IAutoFocus,
     ICamera,
     ITelescope,
     IRoof,
@@ -26,6 +27,7 @@ from pyobs.interfaces import (
 )
 
 from .base import BaseWindow, BaseWidget
+from .autofocuswidget import AutoFocusWidget
 from .camerawidget import CameraWidget
 from .filterwidget import FilterWidget
 from .modewidget import ModeWidget
@@ -46,6 +48,7 @@ DEFAULT_WIDGETS = {
     ITelescope: TelescopeWidget,
     IRoof: RoofWidget,
     IFocuser: FocusWidget,
+    IAutoFocus: AutoFocusWidget,
     IWeather: WeatherWidget,
     IVideo: VideoWidget,
     ISpectrograph: SpectrographWidget,
@@ -59,6 +62,7 @@ DEFAULT_ICONS = {
     ITelescope: "msc.telescope",
     IRoof: "ph.house",
     IFocuser: "mdi.image-filter-center-focus",
+    IAutoFocus: "mdi.chart-bell-curve",
     IWeather: "fa5s.cloud-sun",
     IVideo: "fa5s.video",
     ISpectrograph: "ei.graph",
@@ -75,6 +79,7 @@ DEFAULT_CONFIG = [
     {"widget": TelescopeWidget, "interfaces": "ITelescope", "icon": "msc.telescope"},
     {"widget": RoofWidget, "interfaces": "IRoof", "icon": "ph.house"},
     {"widget": FocusWidget, "interfaces": "IFocuser", "icon": "mdi.image-filter-center-focus"},
+    {"widget": AutoFocusWidget, "interfaces": "IAutoFocus", "icon": "mdi.chart-bell-curve"},
     {"widget": WeatherWidget, "interfaces": "IWeather", "icon": "fa5s.cloud-sun"},
     {"widget": VideoWidget, "interfaces": "IVideo", "icon": "fa5s.video"},
     {"widget": SpectrographWidget, "interfaces": "ISpectrograph", "icon": "ei.graph"},

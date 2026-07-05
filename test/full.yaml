@@ -57,6 +57,13 @@ modules:
       class: pyobs.comm.local.LocalComm
       name: video
 
+  autofocus:
+    class: pyobs.modules.focus.DummyAutoFocus
+    name: autofocus
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: autofocus
+
   gui:
     class: pyobs_gui.GUI
     name: gui
