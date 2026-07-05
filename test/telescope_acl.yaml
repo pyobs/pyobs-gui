@@ -1,0 +1,27 @@
+# Test config for ACL grey-out in telescopewidget: gui is only allowed to init/move_radec, so
+# buttonPark/buttonStop/horizontal move+offsets should render disabled while equatorial stays live.
+# Run with: pyobs telescope_acl.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+modules:
+  telescope:
+    class: pyobs.modules.telescope.DummyTelescope
+    name: telescope
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: telescope
+    acl:
+      allow:
+        gui: [init, move_radec, set_offsets_radec]
+
+  gui:
+    class: pyobs_gui.GUI
+    name: gui
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui

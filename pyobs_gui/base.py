@@ -5,6 +5,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar, overload
 
 import pyobs.utils.exceptions as exc
+from pyobs.interfaces import IModule
 from pyobs.object import create_object
 from pyobs.utils.enums import ModuleState
 from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
@@ -151,6 +152,10 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # has it been initialized?
         self._initialized = False
 
+        # methods this GUI is permitted to invoke on self.module; None until fetched or if the
+        # fetch failed, meaning "treat everything as permitted"
+        self._permitted_methods: set[str] | None = None
+
     def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
         if self.extract_window_button:
             self.extract_window_button.move(self.width() - 20, 0)
@@ -287,6 +292,22 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
     def enable_buttons(self, widgets: list[QtWidgets.QWidget], enable: bool) -> None:
         for w in widgets:
             w.setEnabled(enable)
+
+    async def _fetch_permitted_methods(self) -> None:
+        # leaves _permitted_methods at None on failure, so permitted() falls back to "everything
+        # allowed" - an actual denial still surfaces via ForbiddenError in _background_task
+        if not hasattr(IModule, "get_permitted_methods"):
+            # pyobs-core older than the ACL feature (still within our supported version range)
+            return
+        try:
+            async with self.comm.proxy(self.module, IModule) as proxy:
+                self._permitted_methods = set(await proxy.get_permitted_methods())
+        except exc.PyObsError:
+            self._permitted_methods = None
+
+    def permitted(self, method: str) -> bool:
+        """Returns whether this GUI is permitted to invoke the given method on self.module."""
+        return self._permitted_methods is None or method in self._permitted_methods
 
     def get_fits_headers(self, namespaces: list[str] | None = None, **kwargs: Any) -> dict[str, FitsHeaderEntry]:
         """Returns FITS header for the current status of this module.

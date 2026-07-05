@@ -44,6 +44,9 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
+        # permitted methods (ACLs)
+        await self._fetch_permitted_methods()
+
         # read capabilities (static: available modes per group)
         caps = await self.comm.get_capabilities(self.module, IMode)
         if caps is not None:
@@ -85,7 +88,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         ]
         for i in range(len(self._mode_groups)):
             self._mode_widgets[i][0].setText(self._modes[i])
-            self._mode_widgets[i][1].setEnabled(initialized)
+            self._mode_widgets[i][1].setEnabled(initialized and self.permitted("set_mode"))
 
     def _on_mode_state(self, state: ModeState) -> None:
         self._modes = [state.modes.get(g, "") for g in self._mode_groups]

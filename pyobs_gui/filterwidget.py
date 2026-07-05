@@ -38,6 +38,9 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
         await self.comm.subscribe_state(self.module, IFilters, self._on_filter_state)
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
+        # permitted methods (ACLs)
+        await self._fetch_permitted_methods()
+
     def _on_filter_state(self, state: FilterState) -> None:
         self._filter = state.filter
         self.signal_update_gui.emit()
@@ -56,7 +59,7 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
             MotionStatus.IDLE,
             MotionStatus.POSITIONED,
         ]
-        self.buttonSetFilter.setEnabled(initialized)
+        self.buttonSetFilter.setEnabled(initialized and self.permitted("set_filter"))
 
     @qasync.asyncSlot()  # type: ignore
     async def set_filter(self) -> None:

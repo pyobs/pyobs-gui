@@ -8,6 +8,7 @@ from colour import Color  # type: ignore
 os.environ["QT_API"] = "pyside6"
 import qtawesome as qta  # type: ignore
 
+import pyobs.utils.exceptions as exc
 from pyobs.events import LogEvent, ModuleOpenedEvent, ModuleClosedEvent, Event
 from pyobs.interfaces import (
     FitsHeaderEntry,
@@ -21,6 +22,7 @@ from pyobs.interfaces import (
     ISpectrograph,
     IFilters,
     IMode,
+    IModule,
 )
 
 from .base import BaseWindow, BaseWidget
@@ -384,6 +386,16 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # ignore it?
         if self.show_modules is not None and client not in self.show_modules:
             return False
+
+        # fully denied by ACLs? if the fetch itself fails or pyobs-core doesn't support ACLs yet,
+        # fail open and show the module as usual
+        if hasattr(IModule, "get_permitted_methods"):
+            try:
+                async with self.comm.proxy(client, IModule) as proxy:
+                    if len(await proxy.get_permitted_methods()) == 0:
+                        return False
+            except exc.PyObsError:
+                pass
 
         # does client exist already?
         if client in self._widgets:

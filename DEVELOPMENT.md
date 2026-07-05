@@ -4,6 +4,33 @@ Backlog of planned work for pyobs-gui. Newest/most important items at the top.
 
 ## pyobs-core 2.0 ACLs — hide/grey out actions an operator isn't permitted to use
 
+**Status: Option B implemented and verified end-to-end against pyobs-core 2.0.0.dev11 (the first
+release with ACL support).** `BaseWidget._fetch_permitted_methods()` / `BaseWidget.permitted()`
+(`base.py`) fetch and cache `IModule.get_permitted_methods()` once per widget, guarded by
+`hasattr(IModule, "get_permitted_methods")` so it's a no-op against any older pinned pyobs-core
+(>=2.0.0.dev6) that predates the feature — `permitted()` then falls back to "everything allowed."
+Wired into `filterwidget.py`, `modewidget.py`, and `telescopewidget.py` (buttons, `move()` branches,
+and `compassmovewidget`'s enable state). Fully-denied modules are hidden from the sidebar via the
+same `get_permitted_methods()` fetch in `mainwindow.py:_client_connected`.
+
+Verified with two new fixtures, `test/telescope_acl.yaml` (`acl: allow: {gui: [init, move_radec,
+set_offsets_radec]}`) and `test/telescope_acl_denied.yaml` (`acl: allow: {gui: []}`), driven via a
+`LocalComm`-backed harness (no pytest suite exists in this repo) that opens the real `GUI` module
+against a real ACL-enforcing `DummyTelescope` and inspects live widget state:
+- `telescope_acl.yaml`: `_permitted_methods` came back exactly `{init, move_radec,
+  set_offsets_radec}`; every button/branch gated on a permitted method stayed enabled
+  (`buttonMove`, `buttonSetRaOffset`, `buttonSetDecOffset`, `buttonResetEquatorialOffsets`,
+  `compassmovewidget`, `permitted("move_radec")`), every one gated on a denied method was forced off
+  (`buttonPark`, `buttonSetAltOffset`, `buttonSetAzOffset`, `buttonResetHorizontalOffsets`,
+  `permitted("move_altaz")`) — cross-checked with `motion_status=idle` so state-based gating alone
+  wouldn't explain the result.
+- `telescope_acl_denied.yaml`: `MainWindow._client_connected` returned `False` for the telescope
+  client and it never entered `_widgets`, confirming the fully-denied module never reaches the
+  sidebar.
+
+<details>
+<summary>Original planning notes</summary>
+
 `pyobs-core` 2.0's per-module access control has landed on its `develop` branch: Phase 8 is
 implemented in full (`exc.ForbiddenError`, `acl:` config parsing, the `Module.execute()` check,
 `IModule.get_permitted_methods()`, XMPP `forbidden`-condition mapping) — confirmed directly against
@@ -124,3 +151,5 @@ already exists in four files:
    couple of methods, confirming the right buttons actually grey out.
 
 Option A is a strict subset of Option B's work, so nothing here is wasted if Option B follows later.
+
+</details>
