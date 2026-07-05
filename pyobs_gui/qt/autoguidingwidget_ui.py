@@ -31,6 +31,13 @@ class Ui_AutoGuidingWidget(object):
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.framePlot = QFrame(AutoGuidingWidget)
+        self.framePlot.setObjectName(u"framePlot")
+        self.framePlot.setFrameShape(QFrame.Shape.NoFrame)
+        self.framePlot.setFrameShadow(QFrame.Shadow.Raised)
+
+        self.verticalLayout.addWidget(self.framePlot)
+
         self.groupBox = QGroupBox(AutoGuidingWidget)
         self.groupBox.setObjectName(u"groupBox")
         self.verticalLayout_2 = QVBoxLayout(self.groupBox)
@@ -102,6 +109,7 @@ class Ui_AutoGuidingWidget(object):
 
         self.verticalLayout.addWidget(self.groupBox)
 
+        self.verticalLayout.setStretch(0, 1)
         QWidget.setTabOrder(self.buttonStart, self.buttonStop)
         QWidget.setTabOrder(self.buttonStop, self.spinExposureTime)
 

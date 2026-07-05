@@ -3,56 +3,14 @@
 *Note: pyobs-core's actual interface name is `IAutoGuiding`, not `IGuiding` — used the real name
 throughout.*
 
-**Status:** design proposal — not implemented yet.
+**Status:** first pass implemented and shipped (`RunningState` publishing, pixel-based
+`GuidingState`, basic `AutoGuidingWidget`). This document now describes the follow-up refinement
+in progress: physical-unit offsets instead of pixels, and a two-plot widget with rolling history.
 
-## Current state (pyobs-core, `develop`)
+## Shipped (pyobs-core, `develop`)
 
-`IAutoGuiding` (`pyobs/interfaces/IAutoGuiding.py:7`) is bare — it adds no methods or state of its
-own, just combines two existing interfaces:
-
-```python
-class IAutoGuiding(IStartStop, IExposureTime, metaclass=ABCMeta):
-    """The module can perform auto-guiding."""
-```
-
-So today it inherits `RunningState` (from `IStartStop` → `IRunning`) and `ExposureTimeState`, and
-gets `start()`/`stop()`/`set_exposure_time()` for free.
-
-The one implementation, `BaseGuiding` (`pyobs/modules/pointing/_baseguiding.py:23`), has the same
-wiring gap as the other two interfaces: `is_running()` (`_baseguiding.py:85`) correctly returns
-`self._enabled`, set in `start()`/`stop()` via `_reset_guiding()` (`_baseguiding.py:144`), but
-`RunningState` is never published.
-
-More interesting: there's already real per-image telemetry computed internally that never reaches a
-live subscriber:
-
-- `self._loop_closed` (`_baseguiding.py:62`, toggled by `_set_loop_state()` at `155`) — whether the
-  last image was successfully guided on (closed loop) or not (open loop). Currently only surfaced
-  via a FITS header string, `AGSTATE` (`_baseguiding.py:110,128`).
-- `GuidingStatisticsPixelOffset`/`GuidingStatisticsSkyOffset`
-  (`pyobs/modules/pointing/guidingstatistics/`) compute an RMS pixel or sky offset — but only as a
-  *per-science-exposure session* (`init_stats`/`add_to_header`, keyed by requesting client), written
-  into the FITS header of each subsequent image, not as a running live value. `_statistics.add_data(image)`
-  (`_baseguiding.py:241`) feeds it on every processed image.
-
-## Proposed pyobs-core change
-
-Publish `RunningState` in `start()`/`stop()`:
-
-```python
-async def start(self, **kwargs: Any) -> None:
-    log.info("Start auto-guiding...")
-    await self._reset_guiding(enabled=True)
-    await self.comm.set_state(IRunning, RunningState(running=True))
-
-async def stop(self, **kwargs: Any) -> None:
-    log.info("Stopping auto-guiding...")
-    await self._reset_guiding(enabled=False)
-    await self.comm.set_state(IRunning, RunningState(running=False))
-```
-
-Add a dedicated `GuidingState` for the live open/closed-loop status and last offset — separate from
-the FITS-header RMS statistics, which stay as they are:
+`IAutoGuiding` (`pyobs/interfaces/IAutoGuiding.py`) combines `IStartStop` (→ `IRunning`) and
+`IExposureTime`, and defines its own `GuidingState`:
 
 ```python
 @dataclass
@@ -66,108 +24,133 @@ class IAutoGuiding(IStartStop, IExposureTime, metaclass=ABCMeta):
     state = GuidingState
 ```
 
-Publish it from `_set_loop_state()` (`_baseguiding.py:155`), which is already the single choke point
-every closed/open transition goes through:
+`BaseGuiding.start()`/`stop()` publish `RunningState`. `_set_loop_state()` (now `async`, all 6 call
+sites in `_process_image()`/`_reset_guiding()` updated) is the single choke point every
+closed/open-loop transition goes through, and publishes `GuidingState` on each one. Today it reads
+`image.get_meta(PixelOffsets)` right after `self._apply(...)` succeeds, giving pixel-space `dx`/`dy`
+— guider/camera-specific and not comparable across setups, exactly the gap flagged in the original
+open questions below.
+
+`DummyAutoGuiding` (`pyobs/modules/pointing/dummyguiding.py`) simulates this with a background loop
+task publishing `RunningState`/`ExposureTimeState`/`GuidingState`, with an occasional simulated
+"lost guide star" (open-loop) event. `AutoGuidingWidget` (pyobs-gui) exists with Start/Stop, a
+loop-state label, an exposure-time control (`WatchedLabel` + `ModifiedDoubleSpinBox`, the
+`init_modified(label).committed` pattern also used in `camerawidget.py` — not the
+`valueChangedByUser` API originally sketched below, which doesn't exist), and a last-offset label.
+
+## Problem: pixel offsets aren't physical, and the per-image correction is discarded
+
+Pixel offset isn't a portable unit (pixel scale varies by camera/setup). The natural fix looked
+like reusing `IAcquisition`'s `OffsetFrame`/`offset_lon`/`offset_lat` pattern — but that reports the
+telescope's *cumulative* offset (queried from `IOffsetsRaDec`/`IOffsetsAltAz` state), which for
+acquisition's short, converging run is exactly the useful "final answer." For guiding's
+indefinitely-long session, the cumulative offset just shows the mount's slow overall drift, not the
+size of each individual correction — not useful for "how well is guiding tracking right now."
+
+The actual per-image correction (`dra`/`ddec` or `dalt`/`daz`, in arcsec) is already computed inside
+`ApplyRaDecOffsets`/`ApplyAltAzOffsets.__call__` — but discarded, since `ApplyOffsets.__call__`
+currently only returns `bool` (applied or not).
+
+## Proposed pyobs-core change
+
+Make `ApplyOffsets.__call__` return what it actually did, not just whether it succeeded:
 
 ```python
-async def _set_loop_state(self, state: bool) -> None:
-    self._uptime.add_data(state)
-    self._loop_closed = state
-    await self.comm.set_state(IAutoGuiding, GuidingState(loop_closed=state))
+@dataclass
+class OffsetResult:
+    applied: bool
+    frame: OffsetFrame | None = None
+    lon: Annotated[float, Unit.DEGREES] | None = None  # matches RaDecOffsetState/AltAzOffsetState
+    lat: Annotated[float, Unit.DEGREES] | None = None
 ```
 
-`_set_loop_state` is currently synchronous (`_baseguiding.py:155`) — making it `async` means
-updating its 5 call sites, but all of them are already inside `async def`s, so it's a mechanical
-change rather than a real restructuring.
+`ApplyRaDecOffsets`/`ApplyAltAzOffsets` return `OffsetResult(applied=True, frame=OffsetFrame.RA_DEC,
+lon=dra.degree, lat=ddec.degree)` (or `ALT_AZ`, `lon=dalt.degree, lat=daz.degree`) on success,
+`OffsetResult(applied=False)` otherwise. `OffsetFrame` moves from `IAcquisition.py` to
+`pyobs/utils/enums.py` (alongside `Unit`), since it's now shared by `IAcquisition`, `IAutoGuiding`,
+and `pyobs.utils.offsets` — three unrelated subsystems.
+
+`Acquisition` only needs `if await self._apply(...):` → `result = await self._apply(...); if
+result.applied:` — it keeps using its own `_get_offsets()` helper for its own (correct, unchanged)
+cumulative-offset-per-attempt tracking.
+
+`BaseGuiding` drops `PixelOffsets` entirely from `_process_image()`'s offset-application block and
+uses the result directly:
+
+```python
+result = await self._apply(image, telescope, self._location)
+if result.applied:
+    await self._set_loop_state(True, result.frame, result.lon, result.lat)
+    log.info("Finished image.")
+else:
+    log.info("Could not apply offsets.")
+    await self._set_loop_state(False)
+```
+
+`_set_loop_state(state, frame=None, lon=None, lat=None)` stores `self._last_offset_frame/_lon/_lat`
+(replacing the pixel tuple) and publishes `GuidingState(loop_closed=state, offset_frame=...,
+offset_lon=..., offset_lat=...)` — same "keep last known value when not provided" behavior as
+today. `GuidingState` becomes:
+
+```python
+@dataclass
+class GuidingState:
+    loop_closed: bool = False
+    offset_frame: OffsetFrame | None = None
+    offset_lon: Annotated[float, Unit.DEGREES] | None = None
+    offset_lat: Annotated[float, Unit.DEGREES] | None = None
+    time: Time = field(default_factory=Time.now)
+```
+
+`DummyAutoGuiding` simulates a small RA/Dec offset in degrees (`random.gauss(0.0, 1.0/3600)`, ~1
+arcsec stddev) instead of the pixel-scale simulation, publishing `offset_frame=OffsetFrame.RA_DEC`.
+
+`GuidingStatisticsPixelOffset`'s independent per-client FITS-header RMS stats are untouched — they
+read `PixelOffsets` separately, for a different purpose, and don't go through `_set_loop_state`.
 
 ## Widget design (pyobs-gui)
 
-Guiding is continuous rather than one-shot, so no plot of "progress toward a goal" the way
-autofocus/acquisition have — instead, a simple live status display plus the existing pattern for
-editable numeric fields:
+Guiding is continuous rather than one-shot, so unlike acquisition's single converging trajectory,
+this is a live rolling window: two plots (mirroring `AcquisitionWidget`'s two-subplot layout) plus
+the existing status/controls:
 
+- `framePlot` — a `plt.subplots(1, 2)` figure:
+  - left: offset magnitude (`sqrt(lon**2+lat**2)`, arcsec) vs. sample index over the last N
+    corrections, integer x-axis ticks (`MaxNLocator(integer=True)`)
+  - right: lon/lat scatter of the same N points, in arcsec, **not** connected by a line (unlike
+    acquisition — this is an ongoing process, not a single converging run), latest point marked
+    distinctly, reference crosshairs at (0, 0), axis labels driven by `offset_frame`
 - `buttonStart` / `buttonStop`, enabled based on `RunningState.running`
 - Status label for `loop_closed` — "Closed loop" / "Open loop" / "Stopped"
-- `spinExposureTime` — a `ModifiedDoubleSpinBox`, same `ModifiedMixin` pattern used elsewhere in
-  pyobs-gui, committing via `set_exposure_time()`
-- Last pixel offset (X/Y), plain labels, updating live
+- `spinExposureTime` (`ModifiedDoubleSpinBox`) + `labelExposureTime` (`WatchedLabel`), the same
+  `init_modified(label).committed.connect(...)` pattern as `camerawidget.py`'s gain/window controls
+- Last offset label, in arcsec
 
-```python
-class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
-    signal_update_gui = QtCore.Signal()
+The rolling window (`deque(maxlen=50)` of `(lon_arcsec, lat_arcsec)`) is accumulated client-side in
+the widget from each `GuidingState` update — not tracked in `GuidingState` itself. Unlike
+`AcquisitionState.attempts` (naturally bounded by a short, finite run), a guiding session runs
+indefinitely; publishing a growing/capped history on every processed image would be wasteful
+bandwidth-wise, and "how many points to show" is a display concern the widget should own, not the
+wire schema.
 
-    def __init__(self, **kwargs: Any):
-        BaseWidget.__init__(self, **kwargs)
-        self.setupUi(self)
+The widget resets its rolling window on the `IRunning` rising edge (a fresh `start()`), same
+convention as `AutoFocusWidget`/`AcquisitionWidget` clearing their state on a new run.
 
-        self._running = False
-        self._loop_closed = False
-        self._offset: tuple[float, float] | None = None
+## Known bug in the shipped widget (to fix alongside this change)
 
-        self.signal_update_gui.connect(self.update_gui)
-        self.buttonStart.clicked.connect(self._start)
-        self.buttonStop.clicked.connect(self._stop)
-        self.colorize_button(self.buttonStart, QtCore.Qt.GlobalColor.green)
-        self.colorize_button(self.buttonStop, QtCore.Qt.GlobalColor.red)
+`AutoGuidingWidget.__init__` initializes `self._exposure_time = 0.0`, but the `.ui` file's
+`spinExposureTime` default is `0.1` (its `minimum`). `_on_exptime_state`'s dirty-check
+(`self.spinExposureTime.value() == self._exposure_time`) is `0.1 == 0.0` on the very first state
+update, so it's treated as "user has diverged" and the spin box is never pre-filled from live state.
+Fix: initialize `self._exposure_time: float | None = None` and treat `None` as always-synced.
 
-        self.spinExposureTime.init_modified("Exposure time")
-        self.spinExposureTime.valueChangedByUser.connect(self._set_exposure_time)
+## Resolved from the original open questions
 
-    async def _init(self) -> None:
-        await self.comm.subscribe_state(self.module, IRunning, self._on_running_state)
-        await self.comm.subscribe_state(self.module, IExposureTime, self._on_exptime_state)
-        await self.comm.subscribe_state(self.module, IAutoGuiding, self._on_guiding_state)
-
-    def _on_running_state(self, state: RunningState) -> None:
-        self._running = state.running
-        self.signal_update_gui.emit()
-
-    def _on_exptime_state(self, state: ExposureTimeState) -> None:
-        self.spinExposureTime.setValue(state.exposure_time)
-
-    def _on_guiding_state(self, state: GuidingState) -> None:
-        self._loop_closed = state.loop_closed
-        if state.last_offset_x is not None and state.last_offset_y is not None:
-            self._offset = (state.last_offset_x, state.last_offset_y)
-        self.signal_update_gui.emit()
-
-    def update_gui(self) -> None:
-        self.buttonStart.setEnabled(not self._running)
-        self.buttonStop.setEnabled(self._running)
-        self.labelLoopState.setText(
-            "Closed loop" if self._running and self._loop_closed
-            else "Open loop" if self._running
-            else "Stopped"
-        )
-        if self._offset:
-            self.labelOffset.setText(f"({self._offset[0]:+.2f}, {self._offset[1]:+.2f}) px")
-
-    @qasync.asyncSlot()  # type: ignore
-    async def _start(self) -> None:
-        async with self.comm.proxy(self.module, IAutoGuiding) as proxy:
-            await proxy.start()
-
-    @qasync.asyncSlot()  # type: ignore
-    async def _stop(self) -> None:
-        async with self.comm.proxy(self.module, IAutoGuiding) as proxy:
-            await proxy.stop()
-
-    @qasync.asyncSlot()  # type: ignore
-    async def _set_exposure_time(self, value: float) -> None:
-        async with self.comm.proxy(self.module, IExposureTime) as proxy:
-            await proxy.set_exposure_time(value)
-```
-
-## Open questions
-
-- `_set_loop_state` currently isn't `async` — decide between making it `async` (5 call sites to
-  update, all already in async context) or fire-and-forget with `asyncio.create_task` as a cheaper
-  first pass.
-- Whether `last_offset_x/y` (pixel offsets) is the right unit for a general-purpose widget, given
-  `GuidingStatisticsSkyOffset` also exists (arcsec on sky) — pixel offset is guider/camera-specific
-  and not directly comparable across setups, arcsec is. Might be worth publishing both, or just
-  sky-offset if a consistent astrometric solution is always available at that point in the pipeline.
-- No live RMS in `GuidingState` as proposed — only last-offset. A rolling RMS would need its own
-  small ring buffer on the module (separate from the per-client `GuidingStatistics` sessions, which
-  reset on each FITS header pull and shouldn't be reused for this). Left out for now to keep the
-  first cut minimal; easy to add a `rolling_rms_x/y` field later if useful in practice.
+- ~~`_set_loop_state` currently isn't `async`~~ — done; all 6 call sites updated (mechanical change,
+  all already in async context).
+- ~~Whether `last_offset_x/y` (pixel offsets) is the right unit~~ — resolved above: arcsec, via
+  `OffsetResult` from `ApplyOffsets`, not pixel scale or `GuidingStatisticsSkyOffset` (which isn't
+  reliably populated in real guiding pipelines — only a `DummySkyOffsets` test processor sets it).
+- No live RMS in `GuidingState` — still out of scope. The rolling-window plot in the widget gives an
+  eyeballable sense of scatter without needing a new wire-level RMS field; still easy to add later
+  if needed.

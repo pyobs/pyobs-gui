@@ -1,16 +1,26 @@
 import logging
+import math
+import os
+from collections import deque
 from typing import Any
 
 import qasync  # type: ignore
-from PySide6 import QtCore  # type: ignore
+from PySide6 import QtCore, QtWidgets  # type: ignore
 
-from pyobs.interfaces import GuidingState, IAutoGuiding, IExposureTime, IRunning
+os.environ["QT_API"] = "PySide6"
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.ticker import MaxNLocator
+
+from pyobs.interfaces import GuidingState, IAutoGuiding, IExposureTime, IRunning, OffsetFrame
 from pyobs.interfaces.IExposureTime import ExposureTimeState
 from pyobs.interfaces.IRunning import RunningState
 from .base import BaseWidget
 from .qt.autoguidingwidget_ui import Ui_AutoGuidingWidget
 
 log = logging.getLogger(__name__)
+
+_HISTORY_LENGTH = 50
 
 
 class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
@@ -23,8 +33,17 @@ class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
         # cached state
         self._running = False
         self._loop_closed = False
-        self._exposure_time = 0.0
-        self._offset: tuple[float, float] | None = None
+        self._exposure_time: float | None = None
+        self._offset_frame: OffsetFrame | None = None
+        self._offset: tuple[float, float] | None = None  # last (lon, lat), arcsec
+        self._offset_history: deque[tuple[float, float]] = deque(maxlen=_HISTORY_LENGTH)
+
+        # add plots: offset magnitude vs. sample, and the lon/lat scatter
+        self.figure, (self.ax, self.ax2) = plt.subplots(1, 2)
+        layout = QtWidgets.QVBoxLayout(self.framePlot)
+        self.canvas = FigureCanvas(self.figure)
+        layout.addWidget(self.canvas)
+        self.framePlot.setLayout(layout)
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -45,13 +64,16 @@ class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
         await self._fetch_permitted_methods()
 
     def _on_running_state(self, state: RunningState) -> None:
+        if state.running and not self._running:
+            # rising edge -> a new run started (possibly triggered elsewhere), clear the history
+            self._offset_history.clear()
         self._running = state.running
         self.signal_update_gui.emit()
 
     def _on_exptime_state(self, state: ExposureTimeState) -> None:
         # only follow live updates while the spin box isn't mid-edit, so a user's in-progress
         # value isn't clobbered by a state update from elsewhere
-        was_synced = self.spinExposureTime.value() == self._exposure_time
+        was_synced = self._exposure_time is None or self.spinExposureTime.value() == self._exposure_time
         self._exposure_time = state.exposure_time
         self.labelExposureTime.setText(f"{state.exposure_time:.1f}")
         if was_synced:
@@ -60,8 +82,10 @@ class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
 
     def _on_guiding_state(self, state: GuidingState) -> None:
         self._loop_closed = state.loop_closed
-        if state.last_offset_x is not None and state.last_offset_y is not None:
-            self._offset = (state.last_offset_x, state.last_offset_y)
+        self._offset_frame = state.offset_frame
+        if state.offset_lon is not None and state.offset_lat is not None:
+            self._offset = (state.offset_lon * 3600, state.offset_lat * 3600)
+            self._offset_history.append(self._offset)
         self.signal_update_gui.emit()
 
     def update_gui(self) -> None:
@@ -71,7 +95,40 @@ class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
         self.labelLoopState.setText(
             "Closed loop" if self._running and self._loop_closed else "Open loop" if self._running else "Stopped"
         )
-        self.labelOffset.setText(f"({self._offset[0]:+.2f}, {self._offset[1]:+.2f}) px" if self._offset else "")
+        self.labelOffset.setText(f"({self._offset[0]:+.2f}, {self._offset[1]:+.2f}) arcsec" if self._offset else "")
+
+        self.ax.clear()
+        if self._offset_history:
+            magnitudes = [math.sqrt(lon**2 + lat**2) for lon, lat in self._offset_history]
+            self.ax.plot(range(1, len(magnitudes) + 1), magnitudes, marker="o", color="tab:blue")
+        self.ax.set_xlabel("Sample")
+        self.ax.set_ylabel("Offset magnitude [arcsec]")
+        self.ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        self.ax.grid(linestyle=":", alpha=0.5)
+        self.ax.set_axisbelow(True)
+
+        self.ax2.clear()
+        if self._offset_frame == OffsetFrame.RA_DEC:
+            xlabel, ylabel = "RA offset [arcsec]", "Dec offset [arcsec]"
+        elif self._offset_frame == OffsetFrame.ALT_AZ:
+            xlabel, ylabel = "Alt offset [arcsec]", "Az offset [arcsec]"
+        else:
+            xlabel, ylabel = "Offset 1 [arcsec]", "Offset 2 [arcsec]"
+        if self._offset_history:
+            xs, ys = zip(*self._offset_history, strict=True)
+            self.ax2.axhline(0, color="gray", linewidth=0.5)
+            self.ax2.axvline(0, color="gray", linewidth=0.5)
+            self.ax2.plot(xs, ys, marker="o", linestyle="", color="tab:orange")
+            self.ax2.plot(xs[-1], ys[-1], marker="*", color="tab:green", markersize=12, linestyle="", label="latest")
+            self.ax2.legend(fontsize="small")
+            self.ax2.set_aspect("equal", adjustable="datalim")
+        self.ax2.set_xlabel(xlabel)
+        self.ax2.set_ylabel(ylabel)
+        self.ax2.grid(linestyle=":", alpha=0.5)
+        self.ax2.set_axisbelow(True)
+
+        self.figure.tight_layout()
+        self.canvas.draw()
 
     @qasync.asyncSlot()  # type: ignore
     async def _start(self) -> None:
