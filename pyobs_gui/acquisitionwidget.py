@@ -29,8 +29,8 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
         self._running = False
         self._result: AcquisitionResult | None = None
 
-        # add plot
-        self.figure, self.ax = plt.subplots()
+        # add plots: distance vs. attempt, and the 2D offset trajectory
+        self.figure, (self.ax, self.ax2) = plt.subplots(1, 2)
         layout = QtWidgets.QVBoxLayout(self.framePlot)
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
@@ -104,6 +104,31 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
         self.ax.set_ylabel("Distance to target [arcsec]")
         self.ax.grid(linestyle=":", alpha=0.5)
         self.ax.set_axisbelow(True)
+
+        self.ax2.clear()
+        ra_dec = [(a.offset_ra, a.offset_dec) for a in self._attempts if a.offset_ra is not None]
+        alt_az = [(a.offset_alt, a.offset_az) for a in self._attempts if a.offset_alt is not None]
+        if ra_dec:
+            xlabel, ylabel, points = "RA offset [deg]", "Dec offset [deg]", ra_dec
+        elif alt_az:
+            xlabel, ylabel, points = "Alt offset [deg]", "Az offset [deg]", alt_az
+        else:
+            xlabel, ylabel, points = "Offset 1 [deg]", "Offset 2 [deg]", []
+        if points:
+            xs, ys = zip(*points, strict=True)
+            self.ax2.axhline(0, color="gray", linewidth=0.5)
+            self.ax2.axvline(0, color="gray", linewidth=0.5)
+            self.ax2.plot(xs, ys, marker="o", color="tab:orange")
+            self.ax2.plot(xs[0], ys[0], marker="s", color="tab:red", markersize=8, linestyle="", label="start")
+            self.ax2.plot(xs[-1], ys[-1], marker="*", color="tab:green", markersize=12, linestyle="", label="latest")
+            self.ax2.legend(fontsize="small")
+            self.ax2.set_aspect("equal", adjustable="datalim")
+        self.ax2.set_xlabel(xlabel)
+        self.ax2.set_ylabel(ylabel)
+        self.ax2.grid(linestyle=":", alpha=0.5)
+        self.ax2.set_axisbelow(True)
+
+        self.figure.tight_layout()
         self.canvas.draw()
 
     @qasync.asyncSlot()  # type: ignore
