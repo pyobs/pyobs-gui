@@ -8,8 +8,16 @@ from PySide6 import QtCore, QtWidgets  # type: ignore
 os.environ["QT_API"] = "PySide6"
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.ticker import MaxNLocator
 
-from pyobs.interfaces import AcquisitionAttempt, AcquisitionResult, AcquisitionState, IAcquisition, IRunning
+from pyobs.interfaces import (
+    AcquisitionAttempt,
+    AcquisitionResult,
+    AcquisitionState,
+    IAcquisition,
+    IRunning,
+    OffsetFrame,
+)
 from pyobs.interfaces.IRunning import RunningState
 from .base import BaseWidget
 from .qt.acquisitionwidget_ui import Ui_AcquisitionWidget
@@ -75,12 +83,10 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
             self.labelResultDec.setText(f"{self._result.dec:.5f}")
             self.labelResultAlt.setText(f"{self._result.alt:.3f}")
             self.labelResultAz.setText(f"{self._result.az:.3f}")
-            if self._result.off_ra is not None and self._result.off_dec is not None:
-                self.labelOffsetType.setText("RA/Dec offset:")
-                self.labelResultOffset.setText(f"({self._result.off_ra:+.5f}, {self._result.off_dec:+.5f})")
-            elif self._result.off_alt is not None and self._result.off_az is not None:
-                self.labelOffsetType.setText("Alt/Az offset:")
-                self.labelResultOffset.setText(f"({self._result.off_alt:+.3f}, {self._result.off_az:+.3f})")
+            if self._result.offset_frame is not None:
+                label = "RA/Dec offset:" if self._result.offset_frame == OffsetFrame.RA_DEC else "Alt/Az offset:"
+                self.labelOffsetType.setText(label)
+                self.labelResultOffset.setText(f"({self._result.offset_lon:+.5f}, {self._result.offset_lat:+.5f})")
             else:
                 self.labelOffsetType.setText("Offset:")
                 self.labelResultOffset.setText("")
@@ -102,18 +108,19 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
             )
         self.ax.set_xlabel("Attempt")
         self.ax.set_ylabel("Distance to target [arcsec]")
+        self.ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         self.ax.grid(linestyle=":", alpha=0.5)
         self.ax.set_axisbelow(True)
 
         self.ax2.clear()
-        ra_dec = [(a.offset_ra, a.offset_dec) for a in self._attempts if a.offset_ra is not None]
-        alt_az = [(a.offset_alt, a.offset_az) for a in self._attempts if a.offset_alt is not None]
-        if ra_dec:
-            xlabel, ylabel, points = "RA offset [deg]", "Dec offset [deg]", ra_dec
-        elif alt_az:
-            xlabel, ylabel, points = "Alt offset [deg]", "Az offset [deg]", alt_az
+        offset_attempts = [a for a in self._attempts if a.offset_frame is not None]
+        points = [(a.offset_lon, a.offset_lat) for a in offset_attempts]
+        if offset_attempts and offset_attempts[0].offset_frame == OffsetFrame.RA_DEC:
+            xlabel, ylabel = "RA offset [deg]", "Dec offset [deg]"
+        elif offset_attempts and offset_attempts[0].offset_frame == OffsetFrame.ALT_AZ:
+            xlabel, ylabel = "Alt offset [deg]", "Az offset [deg]"
         else:
-            xlabel, ylabel, points = "Offset 1 [deg]", "Offset 2 [deg]", []
+            xlabel, ylabel = "Offset 1 [deg]", "Offset 2 [deg]"
         if points:
             xs, ys = zip(*points, strict=True)
             self.ax2.axhline(0, color="gray", linewidth=0.5)
