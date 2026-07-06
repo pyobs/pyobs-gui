@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QListView, QListWidget,
-    QListWidgetItem, QMainWindow, QSizePolicy, QSplitter,
-    QStackedWidget, QTableView, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHeaderView,
+    QLabel, QListView, QListWidget, QListWidgetItem,
+    QMainWindow, QSizePolicy, QSplitter, QStackedWidget,
+    QTableView, QVBoxLayout, QWidget)
 from . import resources_rc
 
 class Ui_MainWindow(object):
@@ -91,12 +91,10 @@ class Ui_MainWindow(object):
         self.splitterLog = QSplitter(self.centralwidget)
         self.splitterLog.setObjectName(u"splitterLog")
         self.splitterLog.setOrientation(Qt.Orientation.Vertical)
-        self.layoutWidget = QWidget(self.splitterLog)
-        self.layoutWidget.setObjectName(u"layoutWidget")
-        self.horizontalLayout = QHBoxLayout(self.layoutWidget)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.listPages = QListWidget(self.layoutWidget)
+        self.splitterNav = QSplitter(self.splitterLog)
+        self.splitterNav.setObjectName(u"splitterNav")
+        self.splitterNav.setOrientation(Qt.Orientation.Horizontal)
+        self.listPages = QListWidget(self.splitterNav)
         self.listPages.setObjectName(u"listPages")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -104,33 +102,29 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.listPages.sizePolicy().hasHeightForWidth())
         self.listPages.setSizePolicy(sizePolicy)
         self.listPages.setMinimumSize(QSize(90, 90))
-        self.listPages.setMaximumSize(QSize(90, 16777215))
         self.listPages.setFrameShape(QFrame.Shape.NoFrame)
-        self.listPages.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.listPages.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.listPages.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.listPages.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.listPages.setProperty(u"showDropIndicator", False)
         self.listPages.setDragDropMode(QAbstractItemView.DragDropMode.NoDragDrop)
         self.listPages.setDefaultDropAction(Qt.DropAction.IgnoreAction)
-        self.listPages.setIconSize(QSize(32, 32))
+        self.listPages.setIconSize(QSize(22, 22))
         self.listPages.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.listPages.setMovement(QListView.Movement.Static)
-        self.listPages.setFlow(QListView.Flow.LeftToRight)
-        self.listPages.setViewMode(QListView.ViewMode.IconMode)
+        self.listPages.setFlow(QListView.Flow.TopToBottom)
+        self.listPages.setViewMode(QListView.ViewMode.ListMode)
+        self.listPages.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.listPages.setSelectionRectVisible(False)
-
-        self.horizontalLayout.addWidget(self.listPages)
-
-        self.splitterToolBox = QSplitter(self.layoutWidget)
+        self.splitterNav.addWidget(self.listPages)
+        self.splitterToolBox = QSplitter(self.splitterNav)
         self.splitterToolBox.setObjectName(u"splitterToolBox")
         self.splitterToolBox.setOrientation(Qt.Orientation.Horizontal)
         self.stackedWidget = QStackedWidget(self.splitterToolBox)
         self.stackedWidget.setObjectName(u"stackedWidget")
         self.splitterToolBox.addWidget(self.stackedWidget)
-
-        self.horizontalLayout.addWidget(self.splitterToolBox)
-
-        self.splitterLog.addWidget(self.layoutWidget)
+        self.splitterNav.addWidget(self.splitterToolBox)
+        self.splitterLog.addWidget(self.splitterNav)
         self.splitterClients = QSplitter(self.splitterLog)
         self.splitterClients.setObjectName(u"splitterClients")
         self.splitterClients.setOrientation(Qt.Orientation.Horizontal)

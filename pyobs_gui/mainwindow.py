@@ -105,28 +105,22 @@ def _is_float(s: str) -> bool:
         return False
 
 
+# fixed order for the "Tools" section and its header; anything else (the "Modules" header and
+# all actual modules) sorts after this, with real modules ordered alphabetically among themselves
+_PAGE_ORDER = ["Tools", "Shell", "Events", "Status", "Modules"]
+
+
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
-    """ListWidgetItem for the pages list. Always sorts Shell and Events first"""
+    """ListWidgetItem for the pages list. Pins the Tools/Modules headers and Shell/Events/Status in place."""
 
     def __lt__(self, other: QtWidgets.QListWidgetItem) -> bool:
         """Compare two items."""
 
-        # special cases
-        special = ["Shell", "Events", "Status"]
-
-        # do they apply?
-        if self.text() in special and other.text() not in special:
-            # self is special, other not
-            return True
-        elif self.text() not in special and other.text() in special:
-            # self not in special, other is
-            return False
-        elif self.text() in special and other.text() in special:
-            # both are
-            return special.index(self.text()) < special.index(other.text())
-        else:
-            # none are
-            return self.text() < other.text()
+        self_rank = _PAGE_ORDER.index(self.text()) if self.text() in _PAGE_ORDER else len(_PAGE_ORDER)
+        other_rank = _PAGE_ORDER.index(other.text()) if other.text() in _PAGE_ORDER else len(_PAGE_ORDER)
+        if self_rank != other_rank:
+            return self_rank < other_rank
+        return self.text() < other.text()
 
 
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
@@ -156,7 +150,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
         self.setupUi(self)  # type: ignore
-        self.resize(1300, 800)
+        self.resize(1600, 900)
 
         # store stuff
         self.mastermind_running = False
@@ -171,6 +165,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
         self.splitterLog.setSizes([self.height() - 100, 100])
+        # splitterNav's width is actively reasserted on every resizeEvent instead of being set once
+        # here -- see resizeEvent() for why
+        self._nav_width = 190
+        self.splitterNav.splitterMoved.connect(self._on_nav_splitter_moved)
 
         # logs
         self.log_model = LogModel()
@@ -192,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.shell: Optional[ShellWidget] = None
         self.events: Optional[EventsWidget] = None
         self.status: Optional[StatusWidget] = None
+        self._modules_header_added = False
 
     async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
@@ -201,6 +200,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # open widgets
         await BaseWindow.open(self, modules=[module], **kwargs)
+
+        # tools header
+        if self.show_shell or self.show_events or self.show_status:
+            self._add_section_header("Tools")
 
         # shell
         if self.show_shell:
@@ -255,6 +258,38 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             # quit() exists on Module but is not declared on Proxy
             self.module.quit()  # pyrefly: ignore [missing-attribute] —
 
+    def _on_nav_splitter_moved(self, pos: int, index: int) -> None:
+        """Remember the user's chosen nav width whenever they drag the splitter handle."""
+        self._nav_width = self.splitterNav.sizes()[0]
+
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+        super().resizeEvent(event)
+        # QSplitter doesn't reliably preserve a fixed pixel width for one pane across window
+        # resizes (the window manager sends a few more resizes right after the window is first
+        # shown, settling on its final geometry, and each one can silently collapse listPages back
+        # to its minimum) -- so just reassert the desired width on every resize instead of trying
+        # to set it once and trust Qt to keep it. self._nav_width is only ever changed by the user
+        # actually dragging the handle (see _on_nav_splitter_moved).
+        self.splitterNav.setSizes([self._nav_width, self.width() - self._nav_width])
+
+    def _add_section_header(self, text: str) -> None:
+        """Adds a non-interactive section header (e.g. "Tools", "Modules") to the pages list.
+
+        Args:
+            text: Header text. Must be one of the entries in _PAGE_ORDER so it sorts into place.
+        """
+        item = PagesListWidgetItem()
+        item.setText(text)
+        item.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
+        font = item.font()
+        font.setBold(True)
+        font.setPointSize(max(1, font.pointSize() - 1))
+        item.setFont(font)
+        item.setForeground(QtGui.QColor(QtCore.Qt.GlobalColor.gray))
+
+        self.listPages.addItem(item)
+        self.listPages.sortItems()
+
     async def _add_client(self, client: str, icon: QtGui.QIcon, widget: BaseWidget) -> None:
         """
 
@@ -271,7 +306,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         item = PagesListWidgetItem()
         item.setIcon(icon)
         item.setText(client)
-        item.setSizeHint(QtCore.QSize(80, 80))
 
         # add to list and sort
         self.listPages.addItem(item)
@@ -295,7 +329,12 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         """
 
         # get name of new page
-        client = self.listPages.item(idx).text()
+        item = self.listPages.item(idx)
+        client = item.text() if item is not None else None
+
+        # section headers (and an empty selection) aren't real pages
+        if client not in self._widgets:
+            return
 
         # change to new page
         self.stackedWidget.setCurrentWidget(self._widgets[client])
@@ -448,6 +487,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # add it
         if icon is None:
             icon = qta.icon(DEFAULT_ICONS[None])
+        if not self._modules_header_added:
+            self._add_section_header("Modules")
+            self._modules_header_added = True
         await self._add_client(client, icon, widget)
 
         # check mastermind

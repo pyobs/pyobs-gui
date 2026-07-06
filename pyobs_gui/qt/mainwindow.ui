@@ -261,10 +261,11 @@
       <property name="orientation">
        <enum>Qt::Orientation::Vertical</enum>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QListWidget" name="listPages">
+      <widget class="QSplitter" name="splitterNav">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <widget class="QListWidget" name="listPages">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -277,17 +278,11 @@
             <height>90</height>
            </size>
           </property>
-          <property name="maximumSize">
-           <size>
-            <width>90</width>
-            <height>16777215</height>
-           </size>
-          </property>
           <property name="frameShape">
            <enum>QFrame::Shape::NoFrame</enum>
           </property>
           <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+           <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
           </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
@@ -306,8 +301,8 @@
           </property>
           <property name="iconSize">
            <size>
-            <width>32</width>
-            <height>32</height>
+            <width>22</width>
+            <height>22</height>
            </size>
           </property>
           <property name="verticalScrollMode">
@@ -317,29 +312,28 @@
            <enum>QListView::Movement::Static</enum>
           </property>
           <property name="flow">
-           <enum>QListView::Flow::LeftToRight</enum>
+           <enum>QListView::Flow::TopToBottom</enum>
           </property>
           <property name="viewMode">
-           <enum>QListView::ViewMode::IconMode</enum>
+           <enum>QListView::ViewMode::ListMode</enum>
+          </property>
+          <property name="textElideMode">
+           <enum>Qt::TextElideMode::ElideRight</enum>
           </property>
           <property name="selectionRectVisible">
            <bool>false</bool>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSplitter" name="splitterToolBox">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <widget class="QStackedWidget" name="stackedWidget">
-           <property name="currentIndex">
-            <number>-1</number>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
+       </widget>
+       <widget class="QSplitter" name="splitterToolBox">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <property name="currentIndex">
+          <number>-1</number>
+         </property>
+        </widget>
+       </widget>
       </widget>
       <widget class="QSplitter" name="splitterClients">
        <property name="orientation">
