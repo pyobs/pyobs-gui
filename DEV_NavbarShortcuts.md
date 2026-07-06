@@ -1,6 +1,6 @@
 # Navbar keyboard shortcuts
 
-**Status:** design proposal, not yet implemented.
+**Status:** implemented and shipped, in `pyobs_gui/mainwindow.py`.
 
 ## Motivation
 
@@ -73,40 +73,43 @@ no longer in `self._widgets` and silently no-ops; on reconnect, `_client_connect
 `self._widgets[client]` under the same name and the old binding "comes back to life" with zero
 extra bookkeeping. **No changes needed to `_client_connected`/`_client_disconnected` at all.**
 
-## Visual badge — a true superscript digit, via a custom item delegate
+## Visual badge — a colored circle with the digit inside, via a custom item delegate
 
-The user wants a persistent, colored badge next to the name, in actual math-exponent style: a
-small digit raised above the baseline right after the name (e.g. "camera" with a tiny raised `4`)
-— not a literal caret character.
+The user wants a persistent, colored badge next to the name: a filled circle containing the slot
+digit, sized to match the row's font (not tiny). An initial version used a raised Unicode
+superscript digit instead; superseded by this circle design per explicit follow-up feedback.
 
-Unicode has dedicated superscript-digit glyphs (`⁰ ¹ ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹`, U+2070/U+00B9/U+00B2/U+00B3/
-U+2074–U+2079) that render small and raised in virtually every font already — no manual
-baseline-shifting or font-size math needed, `painter.drawText()` with the right glyph just works:
-
-```python
-_SUPERSCRIPT_DIGITS = {"0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
-                        "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹"}
-```
+A Unicode "negative circled digit" glyph (`❶❷❸...`, U+2776–U+277F) was considered as a
+lower-code alternative to manually drawing the circle, and empirically confirmed to render
+correctly (as a solid disc with the digit as a "hole" showing whatever's behind it) in this
+environment's font-fallback chain. Rejected anyway, for the same reason the shortcut scheme
+requires `Ctrl` everywhere rather than relying on verified-but-still-per-widget/per-font behavior:
+that glyph's availability isn't guaranteed across every font this GUI might end up running under,
+whereas a manually-drawn ellipse renders identically regardless of font support. It also gives
+exact control over the circle's size (`fm.height()`, guaranteed to track the row's actual font)
+rather than whatever proportions a fallback font's glyph design happens to use.
 
 `QListWidgetItem.text()` is currently overloaded as *both* the displayed label and the canonical
 identity key used everywhere (`_change_page`'s `client = item.text()` lookup into `self._widgets`,
 `_client_disconnected`'s text-scan removal, `PagesListWidgetItem.__lt__`'s text-based sort).
-Baking the superscript glyph into `.text()` itself would require refactoring all of those to a
-separate `UserRole`-based identity key first. A `QStyledItemDelegate` avoids that refactor
-entirely: paint the glyph as an overlay at render time, while `.text()` stays exactly what it is
-today (the plain name, still the canonical identity key everywhere).
+Baking a badge into `.text()` itself would require refactoring all of those to a separate
+`UserRole`-based identity key first. A `QStyledItemDelegate` avoids that refactor entirely: paint
+the badge as an overlay at render time, while `.text()` stays exactly what it is today (the plain
+name, still the canonical identity key everywhere).
 
 ```python
 class NavPageItemDelegate(QtWidgets.QStyledItemDelegate):
-    """Paints listPages rows normally, then overlays a small colored superscript digit right
-    after the name for any page currently bound to a slot. Reads slot_bindings live (not a
-    snapshot), so it always reflects the latest bindings without needing to be reconstructed."""
+    """Paints listPages rows normally, then overlays a small colored circular badge (digit
+    inside a filled circle, sized to match the row's font) right after the name for any page
+    currently bound to a slot. Reads slot_bindings live (not a snapshot), so it always reflects
+    the latest bindings without needing to be reconstructed."""
 
     def __init__(self, slot_bindings: Dict[str, str], parent: QtCore.QObject | None = None):
         super().__init__(parent)
         self._slot_bindings = slot_bindings  # same dict instance MainWindow mutates
 
-    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
+    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionViewItem,
+              index: QtCore.QModelIndex | QtCore.QPersistentModelIndex) -> None:
         super().paint(painter, option, index)  # unchanged icon + name + selection rendering
 
         name = index.data(QtCore.Qt.ItemDataRole.DisplayRole)
@@ -114,22 +117,45 @@ class NavPageItemDelegate(QtWidgets.QStyledItemDelegate):
         if slot is None:
             return
 
-        # position the glyph just after the rendered name, in an accent color
+        # position the badge just after the rendered name
         fm = option.fontMetrics
-        icon_w = option.decorationSize.width() + 4 if index.data(QtCore.Qt.ItemDataRole.DecorationRole) is not None else 0
+        has_icon = index.data(QtCore.Qt.ItemDataRole.DecorationRole) is not None
+        icon_w = option.decorationSize.width() + 4 if has_icon else 0
         text_x = option.rect.left() + icon_w + 4
         text_w = fm.horizontalAdvance(name)
 
+        # circle diameter matches the row's font size
+        diameter = fm.height()
+        cx = text_x + text_w + 4 + diameter / 2
+        cy = option.rect.center().y()
+
+        # on a selected row, the row background itself is painted in the Highlight color, so a
+        # Highlight-filled circle there would blend in -- swap the fill/text colors so the badge
+        # still stands out against a Highlight-colored row background
+        is_selected = bool(option.state & QtWidgets.QStyle.StateFlag.State_Selected)
+        fill_role = QtGui.QPalette.ColorRole.HighlightedText if is_selected else QtGui.QPalette.ColorRole.Highlight
+        text_role = QtGui.QPalette.ColorRole.Highlight if is_selected else QtGui.QPalette.ColorRole.HighlightedText
+
         painter.save()
-        painter.setFont(option.font)  # the glyph is already small/raised; no font-size change needed
-        painter.setPen(option.palette.color(QtGui.QPalette.ColorRole.Highlight))
-        painter.drawText(
-            QtCore.QRect(text_x + text_w + 1, option.rect.top(), 20, option.rect.height()),
-            QtCore.Qt.AlignmentFlag.AlignVCenter,
-            _SUPERSCRIPT_DIGITS[slot],
-        )
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(option.palette.color(fill_role))
+        painter.drawEllipse(QtCore.QPointF(cx, cy), diameter / 2, diameter / 2)
+
+        painter.setFont(option.font)
+        painter.setPen(option.palette.color(text_role))
+        circle_rect = QtCore.QRectF(cx - diameter / 2, cy - diameter / 2, diameter, diameter)
+        painter.drawText(circle_rect, QtCore.Qt.AlignmentFlag.AlignCenter, slot)
         painter.restore()
 ```
+
+**Bug found during verification, now fixed**: an earlier version always used the palette's
+`Highlight` role for the badge's fill color. That's invisible on the *currently selected* row,
+since Qt already paints the selected row's background in that same `Highlight` color —
+confirmed visually via an offscreen render before being caught. Fixed by checking
+`option.state & QtWidgets.QStyle.StateFlag.State_Selected` and swapping the fill/text color pair
+(`Highlight`/`HighlightedText`) so the badge always contrasts against the row background,
+selected or not.
 
 Install once in `__init__`, after `setupUi`:
 
@@ -145,11 +171,9 @@ binding changes, since nothing else triggers that automatically. Add one line to
 self.listPages.viewport().update()
 ```
 
-The exact badge offset in the sketch above (icon width + fixed spacing) is a starting point, not
-pixel-final — expect to tune it visually once implemented (see verification). Color uses the
-palette's `Highlight` role so it adapts to the active Qt theme instead of a hardcoded color. The
-status-bar toast in `_bind_slot` (see below) stays as a complementary "just happened" confirmation
-alongside the persistent badge.
+Colors use the palette's `Highlight`/`HighlightedText` roles so the badge adapts to the active Qt
+theme instead of a hardcoded color. The status-bar toast in `_bind_slot` (see below) stays as a
+complementary "just happened" confirmation alongside the persistent badge.
 
 ## Shortcut wiring
 

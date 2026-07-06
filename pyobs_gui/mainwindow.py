@@ -109,6 +109,12 @@ def _is_float(s: str) -> bool:
 # all actual modules) sorts after this, with real modules ordered alphabetically among themselves
 _PAGE_ORDER = ["Tools", "Shell", "Events", "Status", "Modules"]
 
+# fixed, non-reassignable shortcuts for the always-present Tools pages: Ctrl+1/2/3
+_FIXED_SHORTCUTS: Dict[str, str] = {"1": "Shell", "2": "Events", "3": "Status"}
+
+# user-assignable slot keys: Ctrl+N recalls, Ctrl+Alt+N (re)binds to the currently selected page
+_ASSIGNABLE_SLOTS: List[str] = ["4", "5", "6", "7", "8", "9", "0"]
+
 
 class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
     """ListWidgetItem for the pages list. Pins the Tools/Modules headers and Shell/Events/Status in place."""
@@ -121,6 +127,61 @@ class PagesListWidgetItem(QtWidgets.QListWidgetItem):  # type: ignore
         if self_rank != other_rank:
             return self_rank < other_rank
         return self.text() < other.text()
+
+
+class NavPageItemDelegate(QtWidgets.QStyledItemDelegate):  # type: ignore
+    """Paints listPages rows normally, then overlays a small colored circular badge (digit
+    inside a filled circle, sized to match the row's font) right after the name for any page
+    currently bound to a slot. Reads slot_bindings live (not a snapshot), so it always reflects
+    the latest bindings without needing to be reconstructed."""
+
+    def __init__(self, slot_bindings: Dict[str, str], parent: Optional[QtCore.QObject] = None):
+        super().__init__(parent)
+        self._slot_bindings = slot_bindings  # same dict instance MainWindow mutates
+
+    def paint(
+        self,
+        painter: QtGui.QPainter,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QtCore.QModelIndex | QtCore.QPersistentModelIndex,
+    ) -> None:
+        super().paint(painter, option, index)  # unchanged icon + name + selection rendering
+
+        name = index.data(QtCore.Qt.ItemDataRole.DisplayRole)
+        slot = next((s for s, bound_name in self._slot_bindings.items() if bound_name == name), None)
+        if slot is None:
+            return
+
+        # position the badge just after the rendered name
+        fm = option.fontMetrics
+        has_icon = index.data(QtCore.Qt.ItemDataRole.DecorationRole) is not None
+        icon_w = option.decorationSize.width() + 4 if has_icon else 0
+        text_x = option.rect.left() + icon_w + 4
+        text_w = fm.horizontalAdvance(name)
+
+        # circle diameter matches the row's font size
+        diameter = fm.height()
+        cx = text_x + text_w + 4 + diameter / 2
+        cy = option.rect.center().y()
+
+        # on a selected row, the row background itself is painted in the Highlight color, so a
+        # Highlight-filled circle there would blend in -- swap the fill/text colors so the badge
+        # still stands out against a Highlight-colored row background
+        is_selected = bool(option.state & QtWidgets.QStyle.StateFlag.State_Selected)
+        fill_role = QtGui.QPalette.ColorRole.HighlightedText if is_selected else QtGui.QPalette.ColorRole.Highlight
+        text_role = QtGui.QPalette.ColorRole.Highlight if is_selected else QtGui.QPalette.ColorRole.HighlightedText
+
+        painter.save()
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(option.palette.color(fill_role))
+        painter.drawEllipse(QtCore.QPointF(cx, cy), diameter / 2, diameter / 2)
+
+        painter.setFont(option.font)
+        painter.setPen(option.palette.color(text_role))
+        circle_rect = QtCore.QRectF(cx - diameter / 2, cy - diameter / 2, diameter, diameter)
+        painter.drawText(circle_rect, QtCore.Qt.AlignmentFlag.AlignCenter, slot)
+        painter.restore()
 
 
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
@@ -191,6 +252,12 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.events: Optional[EventsWidget] = None
         self.status: Optional[StatusWidget] = None
         self._modules_header_added = False
+
+        # navbar keyboard shortcuts: slot -> currently bound page name, session-only (see
+        # DEV_NavbarShortcuts.md)
+        self._slot_bindings: Dict[str, str] = {}
+        self.listPages.setItemDelegate(NavPageItemDelegate(self._slot_bindings, self))
+        self._setup_shortcuts()
 
     async def open(self, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
@@ -341,6 +408,65 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # get new widget
         self._current_widget = self.stackedWidget.currentWidget()
+
+    def _setup_shortcuts(self) -> None:
+        """Creates the 17 fixed/assignable navbar shortcuts. Handlers do dynamic lookups against
+        self._widgets / self._slot_bindings at press-time, since module pages come and go but the
+        shortcut objects themselves live for the app's lifetime. Every shortcut requires Ctrl (or
+        Ctrl+Alt) so no text/numeric-entry widget can ever mistake one for ordinary input -- see
+        DEV_NavbarShortcuts.md for why that's a structural guarantee rather than one that needs
+        per-widget-type verification.
+        """
+        self._shortcuts: List[QtGui.QShortcut] = []
+
+        for key, name in _FIXED_SHORTCUTS.items():
+            sc = QtGui.QShortcut(QtGui.QKeySequence(f"Ctrl+{key}"), self)
+            sc.activated.connect(lambda name=name: self._go_to_page(name))
+            self._shortcuts.append(sc)
+
+        for slot in _ASSIGNABLE_SLOTS:
+            recall = QtGui.QShortcut(QtGui.QKeySequence(f"Ctrl+{slot}"), self)
+            recall.activated.connect(lambda slot=slot: self._recall_slot(slot))
+            self._shortcuts.append(recall)
+
+            bind = QtGui.QShortcut(QtGui.QKeySequence(f"Ctrl+Alt+{slot}"), self)
+            bind.activated.connect(lambda slot=slot: self._bind_slot(slot))
+            self._shortcuts.append(bind)
+
+    def _go_to_page(self, name: str) -> None:
+        """Fixed Ctrl+1/2/3 handler. No-ops if the page was never created."""
+        if name not in self._widgets:
+            return
+        self._select_page_by_name(name)
+
+    def _select_page_by_name(self, name: str) -> None:
+        """Selects the listPages row for `name`; selection change drives the existing
+        currentRowChanged -> _change_page path, so this never touches stackedWidget directly."""
+        for row in range(self.listPages.count()):
+            item = self.listPages.item(row)
+            if item is not None and item.text() == name:
+                self.listPages.setCurrentRow(row)
+                return
+
+    def _bind_slot(self, slot: str) -> None:
+        """Ctrl+Alt+N: binds the currently selected page to slot N, silently overwriting any
+        previous binding for that slot."""
+        item = self.listPages.currentItem()
+        if item is None:
+            return
+        name = item.text()
+        if name not in self._widgets:  # defensive; headers are NoItemFlags and unselectable anyway
+            return
+        self._slot_bindings[slot] = name
+        self.listPages.viewport().update()
+        self.statusBar().showMessage(f"Bound Ctrl+{slot} to '{name}'", 3000)
+
+    def _recall_slot(self, slot: str) -> None:
+        """Ctrl+N: switches to whatever is bound to slot N. No-ops if unbound or disconnected."""
+        name = self._slot_bindings.get(slot)
+        if name is None or name not in self._widgets:
+            return
+        self._select_page_by_name(name)
 
     async def _update_client_list(self) -> None:
         """Updates the list of clients for the log."""
