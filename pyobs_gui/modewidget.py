@@ -77,7 +77,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
     def update_gui(self) -> None:
         # enable myself and set filter
         self.setEnabled(True)
-        self.textStatus.setText(self._motion_status.name)
+        self.textStatus.setText(self._motion_status)
         initialized = self._motion_status in [
             MotionStatus.SLEWING,
             MotionStatus.TRACKING,
