@@ -143,7 +143,12 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # connect socket
         if self.host is not None and self.port is not None and self.path is not None:
             self.socket.connectToHost(self.host, int(self.port))
-            self.socket.write(b"GET %s HTTP/1.1\r\n\r\n" % bytes(self.path, "UTF-8"))
+            self.socket.write(
+                b"GET %s HTTP/1.1\r\n"
+                b"Host: %s\r\n"
+                b"Connection: close\r\n"
+                b"\r\n" % (bytes(self.path, "UTF-8"), bytes(self.host, "UTF-8"))
+            )
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # call base
