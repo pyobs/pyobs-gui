@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from typing import Any, cast
 from urllib.parse import urlparse
@@ -207,27 +206,33 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self.signal_update_gui.emit()
 
         # start exposures
-        asyncio.create_task(self._expose_task_func())
+        self.run_background(self._expose_task_func)
 
     async def _expose_task_func(self) -> None:
         # get image type
         image_type = ImageType(self.comboImageType.currentText().lower())
 
-        # do exposure(s)
-        while self.exposures_left > 0:
-            # set image type
-            if isinstance(self.module, IImageType):
-                await self.module.set_image_type(image_type)
+        try:
+            # do exposure(s)
+            while self.exposures_left > 0:
+                # set image type
+                if isinstance(self.module, IImageType):
+                    await self.module.set_image_type(image_type)
 
-            # expose
-            broadcast = self.checkBroadcast.isChecked()
-            await self.datadisplay.grab_data(broadcast, image_type)
+                # expose
+                broadcast = self.checkBroadcast.isChecked()
+                await self.datadisplay.grab_data(broadcast, image_type)
 
-            # decrement number of exposures left
-            self.exposures_left -= 1
+                # decrement number of exposures left
+                self.exposures_left -= 1
 
-            # signal GUI update
+                # signal GUI update
+                self.signal_update_gui.emit()
+        except Exception:
+            # stop the sequence and update the GUI, then re-raise for run_background to report
+            self.exposures_left = 0
             self.signal_update_gui.emit()
+            raise
 
     @QtCore.Slot()  # type: ignore
     def abort_sequence(self) -> None:
