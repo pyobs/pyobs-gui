@@ -34,6 +34,11 @@ dev = [
     "types-python-dateutil>=2.9.0.20250708",
 ]
 
+[tool.uv.sources]
+# PyPI's 2.0.0.dev21 predates IDataSequence (added on develop without a version bump);
+# pin to that commit until a new dev release is published.
+pyobs-core = { git = "https://github.com/pyobs/pyobs-core.git", rev = "cede9d98" }
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

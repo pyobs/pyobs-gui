@@ -25,6 +25,8 @@ from pyobs.interfaces import (
     GainState,
     IExposure,
     ExposureState,
+    IDataSequence,
+    DataSequenceState,
 )
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.vfs import VirtualFileSystem
@@ -153,6 +155,9 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             if proxy is not None:
                 await self.comm.subscribe_state(self.module, IExposureTime, self._update_exposure_time)
 
+        if await self.comm.has_proxy(self.module, IDataSequence):
+            await self.comm.subscribe_state(self.module, IDataSequence, self._update_sequence)
+
         # update GUI
         self.signal_update_gui.emit()
 
@@ -183,6 +188,10 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     def _update_exposure_time(self, state: ExposureTimeState):
         self.spinExpTime.setValue(state.exposure_time)
+        self.update_gui()
+
+    def _update_sequence(self, state: DataSequenceState):
+        self.exposures_left = state.count_left
         self.update_gui()
 
     @qasync.asyncSlot()
@@ -238,19 +247,21 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def expose(self) -> None:
-        # set initial image count
-        self.exposures_left = self.spinCount.value()
+        broadcast = self.checkBroadcast.isChecked()
+        count = self.spinCount.value()
 
-        # do exposure(s)
+        # if the module can grab a counted sequence server-side, let it -- progress comes
+        # back via the DataSequenceState subscription
+        async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
+            if proxy is not None:
+                await proxy.grab_sequence(count, broadcast)
+                return
+
+        # fall back to a client-side loop for modules that don't support IDataSequence
+        self.exposures_left = count
         while self.exposures_left > 0:
-            # expose
-            broadcast = self.checkBroadcast.isChecked()
             await self.datadisplay.grab_data(broadcast)
-
-            # decrement number of exposures left
             self.exposures_left -= 1
-
-            # signal GUI update
             self.signal_update_gui.emit()
 
     @qasync.asyncSlot()  # type: ignore
@@ -262,7 +273,12 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
         # got exposures left?
         if self.exposures_left > 1:
-            # abort sequence
+            # soft-stop the sequence server-side (current grab finishes normally), if
+            # supported; otherwise just stop the client-side loop after the current grab
+            async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
+                if proxy is not None:
+                    await proxy.abort_sequence()
+                    return
             self.exposures_left = 0
         else:
             async with self.comm.safe_proxy(self.module, IAbortable) as proxy:

@@ -2325,8 +2325,8 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "2.0.0.dev20"
-source = { registry = "https://pypi.org/simple" }
+version = "2.0.0.dev22"
+source = { git = "https://github.com/pyobs/pyobs-core.git?rev=cede9d98#cede9d9858f9e2d3d85ebc347e0a91563ae70189" }
 dependencies = [
     { name = "aiohttp" },
     { name = "astroplan" },
@@ -2354,10 +2354,6 @@ dependencies = [
     { name = "slixmpp" },
     { name = "tenacity" },
     { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/86/ce/29738c727e1a5ccc723365892f308b24641ff3211f2718a40beb56f62b9e/pyobs_core-2.0.0.dev20.tar.gz", hash = "sha256:aceee8391e9f16520004c2bd08da0e5c2ab3550901777410feeff9535845c8c1", size = 323624, upload-time = "2026-07-15T08:59:47.278Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/2e/a28066bd81ff4995502d35a4a855fa1e5b9f724c828defab67c6430a4eaf/pyobs_core-2.0.0.dev20-py3-none-any.whl", hash = "sha256:501e91bc9f2a30b216180d7a1e25ecd214fcc512f905c7b9950c2c0a1f903f23", size = 541148, upload-time = "2026-07-15T08:59:45.826Z" },
 ]
 
 [[package]]
@@ -2400,7 +2396,7 @@ requires-dist = [
     { name = "astropy", specifier = ">=7.0.1,<8" },
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
-    { name = "pyobs-core", specifier = ">=2.0.0.dev6,<3" },
+    { name = "pyobs-core", git = "https://github.com/pyobs/pyobs-core.git?rev=cede9d98" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.28" },
     { name = "qfitswidget", specifier = ">=0.13.1" },
