@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
     from astroplan import Observer
     from pyobs.comm import Comm
+    from pyobs.events import Event
     from pyobs.interfaces import FitsHeaderEntry
     from pyobs.vfs import VirtualFileSystem
 
@@ -156,6 +157,12 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # fetch failed, meaning "treat everything as permitted"
         self._permitted_methods: set[str] | None = None
 
+        # (event_class, handler) pairs registered via self.register_event(), so discard() can
+        # unregister them all -- comm.register_event() has no automatic per-client teardown like
+        # subscribe_state()/subscribe_presence() do, since a handler isn't inherently tied to one
+        # remote module, so whoever registers it is responsible for unregistering it
+        self._registered_event_handlers: list[tuple[type[Event], Callable[[Event, str], Any]]] = []
+
     def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
         if self.extract_window_button:
             self.extract_window_button.move(self.width() - 20, 0)
@@ -208,6 +215,32 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # append widget
         self.sidebar_widgets.append(widget)
         self.sidebar_layout.insertWidget(len(self.sidebar_widgets) - 1, widget)
+
+    async def register_event(self, event_class: type[Event], handler: Callable[[Event, str], Any]) -> None:
+        """Register an event handler through comm, tracked so discard() can unregister it later.
+
+        Widgets that are created/destroyed per connected client (see DEFAULT_WIDGETS in
+        mainwindow.py) must use this instead of calling self.comm.register_event() directly,
+        so their handler stops firing once the widget is discarded.
+        """
+        await self.comm.register_event(event_class, handler)
+        self._registered_event_handlers.append((event_class, handler))
+
+    async def discard(self) -> None:
+        """Tear down everything this widget registered with comm, and recursively discard
+        its sidebar widgets.
+
+        Must be called (e.g. from mainwindow._client_disconnected) whenever a widget is
+        removed from the UI -- otherwise a handler registered via register_event() lingers
+        in Comm._event_handlers forever, keeping this widget alive and still reacting to
+        events for as long as the app runs.
+        """
+        for event_class, handler in self._registered_event_handlers:
+            await self.comm.unregister_event(event_class, handler)
+        self._registered_event_handlers.clear()
+
+        for widget in self.sidebar_widgets:
+            await widget.discard()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         # run in loop

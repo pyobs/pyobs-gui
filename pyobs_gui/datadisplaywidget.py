@@ -77,8 +77,8 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
             raise ValueError("Unknown type")
 
         # subscribe to events
-        await self.comm.register_event(NewImageEvent, self._on_new_data)
-        await self.comm.register_event(NewSpectrumEvent, self._on_new_data)
+        await self.register_event(NewImageEvent, self._on_new_data)
+        await self.register_event(NewSpectrumEvent, self._on_new_data)
 
     async def grab_data(self, broadcast: bool) -> None:
         """Grab data."""

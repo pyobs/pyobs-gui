@@ -39,7 +39,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
-        await self.comm.register_event(ModeChangedEvent, self._on_mode_changed)
+        await self.register_event(ModeChangedEvent, self._on_mode_changed)
 
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)

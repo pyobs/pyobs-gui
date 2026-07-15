@@ -246,7 +246,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.labelWeatherWarning.setVisible(False)
 
         # list of widgets
-        self._widgets: Dict[str, QtWidgets.QWidget] = {}
+        self._widgets: Dict[str, BaseWidget] = {}
         self._current_widget = None
         self.shell: Optional[ShellWidget] = None
         self.events: Optional[EventsWidget] = None
@@ -651,6 +651,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             if self.listPages.item(row).text() == client:
                 self.listPages.takeItem(row)
                 break
+
+        # unregister its event handlers and those of its sidebar widgets, so it stops
+        # reacting to events and can actually be garbage-collected instead of lingering
+        # forever as a stale Comm._event_handlers entry
+        await widget.discard()
 
         # remove from dict
         del self._widgets[client]

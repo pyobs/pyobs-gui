@@ -48,7 +48,7 @@ class AutoFocusWidget(BaseWidget, Ui_AutoFocusWidget):
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IRunning, self._on_running_state)
         await self.comm.subscribe_state(self.module, IAutoFocus, self._on_autofocus_state)
-        await self.comm.register_event(FocusFoundEvent, self._on_focus_found)
+        await self.register_event(FocusFoundEvent, self._on_focus_found)
 
         # permitted methods (ACLs)
         await self._fetch_permitted_methods()
