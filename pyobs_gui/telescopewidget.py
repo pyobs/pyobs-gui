@@ -19,8 +19,10 @@ from pyobs.interfaces import (
     AltAzState,
     IPointingHelioprojective,
     IPointingHeliographicStonyhurst,
+    IPointingHeliocentricPolar,
     IPointingOrbitalElements,
     OrbitalElements,
+    IPointingBody,
     IOffsetsRaDec,
     RaDecOffsetState,
     IOffsetsAltAz,
@@ -149,13 +151,17 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         await self._fetch_permitted_methods()
 
         # add coord types
-        if IPointingRaDec in self._interfaces:
+        if IPointingRaDec in self._interfaces or IPointingBody in self._interfaces:
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
         if IPointingAltAz in self._interfaces:
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
         if IPointingOrbitalElements in self._interfaces:
             self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
-        if IPointingHeliographicStonyhurst in self._interfaces or IPointingHelioprojective in self._interfaces:
+        if (
+            IPointingHeliographicStonyhurst in self._interfaces
+            or IPointingHelioprojective in self._interfaces
+            or IPointingHeliocentricPolar in self._interfaces
+        ):
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_MUPSI.value)
@@ -348,6 +354,14 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         coord = COORDS(text)
 
         if coord == COORDS.EQUITORIAL:
+            body = self.comboSolarSystemBody.currentText()
+            if body and IPointingBody in self._interfaces:
+                if self.permitted("track_body"):
+                    self.run_background(self._do_track_body, body)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to track solar-system bodies.")
+                return
+
             ra = self.textMoveRA.text()
             dec = self.textMoveDec.text()
             try:
@@ -421,7 +435,16 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         elif coord == COORDS.HELIOPROJECTIVE_MUPSI:
             mu = self.spinMoveHelioprojectiveRadialMu.value()
-            psi = np.deg2rad(self.spinMoveHelioprojectiveRadialPsi.value())
+            psi_deg = self.spinMoveHelioprojectiveRadialPsi.value()
+
+            if IPointingHeliocentricPolar in self._interfaces:
+                if self.permitted("move_heliocentric_polar"):
+                    self.run_background(self._do_move_heliocentric_polar, mu, psi_deg)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using Mu/Psi coordinates.")
+                return
+
+            psi = np.deg2rad(psi_deg)
             alpha = np.arccos(mu)
             dsun = get_sun(Time.now()).distance
             # pyrefly: ignore [missing-attribute]
@@ -460,6 +483,14 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     async def _do_track_orbital_elements(self, elements: OrbitalElements) -> None:
         async with self.comm.proxy(self.module, IPointingOrbitalElements) as proxy:
             await proxy.track_orbital_elements(elements)
+
+    async def _do_track_body(self, body: str) -> None:
+        async with self.comm.proxy(self.module, IPointingBody) as proxy:
+            await proxy.track_body(body)
+
+    async def _do_move_heliocentric_polar(self, mu: float, psi: float) -> None:
+        async with self.comm.proxy(self.module, IPointingHeliocentricPolar) as proxy:
+            await proxy.move_heliocentric_polar(mu, psi)
 
     async def _do_move_helioprojective(self, tx: float, ty: float) -> None:
         async with self.comm.proxy(self.module, IPointingHelioprojective) as proxy:
