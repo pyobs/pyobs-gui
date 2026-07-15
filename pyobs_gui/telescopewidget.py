@@ -18,7 +18,7 @@ from pyobs.interfaces import (
     IPointingAltAz,
     AltAzState,
     IPointingHelioprojective,
-    IPointingHGS,
+    IPointingHeliographicStonyhurst,
     IOffsetsRaDec,
     RaDecOffsetState,
     IOffsetsAltAz,
@@ -151,7 +151,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
         if IPointingAltAz in self._interfaces:
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if IPointingHGS in self._interfaces or IPointingHelioprojective in self._interfaces:
+        if IPointingHeliographicStonyhurst in self._interfaces or IPointingHelioprojective in self._interfaces:
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_MUPSI.value)
@@ -374,8 +374,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         elif coord == COORDS.HELIOGRAPHIC_STONYHURST:
             lon = self.spinMoveHGSLon.value()
             lat = self.spinMoveHGSLat.value()
-            if IPointingHGS in self._interfaces:
-                if self.permitted("move_hgs_lon_lat"):
+            if IPointingHeliographicStonyhurst in self._interfaces:
+                if self.permitted("move_heliographic_stonyhurst"):
                     self.run_background(self._do_move_hgs, lon, lat)
                 else:
                     QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using stonyhurst coordinates.")
@@ -411,12 +411,14 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
             if IPointingHelioprojective in self._interfaces and self.permitted("move_helioprojective"):
                 self.run_background(self._do_move_helioprojective, heliproj.Tx.degree, heliproj.Ty.degree)
-            elif IPointingHGS in self._interfaces and self.permitted("move_hgs_lon_lat"):
+            elif IPointingHeliographicStonyhurst in self._interfaces and self.permitted(
+                "move_heliographic_stonyhurst"
+            ):
                 stony = heliproj.transform_to(HeliographicStonyhurst)
                 # pyrefly: ignore [missing-attribute]
                 lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
                 self.run_background(self._do_move_hgs, lon, lat)
-            elif IPointingHelioprojective in self._interfaces or IPointingHGS in self._interfaces:
+            elif IPointingHelioprojective in self._interfaces or IPointingHeliographicStonyhurst in self._interfaces:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using Mu/Psi coordinates.")
             else:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support Mu/Psi coordinates.")
@@ -430,8 +432,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             await proxy.move_altaz(alt, az)
 
     async def _do_move_hgs(self, lon: float, lat: float) -> None:
-        async with self.comm.proxy(self.module, IPointingHGS) as proxy:
-            await proxy.move_hgs_lon_lat(lon, lat)
+        async with self.comm.proxy(self.module, IPointingHeliographicStonyhurst) as proxy:
+            await proxy.move_heliographic_stonyhurst(lon, lat)
 
     async def _do_move_helioprojective(self, tx: float, ty: float) -> None:
         async with self.comm.proxy(self.module, IPointingHelioprojective) as proxy:
