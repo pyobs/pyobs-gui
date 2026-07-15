@@ -19,6 +19,8 @@ from pyobs.interfaces import (
     AltAzState,
     IPointingHelioprojective,
     IPointingHeliographicStonyhurst,
+    IPointingOrbitalElements,
+    OrbitalElements,
     IOffsetsRaDec,
     RaDecOffsetState,
     IOffsetsAltAz,
@@ -151,6 +153,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
         if IPointingAltAz in self._interfaces:
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
+        if IPointingOrbitalElements in self._interfaces:
+            self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
         if IPointingHeliographicStonyhurst in self._interfaces or IPointingHelioprojective in self._interfaces:
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
@@ -382,6 +386,24 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             else:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support stonyhurst coordinates.")
 
+        elif coord == COORDS.ORBIT_ELEMENTS:
+            if IPointingOrbitalElements in self._interfaces:
+                if self.permitted("track_orbital_elements"):
+                    elements = OrbitalElements(
+                        epoch=Time(self.spinOrbitElementsEpoch.value(), format="jd"),
+                        semi_major_axis=self.spinOrbitElementsSemiMajorAxis.value(),
+                        eccentricity=self.spinOrbitElementsEcc.value(),
+                        inclination=self.spinOrbitElementsIncl.value(),
+                        longitude_ascending_node=self.spinOrbitElementsOmega.value(),
+                        argument_of_periapsis=self.spinOrbitElementsPerifocus.value(),
+                        mean_anomaly=self.spinOrbitElementsMA.value(),
+                    )
+                    self.run_background(self._do_track_orbital_elements, elements)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to track using orbital elements.")
+            else:
+                QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support orbital elements.")
+
         elif coord == COORDS.HELIOPROJECTIVE_RADIAL:
             theta_x = self.spinMoveHelioProjectiveRadialTx.value() / 3600.0
             theta_y = self.spinMoveHelioProjectiveRadialTy.value() / 3600.0
@@ -434,6 +456,10 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     async def _do_move_hgs(self, lon: float, lat: float) -> None:
         async with self.comm.proxy(self.module, IPointingHeliographicStonyhurst) as proxy:
             await proxy.move_heliographic_stonyhurst(lon, lat)
+
+    async def _do_track_orbital_elements(self, elements: OrbitalElements) -> None:
+        async with self.comm.proxy(self.module, IPointingOrbitalElements) as proxy:
+            await proxy.track_orbital_elements(elements)
 
     async def _do_move_helioprojective(self, tx: float, ty: float) -> None:
         async with self.comm.proxy(self.module, IPointingHelioprojective) as proxy:
@@ -556,13 +582,13 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         try:
             obj = Horizons(id=self.textHorizonsName.text(), location=None, epochs=Time.now().jd)
+            eph = obj.elements()
         except InvalidQueryError:
             QtWidgets.QMessageBox.critical(self, "MPC", "No result found")
             return
-        try:
-            eph = obj.elements()
         except ValueError:
-            pass
+            QtWidgets.QMessageBox.critical(self, "MPC", "Invalid result")
+            return
 
         self.spinOrbitElementsEcc.setValue(eph["e"][0])
         self.spinOrbitElementsIncl.setValue(eph["incl"][0])
@@ -628,7 +654,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
 
     def _calc_dest_orbit_elements(self) -> None:
-        pass
+        # position depends on Kepler-equation propagation, which the GUI doesn't do — leave as unknown
+        self._show_dest_coords()
 
     def select_coord_type(self) -> None:
         text = self.comboMoveType.currentText()
