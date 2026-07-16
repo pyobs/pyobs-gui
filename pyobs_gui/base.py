@@ -289,6 +289,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
                 # sleep a little
                 await asyncio.sleep(1)
 
+            # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
+            # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
             except (exc.PyObsError, IndexError):
                 # ignore these and sleep a little
                 await asyncio.sleep(1)
@@ -308,6 +310,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # call method
         try:
             await method(*args, **kwargs)
+        # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
+        # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
         except exc.PyObsError as e:
             await self.show_error(e)
         except Exception as e:
@@ -317,6 +321,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             # enable widgets
             self._enable_buttons.emit(disable, True)
 
+    # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout step 2,
+    # tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
     async def show_error(self, exception: exc.PyObsError) -> None:
         err = str(exception)
         title, message = err.split(":") if ":" in err else ("Error", err)
@@ -335,6 +341,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         try:
             async with self.comm.proxy(self.module, IModule) as proxy:
                 self._permitted_methods = set(await proxy.get_permitted_methods())
+        # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
+        # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
         except exc.PyObsError:
             self._permitted_methods = None
 
