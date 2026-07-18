@@ -574,9 +574,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
                 async with self.comm.proxy(client, IModule) as proxy:
                     if len(await proxy.get_permitted_methods()) == 0:
                         return False
-            # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
-            # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
-            except exc.PyObsError:
+            except exc.PyobsError:
                 pass
 
         # does client exist already?

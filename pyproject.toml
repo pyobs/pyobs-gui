@@ -12,7 +12,7 @@ dependencies = [
     "sunpy[all]>=7.0.1",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget>=0.13.1",
-    "pyobs-core>=2.0.0.dev22,<3",
+    "pyobs-core>=2.0.0.dev28,<3",
     "pyside6>=6.10.1",
     "astroplan>=0.10.1",
     "astropy>=7.0.1,<8",
@@ -33,11 +33,6 @@ dev = [
     "types-defusedxml>=0.7.0.20250708",
     "types-python-dateutil>=2.9.0.20250708",
 ]
-
-[tool.uv.sources]
-# PyPI's 2.0.0.dev21 predates IDataSequence (added on develop without a version bump);
-# pin to that commit until a new dev release is published.
-pyobs-core = { git = "https://github.com/pyobs/pyobs-core.git", rev = "cede9d98" }
 
 [build-system]
 requires = ["hatchling"]

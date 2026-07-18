@@ -289,9 +289,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
                 # sleep a little
                 await asyncio.sleep(1)
 
-            # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
-            # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
-            except (exc.PyObsError, IndexError):
+            except (exc.PyobsError, IndexError):
                 # ignore these and sleep a little
                 await asyncio.sleep(1)
 
@@ -310,9 +308,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # call method
         try:
             await method(*args, **kwargs)
-        # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
-        # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
-        except exc.PyObsError as e:
+        except exc.PyobsError as e:
             await self.show_error(e)
         except Exception as e:
             log.exception("An error occurred.")
@@ -321,9 +317,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             # enable widgets
             self._enable_buttons.emit(disable, True)
 
-    # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout step 2,
-    # tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
-    async def show_error(self, exception: exc.PyObsError) -> None:
+    async def show_error(self, exception: exc.PyobsError) -> None:
         err = str(exception)
         title, message = err.split(":") if ":" in err else ("Error", err)
         await QAsyncMessageBox.warning(self, title, message)
@@ -341,9 +335,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         try:
             async with self.comm.proxy(self.module, IModule) as proxy:
                 self._permitted_methods = set(await proxy.get_permitted_methods())
-        # TODO: PyObsError was renamed to PyobsError in pyobs-core (exception-handling rollout
-        # step 2, tracks pyobs-core#446) -- update once pyobs-core is bumped past that change.
-        except exc.PyObsError:
+        except exc.PyobsError:
             self._permitted_methods = None
 
     def permitted(self, method: str) -> bool:
