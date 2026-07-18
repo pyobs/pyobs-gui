@@ -1,5 +1,5 @@
-# Test config for telescopewidget / focuswidget
-# Run with: pyobs telescope.yaml
+# Test config for the (proposed) AutoGuidingWidget / IAutoGuiding
+# Run with: pyobs test/guiding.yaml
 class: pyobs.modules.MultiModule
 
 location:
@@ -8,12 +8,12 @@ location:
   elevation: 201
 
 modules:
-  telescope:
-    class: pyobs.modules.telescope.DummyAltAzTelescope
-    name: telescope
+  guiding:
+    class: pyobs.modules.pointing.DummyAutoGuiding
+    name: guiding
     comm:
       class: pyobs.comm.local.LocalComm
-      name: telescope
+      name: guiding
 
   gui:
     class: pyobs_gui.GUI

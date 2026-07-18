@@ -21,10 +21,10 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
 
         # cached state
         self._mode_groups: list[str] = []
-        self._mode_options: list[list[str]] = [[]]
-        self._modes: list[str] = []
+        self._mode_options: dict[str, list[str]] = {}
+        self._modes: dict[str, str] = {}
         self._motion_status = MotionStatus.UNKNOWN
-        self._mode_widgets: list[tuple[QtWidgets.QLineEdit, QtWidgets.QToolButton]] = []
+        self._mode_widgets: dict[str, tuple[QtWidgets.QLineEdit, QtWidgets.QToolButton]] = {}
 
         # connect signals
         self.signal_update_gui.connect(self.update_gui)
@@ -39,19 +39,22 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
-        await self.comm.register_event(ModeChangedEvent, self._on_mode_changed)
+        await self.register_event(ModeChangedEvent, self._on_mode_changed)
 
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
+
+        # permitted methods (ACLs)
+        await self._fetch_permitted_methods()
 
         # read capabilities (static: available modes per group)
         caps = await self.comm.get_capabilities(self.module, IMode)
         if caps is not None:
             self._mode_groups = list(caps.modes.keys())
-            self._mode_options = [caps.modes[g] for g in self._mode_groups]
+            self._mode_options = dict(caps.modes)
 
-            self._mode_widgets = []
-            for i, group in enumerate(self._mode_groups):
+            self._mode_widgets = {}
+            for group in self._mode_groups:
                 layout = QtWidgets.QHBoxLayout()
                 current = QtWidgets.QLineEdit()
                 current.setReadOnly(True)
@@ -60,9 +63,9 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
                 button = QtWidgets.QToolButton()
                 button.setIcon(QtGui.QIcon(":/resources/edit-solid.svg"))
                 self.colorize_button(button, QtCore.Qt.GlobalColor.green)
-                button.clicked.connect(functools.partial(self.set_mode, i))
+                button.clicked.connect(functools.partial(self.set_mode, group))
                 layout.addWidget(button)
-                self._mode_widgets.append((current, button))
+                self._mode_widgets[group] = (current, button)
                 cast("QtWidgets.QFormLayout", self.groupBox.layout()).addRow(group, layout)
 
             # subscribe to live mode state
@@ -83,12 +86,13 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
             MotionStatus.IDLE,
             MotionStatus.POSITIONED,
         ]
-        for i in range(len(self._mode_groups)):
-            self._mode_widgets[i][0].setText(self._modes[i])
-            self._mode_widgets[i][1].setEnabled(initialized)
+        for group in self._mode_groups:
+            current, button = self._mode_widgets[group]
+            current.setText(self._modes.get(group, ""))
+            button.setEnabled(initialized and self.permitted("set_mode"))
 
     def _on_mode_state(self, state: ModeState) -> None:
-        self._modes = [state.modes.get(g, "") for g in self._mode_groups]
+        self._modes = dict(state.modes)
         self.signal_update_gui.emit()
 
     async def _on_mode_changed(self, event: Event, sender: str) -> bool:
@@ -96,16 +100,14 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         if sender != self.module or not isinstance(event, ModeChangedEvent):
             return False
         if event.group in self._mode_groups:
-            g = self._mode_groups.index(event.group)
-            self._modes[g] = event.mode
+            self._modes[event.group] = event.mode
             self.signal_update_gui.emit()
         return True
 
-    @QtCore.Slot(int)  # type: ignore
-    def set_mode(self, group: int) -> None:
-        mode = self._mode_groups[group]
+    @QtCore.Slot(str)  # type: ignore
+    def set_mode(self, group: str) -> None:
         new_value, ok = QtWidgets.QInputDialog.getItem(
-            self, f"Set {mode}", f"New {mode}", self._mode_options[group], 0, False
+            self, f"Set {group}", f"New {group}", self._mode_options[group], 0, False
         )
         if ok:
 

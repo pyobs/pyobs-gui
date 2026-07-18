@@ -2325,7 +2325,7 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "2.0.0.dev6"
+version = "2.0.0.dev28"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2355,14 +2355,14 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/1f/f3ff220ff8cc908198a130f98aacb2bd0c9963befd9d0757bcff13800f84/pyobs_core-2.0.0.dev6.tar.gz", hash = "sha256:ee8f98c4299064a2383666b349cf87af98f9c3de437048e8b56dcb2817e0024b", size = 299899, upload-time = "2026-06-30T17:39:36.203Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/b2/906f52f004af21013b485666a8282c6ebd9b02c5ab76e8743ec8cbf976eb/pyobs_core-2.0.0.dev28.tar.gz", hash = "sha256:bad2b16c560b41b7feee02319eeb2710be7f5e7744142b8a73d865876c15abdf", size = 334570, upload-time = "2026-07-18T05:42:54.468Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/b6/3875a77f1206ef5d02d5ac43ae9fd90ba96be7857fe4308dfc0c599eec16/pyobs_core-2.0.0.dev6-py3-none-any.whl", hash = "sha256:542a78b069cac525cc72b9fc5fce8983629f8f0a240ff5ee722617886a8c9c13", size = 508486, upload-time = "2026-06-30T17:39:34.739Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/1b/e8f00b1be9113c8db98528e94920a47936eef139472529e53d076d64d5a6/pyobs_core-2.0.0.dev28-py3-none-any.whl", hash = "sha256:bea0b9d74f5fff230a67cc68cfeaaf004431ea6b34999375a15816b9c1023420", size = 554412, upload-time = "2026-07-18T05:42:52.625Z" },
 ]
 
 [[package]]
 name = "pyobs-gui"
-version = "2.0.0.dev1"
+version = "2.0.0.dev2"
 source = { editable = "." }
 dependencies = [
     { name = "astroplan" },
@@ -2400,7 +2400,7 @@ requires-dist = [
     { name = "astropy", specifier = ">=7.0.1,<8" },
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
-    { name = "pyobs-core", specifier = ">=2.0.0.dev6,<3" },
+    { name = "pyobs-core", specifier = ">=2.0.0.dev28,<3" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.28" },
     { name = "qfitswidget", specifier = ">=0.13.1" },

@@ -1,5 +1,5 @@
-# Test config for telescopewidget / focuswidget
-# Run with: pyobs telescope.yaml
+# Test config for the (proposed) AcquisitionWidget / IAcquisition
+# Run with: pyobs test/acquisition.yaml
 class: pyobs.modules.MultiModule
 
 location:
@@ -8,12 +8,12 @@ location:
   elevation: 201
 
 modules:
-  telescope:
-    class: pyobs.modules.telescope.DummyAltAzTelescope
-    name: telescope
+  acquisition:
+    class: pyobs.modules.pointing.DummyAcquisition
+    name: acquisition
     comm:
       class: pyobs.comm.local.LocalComm
-      name: telescope
+      name: acquisition
 
   gui:
     class: pyobs_gui.GUI

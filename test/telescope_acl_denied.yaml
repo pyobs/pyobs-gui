@@ -1,5 +1,6 @@
-# Test config for telescopewidget / focuswidget
-# Run with: pyobs telescope.yaml
+# Test config for ACL module-hiding in mainwindow.py: gui has zero permitted methods on the
+# telescope, so it should never appear in the sidebar/nav list at all.
+# Run with: pyobs telescope_acl_denied.yaml
 class: pyobs.modules.MultiModule
 
 location:
@@ -14,6 +15,9 @@ modules:
     comm:
       class: pyobs.comm.local.LocalComm
       name: telescope
+    acl:
+      allow:
+        gui: []
 
   gui:
     class: pyobs_gui.GUI

@@ -18,7 +18,11 @@ from pyobs.interfaces import (
     IPointingAltAz,
     AltAzState,
     IPointingHelioprojective,
-    IPointingHGS,
+    IPointingHeliographicStonyhurst,
+    IPointingHeliocentricPolar,
+    IPointingOrbitalElements,
+    OrbitalElements,
+    IPointingBody,
     IOffsetsRaDec,
     RaDecOffsetState,
     IOffsetsAltAz,
@@ -143,12 +147,21 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # cache interfaces for sync methods (move, update_gui, etc.)
         self._interfaces = await self.comm.get_interfaces(self.module)
 
+        # permitted methods (ACLs)
+        await self._fetch_permitted_methods()
+
         # add coord types
-        if IPointingRaDec in self._interfaces:
+        if IPointingRaDec in self._interfaces or IPointingBody in self._interfaces:
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
         if IPointingAltAz in self._interfaces:
             self.comboMoveType.addItem(COORDS.HORIZONTAL.value)
-        if IPointingHGS in self._interfaces or IPointingHelioprojective in self._interfaces:
+        if IPointingOrbitalElements in self._interfaces:
+            self.comboMoveType.addItem(COORDS.ORBIT_ELEMENTS.value)
+        if (
+            IPointingHeliographicStonyhurst in self._interfaces
+            or IPointingHelioprojective in self._interfaces
+            or IPointingHeliocentricPolar in self._interfaces
+        ):
             self.comboMoveType.addItem(COORDS.HELIOGRAPHIC_STONYHURST.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_RADIAL.value)
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_MUPSI.value)
@@ -267,7 +280,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         self.labelStatus.setText(self._motion_status.upper())
 
-        self.buttonInit.setEnabled(self._motion_status == MotionStatus.PARKED)
+        self.buttonInit.setEnabled(self._motion_status == MotionStatus.PARKED and self.permitted("init"))
         self.buttonPark.setEnabled(
             self._motion_status
             not in [
@@ -276,8 +289,11 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
                 MotionStatus.PARKING,
                 MotionStatus.INITIALIZING,
             ]
+            and self.permitted("park")
         )
-        self.buttonStop.setEnabled(self._motion_status in [MotionStatus.SLEWING, MotionStatus.TRACKING])
+        self.buttonStop.setEnabled(
+            self._motion_status in [MotionStatus.SLEWING, MotionStatus.TRACKING] and self.permitted("stop_motion")
+        )
         initialized = self._motion_status in [
             MotionStatus.SLEWING,
             MotionStatus.TRACKING,
@@ -285,13 +301,13 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             MotionStatus.POSITIONED,
         ]
         self.buttonMove.setEnabled(initialized)
-        self.compassmovewidget.setEnabled(initialized)
-        self.buttonSetAltOffset.setEnabled(initialized)
-        self.buttonSetAzOffset.setEnabled(initialized)
-        self.buttonSetRaOffset.setEnabled(initialized)
-        self.buttonSetDecOffset.setEnabled(initialized)
-        self.buttonResetHorizontalOffsets.setEnabled(initialized)
-        self.buttonResetEquatorialOffsets.setEnabled(initialized)
+        self.compassmovewidget.setEnabled(initialized and self._compass_offset_permitted())
+        self.buttonSetAltOffset.setEnabled(initialized and self.permitted("set_offsets_altaz"))
+        self.buttonSetAzOffset.setEnabled(initialized and self.permitted("set_offsets_altaz"))
+        self.buttonSetRaOffset.setEnabled(initialized and self.permitted("set_offsets_radec"))
+        self.buttonSetDecOffset.setEnabled(initialized and self.permitted("set_offsets_radec"))
+        self.buttonResetHorizontalOffsets.setEnabled(initialized and self.permitted("set_offsets_altaz"))
+        self.buttonResetEquatorialOffsets.setEnabled(initialized and self.permitted("set_offsets_radec"))
 
         if self._ra_dec is not None and np.isfinite(self._ra_dec.ra.deg) and np.isfinite(self._ra_dec.dec.deg):
             ra_h = float(self._ra_dec.ra.hour)
@@ -320,6 +336,14 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self.textOffsetAlt.setText("N/A" if self._off_alt is None else '%.2f"' % (self._off_alt * 3600.0,))
             self.textOffsetAz.setText("N/A" if self._off_az is None else '%.2f"' % (self._off_az * 3600.0,))
 
+    def _compass_offset_permitted(self) -> bool:
+        # mirrors CompassMoveWidget.__move_offset's own alt/az-over-ra/dec preference
+        if IOffsetsAltAz in self._interfaces and IPointingAltAz in self._interfaces:
+            return self.permitted("set_offsets_altaz")
+        elif IOffsetsRaDec in self._interfaces:
+            return self.permitted("set_offsets_radec")
+        return False
+
     # -------------------------------------------------------------------------
     # Move command (stays sync — uses QInputDialog + branching)
     # -------------------------------------------------------------------------
@@ -330,6 +354,14 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         coord = COORDS(text)
 
         if coord == COORDS.EQUITORIAL:
+            body = self.comboSolarSystemBody.currentText()
+            if body and IPointingBody in self._interfaces:
+                if self.permitted("track_body"):
+                    self.run_background(self._do_track_body, body)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to track solar-system bodies.")
+                return
+
             ra = self.textMoveRA.text()
             dec = self.textMoveDec.text()
             try:
@@ -339,7 +371,10 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Invalid coordinates.")
                 return
             if IPointingRaDec in self._interfaces:
-                self.run_background(self._do_move_radec, float(coords.ra.degree), float(coords.dec.degree))
+                if self.permitted("move_radec"):
+                    self.run_background(self._do_move_radec, float(coords.ra.degree), float(coords.dec.degree))
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using equatorial coordinates.")
             else:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support equatorial coordinates.")
 
@@ -347,23 +382,52 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             alt = self.spinMoveAlt.value()
             az = self.spinMoveAz.value()
             if IPointingAltAz in self._interfaces:
-                self.run_background(self._do_move_altaz, alt, az)
+                if self.permitted("move_altaz"):
+                    self.run_background(self._do_move_altaz, alt, az)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using horizontal coordinates.")
             else:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support horizontal coordinates.")
 
         elif coord == COORDS.HELIOGRAPHIC_STONYHURST:
             lon = self.spinMoveHGSLon.value()
             lat = self.spinMoveHGSLat.value()
-            if IPointingHGS in self._interfaces:
-                self.run_background(self._do_move_hgs, lon, lat)
+            if IPointingHeliographicStonyhurst in self._interfaces:
+                if self.permitted("move_heliographic_stonyhurst"):
+                    self.run_background(self._do_move_hgs, lon, lat)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using stonyhurst coordinates.")
             else:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support stonyhurst coordinates.")
+
+        elif coord == COORDS.ORBIT_ELEMENTS:
+            if IPointingOrbitalElements in self._interfaces:
+                if self.permitted("track_orbital_elements"):
+                    elements = OrbitalElements(
+                        epoch=Time(self.spinOrbitElementsEpoch.value(), format="jd"),
+                        semi_major_axis=self.spinOrbitElementsSemiMajorAxis.value(),
+                        eccentricity=self.spinOrbitElementsEcc.value(),
+                        inclination=self.spinOrbitElementsIncl.value(),
+                        longitude_ascending_node=self.spinOrbitElementsOmega.value(),
+                        argument_of_periapsis=self.spinOrbitElementsPerifocus.value(),
+                        mean_anomaly=self.spinOrbitElementsMA.value(),
+                    )
+                    self.run_background(self._do_track_orbital_elements, elements)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to track using orbital elements.")
+            else:
+                QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support orbital elements.")
 
         elif coord == COORDS.HELIOPROJECTIVE_RADIAL:
             theta_x = self.spinMoveHelioProjectiveRadialTx.value() / 3600.0
             theta_y = self.spinMoveHelioProjectiveRadialTy.value() / 3600.0
             if IPointingHelioprojective in self._interfaces:
-                self.run_background(self._do_move_helioprojective, theta_x, theta_y)
+                if self.permitted("move_helioprojective"):
+                    self.run_background(self._do_move_helioprojective, theta_x, theta_y)
+                else:
+                    QtWidgets.QMessageBox.critical(
+                        self, "pyobs", "Not permitted to move using helioprojective radial coordinates."
+                    )
             else:
                 QtWidgets.QMessageBox.critical(
                     self, "pyobs", "Telescope does not support helioprojective radial coordinates."
@@ -371,7 +435,16 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         elif coord == COORDS.HELIOPROJECTIVE_MUPSI:
             mu = self.spinMoveHelioprojectiveRadialMu.value()
-            psi = np.deg2rad(self.spinMoveHelioprojectiveRadialPsi.value())
+            psi_deg = self.spinMoveHelioprojectiveRadialPsi.value()
+
+            if IPointingHeliocentricPolar in self._interfaces:
+                if self.permitted("move_heliocentric_polar"):
+                    self.run_background(self._do_move_heliocentric_polar, mu, psi_deg)
+                else:
+                    QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using Mu/Psi coordinates.")
+                return
+
+            psi = np.deg2rad(psi_deg)
             alpha = np.arccos(mu)
             dsun = get_sun(Time.now()).distance
             # pyrefly: ignore [missing-attribute]
@@ -381,13 +454,17 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             ty = theta * np.cos(psi)
             heliproj = SkyCoord(tx, ty, obstime=Time.now(), frame=Helioprojective, observer="earth")
 
-            if IPointingHelioprojective in self._interfaces:
+            if IPointingHelioprojective in self._interfaces and self.permitted("move_helioprojective"):
                 self.run_background(self._do_move_helioprojective, heliproj.Tx.degree, heliproj.Ty.degree)
-            elif IPointingHGS in self._interfaces:
+            elif IPointingHeliographicStonyhurst in self._interfaces and self.permitted(
+                "move_heliographic_stonyhurst"
+            ):
                 stony = heliproj.transform_to(HeliographicStonyhurst)
                 # pyrefly: ignore [missing-attribute]
                 lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
                 self.run_background(self._do_move_hgs, lon, lat)
+            elif IPointingHelioprojective in self._interfaces or IPointingHeliographicStonyhurst in self._interfaces:
+                QtWidgets.QMessageBox.critical(self, "pyobs", "Not permitted to move using Mu/Psi coordinates.")
             else:
                 QtWidgets.QMessageBox.critical(self, "pyobs", "Telescope does not support Mu/Psi coordinates.")
 
@@ -400,8 +477,20 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             await proxy.move_altaz(alt, az)
 
     async def _do_move_hgs(self, lon: float, lat: float) -> None:
-        async with self.comm.proxy(self.module, IPointingHGS) as proxy:
-            await proxy.move_hgs_lon_lat(lon, lat)
+        async with self.comm.proxy(self.module, IPointingHeliographicStonyhurst) as proxy:
+            await proxy.move_heliographic_stonyhurst(lon, lat)
+
+    async def _do_track_orbital_elements(self, elements: OrbitalElements) -> None:
+        async with self.comm.proxy(self.module, IPointingOrbitalElements) as proxy:
+            await proxy.track_orbital_elements(elements)
+
+    async def _do_track_body(self, body: str) -> None:
+        async with self.comm.proxy(self.module, IPointingBody) as proxy:
+            await proxy.track_body(body)
+
+    async def _do_move_heliocentric_polar(self, mu: float, psi: float) -> None:
+        async with self.comm.proxy(self.module, IPointingHeliocentricPolar) as proxy:
+            await proxy.move_heliocentric_polar(mu, psi)
 
     async def _do_move_helioprojective(self, tx: float, ty: float) -> None:
         async with self.comm.proxy(self.module, IPointingHelioprojective) as proxy:
@@ -524,13 +613,13 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
         try:
             obj = Horizons(id=self.textHorizonsName.text(), location=None, epochs=Time.now().jd)
+            eph = obj.elements()
         except InvalidQueryError:
             QtWidgets.QMessageBox.critical(self, "MPC", "No result found")
             return
-        try:
-            eph = obj.elements()
         except ValueError:
-            pass
+            QtWidgets.QMessageBox.critical(self, "MPC", "Invalid result")
+            return
 
         self.spinOrbitElementsEcc.setValue(eph["e"][0])
         self.spinOrbitElementsIncl.setValue(eph["incl"][0])
@@ -596,7 +685,8 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self._show_dest_coords(sun_radec.ra, sun_radec.dec, sun.alt, sun.az)
 
     def _calc_dest_orbit_elements(self) -> None:
-        pass
+        # position depends on Kepler-equation propagation, which the GUI doesn't do — leave as unknown
+        self._show_dest_coords()
 
     def select_coord_type(self) -> None:
         text = self.comboMoveType.currentText()

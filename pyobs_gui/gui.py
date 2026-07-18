@@ -7,7 +7,7 @@ import qasync  # type: ignore
 if TYPE_CHECKING:
     from .mainwindow import MainWindow
 
-from pyobs.interfaces import IFitsHeaderBefore
+from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 
 
@@ -77,7 +77,7 @@ class GUI(Module, IFitsHeaderBefore):
 
     async def get_fits_header_before(
         self, namespaces: list[str] | None = None, **kwargs: Any
-    ) -> dict[str, tuple[Any, str]]:
+    ) -> dict[str, FitsHeaderEntry]:
         """Returns FITS header for the current status of this module.
 
         Args:

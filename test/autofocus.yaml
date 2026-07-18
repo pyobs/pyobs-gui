@@ -1,5 +1,5 @@
-# Test config for telescopewidget / focuswidget
-# Run with: pyobs telescope.yaml
+# Test config for the (proposed) AutoFocusWidget / IAutoFocus
+# Run with: pyobs test/autofocus.yaml
 class: pyobs.modules.MultiModule
 
 location:
@@ -8,12 +8,12 @@ location:
   elevation: 201
 
 modules:
-  telescope:
-    class: pyobs.modules.telescope.DummyAltAzTelescope
-    name: telescope
+  autofocus:
+    class: pyobs.modules.focus.DummyAutoFocus
+    name: autofocus
     comm:
       class: pyobs.comm.local.LocalComm
-      name: telescope
+      name: autofocus
 
   gui:
     class: pyobs_gui.GUI

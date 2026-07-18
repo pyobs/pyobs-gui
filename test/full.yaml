@@ -28,7 +28,7 @@ modules:
       name: camera
 
   telescope:
-    class: pyobs.modules.telescope.DummyTelescope
+    class: pyobs.modules.telescope.DummyAltAzTelescope
     name: telescope
     comm:
       class: pyobs.comm.local.LocalComm
@@ -56,6 +56,27 @@ modules:
     comm:
       class: pyobs.comm.local.LocalComm
       name: video
+
+  autofocus:
+    class: pyobs.modules.focus.DummyAutoFocus
+    name: autofocus
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: autofocus
+
+  acquisition:
+    class: pyobs.modules.pointing.DummyAcquisition
+    name: acquisition
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: acquisition
+
+  guiding:
+    class: pyobs.modules.pointing.DummyAutoGuiding
+    name: guiding
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: guiding
 
   gui:
     class: pyobs_gui.GUI
