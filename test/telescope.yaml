@@ -9,7 +9,7 @@ location:
 
 modules:
   telescope:
-    class: pyobs.modules.telescope.DummyTelescope
+    class: pyobs.modules.telescope.DummyAltAzTelescope
     name: telescope
     comm:
       class: pyobs.comm.local.LocalComm
