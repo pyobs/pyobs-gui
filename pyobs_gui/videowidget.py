@@ -173,7 +173,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # connect socket
         if self.host is not None and self.port is not None and self.path is not None:
             self.socket.connectToHost(self.host, self.port)
-            self.socket.write(b"GET %s HTTP/1.1\r\n\r\n" % bytes(self.path, "UTF-8"))
+            host_header = self.host if self.port == 80 else f"{self.host}:{self.port}"
+            self.socket.write(
+                b"GET %s HTTP/1.1\r\nHost: %s\r\n\r\n" % (bytes(self.path, "UTF-8"), bytes(host_header, "UTF-8"))
+            )
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # call base
@@ -248,7 +251,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
             # expose
             broadcast = self.checkBroadcast.isChecked()
-            await self.datadisplay.grab_data(broadcast, image_type)
+            await self.datadisplay.grab_data(broadcast)
 
             # decrement number of exposures left
             self.exposures_left -= 1
