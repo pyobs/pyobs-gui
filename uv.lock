@@ -2382,7 +2382,6 @@ dependencies = [
 dev = [
     { name = "black" },
     { name = "matplotlib-stubs" },
-    { name = "mypy" },
     { name = "pandas-stubs" },
     { name = "pre-commit" },
     { name = "pyrefly" },
@@ -2412,7 +2411,6 @@ requires-dist = [
 dev = [
     { name = "black", specifier = ">=25.1.0,<26" },
     { name = "matplotlib-stubs", specifier = ">=0.1.0" },
-    { name = "mypy", specifier = ">=1.17.0" },
     { name = "pandas-stubs", specifier = ">=2.3.0.250703" },
     { name = "pre-commit", specifier = ">=4.2.0,<5" },
     { name = "pyrefly", specifier = ">=0.17.0" },
