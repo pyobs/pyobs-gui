@@ -1,3 +1,6 @@
+__pycache__/
+*.pyc
+
 # pyside6-deploy build output for the spikes in spike_standalone/ -- generated, not source
 spike_standalone/deployment/
 spike_standalone/*.dist/
