@@ -27,6 +27,7 @@ class ConnectionRequest:
     jid: str
     password: str
     server: str | None
+    use_tls: bool
     insecure_skip_tls: bool
 
 
@@ -36,6 +37,7 @@ def build_connection_request(
     override_server: bool,
     host: str,
     port: str,
+    use_tls: bool,
     insecure_skip_tls: bool,
 ) -> ConnectionRequest | None:
     """Builds a ConnectionRequest from raw field values, or None if the required fields (jid,
@@ -48,7 +50,11 @@ def build_connection_request(
         override_server: Whether the "override server address" checkbox is checked.
         host: Host field text (only used if override_server).
         port: Port field text (only used if override_server and non-empty).
+        use_tls: Whether the "Use SSL/TLS" checkbox is checked. Defaults to True in the UI --
+            XmppComm itself defaults to False (more appropriate for trusted local networks), but
+            a remote/non-technical-facing login window should default to the secure option.
         insecure_skip_tls: Whether the "skip TLS certificate verification" checkbox is checked.
+            Only meaningful when use_tls is also True.
     """
     jid = jid.strip()
     if not jid or not password:
@@ -61,7 +67,9 @@ def build_connection_request(
         if host:
             server = f"{host}:{port}" if port else host
 
-    return ConnectionRequest(jid=jid, password=password, server=server, insecure_skip_tls=insecure_skip_tls)
+    return ConnectionRequest(
+        jid=jid, password=password, server=server, use_tls=use_tls, insecure_skip_tls=insecure_skip_tls
+    )
 
 
 class LoginWindow(QtWidgets.QDialog):
@@ -144,6 +152,11 @@ class LoginWindow(QtWidgets.QDialog):
         self._password_field.returnPressed.connect(self._on_connect_clicked)
         right.addWidget(self._password_field)
 
+        self._use_tls_checkbox = QtWidgets.QCheckBox("Use SSL/TLS")
+        self._use_tls_checkbox.setChecked(True)
+        self._use_tls_checkbox.toggled.connect(self._on_use_tls_toggled)
+        right.addWidget(self._use_tls_checkbox)
+
         self._skip_tls_checkbox = QtWidgets.QCheckBox("Skip TLS certificate verification (insecure, dev only)")
         right.addWidget(self._skip_tls_checkbox)
 
@@ -214,6 +227,7 @@ class LoginWindow(QtWidgets.QDialog):
             self._override_server_checkbox.setChecked(False)
             self._host_field.setText("")
             self._port_field.setText("")
+            self._use_tls_checkbox.setChecked(True)
             self._skip_tls_checkbox.setChecked(False)
             self._delete_button.setVisible(False)
             self._save_button.setText("Save as new account")
@@ -228,6 +242,7 @@ class LoginWindow(QtWidgets.QDialog):
         self._override_server_checkbox.setChecked(bool(account.host))
         self._host_field.setText(account.host)
         self._port_field.setText(str(account.port) if account.port else "")
+        self._use_tls_checkbox.setChecked(account.use_tls)
         self._skip_tls_checkbox.setChecked(account.insecure_skip_tls)
         self._delete_button.setVisible(True)
         self._save_button.setText("Save changes")
@@ -246,6 +261,12 @@ class LoginWindow(QtWidgets.QDialog):
     def _on_override_server_toggled(self, checked: bool) -> None:
         self._server_row_widget.setVisible(checked)
 
+    def _on_use_tls_toggled(self, checked: bool) -> None:
+        # skipping cert verification is meaningless with TLS off
+        self._skip_tls_checkbox.setEnabled(checked)
+        if not checked:
+            self._skip_tls_checkbox.setChecked(False)
+
     # ── save / delete ─────────────────────────────────────────────────────────
 
     def _on_save_clicked(self) -> None:
@@ -256,16 +277,23 @@ class LoginWindow(QtWidgets.QDialog):
         host = self._host_field.text().strip() if self._override_server_checkbox.isChecked() else ""
         port_text = self._port_field.text().strip() if self._override_server_checkbox.isChecked() else ""
         port = int(port_text) if port_text else 0
+        use_tls = self._use_tls_checkbox.isChecked()
         insecure_skip_tls = self._skip_tls_checkbox.isChecked()
 
         if self._selected_account_id:
             account_id = self._selected_account_id
             self._accounts.update_account(
-                account_id, jid, label=label, host=host, port=port, insecure_skip_tls=insecure_skip_tls
+                account_id,
+                jid,
+                label=label,
+                host=host,
+                port=port,
+                use_tls=use_tls,
+                insecure_skip_tls=insecure_skip_tls,
             )
         else:
             account_id = self._accounts.add_account(
-                jid, label=label, host=host, port=port, insecure_skip_tls=insecure_skip_tls
+                jid, label=label, host=host, port=port, use_tls=use_tls, insecure_skip_tls=insecure_skip_tls
             )
             self._selected_account_id = account_id
 
@@ -317,6 +345,7 @@ class LoginWindow(QtWidgets.QDialog):
             override_server=self._override_server_checkbox.isChecked(),
             host=self._host_field.text(),
             port=self._port_field.text(),
+            use_tls=self._use_tls_checkbox.isChecked(),
             insecure_skip_tls=self._skip_tls_checkbox.isChecked(),
         )
         if request is None:

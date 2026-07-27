@@ -17,7 +17,9 @@ def test_list_accounts_empty_initially(tmp_path) -> None:
 def test_add_account_persists_fields(tmp_path) -> None:
     model = make_model(tmp_path)
 
-    account_id = model.add_account("user@example.com", label="My Telescope", host="1.2.3.4", port=5222)
+    account_id = model.add_account(
+        "user@example.com", label="My Telescope", host="1.2.3.4", port=5222, use_tls=False, insecure_skip_tls=True
+    )
 
     accounts = model.list_accounts()
     assert len(accounts) == 1
@@ -26,6 +28,18 @@ def test_add_account_persists_fields(tmp_path) -> None:
     assert accounts[0].label == "My Telescope"
     assert accounts[0].host == "1.2.3.4"
     assert accounts[0].port == 5222
+    assert accounts[0].use_tls is False
+    assert accounts[0].insecure_skip_tls is True
+
+
+def test_add_account_defaults_use_tls_true(tmp_path) -> None:
+    """Secure-by-default for a remote-facing login window, even though XmppComm itself
+    defaults use_tls to False."""
+    model = make_model(tmp_path)
+    account_id = model.add_account("user@example.com")
+    account = model.account_by_id(account_id)
+    assert account is not None
+    assert account.use_tls is True
 
 
 def test_account_by_id_returns_none_for_unknown_id(tmp_path) -> None:

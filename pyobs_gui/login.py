@@ -43,6 +43,7 @@ async def login_and_build_gui(**gui_kwargs: Any) -> GUI:
         jid=request.jid,
         password=request.password,
         server=request.server,
+        use_tls=request.use_tls,
         ignore_cert_errors=request.insecure_skip_tls,
     )
     return GUI(comm=comm, **gui_kwargs)

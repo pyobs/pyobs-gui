@@ -25,6 +25,7 @@ class Account:
     label: str = ""
     host: str = ""
     port: int = 0
+    use_tls: bool = True
     insecure_skip_tls: bool = False
 
     @property
@@ -52,6 +53,7 @@ class SavedAccountsModel:
                         label=str(self._settings.value("label", "")),
                         host=str(self._settings.value("host", "")),
                         port=int(self._settings.value("port", 0, type=int)),  # pyrefly: ignore [bad-argument-type]
+                        use_tls=bool(self._settings.value("use_tls", True, type=bool)),
                         insecure_skip_tls=bool(self._settings.value("insecure_skip_tls", False, type=bool)),
                     )
                 )
@@ -71,11 +73,18 @@ class SavedAccountsModel:
         label: str = "",
         host: str = "",
         port: int = 0,
+        use_tls: bool = True,
         insecure_skip_tls: bool = False,
     ) -> str:
         """Adds a new account and returns its newly generated id."""
         account = Account(
-            id=uuid.uuid4().hex, jid=jid, label=label, host=host, port=port, insecure_skip_tls=insecure_skip_tls
+            id=uuid.uuid4().hex,
+            jid=jid,
+            label=label,
+            host=host,
+            port=port,
+            use_tls=use_tls,
+            insecure_skip_tls=insecure_skip_tls,
         )
         accounts = self.list_accounts()
         accounts.append(account)
@@ -89,6 +98,7 @@ class SavedAccountsModel:
         label: str = "",
         host: str = "",
         port: int = 0,
+        use_tls: bool = True,
         insecure_skip_tls: bool = False,
     ) -> None:
         """Updates an existing account's fields in place -- the id itself never changes."""
@@ -96,7 +106,13 @@ class SavedAccountsModel:
         for i, account in enumerate(accounts):
             if account.id == account_id:
                 accounts[i] = Account(
-                    id=account_id, jid=jid, label=label, host=host, port=port, insecure_skip_tls=insecure_skip_tls
+                    id=account_id,
+                    jid=jid,
+                    label=label,
+                    host=host,
+                    port=port,
+                    use_tls=use_tls,
+                    insecure_skip_tls=insecure_skip_tls,
                 )
                 break
         self._write_all(accounts)
@@ -115,6 +131,7 @@ class SavedAccountsModel:
                 self._settings.setValue("label", account.label)
                 self._settings.setValue("host", account.host)
                 self._settings.setValue("port", account.port)
+                self._settings.setValue("use_tls", account.use_tls)
                 self._settings.setValue("insecure_skip_tls", account.insecure_skip_tls)
         finally:
             self._settings.endArray()
