@@ -17,7 +17,6 @@ from pyobs.interfaces import (
     IBinning,
     BinningState,
     IWindow,
-    WindowState,
     IFilters,
     ICooling,
     ITemperatures,
@@ -58,13 +57,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.exposure_time_left = 0.0
         self.exposure_progress = 0.0
 
-        self.spinWindowLeft.init_modified(self.labelWindowLeft).committed.connect(self._window_changed)
-        self.spinWindowTop.init_modified(self.labelWindowTop).committed.connect(self._window_changed)
-        self.spinWindowWidth.init_modified(self.labelWindowWidth).committed.connect(self._window_changed)
-        self.spinWindowHeight.init_modified(self.labelWindowHeight).committed.connect(self._window_changed)
-        self.spinGain.init_modified(self.labelGain).committed.connect(self._gain_changed)
-        self.spinGainOffset.init_modified(self.labelGain).committed.connect(self._gain_changed)
-
     async def open(
         self,
         modules: list[str] | None = None,
@@ -80,7 +72,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         image_types = sorted([it.name for it in ImageType])
         self.comboImageType.addItems(image_types)
 
-        # before first update, disable mys
+        # before first update, disable myself
         self.setEnabled(False)
 
         # hide groups, if necessary
@@ -118,10 +110,25 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     async def _init(self) -> None:
         # window
+        window_caps = await self.comm.get_capabilities(self.module, IWindow)
+        if window_caps is not None:
+            self.spinWindowLeft.setMaximum(int(window_caps.full_frame_width))
+            self.spinWindowTop.setMaximum(int(window_caps.full_frame_height))
+            self.spinWindowWidth.setMaximum(int(window_caps.full_frame_width))
+            self.spinWindowHeight.setMaximum(int(window_caps.full_frame_height))
         async with self.comm.safe_proxy(self.module, IWindow) as proxy:
             if proxy is not None:
-                await self.comm.subscribe_state(self.module, IWindow, self._update_window)
-                await self.set_full_frame()
+                state = await proxy.wait_for_state(IWindow)
+                if state is not None:
+                    self.spinWindowLeft.setValue(state.x)
+                    self.spinWindowTop.setValue(state.y)
+                    self.spinWindowWidth.setValue(state.width)
+                    self.spinWindowHeight.setValue(state.height)
+                elif window_caps is not None:
+                    self.spinWindowLeft.setValue(window_caps.full_frame_x)
+                    self.spinWindowTop.setValue(window_caps.full_frame_y)
+                    self.spinWindowWidth.setValue(window_caps.full_frame_width)
+                    self.spinWindowHeight.setValue(window_caps.full_frame_height)
 
         # binning
         binning_caps = await self.comm.get_capabilities(self.module, IBinning)
@@ -129,11 +136,21 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             binnings = [f"{b.x}x{b.y}" for b in binning_caps.binnings]
             self.comboBinning.clear()
             self.comboBinning.addItems(binnings)
-            await self.comm.subscribe_state(self.module, IBinning, self._update_binning)
+        async with self.comm.safe_proxy(self.module, IBinning) as proxy:
+            if proxy is not None:
+                state = await proxy.wait_for_state(IBinning)
+                if state is not None:
+                    self.comboBinning.setCurrentText(f"{state.x}x{state.y}")
+        await self.comm.subscribe_state(self.module, IBinning, self._update_binning)
 
-        # gain — initial values delivered by subscription callback
-        if await self.comm.has_proxy(self.module, IGain):
-            await self.comm.subscribe_state(self.module, IGain, self._update_gain)
+        # gain
+        async with self.comm.safe_proxy(self.module, IGain) as proxy:
+            if proxy is not None:
+                state = await proxy.wait_for_state(IGain)
+                if state is not None:
+                    self.spinGain.setValue(state.gain)
+                    self.spinGainOffset.setValue(state.offset)
+        await self.comm.subscribe_state(self.module, IGain, self._update_gain)
 
         # image format
         image_format_caps = await self.comm.get_capabilities(self.module, IImageFormat)
@@ -141,38 +158,52 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             image_formats = [ImageFormat(f) for f in image_format_caps.image_formats]
             self.comboImageFormat.clear()
             self.comboImageFormat.addItems([f.name for f in image_formats])
-            await self.comm.subscribe_state(self.module, IImageFormat, self._update_image_format)
+        async with self.comm.safe_proxy(self.module, IImageFormat) as proxy:
+            if proxy is not None:
+                state = await proxy.wait_for_state(IImageFormat)
+                if state is not None:
+                    self.comboImageFormat.setCurrentText(state.image_format.name)
+        await self.comm.subscribe_state(self.module, IImageFormat, self._update_image_format)
 
+        # image type
         async with self.comm.safe_proxy(self.module, IImageType) as proxy:
             if proxy is not None:
-                await self.comm.subscribe_state(self.module, IImageType, self._update_image_type)
+                state = await proxy.wait_for_state(IImageType)
+                if state is not None:
+                    self.comboImageType.setCurrentText(state.image_type.name)
+        await self.comm.subscribe_state(self.module, IImageType, self._update_image_type)
 
+        # exposure (status, progress, time left)
         async with self.comm.safe_proxy(self.module, IExposure) as proxy:
             if proxy is not None:
-                await self.comm.subscribe_state(self.module, IExposure, self._update_exposure)
+                state = await proxy.wait_for_state(IExposure)
+                if state is not None:
+                    self.exposure_status = state.status
+                    self.exposure_progress = state.progress
+                    self.exposure_time_left = state.exposure_time_left
+        await self.comm.subscribe_state(self.module, IExposure, self._update_exposure)
 
+        # exposure time
         async with self.comm.safe_proxy(self.module, IExposureTime) as proxy:
             if proxy is not None:
-                await self.comm.subscribe_state(self.module, IExposureTime, self._update_exposure_time)
+                state = await proxy.wait_for_state(IExposureTime)
+                if state is not None:
+                    self.spinExpTime.setValue(state.exposure_time)
+        await self.comm.subscribe_state(self.module, IExposureTime, self._update_exposure_time)
 
+        # data sequence
         if await self.comm.has_proxy(self.module, IDataSequence):
             await self.comm.subscribe_state(self.module, IDataSequence, self._update_sequence)
 
         # update GUI
         self.signal_update_gui.emit()
 
-    def _update_window(self, state: WindowState):
-        self.labelWindowLeft.setText(str(state.x))
-        self.labelWindowTop.setText(str(state.y))
-        self.labelWindowWidth.setText(str(state.width))
-        self.labelWindowHeight.setText(str(state.height))
-
     def _update_binning(self, state: BinningState):
         self.comboBinning.setCurrentText(f"{state.x}x{state.y}")
 
     def _update_gain(self, state: GainState):
-        self.labelGain.setText(str(state.gain))
-        self.labelGainOffset.setText(str(state.offset))
+        self.spinGain.setValue(state.gain)
+        self.spinGainOffset.setValue(state.offset)
 
     def _update_image_format(self, state: ImageFormatState):
         self.comboImageFormat.setCurrentText(state.image_format.name)
@@ -193,14 +224,6 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
     def _update_sequence(self, state: DataSequenceState):
         self.exposures_left = state.count_left
         self.update_gui()
-
-    @qasync.asyncSlot()
-    async def _window_changed(self):
-        print("ok")
-
-    @qasync.asyncSlot()
-    async def _gain_changed(self):
-        print("ok")
 
     @qasync.asyncSlot()  # type: ignore
     async def set_full_frame(self) -> None:
@@ -247,18 +270,75 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def expose(self) -> None:
-        broadcast = self.checkBroadcast.isChecked()
-        count = self.spinCount.value()
+        # set binning
+        async with self.comm.safe_proxy(self.module, IBinning) as proxy:
+            if proxy is not None:
+                binning = int(self.comboBinning.currentText()[0])
+                try:
+                    await proxy.set_binning(binning, binning)
+                except Exception:
+                    log.exception("bla")
+                    QtWidgets.QMessageBox.information(self, "Error", "Could not set binning.")
+                    return
+            else:
+                binning = 1
 
-        # if the module can grab a counted sequence server-side, let it -- progress comes
-        # back via the DataSequenceState subscription
+        # set window
+        async with self.comm.safe_proxy(self.module, IWindow) as proxy:
+            if proxy is not None:
+                left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
+                width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
+                try:
+                    await proxy.set_window(left, top, width * binning, height * binning)
+                except Exception:
+                    QtWidgets.QMessageBox.information(self, "Error", "Could not set window.")
+                    return
+
+        # set image format
+        async with self.comm.safe_proxy(self.module, IImageFormat) as proxy:
+            if proxy is not None:
+                image_format = ImageFormat[self.comboImageFormat.currentText()]
+                await proxy.set_image_format(image_format)
+
+        # set exposure time
+        async with self.comm.safe_proxy(self.module, IExposureTime) as proxy:
+            if proxy is not None:
+                # get exp_time
+                exp_time = self.spinExpTime.value()
+
+                # unit
+                if self.comboExpTimeUnit.currentText() == "ms":
+                    exp_time /= 1e3
+                elif self.comboExpTimeUnit.currentText() == "µs":
+                    exp_time /= 1e6
+
+                # set it
+                await proxy.set_exposure_time(exp_time)
+
+        # set gain and offset
+        async with self.comm.safe_proxy(self.module, IGain) as proxy:
+            if proxy is not None:
+                await proxy.set_gain(self.spinGain.value())
+                await proxy.set_offset(self.spinGainOffset.value())
+
+        # set image type
+        image_type = ImageType.OBJECT
+        async with self.comm.safe_proxy(self.module, IImageType) as proxy:
+            if proxy is not None:
+                image_type = ImageType(self.comboImageType.currentText().lower())
+                await proxy.set_image_type(image_type)
+
+        # set initial image count
+        self.exposures_left = self.spinCount.value()
+        broadcast = self.checkBroadcast.isChecked()
+
+        # if the module can grab a counted sequence server-side, let it
         async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
             if proxy is not None:
-                await proxy.grab_sequence(count, broadcast)
+                await proxy.grab_sequence(self.exposures_left, broadcast)
                 return
 
         # fall back to a client-side loop for modules that don't support IDataSequence
-        self.exposures_left = count
         while self.exposures_left > 0:
             await self.datadisplay.grab_data(broadcast)
             self.exposures_left -= 1
