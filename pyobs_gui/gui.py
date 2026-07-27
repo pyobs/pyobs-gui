@@ -71,7 +71,7 @@ class GUI(Module, IFitsHeaderBefore):
             module=self,
             comm=self.comm,
             vfs=self.vfs,
-            observer=self.observer,
+            observer=self._observer,
         )
         self._window.show()
 
