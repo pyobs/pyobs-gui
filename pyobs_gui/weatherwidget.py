@@ -1,12 +1,14 @@
-from typing import Any, Dict
+from typing import Any, Dict, TYPE_CHECKING
 from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 import logging
 
 from pyobs.interfaces import IWeather, WeatherState, WeatherSensorReading
 from pyobs.utils.enums import WeatherSensors
-from pyobs.utils.time import Time
 from .qt.weatherwidget_ui import Ui_WeatherWidget
 from .base import BaseWidget
+
+if TYPE_CHECKING:
+    from pyobs.utils.time import Time
 
 
 log = logging.getLogger(__name__)
@@ -86,7 +88,7 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
         self.setupUi(self)  # type: ignore
 
         # weather info
-        self._time: Time | None = None
+        self._time: "Time | None" = None
         self._good: bool | None = None
         self._readings: Dict[WeatherSensors, WeatherSensorReading] = {}
         self._current_widgets: Dict[str, WidgetCurrentSensor] = {}
@@ -139,7 +141,7 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
             self._current_widgets["time"].set_value("")
 
         # set values
-        for sensor, label in SENSOR_LABELS.items():
+        for sensor in SENSOR_LABELS:
             if sensor in self._readings:
                 reading = self._readings[sensor]
                 format = "%d" if sensor == WeatherSensors.RAIN else "%.2f"
