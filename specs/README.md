@@ -9,3 +9,6 @@ Relevant so far:
 
 - `pyobs-core/specs/plans/gui-interactive-login.md` — interactive login/settings dialog to replace
   the current YAML-config-file requirement.
+- `pyobs-core/specs/plans/pyobs_2_0_work_plan.md` — the `IRunning.is_running()` removal item
+  required updating `mainwindow.py`'s two RPC calls to that method to read `IRunning`'s pushed
+  state instead.
