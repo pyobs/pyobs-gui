@@ -7,8 +7,14 @@ naming every repo it concerns. See `pyobs-core/CLAUDE.md`'s "Cross-repo docs" se
 
 Relevant so far:
 
+- `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
+  single compiled binary that works across sites with no rebuild. Start here.
 - `pyobs-core/specs/plans/gui-interactive-login.md` — interactive login/settings dialog to replace
-  the current YAML-config-file requirement.
+  the current YAML-config-file requirement (pyobs-core side).
+- `pyobs-core/specs/plans/gui-login-window.md` — the actual login window UI (pyobs-gui side,
+  depends on the above).
+- `pyobs-core/specs/plans/gui-widget-plugins-and-packaging.md` — external plugin directory for
+  custom widgets, plus the `pyside6-deploy` packaging pipeline itself.
 - `pyobs-core/specs/plans/pyobs_2_0_work_plan.md` — the `IRunning.is_running()` removal item
   required updating `mainwindow.py`'s two RPC calls to that method to read `IRunning`'s pushed
   state instead.
