@@ -20,6 +20,9 @@ dependencies = [
     "secretstorage>=3.5.0,<4",
 ]
 
+[project.scripts]
+pyobs-gui = "pyobs_gui.__main__:main"
+
 [dependency-groups]
 dev = [
     "black>=25.1.0,<27",
