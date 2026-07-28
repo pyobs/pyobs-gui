@@ -181,6 +181,13 @@ class StatusWidget(BaseWidget):
         # on the module's next presence update
         self._presence_callbacks: dict[str, Any] = {}
 
+        # state subscriptions (module, interface, callback), so discard() can unsubscribe all of
+        # them in bulk when this whole widget is torn down (e.g. GUI._logout() closing the entire
+        # window) -- comm.close() does *not* clean these up itself, so an in-flight state push
+        # racing against Qt destroying this widget's labels would otherwise crash with
+        # "libshiboken: Internal C++ object already deleted"
+        self._state_subscriptions: list[tuple[str, type[Interface], Any]] = []
+
     @staticmethod
     def _toggle_expanded(item: QtWidgets.QTreeWidgetItem, column: int) -> None:
         """Let a click anywhere in a module row expand/collapse it, not just its arrow."""
@@ -197,8 +204,8 @@ class StatusWidget(BaseWidget):
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
 
         if self.comm is not None:
-            await self.comm.register_event(ModuleOpenedEvent, self._module_opened)
-            await self.comm.register_event(ModuleClosedEvent, self._module_closed)
+            await self.register_event(ModuleOpenedEvent, self._module_opened)
+            await self.register_event(ModuleClosedEvent, self._module_closed)
             asyncio.create_task(self._init_clients())
 
     async def _init_clients(self) -> None:
@@ -291,4 +298,21 @@ class StatusWidget(BaseWidget):
                 prefix = _html_prefix(self._colors["state"], f"State ({interface.__name__}):")
                 label = self._add_detail_row(item, prefix)
                 updater = StateItem(label, prefix, self._colors)
+                self._state_subscriptions.append((module, interface, updater.on_state_changed))
                 await self.comm.subscribe_state(module, interface, updater.on_state_changed)
+
+    async def discard(self) -> None:
+        """Unsubscribes every presence/state callback this widget ever registered, in bulk --
+        must run before Qt destroys this widget's labels (see the comment on
+        self._state_subscriptions), unlike _module_closed's per-module cleanup, which only ever
+        covers one module leaving while the rest of this widget stays alive.
+        """
+        await BaseWidget.discard(self)
+
+        for module, callback in self._presence_callbacks.items():
+            await self.comm.unsubscribe_presence(module, callback)
+        self._presence_callbacks.clear()
+
+        for module, interface, callback in self._state_subscriptions:
+            await self.comm.unsubscribe_state(module, interface, callback)
+        self._state_subscriptions.clear()

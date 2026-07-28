@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Callable
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from pyobs.utils.time import Time
 from colour import Color  # type: ignore
@@ -185,6 +185,18 @@ class NavPageItemDelegate(QtWidgets.QStyledItemDelegate):  # type: ignore
         painter.restore()
 
 
+class StayOpenMenu(QtWidgets.QMenu):  # type: ignore
+    """A QMenu that stays open when a checkable action inside it is clicked, so several
+    clients can be toggled in one go instead of reopening the menu after every click."""
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+        action = self.activeAction()
+        if action is not None and action.isCheckable():
+            action.trigger()
+            return
+        super().mouseReleaseEvent(event)
+
+
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
     add_log = QtCore.Signal(list)
     add_command_log = QtCore.Signal(str)
@@ -197,6 +209,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         show_modules: Optional[List[str]] = None,
         widgets: Optional[List[Dict[str, Any]]] = None,
         sidebar: Optional[List[Dict[str, Any]]] = None,
+        on_logout: Optional[Callable[[], None]] = None,
         **kwargs: Any,
     ):
         """Init window.
@@ -208,6 +221,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             show_modules: If not empty, show only listed modules.
             widgets: List of custom widgets.
             sidebar: List of custom widgets for the sidebar.
+            on_logout: If given, the bottom-left button reads "Log out" and invokes this
+                instead of closing the window -- used in standalone (login-window) mode, where
+                the GUI module stays alive and reconnects rather than the whole app quitting.
         """
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
@@ -223,13 +239,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.show_events = show_events
         self.show_status = show_status
         self.warning_task: Optional[asyncio.Task[Any]] = None
+        self._logging_out = False
 
         # splitters
-        self.splitterClients.setSizes([self.width() - 200, 200])
-        self.splitterLog.setSizes([self.height() - 100, 100])
+        self.splitterClients.setSizes([self.width() - 40, 40])
+        self.splitterLog.setSizes([self.height() - 140, 140])
         # splitterNav's width is actively reasserted on every resizeEvent instead of being set once
         # here -- see resizeEvent() for why
-        self._nav_width = 190
+        self._nav_width = 230
         self.splitterNav.splitterMoved.connect(self._on_nav_splitter_moved)
 
         # logs
@@ -240,11 +257,27 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.tableLog.setModel(self.log_proxy)
         self.log_model.rowsInserted.connect(self.log_entry_added)
         self.log_model.rowsInserted.connect(self._resize_log_table)
-        self.listClients.itemChanged.connect(self._log_client_changed)
+
+        # log tools: clear / copy / select-clients-shown, icon-only, next to the log table
+        self.widgetLogTools.setMaximumWidth(40)
+        self.buttonClearLog.setIcon(qta.icon("fa5s.trash"))
+        self.buttonClearLog.clicked.connect(self._clear_log)
+        self.buttonCopyLog.setIcon(qta.icon("fa5s.copy"))
+        self.buttonCopyLog.clicked.connect(self._copy_log)
+        self.buttonSelectClients.setIcon(qta.icon("fa5s.filter"))
+        self._clients_menu = StayOpenMenu(self)
+        self.buttonSelectClients.setMenu(self._clients_menu)
 
         # mastermind
         self.labelAutonomousWarning.setVisible(False)
         self.labelWeatherWarning.setVisible(False)
+
+        # top bar
+        if on_logout is not None:
+            self.buttonQuit.setText("Log out")
+            self.buttonQuit.clicked.connect(on_logout)
+        else:
+            self.buttonQuit.clicked.connect(self.close)
 
         # list of widgets
         self._widgets: Dict[str, BaseWidget] = {}
@@ -268,6 +301,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # open widgets
         await BaseWindow.open(self, modules=[module], **kwargs)
+
+        # who are we logged in as?
+        self.labelLoggedInAs.setText(f"Logged in as: {self.comm.name}")
 
         # tools header
         if self.show_shell or self.show_events or self.show_status:
@@ -322,9 +358,27 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.warning_task is not None:
             self.warning_task.cancel()
+        if self._logging_out:
+            # GUI._logout() is replacing this window with a fresh one -- the module itself
+            # stays alive and reconnects, so it must not be quit here.
+            return
         if self.module is not None:
             # quit() exists on Module but is not declared on Proxy
             self.module.quit()  # pyrefly: ignore [missing-attribute] —
+
+    def close_for_logout(self) -> None:
+        """Closes this window as part of GUI._logout()'s reconnect flow, without quitting the
+        module (see closeEvent)."""
+        self._logging_out = True
+        self.close()
+
+    async def discard_all_widgets(self) -> None:
+        """Unregisters every widget's comm event handlers/subscriptions -- must be awaited
+        *before* this window is closed/deleted as part of a reconnect (GUI._logout()), otherwise
+        a stray in-flight event/state callback can fire after Qt has already destroyed the
+        widget it targets (e.g. "libshiboken: Internal C++ object already deleted")."""
+        for widget in list(self._widgets.values()):
+            await widget.discard()
 
     def _on_nav_splitter_moved(self, pos: int, index: int) -> None:
         """Remember the user's chosen nav width whenever they drag the splitter handle."""
@@ -470,20 +524,35 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self._select_page_by_name(name)
 
     async def _update_client_list(self) -> None:
-        """Updates the list of clients for the log."""
+        """Updates the select-clients menu for the log."""
 
-        # add all clients to list
-        self.listClients.clear()
+        # rebuild the menu -- every connected client, checked (shown) by default. A checkbox
+        # inside a QWidgetAction (rather than a plain checkable QAction) both lets the entry's
+        # text be colored to match the client's color in the log table, and -- as a side effect
+        # -- keeps the menu open on click, since the click is consumed by the checkbox widget
+        # itself rather than by QMenu's own action-triggering/auto-close logic.
+        self._clients_menu.clear()
         for client_name in self.comm.clients:
-            # create item
-            item = QtWidgets.QListWidgetItem(client_name)
-            item.setCheckState(QtCore.Qt.CheckState.Checked)
-            item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
-            self.listClients.addItem(item)
+            checkbox = QtWidgets.QCheckBox(client_name, self._clients_menu)
+            checkbox.setChecked(True)
+            palette = checkbox.palette()
+            palette.setColor(QtGui.QPalette.ColorRole.WindowText, QtGui.QColor(Color(pick_for=client_name).hex))
+            checkbox.setPalette(palette)
+            checkbox.toggled.connect(lambda checked, name=client_name: self.log_proxy.filter_source(name, checked))
+
+            action = QtWidgets.QWidgetAction(self._clients_menu)
+            action.setDefaultWidget(checkbox)
+            self._clients_menu.addAction(action)
 
         # update shell
         if self.shell is not None:
             await self.shell.update_client_list()
+
+    def _clear_log(self) -> None:
+        self.log_model.clear()
+
+    def _copy_log(self) -> None:
+        QtWidgets.QApplication.clipboard().setText(self.log_model.to_text())
 
     async def process_log_entry(self, entry: Event, sender: str) -> bool:
         """Process a new log entry.
@@ -521,12 +590,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # this is a one-time shot, so unconnect signal
         self.log_model.rowsInserted.disconnect(self._resize_log_table)
-
-    def _log_client_changed(self, item: QtWidgets.QListWidgetItem) -> None:
-        """Update log filter."""
-
-        # update proxy
-        self.log_proxy.filter_source(item.text(), item.checkState() == QtCore.Qt.CheckState.Checked)
 
     async def _check_warning_task(self) -> None:
         while True:

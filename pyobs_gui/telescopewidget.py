@@ -5,7 +5,8 @@ from typing import Any
 import numpy as np
 import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
-from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun
+from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun, EarthLocation
+from astroplan import Observer
 import astropy.units as u
 import logging
 from astroquery.exceptions import InvalidQueryError
@@ -32,6 +33,7 @@ from pyobs.interfaces import (
     ITemperatures,
     IMotion,
     MotionState,
+    IModule,
 )
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
@@ -150,7 +152,10 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         # permitted methods (ACLs)
         await self._fetch_permitted_methods()
 
-        # add coord types
+        # add coord types -- signals blocked while populating, since currentIndexChanged (wired
+        # to select_coord_type in __init__) would otherwise fire as soon as the first item is
+        # added, calling select_coord_type() before the observer fallback below has run
+        self.comboMoveType.blockSignals(True)
         if IPointingRaDec in self._interfaces or IPointingBody in self._interfaces:
             self.comboMoveType.addItem(COORDS.EQUITORIAL.value)
         if IPointingAltAz in self._interfaces:
@@ -167,6 +172,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             self.comboMoveType.addItem(COORDS.HELIOPROJECTIVE_MUPSI.value)
         if self.comboMoveType.count() > 0:
             self.comboMoveType.setCurrentIndex(0)
+        self.comboMoveType.blockSignals(False)
 
         # offsets
         self.groupEquatorialOffsets.setVisible(IOffsetsRaDec in self._interfaces)
@@ -179,6 +185,17 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
             await self.add_to_sidebar(self.create_widget(FocusWidget, module=self.module))
         if ITemperatures in self._interfaces:
             await self.add_to_sidebar(self.create_widget(TemperaturesWidget, module=self.module))
+
+        # standalone/login-window mode never configures a local location (there's no YAML at
+        # all), so fall back to the telescope module's own published location instead -- mirrors
+        # pyobs-core's own cross-module location lookup in Module._on_module_opened()
+        if self.observer is None:
+            caps = await self.comm.get_capabilities(self.module, IModule)
+            if caps is not None and caps.location is not None:
+                location = EarthLocation.from_geodetic(
+                    caps.location.longitude, caps.location.latitude, caps.location.elevation
+                )
+                self.observer = Observer(location=location, timezone=caps.location.timezone)
 
         # init coord type
         self.select_coord_type()

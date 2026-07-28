@@ -1,6 +1,6 @@
 [project]
 name = "pyobs-gui"
-version = "2.0.0.dev4"
+version = "2.0.0.dev5"
 description = "A remote GUI for pyobs"
 authors = [{ name = "Tim-Oliver Husser", email = "thusser@uni-goettingen.de" }]
 requires-python = ">=3.11,<3.14"
@@ -12,10 +12,12 @@ dependencies = [
     "sunpy[all]>=7.0.1",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget>=0.13.1",
-    "pyobs-core>=2.0.0.dev48,<3",
+    "pyobs-core>=2.0.0.dev50,<3",
     "pyside6>=6.10.1",
     "astroplan>=0.10.1",
     "astropy>=7.0.1,<8",
+    "keyring>=25.7.0,<26",
+    "secretstorage>=3.5.0,<4",
 ]
 
 [dependency-groups]
@@ -31,6 +33,9 @@ dev = [
     "Sphinx>=8.2.3,<9",
     "types-defusedxml>=0.7.0.20250708",
     "types-python-dateutil>=2.9.0.20250708",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-mock>=3.15.1",
 ]
 
 [build-system]
@@ -55,8 +60,11 @@ ignore = ["E203", "E266", "E501", "F403", "E722"]
 [tool.ruff.lint.mccabe]
 max-complexity = 30
 
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+
 [tool.pyrefly]
-project-includes = ["pyobs_gui"]
+project-includes = ["pyobs_gui", "tests"]
 project-excludes = ["**/docs/", "**/qt/"]
 python-version = "3.11.0"
 preset = "legacy"
