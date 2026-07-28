@@ -17,8 +17,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHeaderView,
     QLabel, QListView, QListWidget, QListWidgetItem,
-    QMainWindow, QPushButton, QSizePolicy, QSplitter,
-    QStackedWidget, QTableView, QVBoxLayout, QWidget)
+    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
+    QSplitter, QStackedWidget, QTableView, QToolButton,
+    QVBoxLayout, QWidget)
 from . import resources_rc
 
 class Ui_MainWindow(object):
@@ -160,13 +161,37 @@ class Ui_MainWindow(object):
         self.tableLog.verticalHeader().setVisible(False)
         self.tableLog.verticalHeader().setMinimumSectionSize(20)
         self.tableLog.verticalHeader().setDefaultSectionSize(20)
-        self.listClients = QListWidget(self.splitterClients)
-        self.listClients.setObjectName(u"listClients")
-        sizePolicy.setHeightForWidth(self.listClients.sizePolicy().hasHeightForWidth())
-        self.listClients.setSizePolicy(sizePolicy)
-        self.listClients.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.listClients.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        self.splitterClients.addWidget(self.listClients)
+        self.widgetLogTools = QWidget(self.splitterClients)
+        self.widgetLogTools.setObjectName(u"widgetLogTools")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.widgetLogTools.sizePolicy().hasHeightForWidth())
+        self.widgetLogTools.setSizePolicy(sizePolicy1)
+        self.layoutLogTools = QVBoxLayout(self.widgetLogTools)
+        self.layoutLogTools.setObjectName(u"layoutLogTools")
+        self.layoutLogTools.setContentsMargins(2, 2, 2, 2)
+        self.buttonClearLog = QToolButton(self.widgetLogTools)
+        self.buttonClearLog.setObjectName(u"buttonClearLog")
+
+        self.layoutLogTools.addWidget(self.buttonClearLog)
+
+        self.buttonCopyLog = QToolButton(self.widgetLogTools)
+        self.buttonCopyLog.setObjectName(u"buttonCopyLog")
+
+        self.layoutLogTools.addWidget(self.buttonCopyLog)
+
+        self.buttonSelectClients = QToolButton(self.widgetLogTools)
+        self.buttonSelectClients.setObjectName(u"buttonSelectClients")
+        self.buttonSelectClients.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+
+        self.layoutLogTools.addWidget(self.buttonSelectClients)
+
+        self.verticalSpacerLogTools = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.layoutLogTools.addItem(self.verticalSpacerLogTools)
+
+        self.splitterClients.addWidget(self.widgetLogTools)
         self.splitterLog.addWidget(self.splitterClients)
         self.splitterNav.addWidget(self.splitterLog)
 
@@ -188,5 +213,14 @@ class Ui_MainWindow(object):
         self.labelWeatherWarning.setText(QCoreApplication.translate("MainWindow", u"!!! WARNING: weather module disabled !!!", None))
         self.labelLoggedInAs.setText(QCoreApplication.translate("MainWindow", u"Logged in as: ", None))
         self.buttonQuit.setText(QCoreApplication.translate("MainWindow", u"Quit", None))
+#if QT_CONFIG(tooltip)
+        self.buttonClearLog.setToolTip(QCoreApplication.translate("MainWindow", u"Clear log", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.buttonCopyLog.setToolTip(QCoreApplication.translate("MainWindow", u"Copy log to clipboard", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.buttonSelectClients.setToolTip(QCoreApplication.translate("MainWindow", u"Select clients shown in log", None))
+#endif // QT_CONFIG(tooltip)
     # retranslateUi
 

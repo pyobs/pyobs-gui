@@ -48,6 +48,17 @@ class LogModel(QtCore.QAbstractTableModel):  # type: ignore
         self._entries.append(entry)
         self.endInsertRows()
 
+    def clear(self) -> None:
+        if not self._entries:
+            return
+        self.beginRemoveRows(QtCore.QModelIndex(), 0, len(self._entries) - 1)
+        self._entries.clear()
+        self.endRemoveRows()
+
+    def to_text(self) -> str:
+        """Whole log as tab-separated text, regardless of any active client filter."""
+        return "\n".join("\t".join(str(c) for c in row) for row in self._entries)
+
 
 class LogModelProxy(QtCore.QSortFilterProxyModel):  # type: ignore
     def __init__(self, *args: Any):

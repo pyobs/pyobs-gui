@@ -408,19 +408,64 @@
            <number>20</number>
           </attribute>
          </widget>
-         <widget class="QListWidget" name="listClients">
+         <widget class="QWidget" name="widgetLogTools">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
-          </property>
+          <layout class="QVBoxLayout" name="layoutLogTools">
+           <property name="leftMargin">
+            <number>2</number>
+           </property>
+           <property name="topMargin">
+            <number>2</number>
+           </property>
+           <property name="rightMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>2</number>
+           </property>
+           <item>
+            <widget class="QToolButton" name="buttonClearLog">
+             <property name="toolTip">
+              <string>Clear log</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="buttonCopyLog">
+             <property name="toolTip">
+              <string>Copy log to clipboard</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="buttonSelectClients">
+             <property name="toolTip">
+              <string>Select clients shown in log</string>
+             </property>
+             <property name="popupMode">
+              <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacerLogTools">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </widget>
         </widget>
        </widget>

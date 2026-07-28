@@ -185,6 +185,18 @@ class NavPageItemDelegate(QtWidgets.QStyledItemDelegate):  # type: ignore
         painter.restore()
 
 
+class StayOpenMenu(QtWidgets.QMenu):  # type: ignore
+    """A QMenu that stays open when a checkable action inside it is clicked, so several
+    clients can be toggled in one go instead of reopening the menu after every click."""
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+        action = self.activeAction()
+        if action is not None and action.isCheckable():
+            action.trigger()
+            return
+        super().mouseReleaseEvent(event)
+
+
 class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ignore
     add_log = QtCore.Signal(list)
     add_command_log = QtCore.Signal(str)
@@ -230,7 +242,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self._logging_out = False
 
         # splitters
-        self.splitterClients.setSizes([self.width() - 200, 200])
+        self.splitterClients.setSizes([self.width() - 40, 40])
         self.splitterLog.setSizes([self.height() - 100, 100])
         # splitterNav's width is actively reasserted on every resizeEvent instead of being set once
         # here -- see resizeEvent() for why
@@ -245,7 +257,16 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.tableLog.setModel(self.log_proxy)
         self.log_model.rowsInserted.connect(self.log_entry_added)
         self.log_model.rowsInserted.connect(self._resize_log_table)
-        self.listClients.itemChanged.connect(self._log_client_changed)
+
+        # log tools: clear / copy / select-clients-shown, icon-only, next to the log table
+        self.widgetLogTools.setMaximumWidth(40)
+        self.buttonClearLog.setIcon(qta.icon("fa5s.eraser"))
+        self.buttonClearLog.clicked.connect(self._clear_log)
+        self.buttonCopyLog.setIcon(qta.icon("fa5s.copy"))
+        self.buttonCopyLog.clicked.connect(self._copy_log)
+        self.buttonSelectClients.setIcon(qta.icon("fa5s.filter"))
+        self._clients_menu = StayOpenMenu(self)
+        self.buttonSelectClients.setMenu(self._clients_menu)
 
         # mastermind
         self.labelAutonomousWarning.setVisible(False)
@@ -503,20 +524,35 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self._select_page_by_name(name)
 
     async def _update_client_list(self) -> None:
-        """Updates the list of clients for the log."""
+        """Updates the select-clients menu for the log."""
 
-        # add all clients to list
-        self.listClients.clear()
+        # rebuild the menu -- every connected client, checked (shown) by default. A checkbox
+        # inside a QWidgetAction (rather than a plain checkable QAction) both lets the entry's
+        # text be colored to match the client's color in the log table, and -- as a side effect
+        # -- keeps the menu open on click, since the click is consumed by the checkbox widget
+        # itself rather than by QMenu's own action-triggering/auto-close logic.
+        self._clients_menu.clear()
         for client_name in self.comm.clients:
-            # create item
-            item = QtWidgets.QListWidgetItem(client_name)
-            item.setCheckState(QtCore.Qt.CheckState.Checked)
-            item.setForeground(QtGui.QColor(Color(pick_for=client_name).hex))
-            self.listClients.addItem(item)
+            checkbox = QtWidgets.QCheckBox(client_name, self._clients_menu)
+            checkbox.setChecked(True)
+            palette = checkbox.palette()
+            palette.setColor(QtGui.QPalette.ColorRole.WindowText, QtGui.QColor(Color(pick_for=client_name).hex))
+            checkbox.setPalette(palette)
+            checkbox.toggled.connect(lambda checked, name=client_name: self.log_proxy.filter_source(name, checked))
+
+            action = QtWidgets.QWidgetAction(self._clients_menu)
+            action.setDefaultWidget(checkbox)
+            self._clients_menu.addAction(action)
 
         # update shell
         if self.shell is not None:
             await self.shell.update_client_list()
+
+    def _clear_log(self) -> None:
+        self.log_model.clear()
+
+    def _copy_log(self) -> None:
+        QtWidgets.QApplication.clipboard().setText(self.log_model.to_text())
 
     async def process_log_entry(self, entry: Event, sender: str) -> bool:
         """Process a new log entry.
@@ -554,12 +590,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # this is a one-time shot, so unconnect signal
         self.log_model.rowsInserted.disconnect(self._resize_log_table)
-
-    def _log_client_changed(self, item: QtWidgets.QListWidgetItem) -> None:
-        """Update log filter."""
-
-        # update proxy
-        self.log_proxy.filter_source(item.text(), item.checkState() == QtCore.Qt.CheckState.Checked)
 
     async def _check_warning_task(self) -> None:
         while True:
