@@ -12,6 +12,7 @@ import logging
 from dataclasses import dataclass
 
 from PySide6 import QtCore, QtGui, QtWidgets
+from pyobs.comm.xmpp import is_valid_jid
 
 from .accounts import SavedAccountsModel
 
@@ -55,10 +56,18 @@ def build_connection_request(
             a remote/non-technical-facing login window should default to the secure option.
         insecure_skip_tls: Whether the "skip TLS certificate verification" checkbox is checked.
             Only meaningful when use_tls is also True.
+
+    Raises:
+        ValueError: If jid is non-empty but not a valid user@domain[/resource] JID -- e.g. a
+            saved account whose jid ends in a bare "/" with no resource after it, which
+            XmppComm itself would otherwise reject with a much less specific error deep inside
+            module construction.
     """
     jid = jid.strip()
     if not jid or not password:
         return None
+    if not is_valid_jid(jid):
+        raise ValueError(f"'{jid}' doesn't look like a valid JID (expected user@example.com).")
 
     server = None
     if override_server:
