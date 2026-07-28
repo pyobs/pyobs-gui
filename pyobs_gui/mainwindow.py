@@ -351,6 +351,14 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self._logging_out = True
         self.close()
 
+    async def discard_all_widgets(self) -> None:
+        """Unregisters every widget's comm event handlers/subscriptions -- must be awaited
+        *before* this window is closed/deleted as part of a reconnect (GUI._logout()), otherwise
+        a stray in-flight event/state callback can fire after Qt has already destroyed the
+        widget it targets (e.g. "libshiboken: Internal C++ object already deleted")."""
+        for widget in list(self._widgets.values()):
+            await widget.discard()
+
     def _on_nav_splitter_moved(self, pos: int, index: int) -> None:
         """Remember the user's chosen nav width whenever they drag the splitter handle."""
         self._nav_width = self.splitterNav.sizes()[0]

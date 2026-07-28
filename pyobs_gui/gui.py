@@ -94,34 +94,40 @@ class GUI(Module, IFitsHeaderBefore):
         self._window.show()
 
     def _request_logout(self) -> None:
-        """Wired to MainWindow's "Log out" button (standalone mode only). Closes the current
-        window/session immediately -- like a real logout, not a "maybe" -- then schedules the
-        async part (closing the comm, showing the login window again) as a background task,
-        since Qt click handlers are synchronous.
+        """Wired to MainWindow's "Log out" button (standalone mode only). Hides the current
+        window immediately -- like a real logout, not a "maybe" -- then schedules the async part
+        (unregistering its widgets' comm subscriptions, closing the comm, showing the login
+        window again) as a background task, since Qt click handlers are synchronous.
         """
         if self._logging_out:
             return  # already logging out -- ignore a repeat click
         self._logging_out = True
 
-        if self._window is not None:
-            self._window.close_for_logout()
-            self._window.deleteLater()
-            self._window = None
+        old_window = self._window
+        self._window = None
+        if old_window is not None:
+            old_window.close_for_logout()
 
-        asyncio.create_task(self._logout())
+        asyncio.create_task(self._logout(old_window))
 
-    async def _logout(self) -> None:
+    async def _logout(self, old_window: "MainWindow | None") -> None:
         """Closes the current comm, then shows the login window and reconnects with whatever it
         resolves to -- all within the same running Application/event loop, so Ctrl+C and the
         eventual real "Quit" still reach this exact module instance (see
         specs/plans/gui-login-window.md for why a brand new GUI() instance would leave
         Application's own bookkeeping stale instead).
 
-        By the time this runs, MainWindow._request_logout() has already closed the old window --
+        By the time this runs, MainWindow._request_logout() has already hidden the old window --
         there's no session left to fall back to, so any failure here (the user closes the login
         window without connecting, or the reconnect itself fails) is reported via an error dialog
         and the app then quits cleanly, rather than limping on with no window and no comm.
         """
+        if old_window is not None:
+            # must happen before deleteLater(): unregisters every widget's comm subscriptions
+            # first, so a stray in-flight callback can't fire against an already-destroyed label
+            await old_window.discard_all_widgets()
+            old_window.deleteLater()
+
         old_comm = self._comm
         if old_comm is not None:
             await old_comm.close()
