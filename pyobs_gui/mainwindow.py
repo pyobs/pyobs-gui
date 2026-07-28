@@ -19,6 +19,7 @@ from pyobs.interfaces import (
     ITelescope,
     IRoof,
     IFocuser,
+    IRunning,
     IWeather,
     IVideo,
     IAutonomous,
@@ -539,7 +540,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.mastermind_running = False
         for auto_client in autonomous_clients:
             async with self.comm.safe_proxy(auto_client, IAutonomous) as proxy:
-                if proxy is not None and await proxy.is_running():
+                running_state = proxy.get_state(IRunning) if proxy is not None else None
+                if running_state is not None and running_state.running:
                     self.mastermind_running = True
                     break
 
@@ -551,7 +553,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if len(weather_clients) > 0:
             # found one or more, just take the first one
             async with self.comm.proxy(weather_clients[0]) as weather:
-                self.labelWeatherWarning.setVisible(not await weather.is_running())
+                weather_running_state = weather.get_state(IRunning)
+                is_running = weather_running_state is not None and weather_running_state.running
+                self.labelWeatherWarning.setVisible(not is_running)
         else:
             # if there is no weather module, don't show warning
             self.labelWeatherWarning.setVisible(False)

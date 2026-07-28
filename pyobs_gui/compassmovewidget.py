@@ -46,7 +46,9 @@ class CompassMoveWidget(BaseWidget, Ui_CompassMoveWidget):
             if altaz_state is None:
                 return
             altaz = SkyCoord(
+                # pyrefly: ignore [missing-attribute]
                 alt=altaz_state.alt * u.degree,
+                # pyrefly: ignore [missing-attribute]
                 az=altaz_state.az * u.degree,
                 obstime=Time.now(),
                 location=self.observer.location,

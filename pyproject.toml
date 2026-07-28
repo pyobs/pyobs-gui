@@ -12,7 +12,7 @@ dependencies = [
     "sunpy[all]>=7.0.1",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget>=0.13.1",
-    "pyobs-core>=2.0.0.dev28,<3",
+    "pyobs-core>=2.0.0.dev48,<3",
     "pyside6>=6.10.1",
     "astroplan>=0.10.1",
     "astropy>=7.0.1,<8",
@@ -20,7 +20,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black>=25.1.0,<26",
+    "black>=25.1.0,<27",
     "ruff>=0.11.0",
     "matplotlib-stubs>=0.1.0",
     "pyrefly>=0.17.0",
