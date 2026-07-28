@@ -1480,14 +1480,16 @@ wheels = [
 
 [[package]]
 name = "matplotlib-stubs"
-version = "0.1.0"
+version = "0.3.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "matplotlib" },
+    { name = "numpy" },
+    { name = "pandas" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8f/69/4e4938d9162a75e3505559af59fe6c650d71d72656f0659d4112e9539b98/matplotlib_stubs-0.1.0.tar.gz", hash = "sha256:98e078ff77085f626eb3388899ec40e67f3bc3c422220eb4f86c6185e40cd3e3", size = 75056, upload-time = "2023-06-26T03:27:02.727Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/c3/b9436e86a6f4cf3e613156100d0cdc6cbf98805ceede4d2df103ace3a88e/matplotlib_stubs-0.3.11.tar.gz", hash = "sha256:f6ba6f9fa5988b78c373284f26e785034e3360d66b2ca41c65a9d627206f7c8b", size = 216355, upload-time = "2025-10-24T01:04:23.857Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f5/0b/f7759d93e7f5ccebc9fdccce14eace2aa1de195eaa90c5840b4687451869/matplotlib_stubs-0.1.0-py3-none-any.whl", hash = "sha256:bf46ad5e515a9e721b7e1f4410825677de123c5bc6d18ca7d5f37f59936938f4", size = 116094, upload-time = "2023-06-26T03:27:00.286Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/ab/6c77aeea4522cd11517150668693388a4b9f2f2e77f0b112429190e457c1/matplotlib_stubs-0.3.11-py3-none-any.whl", hash = "sha256:e9905056252b02462f4ee1e8de470179b7f11d9e008309b186ad08d2869b0f0a", size = 122856, upload-time = "2025-10-24T01:04:22.963Z" },
 ]
 
 [[package]]
