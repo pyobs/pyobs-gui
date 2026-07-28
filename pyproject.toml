@@ -16,7 +16,8 @@ dependencies = [
     "pyside6>=6.10.1",
     "astroplan>=0.10.1",
     "astropy>=7.0.1,<8",
-    "keyring>=25.6.0,<26",
+    "keyring>=25.7.0,<26",
+    "secretstorage>=3.5.0,<4",
 ]
 
 [dependency-groups]
