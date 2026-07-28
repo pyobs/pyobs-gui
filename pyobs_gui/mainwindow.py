@@ -243,10 +243,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # splitters
         self.splitterClients.setSizes([self.width() - 40, 40])
-        self.splitterLog.setSizes([self.height() - 100, 100])
+        self.splitterLog.setSizes([self.height() - 140, 140])
         # splitterNav's width is actively reasserted on every resizeEvent instead of being set once
         # here -- see resizeEvent() for why
-        self._nav_width = 190
+        self._nav_width = 230
         self.splitterNav.splitterMoved.connect(self._on_nav_splitter_moved)
 
         # logs
@@ -260,7 +260,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # log tools: clear / copy / select-clients-shown, icon-only, next to the log table
         self.widgetLogTools.setMaximumWidth(40)
-        self.buttonClearLog.setIcon(qta.icon("fa5s.eraser"))
+        self.buttonClearLog.setIcon(qta.icon("fa5s.trash"))
         self.buttonClearLog.clicked.connect(self._clear_log)
         self.buttonCopyLog.setIcon(qta.icon("fa5s.copy"))
         self.buttonCopyLog.clicked.connect(self._copy_log)
