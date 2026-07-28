@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.11.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -17,8 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHeaderView,
     QLabel, QListView, QListWidget, QListWidgetItem,
-    QMainWindow, QSizePolicy, QSplitter, QStackedWidget,
-    QTableView, QVBoxLayout, QWidget)
+    QMainWindow, QPushButton, QSizePolicy, QSplitter,
+    QStackedWidget, QTableView, QVBoxLayout, QWidget)
 from . import resources_rc
 
 class Ui_MainWindow(object):
@@ -88,13 +88,16 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.labelWeatherWarning)
 
-        self.splitterLog = QSplitter(self.centralwidget)
-        self.splitterLog.setObjectName(u"splitterLog")
-        self.splitterLog.setOrientation(Qt.Orientation.Vertical)
-        self.splitterNav = QSplitter(self.splitterLog)
+        self.splitterNav = QSplitter(self.centralwidget)
         self.splitterNav.setObjectName(u"splitterNav")
         self.splitterNav.setOrientation(Qt.Orientation.Horizontal)
-        self.listPages = QListWidget(self.splitterNav)
+        self.widgetNavSidebar = QWidget(self.splitterNav)
+        self.widgetNavSidebar.setObjectName(u"widgetNavSidebar")
+        self.layoutNavSidebar = QVBoxLayout(self.widgetNavSidebar)
+        self.layoutNavSidebar.setSpacing(4)
+        self.layoutNavSidebar.setObjectName(u"layoutNavSidebar")
+        self.layoutNavSidebar.setContentsMargins(0, 0, 0, 4)
+        self.listPages = QListWidget(self.widgetNavSidebar)
         self.listPages.setObjectName(u"listPages")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -116,15 +119,30 @@ class Ui_MainWindow(object):
         self.listPages.setViewMode(QListView.ViewMode.ListMode)
         self.listPages.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.listPages.setSelectionRectVisible(False)
-        self.splitterNav.addWidget(self.listPages)
-        self.splitterToolBox = QSplitter(self.splitterNav)
+
+        self.layoutNavSidebar.addWidget(self.listPages)
+
+        self.labelLoggedInAs = QLabel(self.widgetNavSidebar)
+        self.labelLoggedInAs.setObjectName(u"labelLoggedInAs")
+
+        self.layoutNavSidebar.addWidget(self.labelLoggedInAs)
+
+        self.buttonQuit = QPushButton(self.widgetNavSidebar)
+        self.buttonQuit.setObjectName(u"buttonQuit")
+
+        self.layoutNavSidebar.addWidget(self.buttonQuit)
+
+        self.splitterNav.addWidget(self.widgetNavSidebar)
+        self.splitterLog = QSplitter(self.splitterNav)
+        self.splitterLog.setObjectName(u"splitterLog")
+        self.splitterLog.setOrientation(Qt.Orientation.Vertical)
+        self.splitterToolBox = QSplitter(self.splitterLog)
         self.splitterToolBox.setObjectName(u"splitterToolBox")
         self.splitterToolBox.setOrientation(Qt.Orientation.Horizontal)
         self.stackedWidget = QStackedWidget(self.splitterToolBox)
         self.stackedWidget.setObjectName(u"stackedWidget")
         self.splitterToolBox.addWidget(self.stackedWidget)
-        self.splitterNav.addWidget(self.splitterToolBox)
-        self.splitterLog.addWidget(self.splitterNav)
+        self.splitterLog.addWidget(self.splitterToolBox)
         self.splitterClients = QSplitter(self.splitterLog)
         self.splitterClients.setObjectName(u"splitterClients")
         self.splitterClients.setOrientation(Qt.Orientation.Horizontal)
@@ -150,8 +168,9 @@ class Ui_MainWindow(object):
         self.listClients.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.splitterClients.addWidget(self.listClients)
         self.splitterLog.addWidget(self.splitterClients)
+        self.splitterNav.addWidget(self.splitterLog)
 
-        self.verticalLayout.addWidget(self.splitterLog)
+        self.verticalLayout.addWidget(self.splitterNav)
 
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -167,5 +186,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"pyobs GUI", None))
         self.labelAutonomousWarning.setText(QCoreApplication.translate("MainWindow", u"!!! WARNING: autonomous module(s) active !!!", None))
         self.labelWeatherWarning.setText(QCoreApplication.translate("MainWindow", u"!!! WARNING: weather module disabled !!!", None))
+        self.labelLoggedInAs.setText(QCoreApplication.translate("MainWindow", u"Logged in as: ", None))
+        self.buttonQuit.setText(QCoreApplication.translate("MainWindow", u"Quit", None))
     # retranslateUi
 

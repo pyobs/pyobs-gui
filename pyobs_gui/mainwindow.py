@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Callable
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from pyobs.utils.time import Time
 from colour import Color  # type: ignore
@@ -197,6 +197,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         show_modules: Optional[List[str]] = None,
         widgets: Optional[List[Dict[str, Any]]] = None,
         sidebar: Optional[List[Dict[str, Any]]] = None,
+        on_logout: Optional[Callable[[], None]] = None,
         **kwargs: Any,
     ):
         """Init window.
@@ -208,6 +209,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             show_modules: If not empty, show only listed modules.
             widgets: List of custom widgets.
             sidebar: List of custom widgets for the sidebar.
+            on_logout: If given, the bottom-left button reads "Log out" and invokes this
+                instead of closing the window -- used in standalone (login-window) mode, where
+                the GUI module stays alive and reconnects rather than the whole app quitting.
         """
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
@@ -223,6 +227,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.show_events = show_events
         self.show_status = show_status
         self.warning_task: Optional[asyncio.Task[Any]] = None
+        self._logging_out = False
 
         # splitters
         self.splitterClients.setSizes([self.width() - 200, 200])
@@ -246,6 +251,13 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.labelAutonomousWarning.setVisible(False)
         self.labelWeatherWarning.setVisible(False)
 
+        # top bar
+        if on_logout is not None:
+            self.buttonQuit.setText("Log out")
+            self.buttonQuit.clicked.connect(on_logout)
+        else:
+            self.buttonQuit.clicked.connect(self.close)
+
         # list of widgets
         self._widgets: Dict[str, BaseWidget] = {}
         self._current_widget = None
@@ -268,6 +280,9 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # open widgets
         await BaseWindow.open(self, modules=[module], **kwargs)
+
+        # who are we logged in as?
+        self.labelLoggedInAs.setText(f"Logged in as: {self.comm.name}")
 
         # tools header
         if self.show_shell or self.show_events or self.show_status:
@@ -322,9 +337,19 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.warning_task is not None:
             self.warning_task.cancel()
+        if self._logging_out:
+            # GUI._logout() is replacing this window with a fresh one -- the module itself
+            # stays alive and reconnects, so it must not be quit here.
+            return
         if self.module is not None:
             # quit() exists on Module but is not declared on Proxy
             self.module.quit()  # pyrefly: ignore [missing-attribute] —
+
+    def close_for_logout(self) -> None:
+        """Closes this window as part of GUI._logout()'s reconnect flow, without quitting the
+        module (see closeEvent)."""
+        self._logging_out = True
+        self.close()
 
     def _on_nav_splitter_moved(self, pos: int, index: int) -> None:
         """Remember the user's chosen nav width whenever they drag the splitter handle."""

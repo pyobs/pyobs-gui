@@ -11,9 +11,22 @@ https://github.com/duniter/sakia/blob/1de71a18ec635ca63cf4784e4284eea7f6c1c8a1/s
 """
 
 
+_live_dialogs: set[QtWidgets.QMessageBox] = set()
+
+
 def dialog_async_exec(dialog: QtWidgets.QMessageBox) -> asyncio.Future[Any]:
     future: asyncio.Future[Any] = asyncio.get_running_loop().create_future()
-    dialog.finished.connect(lambda r: future.set_result(r))
+
+    def _on_finished(r: int) -> None:
+        _live_dialogs.discard(dialog)
+        future.set_result(r)
+
+    # a dialog with no parent has nothing anchoring its C++ lifetime, so Python can garbage
+    # collect it before the user ever sees/clicks it, silently hanging whoever awaits this
+    # future -- keep a strong reference alive until it actually finishes. Harmless no-op for
+    # dialogs that do have a parent (Qt's own parent/child ownership already keeps those alive).
+    _live_dialogs.add(dialog)
+    dialog.finished.connect(_on_finished)
     dialog.open()
     return future
 
@@ -21,7 +34,7 @@ def dialog_async_exec(dialog: QtWidgets.QMessageBox) -> asyncio.Future[Any]:
 class QAsyncMessageBox:
     @staticmethod
     def critical(
-        parent: QtWidgets.QWidget,
+        parent: QtWidgets.QWidget | None,
         title: str,
         label: str,
         buttons: QMessageBox.StandardButton = QMessageBox.StandardButton.Ok,
