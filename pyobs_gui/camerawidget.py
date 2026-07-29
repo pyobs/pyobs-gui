@@ -332,13 +332,17 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.exposures_left = self.spinCount.value()
         broadcast = self.checkBroadcast.isChecked()
 
-        # if the module can grab a counted sequence server-side, let it
-        async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
-            if proxy is not None:
-                await proxy.grab_sequence(self.exposures_left, broadcast)
-                return
+        # if the module can grab a counted sequence server-side, let it -- but only when
+        # broadcasting, since grab_sequence() doesn't hand filenames back to the caller and
+        # the client has no other way to learn an image is ready to display
+        if broadcast:
+            async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
+                if proxy is not None:
+                    await proxy.grab_sequence(self.exposures_left, broadcast)
+                    return
 
-        # fall back to a client-side loop for modules that don't support IDataSequence
+        # fall back to a client-side loop for modules that don't support IDataSequence, or
+        # when not broadcasting (grab_data() returns the filename directly for display)
         while self.exposures_left > 0:
             await self.datadisplay.grab_data(broadcast)
             self.exposures_left -= 1
