@@ -70,7 +70,9 @@ def _build_generic_grammar_namespace() -> types.ModuleType:
     stub_dir = Path(tempfile.gettempdir()) / "pyobs_gui_astropy_ply_stub"
     stub_dir.mkdir(parents=True, exist_ok=True)
 
-    ns = types.ModuleType("_pyobs_gui_generic_grammar")
+    # Typed as Any, not types.ModuleType: every t_*/p_* attribute below is bolted on
+    # dynamically for PLY's benefit, which a real ModuleType's static shape can't express.
+    ns: Any = types.ModuleType("_pyobs_gui_generic_grammar")
     ns.__file__ = str(stub_dir / "generic.py")
     ns.tokens = tokens
 
