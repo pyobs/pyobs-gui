@@ -288,7 +288,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self._modules_header_added = False
 
         # navbar keyboard shortcuts: slot -> currently bound page name, session-only (see
-        # DEV_NavbarShortcuts.md)
+        # pyobs-core/specs/plans/gui-navbar-shortcuts.md)
         self._slot_bindings: Dict[str, str] = {}
         self.listPages.setItemDelegate(NavPageItemDelegate(self._slot_bindings, self))
         self._setup_shortcuts()
@@ -469,8 +469,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self._widgets / self._slot_bindings at press-time, since module pages come and go but the
         shortcut objects themselves live for the app's lifetime. Every shortcut requires Ctrl (or
         Ctrl+Alt) so no text/numeric-entry widget can ever mistake one for ordinary input -- see
-        DEV_NavbarShortcuts.md for why that's a structural guarantee rather than one that needs
-        per-widget-type verification.
+        pyobs-core/specs/plans/gui-navbar-shortcuts.md for why that's a structural guarantee
+        rather than one that needs per-widget-type verification.
         """
         self._shortcuts: List[QtGui.QShortcut] = []
 
