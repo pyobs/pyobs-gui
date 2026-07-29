@@ -123,19 +123,28 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
             xlabel, ylabel = "Offset 1 [deg]", "Offset 2 [deg]"
         if points:
             xs, ys = zip(*points, strict=True)
-            self.ax2.axhline(0, color="gray", linewidth=0.5)
-            self.ax2.axvline(0, color="gray", linewidth=0.5)
             self.ax2.plot(xs, ys, marker="o", color="tab:orange")
             self.ax2.plot(xs[0], ys[0], marker="s", color="tab:red", markersize=8, linestyle="", label="start")
             self.ax2.plot(xs[-1], ys[-1], marker="*", color="tab:green", markersize=12, linestyle="", label="latest")
             self.ax2.legend(fontsize="small")
-            self.ax2.set_aspect("equal", adjustable="datalim")
         self.ax2.set_xlabel(xlabel)
         self.ax2.set_ylabel(ylabel)
         self.ax2.grid(linestyle=":", alpha=0.5)
         self.ax2.set_axisbelow(True)
 
         self.figure.tight_layout()
+
+        if points:
+            # lock in the aspect/view from the actual data -- after tight_layout, so the axes
+            # box size is already final -- before adding the crosshair lines below, which
+            # otherwise feed (0, 0) into the data limits and force the plot to zoom out to
+            # include the origin even when every point is far from it
+            self.ax2.set_aspect("equal", adjustable="datalim")
+            self.ax2.apply_aspect()
+            self.ax2.autoscale(False)
+            self.ax2.axhline(0, color="gray", linewidth=0.5, zorder=0)
+            self.ax2.axvline(0, color="gray", linewidth=0.5, zorder=0)
+
         self.canvas.draw()
 
     @qasync.asyncSlot()  # type: ignore
