@@ -6,3 +6,8 @@ spike_standalone/deployment/
 spike_standalone/*.dist/
 spike_standalone/build*.log
 spike_standalone/spike_results.txt
+
+# pyside6-deploy build output for the real app -- generated, not source
+deployment/
+dist/
+build*.log

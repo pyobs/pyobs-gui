@@ -6,7 +6,7 @@ description: Drive the real pyobs-gui app headlessly against a real pyobs module
 # Verifying pyobs-gui changes
 
 pyobs-gui is a PySide6 app that talks to pyobs modules over `Comm`. There's no
-pytest suite (see `DEVELOPMENT.md`) — verification means running the real
+pytest suite — verification means running the real
 `GUI` module against a real target module and observing widget state /
 screenshots. This works headlessly, no Xvfb needed.
 
