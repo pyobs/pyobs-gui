@@ -6,13 +6,13 @@ unless the user opts into "store password" in the login window.
 
 from __future__ import annotations
 
-from pyobs.application import Application
-
-from .gui import GUI
-from .login import login_and_build_gui
-
 
 def main() -> None:
+    from pyobs.application import Application
+
+    from .gui import GUI
+    from .login import login_and_build_gui
+
     app = Application(module_factory=login_and_build_gui, loop_module_class=GUI)
     app.run()
 
