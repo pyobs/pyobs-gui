@@ -1,6 +1,13 @@
-from typing import Any, Dict, TYPE_CHECKING
+import os
+from collections import deque
+from typing import Any, Deque, Dict, Tuple, TYPE_CHECKING
 from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 import logging
+
+os.environ["QT_API"] = "PySide6"
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.dates import DateFormatter
 
 from pyobs.interfaces import IWeather, WeatherState, WeatherSensorReading
 from pyobs.utils.enums import WeatherSensors
@@ -12,6 +19,9 @@ if TYPE_CHECKING:
 
 
 log = logging.getLogger(__name__)
+
+# how many samples to keep per sensor for the history plot
+_HISTORY_LENGTH = 200
 
 
 # label and display order for known sensors; anything else reported by the module is ignored
@@ -92,6 +102,14 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
         self._good: bool | None = None
         self._readings: Dict[WeatherSensors, WeatherSensorReading] = {}
         self._current_widgets: Dict[str, WidgetCurrentSensor] = {}
+        self._history: Dict[WeatherSensors, "Deque[Tuple[Time, float]]"] = {}
+
+        # add plot
+        self.figure = plt.figure()
+        layout = QtWidgets.QVBoxLayout(self.framePlot)
+        self.canvas = FigureCanvas(self.figure)
+        layout.addWidget(self.canvas)
+        self.framePlot.setLayout(layout)
 
         # before first update, disable myself
         self.setEnabled(False)
@@ -106,6 +124,11 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
         self._time = state.time
         self._good = state.good
         self._readings = {r.sensor: r for r in state.readings}
+        for reading in state.readings:
+            if reading.value is not None:
+                self._history.setdefault(reading.sensor, deque(maxlen=_HISTORY_LENGTH)).append(
+                    (reading.time, reading.value)
+                )
         self.signal_update_gui.emit()
 
     def update_gui(self) -> None:
@@ -149,6 +172,33 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
                 widget = self._current_widgets[sensor.value]
                 widget.set_value(s)
                 widget.set_good(self._good)
+
+        self._plot_history()
+
+    def _plot_history(self) -> None:
+        # one stacked subplot per sensor that has history, in the same order as the current-value
+        # tiles; the sensor set (and therefore the subplot count) can change at runtime, so the
+        # figure is rebuilt from scratch rather than reusing fixed axes
+        sensors = [s for s in SENSOR_LABELS if self._history.get(s)]
+
+        self.figure.clear()
+        if not sensors:
+            self.canvas.draw()
+            return
+
+        axes = self.figure.subplots(len(sensors), 1, sharex=True)
+        if len(sensors) == 1:
+            axes = [axes]
+        for ax, sensor in zip(axes, sensors, strict=True):
+            times, values = zip(*self._history[sensor], strict=True)
+            ax.plot([t.to_datetime() for t in times], values, color="tab:blue")
+            ax.set_ylabel(SENSOR_LABELS[sensor], fontsize="small")
+            ax.grid(linestyle=":", alpha=0.5)
+            ax.set_axisbelow(True)
+        axes[-1].xaxis.set_major_formatter(DateFormatter("%H:%M:%S"))
+        self.figure.autofmt_xdate()
+        self.figure.tight_layout()
+        self.canvas.draw()
 
 
 __all__ = ["WeatherWidget"]
