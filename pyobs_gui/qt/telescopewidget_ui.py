@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'telescopewidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.11.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -510,6 +510,7 @@ class Ui_TelescopeWidget(object):
         self.spinMoveHelioprojectiveRadialMu.setObjectName(u"spinMoveHelioprojectiveRadialMu")
         sizePolicy.setHeightForWidth(self.spinMoveHelioprojectiveRadialMu.sizePolicy().hasHeightForWidth())
         self.spinMoveHelioprojectiveRadialMu.setSizePolicy(sizePolicy)
+        self.spinMoveHelioprojectiveRadialMu.setDecimals(4)
         self.spinMoveHelioprojectiveRadialMu.setMinimum(0.000000000000000)
         self.spinMoveHelioprojectiveRadialMu.setMaximum(1.000000000000000)
         self.spinMoveHelioprojectiveRadialMu.setSingleStep(0.100000000000000)
@@ -526,6 +527,7 @@ class Ui_TelescopeWidget(object):
         self.spinMoveHelioprojectiveRadialPsi.setObjectName(u"spinMoveHelioprojectiveRadialPsi")
         sizePolicy.setHeightForWidth(self.spinMoveHelioprojectiveRadialPsi.sizePolicy().hasHeightForWidth())
         self.spinMoveHelioprojectiveRadialPsi.setSizePolicy(sizePolicy)
+        self.spinMoveHelioprojectiveRadialPsi.setDecimals(4)
         self.spinMoveHelioprojectiveRadialPsi.setMinimum(0.000000000000000)
         self.spinMoveHelioprojectiveRadialPsi.setMaximum(359.000000000000000)
 

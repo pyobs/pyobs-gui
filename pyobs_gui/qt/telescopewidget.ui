@@ -1079,6 +1079,9 @@
                  <property name="suffix">
                   <string/>
                  </property>
+                 <property name="decimals">
+                  <number>4</number>
+                 </property>
                  <property name="minimum">
                   <double>0.000000000000000</double>
                  </property>
@@ -1110,6 +1113,9 @@
                  </property>
                  <property name="suffix">
                   <string> °</string>
+                 </property>
+                 <property name="decimals">
+                  <number>4</number>
                  </property>
                  <property name="minimum">
                   <double>0.000000000000000</double>
