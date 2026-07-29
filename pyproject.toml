@@ -1,6 +1,6 @@
 [project]
 name = "pyobs-gui"
-version = "2.0.0.dev6"
+version = "2.0.0.dev7"
 description = "A remote GUI for pyobs"
 authors = [{ name = "Tim-Oliver Husser", email = "thusser@uni-goettingen.de" }]
 requires-python = ">=3.11,<3.14"
@@ -59,6 +59,12 @@ ignore = ["E203", "E266", "E501", "F403", "E722"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+# The astropy/Nuitka patch must run before any other pyobs_gui import (see its own docstring).
+"pyobs_gui/__init__.py" = ["E402"]
+# _build_generic_grammar_namespace is a verbatim transcription of astropy's own PLY grammar,
+# deliberately mirroring astropy's structure for easy diffing -- splitting it up to satisfy
+# mccabe would work against that goal.
+"pyobs_gui/_nuitka_astropy_patch.py" = ["C901"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 30
