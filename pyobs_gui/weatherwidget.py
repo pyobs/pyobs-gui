@@ -1,6 +1,6 @@
 import os
 from collections import deque
-from typing import Any, Deque, Dict, Tuple, TYPE_CHECKING
+from typing import Any, cast, Deque, Dict, Tuple, TYPE_CHECKING
 from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 import logging
 
@@ -16,6 +16,7 @@ from .base import BaseWidget
 
 if TYPE_CHECKING:
     from pyobs.utils.time import Time
+    from matplotlib.axes import Axes
 
 
 log = logging.getLogger(__name__)
@@ -186,9 +187,8 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
             self.canvas.draw()
             return
 
-        axes = self.figure.subplots(len(sensors), 1, sharex=True)
-        if len(sensors) == 1:
-            axes = [axes]
+        subplots = self.figure.subplots(len(sensors), 1, sharex=True)
+        axes = cast("list[Axes]", [subplots] if len(sensors) == 1 else list(subplots))
         for ax, sensor in zip(axes, sensors, strict=True):
             times, values = zip(*self._history[sensor], strict=True)
             ax.plot([t.to_datetime() for t in times], values, color="tab:blue")

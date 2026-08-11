@@ -35,7 +35,7 @@ class FakeComm:
 def make_widget(data_sequence_proxy) -> CameraWidget:
     widget = CameraWidget()
     widget.modules = ["camera"]
-    widget._comm = FakeComm(data_sequence_proxy=data_sequence_proxy)
+    widget._comm = FakeComm(data_sequence_proxy=data_sequence_proxy)  # pyrefly: ignore [bad-assignment]
     widget.datadisplay.grab_data = AsyncMock()
     return widget
 
