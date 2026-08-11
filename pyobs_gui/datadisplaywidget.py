@@ -44,6 +44,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         self.ax: Axes | None = None
         self.canvas: FigureCanvas | None = None
         self.plotTools: NavigationToolbar2QT | None = None
+        self.is_spectrograph = False
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -65,6 +66,7 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # add image panel
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
         if await self.comm.has_proxy(self.module, ISpectrograph):
+            self.is_spectrograph = True
             self.figure, self.ax = plt.subplots()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
@@ -103,9 +105,9 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         if self.data is None:
             return
 
-        if isinstance(self.module, ISpectrograph):
+        if self.is_spectrograph:
             self._plot_spectrum()
-        elif isinstance(self.module, IData) and self.imageView is not None:
+        elif self.imageView is not None:
             self.imageView.display(self.data[0])
 
     def _plot_spectrum(self) -> None:

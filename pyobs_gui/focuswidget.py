@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any
 
@@ -66,21 +67,25 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         self.butSetFocusOffset.setEnabled(initialized)
         self.butSetFocusBase.setEnabled(initialized)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _set_focus_base(self) -> None:
+    def _set_focus_base(self) -> None:
         value = self._focus or 0.0
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Focus", "New value", value, 0, 100, 2)
         if ok:
-            async with self.comm.proxy(self.module, IFocuser) as proxy:
-                await proxy.set_focus(new_value)
+            asyncio.ensure_future(self._set_focus_base_async(new_value))
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _set_focus_offset(self) -> None:
+    async def _set_focus_base_async(self, new_value: float) -> None:
+        async with self.comm.proxy(self.module, IFocuser) as proxy:
+            await proxy.set_focus(new_value)
+
+    def _set_focus_offset(self) -> None:
         value = self._focus_offset or 0.0
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Focus offset", "New value", value, -5, 5, 2)
         if ok:
-            async with self.comm.proxy(self.module, IFocuser) as proxy:
-                await proxy.set_focus_offset(new_value)
+            asyncio.ensure_future(self._set_focus_offset_async(new_value))
+
+    async def _set_focus_offset_async(self, new_value: float) -> None:
+        async with self.comm.proxy(self.module, IFocuser) as proxy:
+            await proxy.set_focus_offset(new_value)
 
     @qasync.asyncSlot()  # type: ignore
     async def _reset_focus_offset(self) -> None:
