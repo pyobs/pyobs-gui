@@ -67,6 +67,27 @@
            </widget>
           </item>
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayoutCount">
+            <item>
+             <widget class="QLabel" name="labelCount">
+              <property name="text">
+               <string>Count:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="spinCount">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>9999</number>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
            <widget class="QPushButton" name="butExpose">
             <property name="palette">
              <palette>
@@ -1035,6 +1056,7 @@
  <tabstops>
   <tabstop>scrollArea</tabstop>
   <tabstop>checkBroadcast</tabstop>
+  <tabstop>spinCount</tabstop>
   <tabstop>butExpose</tabstop>
   <tabstop>butAbort</tabstop>
  </tabstops>

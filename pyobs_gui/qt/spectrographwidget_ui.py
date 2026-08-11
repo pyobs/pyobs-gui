@@ -17,7 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QGroupBox, QHBoxLayout,
     QLabel, QProgressBar, QPushButton, QScrollArea,
-    QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
+    QSizePolicy, QSpacerItem, QSpinBox, QVBoxLayout,
+    QWidget)
 
 from ..datadisplaywidget import DataDisplayWidget
 from . import resources_rc
@@ -59,6 +60,23 @@ class Ui_SpectrographWidget(object):
         self.checkBroadcast.setChecked(True)
 
         self.verticalLayout_3.addWidget(self.checkBroadcast)
+
+        self.horizontalLayoutCount = QHBoxLayout()
+        self.horizontalLayoutCount.setObjectName(u"horizontalLayoutCount")
+        self.labelCount = QLabel(self.groupExposure)
+        self.labelCount.setObjectName(u"labelCount")
+
+        self.horizontalLayoutCount.addWidget(self.labelCount)
+
+        self.spinCount = QSpinBox(self.groupExposure)
+        self.spinCount.setObjectName(u"spinCount")
+        self.spinCount.setMinimum(1)
+        self.spinCount.setMaximum(9999)
+
+        self.horizontalLayoutCount.addWidget(self.spinCount)
+
+
+        self.verticalLayout_3.addLayout(self.horizontalLayoutCount)
 
         self.butExpose = QPushButton(self.groupExposure)
         self.butExpose.setObjectName(u"butExpose")
@@ -265,7 +283,8 @@ class Ui_SpectrographWidget(object):
 
         self.horizontalLayout_2.setStretch(1, 1)
         QWidget.setTabOrder(self.scrollArea, self.checkBroadcast)
-        QWidget.setTabOrder(self.checkBroadcast, self.butExpose)
+        QWidget.setTabOrder(self.checkBroadcast, self.spinCount)
+        QWidget.setTabOrder(self.spinCount, self.butExpose)
         QWidget.setTabOrder(self.butExpose, self.butAbort)
 
         self.retranslateUi(SpectrographWidget)
@@ -277,6 +296,7 @@ class Ui_SpectrographWidget(object):
         SpectrographWidget.setWindowTitle(QCoreApplication.translate("SpectrographWidget", u"Form", None))
         self.groupExposure.setTitle(QCoreApplication.translate("SpectrographWidget", u"Exposure", None))
         self.checkBroadcast.setText(QCoreApplication.translate("SpectrographWidget", u"Broadcast", None))
+        self.labelCount.setText(QCoreApplication.translate("SpectrographWidget", u"Count:", None))
         self.butExpose.setText(QCoreApplication.translate("SpectrographWidget", u"Expose", None))
         self.butAbort.setText(QCoreApplication.translate("SpectrographWidget", u"Abort", None))
         self.labelStatus.setText(QCoreApplication.translate("SpectrographWidget", u"IDLE", None))

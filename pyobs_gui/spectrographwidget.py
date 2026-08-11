@@ -29,6 +29,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
         # cached state
         self.exposure_status = ExposureStatus.IDLE
+        self.exposures_left = 0
 
         # before first update, disable myself
         self.setEnabled(False)
@@ -61,11 +62,20 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     @qasync.asyncSlot()  # type: ignore
     async def grab_spectrum(self) -> None:
         broadcast = self.checkBroadcast.isChecked()
-        await self.datadisplay.grab_data(broadcast)
+
+        # take the requested number of spectra; an exception (e.g. from a failed exposure,
+        # or abort() zeroing exposures_left mid-loop) stops the sequence
+        self.exposures_left = self.spinCount.value()
         self.signal_update_gui.emit()
+        while self.exposures_left > 0:
+            await self.datadisplay.grab_data(broadcast)
+            self.exposures_left -= 1
+            self.signal_update_gui.emit()
 
     @qasync.asyncSlot()  # type: ignore
     async def abort(self) -> None:
+        # stop the sequence after the current spectrum finishes aborting
+        self.exposures_left = 0
         async with self.comm.proxy(self.module, IAbortable) as proxy:
             await proxy.abort()
 
@@ -74,6 +84,13 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
         self.butExpose.setEnabled(self.exposure_status == ExposureStatus.IDLE)
         self.butAbort.setEnabled(self.exposure_status != ExposureStatus.IDLE)
+
+        self.butAbort.setText("Abort sequence" if self.exposures_left > 1 else "Abort")
+
+        if self.exposures_left > 0:
+            self.labelExposuresLeft.setText(f"{self.exposures_left} spectrum/spectra left")
+        else:
+            self.labelExposuresLeft.setText("")
 
         msg = ""
         if self.exposure_status == ExposureStatus.IDLE:
