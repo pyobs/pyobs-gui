@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, cast, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 import numpy as np
 from PySide6 import QtWidgets, QtCore  # type: ignore
 from matplotlib import pyplot as plt
@@ -93,9 +93,9 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # if we're not broadcasting the filename, we need to signal it manually
         if not broadcast:
             if await self.comm.has_proxy(module, ISpectrograph):
-                await self._on_new_data(NewSpectrumEvent(filename), cast("Proxy", cast("object", module)).name)
+                await self._on_new_data(NewSpectrumEvent(filename), module)
             else:
-                await self._on_new_data(NewImageEvent(filename, None), cast("Proxy", cast("object", module)).name)
+                await self._on_new_data(NewImageEvent(filename, None), module)
 
         # signal GUI update
         self.signal_update_gui.emit()
