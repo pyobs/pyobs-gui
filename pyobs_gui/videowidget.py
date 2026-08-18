@@ -120,13 +120,16 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         if not isinstance(self.vfs, VirtualFileSystem):
             log.error("Video is not available — no VFS.")
             return
+        if caps.mjpeg is None:
+            log.error("Module %s has no MJPEG video path.", self.module)
+            return
 
         # open VFS file in executor to avoid blocking the event loop
         loop = asyncio.get_running_loop()
         try:
-            video_file = await loop.run_in_executor(None, self.vfs.open_file, caps.video, "r")
+            video_file = await loop.run_in_executor(None, self.vfs.open_file, caps.mjpeg, "r")
         except Exception as e:
-            log.error("Could not open video VFS path %s: %s", caps.video, e)
+            log.error("Could not open video VFS path %s: %s", caps.mjpeg, e)
             return
 
         if not isinstance(video_file, HttpFile):
