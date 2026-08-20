@@ -89,20 +89,27 @@ No `@qasync.asyncSlot()` remains for any user-triggered remote call. Sync method
 Qt connects to any callable and drops extra signal args (e.g. `valueChanged(int)` → no-arg method),
 which is exactly what the current no-arg asyncSlots already rely on.
 
-### 2. Fix `show_error()`
+### 2. Replace `show_error()` with the shared `show_remote_error()` helper
 
-Current (`base.py:320-323`): `title, message = err.split(":")` — breaks on any message containing
-":", e.g. `str(e) == "Cannot move: motor stalled at 12:30"` yields a nonsense title. Replace with
-the exception class name as the title and the full `str(exception)` as the message:
+`show_error()` (`base.py`) did `title, message = err.split(":")` — breaks on any message containing
+":", e.g. `str(e) == "Cannot move: motor stalled at 12:30"` yields a nonsense title. It is replaced
+by the shared `show_remote_error()` helper below: title = exception class name, body = the message
+only (`PyobsError.__str__` already prefixes the class name, so `str(exception)` would duplicate it
+— use `exception.message`):
 
 ```python
-async def show_error(self, exception: exc.PyobsError) -> None:
-    await QAsyncMessageBox.warning(self, type(exception).__name__, str(exception))
+async def show_remote_error(parent: QtWidgets.QWidget, exception: Exception) -> None:
+    if isinstance(exception, exc.PyobsError):
+        await QAsyncMessageBox.warning(parent, type(exception).__name__, exception.message or str(exception))
+    else:
+        log.exception("An error occurred.")
+        await QAsyncMessageBox.warning(parent, "Error", str(exception))
 ```
 
-Keep the `warning` icon for all `PyobsError` (see Decisions).
+Keep the `warning` icon for all `PyobsError` (see Decisions). `show_error()` and its never-emitted
+`_show_error` signal are removed (dead code after this change).
 
-### 3. Shared error-display helper for non-`BaseWidget` callers
+### 3. Non-`BaseWidget` callers use the same helper
 
 `StatusItem.button_clicked` needs the same handling but `StatusItem` isn't a `BaseWidget`. Extract
 the display half of `_background_task`'s error handling into one reusable helper so there is
@@ -150,7 +157,7 @@ skipped on failure, because the exception propagates and aborts the task (same a
 
 ## Decisions (open questions from the issue)
 
-- **`show_error` icon/title**: title = exception class name, icon = `warning` for all `PyobsError`.
+- **`show_remote_error` icon/title**: title = exception class name, icon = `warning` for all `PyobsError`.
   Rationale: every `PyobsError` — domain or transport — is an operator-actionable failure that can
   simply be retried; `critical` in this codebase is reserved for pre-call checks that block the
   action entirely ("Not permitted to …", "Invalid coordinates" — `QMessageBox.critical` in
@@ -163,7 +170,8 @@ skipped on failure, because the exception propagates and aborts the task (same a
 
 All files under `pyobs_gui/`:
 
-1. `base.py` — `show_error()` title fix; extract `show_remote_error()`; `_update_loop()` throttled
+1. `base.py` — replace `show_error()` with the `show_remote_error()` helper (drop the dead
+   `_show_error` signal); `_update_loop()` throttled
    logging.
 2. `roofwidget.py` — `open_roof` / `close_roof` / `stop_roof` → sync + `run_background`; drop the
    `qasync` import if unused.
@@ -205,7 +213,7 @@ For each converted widget:
    `exc.MoveError("...")` / `exc.RemoteError(...)`.
 3. Trigger the slot (call the sync method or `button.click()`).
 4. Assert: a `QAsyncMessageBox` appeared with the exception text (observe via `utils._live_dialogs`
-   or a patched `QAsyncMessageBox.warning` / `show_error` recording calls); no "Task exception was
+   or a patched `QAsyncMessageBox.warning` recording calls); no "Task exception was
    never retrieved" warning; no exception reached the event loop handler; the button re-enables
    afterwards (`_background_task`'s `finally`).
 

@@ -36,7 +36,9 @@ async def show_remote_error(parent: QtWidgets.QWidget, exception: Exception) -> 
     `run_background()`) and by non-`BaseWidget` callers like `StatusItem`.
     """
     if isinstance(exception, exc.PyobsError):
-        await QAsyncMessageBox.warning(parent, type(exception).__name__, str(exception))
+        # PyobsError.__str__ already prefixes the class name ("<MoveError> msg"); the class name
+        # is the dialog title, so show only the message itself
+        await QAsyncMessageBox.warning(parent, type(exception).__name__, exception.message or str(exception))
     else:
         log.exception("An error occurred.")
         await QAsyncMessageBox.warning(parent, "Error", str(exception))
@@ -136,7 +138,6 @@ class BaseWindow:
 
 
 class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
-    _show_error = QtCore.Signal(str)
     _enable_buttons = QtCore.Signal(list, bool)
 
     def __init__(
@@ -150,7 +151,6 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         QtWidgets.QWidget.__init__(self)
 
         # signals
-        self._show_error.connect(self.show_error)
         self._enable_buttons.connect(self.enable_buttons)
 
         # update
@@ -311,7 +311,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
                 # background polling failures must not pop a dialog per failed poll -- log the
                 # first failure, then every 60th (~once a minute at the 1s poll interval)
                 consecutive_failures += 1
-                if consecutive_failures == 1 or consecutive_failures % 60 == 0:
+                if consecutive_failures % 60 == 1:
                     log.warning("Update of %s failed: %s", self.module, e)
                 await asyncio.sleep(1)
 
@@ -335,9 +335,6 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         finally:
             # enable widgets
             self._enable_buttons.emit(disable, True)
-
-    async def show_error(self, exception: exc.PyobsError) -> None:
-        await show_remote_error(self, exception)
 
     def enable_buttons(self, widgets: list[QtWidgets.QWidget], enable: bool) -> None:
         for w in widgets:

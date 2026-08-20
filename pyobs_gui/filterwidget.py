@@ -60,7 +60,6 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
         ]
         self.buttonSetFilter.setEnabled(initialized and self.permitted("set_filter"))
 
-    @QtCore.Slot()  # type: ignore
     def set_filter(self) -> None:
         new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)
         if ok:
