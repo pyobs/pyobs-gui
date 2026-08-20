@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Any
 
-import qasync  # type: ignore
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
@@ -147,13 +146,17 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
 
         self.canvas.draw()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _acquire(self) -> None:
+    def _acquire(self) -> None:
+        self.run_background(self._acquire_target)
+
+    async def _acquire_target(self) -> None:
         async with self.comm.proxy(self.module, IAcquisition) as proxy:
             await proxy.acquire_target()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _abort(self) -> None:
+    def _abort(self) -> None:
+        self.run_background(self._abort_acquisition)
+
+    async def _abort_acquisition(self) -> None:
         async with self.comm.proxy(self.module, IAcquisition) as proxy:
             await proxy.abort()
 

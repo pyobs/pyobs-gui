@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
-import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 
 from pyobs.interfaces import IMotion, MotionState, IPointingAltAz, AltAzState
@@ -53,17 +52,23 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
         else:
             self.labelAzimuth.setText(f"{self._azimuth:.1f}°")
 
-    @qasync.asyncSlot()  # type: ignore
-    async def open_roof(self) -> None:
+    def open_roof(self) -> None:
+        self.run_background(self._open_roof)
+
+    async def _open_roof(self) -> None:
         async with self.comm.proxy(self.module, IMotion) as proxy:
             await proxy.init()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def close_roof(self) -> None:
+    def close_roof(self) -> None:
+        self.run_background(self._close_roof)
+
+    async def _close_roof(self) -> None:
         async with self.comm.proxy(self.module, IMotion) as proxy:
             await proxy.park()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def stop_roof(self) -> None:
+    def stop_roof(self) -> None:
+        self.run_background(self._stop_roof)
+
+    async def _stop_roof(self) -> None:
         async with self.comm.proxy(self.module, IMotion) as proxy:
             await proxy.stop_motion()

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from typing import Any, TYPE_CHECKING
-import qasync  # type: ignore
 from PySide6 import QtCore  # type: ignore
 
 from pyobs.interfaces import IAbortable, IExposure, ExposureState
@@ -59,8 +58,10 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
         self.exposure_status = state.status
         self.signal_update_gui.emit()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def grab_spectrum(self) -> None:
+    def grab_spectrum(self) -> None:
+        self.run_background(self._grab_spectra)
+
+    async def _grab_spectra(self) -> None:
         broadcast = self.checkBroadcast.isChecked()
 
         # take the requested number of spectra; an exception (e.g. from a failed exposure,
@@ -72,10 +73,12 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
             self.exposures_left -= 1
             self.signal_update_gui.emit()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def abort(self) -> None:
+    def abort(self) -> None:
         # stop the sequence after the current spectrum finishes aborting
         self.exposures_left = 0
+        self.run_background(self._abort_sequence)
+
+    async def _abort_sequence(self) -> None:
         async with self.comm.proxy(self.module, IAbortable) as proxy:
             await proxy.abort()
 

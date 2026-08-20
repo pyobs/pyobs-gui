@@ -1,4 +1,3 @@
-import qasync
 import logging
 from typing import Any
 from PySide6 import QtCore  # type: ignore
@@ -47,9 +46,11 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
     def checkEnabled_toggled(self, enabled: bool) -> None:
         self.spinSetPoint.setEnabled(enabled)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def buttonApply_clicked(self) -> None:
+    def buttonApply_clicked(self) -> None:
         enabled = self.checkEnabled.isChecked()
         temp = self.spinSetPoint.value()
+        self.run_background(self._apply_cooling, enabled, temp)
+
+    async def _apply_cooling(self, enabled: bool, temp: float) -> None:
         async with self.comm.proxy(self.module, ICooling) as proxy:
             await proxy.set_cooling(enabled, temp)

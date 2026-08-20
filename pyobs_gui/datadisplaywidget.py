@@ -20,7 +20,6 @@ from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
-    from pyobs.comm import Proxy
     from matplotlib.axes import Axes
     from astropy.io import fits
 
