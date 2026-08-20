@@ -1,11 +1,18 @@
 # Design/planning docs
 
-This repo has no `specs/` structure of its own. Design docs, implementation plans, and ADRs that
-concern `pyobs-gui` — including ones actually implemented here — live in `pyobs-core`'s `specs/`
-tree instead (`specs/design/`, `specs/plans/`, `specs/adrs/`), each tagged with a `Repos:` line
-naming every repo it concerns. See `pyobs-core/CLAUDE.md`'s "Cross-repo docs" section.
+pyobs-gui keeps its own implementation plans in this directory (`YYYY-MM-DD-<slug>.md`), following
+the same conventions as `pyobs-core`'s `specs/` tree. Older design docs, implementation plans, and
+ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`specs/design/`,
+`specs/plans/`, `specs/adrs/`), each tagged with a `Repos:` line naming every repo it concerns. See
+`pyobs-core/CLAUDE.md`'s "Cross-repo docs" section.
 
-Relevant so far:
+## Local plans
+
+- `2026-08-20-gui-remote-call-error-handling.md` — proposed. Catch exceptions on remote method
+  calls and show them in a messagebox (issue #134): route every user-triggered remote call through
+  `run_background`, log throttled background failures.
+
+## Relevant from pyobs-core
 
 - `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
   single compiled binary that works across sites with no rebuild. Start here.

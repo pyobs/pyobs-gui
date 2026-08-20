@@ -1,6 +1,5 @@
 import logging
 from typing import Any
-import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 from astroplan import Observer
 
@@ -225,8 +224,10 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.exposures_left = state.count_left
         self.update_gui()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def set_full_frame(self) -> None:
+    def set_full_frame(self) -> None:
+        self.run_background(self._do_set_full_frame)
+
+    async def _do_set_full_frame(self) -> None:
         caps = await self.comm.get_capabilities(self.module, IWindow)
         if caps is not None:
             # get binning
@@ -268,18 +269,15 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         else:
             self.spinExpTime.setEnabled(True)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def expose(self) -> None:
+    def expose(self) -> None:
+        self.run_background(self._do_expose)
+
+    async def _do_expose(self) -> None:
         # set binning
         async with self.comm.safe_proxy(self.module, IBinning) as proxy:
             if proxy is not None:
                 binning = int(self.comboBinning.currentText()[0])
-                try:
-                    await proxy.set_binning(binning, binning)
-                except Exception:
-                    log.exception("bla")
-                    QtWidgets.QMessageBox.information(self, "Error", "Could not set binning.")
-                    return
+                await proxy.set_binning(binning, binning)
             else:
                 binning = 1
 
@@ -288,11 +286,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             if proxy is not None:
                 left, top = self.spinWindowLeft.value(), self.spinWindowTop.value()
                 width, height = self.spinWindowWidth.value(), self.spinWindowHeight.value()
-                try:
-                    await proxy.set_window(left, top, width * binning, height * binning)
-                except Exception:
-                    QtWidgets.QMessageBox.information(self, "Error", "Could not set window.")
-                    return
+                await proxy.set_window(left, top, width * binning, height * binning)
 
         # set image format
         async with self.comm.safe_proxy(self.module, IImageFormat) as proxy:
@@ -348,13 +342,15 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             self.exposures_left -= 1
             self.signal_update_gui.emit()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def abort(self) -> None:
+    def abort(self) -> None:
         """Abort exposure."""
         # do we have a running exposure?
         if self.exposures_left == 0:
             return
 
+        self.run_background(self._do_abort)
+
+    async def _do_abort(self) -> None:
         # got exposures left?
         if self.exposures_left > 1:
             # soft-stop the sequence server-side (current grab finishes normally), if

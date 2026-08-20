@@ -1,6 +1,5 @@
 from typing import Any
 
-import qasync
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
 from pyobs.interfaces import IFilters, FilterState, IMotion, MotionState
@@ -61,12 +60,15 @@ class FilterWidget(BaseWidget, Ui_FilterWidget):
         ]
         self.buttonSetFilter.setEnabled(initialized and self.permitted("set_filter"))
 
-    @qasync.asyncSlot()  # type: ignore
-    async def set_filter(self) -> None:
+    def set_filter(self) -> None:
         new_value, ok = QtWidgets.QInputDialog.getItem(self, "Set filter", "New filter", self._filters, 0, False)
         if ok:
-            async with self.comm.proxy(self.module, IFilters) as proxy:
-                self.run_background(proxy.set_filter, new_value)
+
+            async def _do_set_filter() -> None:
+                async with self.comm.proxy(self.module, IFilters) as proxy:
+                    await proxy.set_filter(new_value)
+
+            self.run_background(_do_set_filter)
 
 
 __all__ = ["FilterWidget"]

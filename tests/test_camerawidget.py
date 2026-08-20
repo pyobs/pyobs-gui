@@ -47,7 +47,9 @@ async def test_expose_uses_server_side_sequence_when_broadcasting(qapp) -> None:
     widget.checkBroadcast.setChecked(True)
     widget.spinCount.setValue(3)
 
-    await widget.expose()
+    # expose() is now a sync slot that routes through run_background(); exercise the async
+    # sequence logic directly here (the slot -> run_background routing is covered end-to-end)
+    await widget._do_expose()
 
     proxy.grab_sequence.assert_awaited_once_with(3, True)
     widget.datadisplay.grab_data.assert_not_called()
@@ -64,7 +66,7 @@ async def test_expose_falls_back_to_client_side_loop_when_not_broadcasting(qapp)
     widget.checkBroadcast.setChecked(False)
     widget.spinCount.setValue(2)
 
-    await widget.expose()
+    await widget._do_expose()
 
     proxy.grab_sequence.assert_not_called()
     assert widget.datadisplay.grab_data.await_count == 2
@@ -78,7 +80,7 @@ async def test_expose_falls_back_when_module_has_no_data_sequence_support(qapp) 
     widget.checkBroadcast.setChecked(True)
     widget.spinCount.setValue(1)
 
-    await widget.expose()
+    await widget._do_expose()
 
     assert widget.datadisplay.grab_data.await_count == 1
     widget.datadisplay.grab_data.assert_awaited_with(True)

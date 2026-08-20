@@ -13,7 +13,7 @@ from pyobs.events import Event, ModuleOpenedEvent, ModuleClosedEvent
 from pyobs.interfaces import IModule, Interface
 from pyobs.utils.enums import ModuleState
 from pyobs.vfs import VirtualFileSystem
-from pyobs_gui.base import BaseWidget
+from pyobs_gui.base import BaseWidget, show_remote_error
 
 log = logging.getLogger(__name__)
 
@@ -131,8 +131,11 @@ class StatusItem(QtWidgets.QWidget):
 
     @qasync.asyncSlot()  # type: ignore
     async def button_clicked(self) -> None:
-        async with self.comm.proxy(self.name, IModule) as proxy:
-            await proxy.reset_error()
+        try:
+            async with self.comm.proxy(self.name, IModule) as proxy:
+                await proxy.reset_error()
+        except Exception as e:
+            await show_remote_error(self, e)
 
 
 class StateItem(QtCore.QObject):
