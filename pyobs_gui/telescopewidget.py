@@ -1,9 +1,7 @@
-import asyncio
 from enum import Enum
 from typing import Any
 
 import numpy as np
-import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 from astropy.coordinates import SkyCoord, ICRS, AltAz, get_sun, EarthLocation
 from astroplan import Observer
@@ -473,9 +471,7 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
 
             if IPointingHelioprojective in self._interfaces and self.permitted("move_helioprojective"):
                 self.run_background(self._do_move_helioprojective, heliproj.Tx.degree, heliproj.Ty.degree)
-            elif IPointingHeliographicStonyhurst in self._interfaces and self.permitted(
-                "move_heliographic_stonyhurst"
-            ):
+            elif IPointingHeliographicStonyhurst in self._interfaces and self.permitted("move_heliographic_stonyhurst"):
                 stony = heliproj.transform_to(HeliographicStonyhurst)
                 # pyrefly: ignore [missing-attribute]
                 lon, lat = float(stony.lon.to(u.degree).value), float(stony.lat.to(u.degree).value)
@@ -517,18 +513,24 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     # Motion control slots
     # -------------------------------------------------------------------------
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _init_telescope(self) -> None:
+    def _init_telescope(self) -> None:
+        self.run_background(self._do_init)
+
+    async def _do_init(self) -> None:
         async with self.comm.proxy(self.module, IMotion) as proxy:
             await proxy.init()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _park_telescope(self) -> None:
+    def _park_telescope(self) -> None:
+        self.run_background(self._do_park)
+
+    async def _do_park(self) -> None:
         async with self.comm.proxy(self.module, IMotion) as proxy:
             await proxy.park()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _stop_telescope(self) -> None:
+    def _stop_telescope(self) -> None:
+        self.run_background(self._do_stop)
+
+    async def _do_stop(self) -> None:
         async with self.comm.proxy(self.module, IMotion) as proxy:
             await proxy.stop_motion("ITelescope")
 
@@ -539,20 +541,20 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     @QtCore.Slot()  # type: ignore
     def _set_offset(self) -> None:
         if self.sender() == self.buttonResetHorizontalOffsets:
-            asyncio.create_task(self._do_set_offsets_altaz(0.0, 0.0))
+            self.run_background(self._do_set_offsets_altaz, 0.0, 0.0)
         elif self.sender() == self.buttonResetEquatorialOffsets:
-            asyncio.create_task(self._do_set_offsets_radec(0.0, 0.0))
+            self.run_background(self._do_set_offsets_radec, 0.0, 0.0)
         else:
             new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Set offset", 'New offset ["]', 0, -9999, 9999)
             if ok:
                 if self.sender() == self.buttonSetAltOffset:
-                    asyncio.create_task(self._do_set_offsets_altaz(new_value / 3600.0, self._off_az or 0.0))
+                    self.run_background(self._do_set_offsets_altaz, new_value / 3600.0, self._off_az or 0.0)
                 elif self.sender() == self.buttonSetAzOffset:
-                    asyncio.create_task(self._do_set_offsets_altaz(self._off_alt or 0.0, new_value / 3600.0))
+                    self.run_background(self._do_set_offsets_altaz, self._off_alt or 0.0, new_value / 3600.0)
                 elif self.sender() == self.buttonSetRaOffset:
-                    asyncio.create_task(self._do_set_offsets_radec(new_value / 3600.0, self._off_dec or 0.0))
+                    self.run_background(self._do_set_offsets_radec, new_value / 3600.0, self._off_dec or 0.0)
                 elif self.sender() == self.buttonSetDecOffset:
-                    asyncio.create_task(self._do_set_offsets_radec(self._off_ra or 0.0, new_value / 3600.0))
+                    self.run_background(self._do_set_offsets_radec, self._off_ra or 0.0, new_value / 3600.0)
 
     async def _do_set_offsets_altaz(self, alt: float, az: float) -> None:
         async with self.comm.proxy(self.module, IOffsetsAltAz) as proxy:

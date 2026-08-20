@@ -3,7 +3,6 @@ import logging
 from typing import Any
 from urllib.parse import urlparse
 
-import qasync  # type: ignore
 from astroplan import Observer
 from pyobs.comm import Comm
 from pyobs.interfaces import (
@@ -224,8 +223,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             qp.loadFromData(image_data)
             self.widgetLiveView.setPixmap(qp)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def grab_image(self) -> None:
+    def grab_image(self) -> None:
+        self.run_background(self._grab_image)
+
+    async def _grab_image(self) -> None:
         # set image format
         if IImageFormat in self._interfaces:
             image_format = ImageFormat[self.comboImageFormat.currentText()]  # type: ignore[attr-defined]
@@ -239,7 +240,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self.signal_update_gui.emit()
 
         # start exposures
-        asyncio.create_task(self._expose_task_func())
+        await self._expose_task_func()
 
     async def _expose_task_func(self) -> None:
         # get image type
@@ -266,22 +267,26 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
     def abort_sequence(self) -> None:
         self.exposures_left = 0
 
-    @qasync.asyncSlot()  # type: ignore
-    async def exposure_time_changed(self) -> None:
+    def exposure_time_changed(self) -> None:
         # get exp_time
         exp_time = self.spinExpTime.value()
 
         # set it
+        self.run_background(self._set_exposure_time, exp_time)
+
+    async def _set_exposure_time(self, exp_time: float) -> None:
         if IExposureTime in self._interfaces:
             async with self.comm.proxy(self.module, IExposureTime) as proxy:
                 await proxy.set_exposure_time(exp_time)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def gain_changed(self) -> None:
+    def gain_changed(self) -> None:
         # get gain
         gain = self.spinGain.value()
 
         # set it
+        self.run_background(self._set_gain, gain)
+
+    async def _set_gain(self, gain: float) -> None:
         if IGain in self._interfaces:
             async with self.comm.proxy(self.module, IGain) as proxy:
                 await proxy.set_gain(gain)

@@ -4,7 +4,6 @@ import os
 from collections import deque
 from typing import Any
 
-import qasync  # type: ignore
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
@@ -130,19 +129,25 @@ class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
         self.figure.tight_layout()
         self.canvas.draw()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _start(self) -> None:
+    def _start(self) -> None:
+        self.run_background(self._start_guiding)
+
+    async def _start_guiding(self) -> None:
         async with self.comm.proxy(self.module, IAutoGuiding) as proxy:
             await proxy.start()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _stop(self) -> None:
+    def _stop(self) -> None:
+        self.run_background(self._stop_guiding)
+
+    async def _stop_guiding(self) -> None:
         async with self.comm.proxy(self.module, IAutoGuiding) as proxy:
             await proxy.stop()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _set_exposure_time(self) -> None:
+    def _set_exposure_time(self) -> None:
         value = self.spinExposureTime.value()
+        self.run_background(self._set_exposure_time_async, value)
+
+    async def _set_exposure_time_async(self, value: float) -> None:
         async with self.comm.proxy(self.module, IExposureTime) as proxy:
             await proxy.set_exposure_time(value)
 

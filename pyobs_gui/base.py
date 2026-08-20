@@ -26,6 +26,22 @@ log = logging.getLogger(__name__)
 WidgetClass = TypeVar("WidgetClass", bound="BaseWidget")
 
 
+async def show_remote_error(parent: QtWidgets.QWidget, exception: Exception) -> None:
+    """Show a remote-call failure to the user.
+
+    Single shared path for surfacing exceptions from remote method calls: `PyobsError`
+    (domain errors like `MoveError`, and transport errors like `RemoteError`) shows a warning
+    box titled with the exception class; any other `Exception` is logged and shown as a plain
+    warning. Used by `BaseWidget._background_task()` (everything routed through
+    `run_background()`) and by non-`BaseWidget` callers like `StatusItem`.
+    """
+    if isinstance(exception, exc.PyobsError):
+        await QAsyncMessageBox.warning(parent, type(exception).__name__, str(exception))
+    else:
+        log.exception("An error occurred.")
+        await QAsyncMessageBox.warning(parent, "Error", str(exception))
+
+
 class BaseWindow:
     def __init__(self) -> None:
         """Base class for MainWindow and all widgets."""
@@ -271,6 +287,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
                 self._update_task = None
 
     async def _update_loop(self) -> None:
+        consecutive_failures = 0
         while True:
             try:
                 # get module state
@@ -288,9 +305,14 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
 
                 # sleep a little
                 await asyncio.sleep(1)
+                consecutive_failures = 0
 
-            except (exc.PyobsError, IndexError):
-                # ignore these and sleep a little
+            except (exc.PyobsError, IndexError) as e:
+                # background polling failures must not pop a dialog per failed poll -- log the
+                # first failure, then every 60th (~once a minute at the 1s poll interval)
+                consecutive_failures += 1
+                if consecutive_failures == 1 or consecutive_failures % 60 == 0:
+                    log.warning("Update of %s failed: %s", self.module, e)
                 await asyncio.sleep(1)
 
     def run_background(self, method: Callable[..., Coroutine[Any, Any, None]], *args: Any, **kwargs: Any) -> None:
@@ -308,19 +330,14 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # call method
         try:
             await method(*args, **kwargs)
-        except exc.PyobsError as e:
-            await self.show_error(e)
         except Exception as e:
-            log.exception("An error occurred.")
-            await QAsyncMessageBox.warning(self, "Error", str(e))
+            await show_remote_error(self, e)
         finally:
             # enable widgets
             self._enable_buttons.emit(disable, True)
 
     async def show_error(self, exception: exc.PyobsError) -> None:
-        err = str(exception)
-        title, message = err.split(":") if ":" in err else ("Error", err)
-        await QAsyncMessageBox.warning(self, title, message)
+        await show_remote_error(self, exception)
 
     def enable_buttons(self, widgets: list[QtWidgets.QWidget], enable: bool) -> None:
         for w in widgets:

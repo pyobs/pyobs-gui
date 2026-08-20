@@ -1,8 +1,6 @@
-import asyncio
 import logging
 from typing import Any
 
-import qasync  # type: ignore
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
 from pyobs.interfaces import IFocuser, FocuserState, IMotion, MotionState
@@ -71,7 +69,7 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         value = self._focus or 0.0
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Focus", "New value", value, 0, 100, 2)
         if ok:
-            asyncio.ensure_future(self._set_focus_base_async(new_value))
+            self.run_background(self._set_focus_base_async, new_value)
 
     async def _set_focus_base_async(self, new_value: float) -> None:
         async with self.comm.proxy(self.module, IFocuser) as proxy:
@@ -81,14 +79,16 @@ class FocusWidget(BaseWidget, Ui_FocusWidget):
         value = self._focus_offset or 0.0
         new_value, ok = QtWidgets.QInputDialog.getDouble(self, "Focus offset", "New value", value, -5, 5, 2)
         if ok:
-            asyncio.ensure_future(self._set_focus_offset_async(new_value))
+            self.run_background(self._set_focus_offset_async, new_value)
 
     async def _set_focus_offset_async(self, new_value: float) -> None:
         async with self.comm.proxy(self.module, IFocuser) as proxy:
             await proxy.set_focus_offset(new_value)
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _reset_focus_offset(self) -> None:
+    def _reset_focus_offset(self) -> None:
+        self.run_background(self._do_reset_focus_offset)
+
+    async def _do_reset_focus_offset(self) -> None:
         async with self.comm.proxy(self.module, IFocuser) as proxy:
             await proxy.set_focus_offset(0.0)
 

@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Any
 
-import qasync  # type: ignore
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
@@ -78,9 +77,7 @@ class AutoFocusWidget(BaseWidget, Ui_AutoFocusWidget):
         self.labelStatus.setText(
             "Running..."
             if self._running
-            else f"Focus: {self._last_result[0]:.3f} ± {self._last_result[1]:.3f} mm"
-            if self._last_result
-            else "Idle"
+            else f"Focus: {self._last_result[0]:.3f} ± {self._last_result[1]:.3f} mm" if self._last_result else "Idle"
         )
 
         self.ax.clear()
@@ -95,13 +92,19 @@ class AutoFocusWidget(BaseWidget, Ui_AutoFocusWidget):
         self.ax.set_axisbelow(True)
         self.canvas.draw()
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _run_auto_focus(self) -> None:
-        async with self.comm.proxy(self.module, IAutoFocus) as proxy:
-            await proxy.auto_focus(self.spinCount.value(), self.spinStep.value(), self.spinExposureTime.value())
+    def _run_auto_focus(self) -> None:
+        self.run_background(
+            self._auto_focus, self.spinCount.value(), self.spinStep.value(), self.spinExposureTime.value()
+        )
 
-    @qasync.asyncSlot()  # type: ignore
-    async def _abort(self) -> None:
+    async def _auto_focus(self, count: int, step: float, exposure_time: float) -> None:
+        async with self.comm.proxy(self.module, IAutoFocus) as proxy:
+            await proxy.auto_focus(count, step, exposure_time)
+
+    def _abort(self) -> None:
+        self.run_background(self._abort_focus)
+
+    async def _abort_focus(self) -> None:
         async with self.comm.proxy(self.module, IAutoFocus) as proxy:
             await proxy.abort()
 
