@@ -1,6 +1,6 @@
 # Plan: pyobs-gui — surface remote-call failures in messageboxes (issue #134)
 
-Status: proposed
+Status: implemented, closed 2026-08-20 (PR #138, merged to develop as bfc0a87)
 Issue: pyobs-gui#134
 
 ## Problem
