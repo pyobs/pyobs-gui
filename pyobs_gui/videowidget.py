@@ -22,7 +22,6 @@ from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
 from .base import BaseWidget
 from .qt.videowidget_ui import Ui_VideoWidget
 
-
 log = logging.getLogger(__name__)
 
 
@@ -75,9 +74,16 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # init buffer
         self.buffer = b""
 
-        # socket
-        self.socket = QtNetwork.QTcpSocket()
-        self.socket.readyRead.connect(self._received_data)
+        # raw socket for the MJPEG stream; created once the video URL is known
+        # (see _init), because its type depends on the URL scheme -- https needs
+        # a TLS socket so the plaintext HTTP request survives a TLS-terminating
+        # reverse proxy (e.g. nginx)
+        self.socket: QtNetwork.QAbstractSocket | None = None
+        self.scheme: str | None = None
+
+        # whether the HTTP response headers of the current stream connection have
+        # been stripped from self.buffer yet (see _received_data)
+        self._headers_received = False
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
@@ -137,7 +143,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
         # parse URL
         o = urlparse(video_file.url)
-        if o.scheme != "http":
+        if o.scheme not in ["http", "https"]:
             log.error("URL scheme to video of module %s must be HTTP.", self.module)
             return
 
@@ -145,8 +151,17 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             s = o.netloc.split(":")[:2]
             self.host, self.port = s[0], int(s[1])
         else:
-            self.host, self.port = (o.netloc, 80)
+            self.host, self.port = (o.netloc, 443 if o.scheme == "https" else 80)
         self.path = o.path
+        self.scheme = o.scheme
+
+        # create the raw socket for the stream; https URLs need a TLS socket so
+        # the plaintext MJPEG request works through a TLS-terminating reverse
+        # proxy (a plain QTcpSocket can only reach a plain-HTTP endpoint)
+        self.socket = QtNetwork.QSslSocket() if self.scheme == "https" else QtNetwork.QTcpSocket()
+        self.socket.readyRead.connect(self._received_data)
+        if isinstance(self.socket, QtNetwork.QSslSocket):
+            self.socket.sslErrors.connect(self._on_ssl_errors)
 
         # subscribe to state
         if has_exposure_time:
@@ -173,19 +188,38 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         await BaseWidget._showEvent(self, event)
 
         # connect socket
-        if self.host is not None and self.port is not None and self.path is not None:
-            self.socket.connectToHost(self.host, self.port)
+        if self.host is not None and self.port is not None and self.path is not None and self.socket is not None:
+            if self.scheme == "https":
+                if not isinstance(self.socket, QtNetwork.QSslSocket):
+                    log.error("Video URL of %s is https but no TLS socket was created.", self.module)
+                    return
+                self.socket.connectToHostEncrypted(self.host, self.port)
+            else:
+                self.socket.connectToHost(self.host, self.port)
             host_header = self.host if self.port == 80 else f"{self.host}:{self.port}"
+            # HTTP/1.0 on purpose: HTTP/1.1 responses to an endless MJPEG stream use chunked
+            # transfer encoding, and this raw-socket parser doesn't decode chunk framing --
+            # the hex chunk-size lines would land inside the JPEG data and corrupt every
+            # frame they fall in. HTTP/1.0 forbids chunked encoding, so the body arrives
+            # as the plain MJPEG byte stream (with Connection: close, which just means the
+            # stream runs until the client disconnects).
             self.socket.write(
-                b"GET %s HTTP/1.1\r\nHost: %s\r\n\r\n" % (bytes(self.path, "UTF-8"), bytes(host_header, "UTF-8"))
+                b"GET %s HTTP/1.0\r\nHost: %s\r\n\r\n" % (bytes(self.path, "UTF-8"), bytes(host_header, "UTF-8"))
             )
+            # new connection: the next bytes start with the HTTP response headers
+            self._headers_received = False
+
+    def _on_ssl_errors(self, errors: list) -> None:
+        """Log SSL errors from the video-stream socket instead of failing silently."""
+        log.error("SSL errors connecting to video stream of %s: %s", self.module, errors)
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # call base
         BaseWidget.hideEvent(self, event)
 
         # disconnect socket
-        self.socket.disconnectFromHost()
+        if self.socket is not None:
+            self.socket.disconnectFromHost()
 
     def update_gui(self) -> None:
         """Update the GUI."""
@@ -203,8 +237,21 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             self.labelExposuresLeft.setText("")
 
     def _received_data(self) -> None:
+        if self.socket is None:
+            return
         boundary = b"--jpgboundary\r\n"
         self.buffer += bytes(self.socket.readAll())
+
+        # strip the HTTP response headers before parsing the MJPEG body -- the
+        # boundary string also appears in the "Content-Type: ... boundary=--jpgboundary"
+        # header line, so parsing it as a frame would produce garbage
+        if not self._headers_received:
+            pos = self.buffer.find(b"\r\n\r\n")
+            if pos == -1:
+                return  # headers not complete yet
+            self.buffer = self.buffer[pos + 4 :]
+            self._headers_received = True
+
         while boundary in self.buffer:
             # find boundary
             pos = self.buffer.find(boundary)
@@ -217,6 +264,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
             # find end of frame
             image_data = frame[frame.find(b"\r\n\r\n") + 4 :]
+            if not image_data:
+                # preamble before the first boundary (e.g. HTTP response headers)
+                # or a frame with no payload yet -- nothing to show
+                continue
 
             # to pixmap and show it
             qp = QtGui.QPixmap()
