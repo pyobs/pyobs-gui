@@ -47,3 +47,6 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `pyobs-core/specs/plans/2026-07-29-gui-iautoguiding-widget.md` — **implemented, closed**. The
   `IAutoGuiding` widget; the follow-up refinement (`OffsetResult`/`OffsetFrame`, arcsec-based
   `GuidingState`) has shipped in both pyobs-core and pyobs-gui.
+- `pyobs-core/specs/plans/2026-08-21-basevideo-http-token-auth.md` — **proposed**. Shared-token
+  auth + browser login for `BaseVideo` (pyobs-core side); pyobs-gui side is a one-header change
+  in `VideoWidget`'s raw-socket GET (design: `pyobs-core/specs/design/basevideo-http-auth.md`).
