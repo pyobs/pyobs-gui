@@ -87,6 +87,15 @@ async def _open_client(self, client: str, widget: BaseWidget) -> None:
             modules=[client] if client is not None else [],
             comm=self.comm, observer=self.observer, vfs=self.vfs,
         )
+    except Exception:
+        # open() failed (RPC errors etc.): tear the client down rather than leaving a
+        # permanent "Loading…" dead page behind. Note asyncio.CancelledError is NOT
+        # caught here (it subclasses BaseException), so a mid-open disconnect — which
+        # cancels this task — still unwinds through the finally below and never reaches
+        # this branch.
+        log.exception("Failed to open widget for %s", client)
+        await self._fail_open(client, widget)
+        return
     finally:
         self._pending_opens.pop(client, None)
 
@@ -110,6 +119,24 @@ async def _open_client(self, client: str, widget: BaseWidget) -> None:
     # _init() runs and the content fills in
     if was_current:
         self.stackedWidget.setCurrentWidget(widget)
+
+async def _fail_open(self, client: str, widget: BaseWidget) -> None:
+    """Undo a failed _add_client: nav item, placeholder page, and registry entries.
+    No-op if the client already disconnected mid-open (its own teardown handled it)."""
+    if self._pages.get(client) is None:
+        return
+    self._widgets.pop(client, None)
+    for row in range(self.listPages.count()):
+        if self.listPages.item(row).text() == client:
+            self.listPages.takeItem(row)
+            break
+    placeholder = self._pages.pop(client, None)
+    if placeholder is not None:
+        if self.stackedWidget.currentWidget() is placeholder:
+            self._current_widget = None
+        self.stackedWidget.removeWidget(placeholder)
+        placeholder.deleteLater()
+    await widget.discard()
 ```
 
 `_make_loading_page(client, icon)` returns a plain `QWidget` with a centered vertical layout: the
@@ -120,7 +147,8 @@ during `open()` switches to the placeholder instantly — **the click is never d
 "Loading…" text tells the user why the content is not there yet. Section headers still fall out
 naturally: they are in neither map.
 
-`_client_disconnected()` (`mainwindow.py:692`) gains a cancel of the pending open task (see §3).
+`_client_disconnected()` (`mainwindow.py:692`) gains a cancel-and-await of the pending open task
+and placeholder teardown (see §3).
 
 ### 2. Parallel initial discovery
 
@@ -129,35 +157,68 @@ async def _init_clients(self) -> None:
     await asyncio.gather(*(self._client_connected(Event(), c) for c in self.comm.clients))
 ```
 
-Each `_client_connected` now returns as soon as its placeholder is registered; the heavy per-widget
-`open()` chains run concurrently as their own tasks (see §1). Later connects (ModuleOpenedEvent
-handlers) are already dispatched as separate tasks by the comm layer, so they stay concurrent too.
+Each `_client_connected` now returns after its placeholder is registered; the per-widget `open()`
+chains — the dominant startup cost (telescope/camera) — run concurrently as their own tasks (see
+§1). Still inline per client: the ACL `get_permitted_methods` fetch, the `comm.proxy()`
+interface-detection loop, and any custom-sidebar `add_to_sidebar()` opens — but those are now
+concurrent across clients via the gather instead of serialized. Later connects (ModuleOpenedEvent
+handlers) are already dispatched as separate tasks by the comm layer (comm.py:687-692), so they
+stay concurrent too.
 
-### 3. Remove the redundant per-connect global work from `_client_connected`
+### 3. Remove the redundant per-connect global work from `_client_connected` / `_client_disconnected`
 
 - **Drop `await self._update_client_list()` and `await self._check_warnings()` from
-  `_client_connected()`.** Warnings are already covered by the periodic `_check_warning_task()`
-  (`mainwindow.py:594`, every 5 s) plus the initial call in `open()`; add one `_check_warnings()`
-  after the `_init_clients` gather so the state is fresh immediately at startup. This kills the
-  O(N²) Shell command-model rebuild at startup and the duplicate all-clients scans per module.
-- **Keep the log-filter client menu current cheaply**: `_update_client_list()` is split — the
-  `_clients_menu` rebuild (cheap, purely local) stays called per connect/disconnect; the
-  `shell.update_client_list()` → `CommandModel.init()` half is gated on the Shell page being
-  visible (and otherwise skipped, since the Shell widget already listens to module open/close
-  events itself via `shellwidget.py:203` and can rebuild lazily on first show).
-- `_client_disconnected()` additionally:
+  `_client_connected()`, and the per-disconnect `_check_warnings()` from `_client_disconnected()`.**
+  Warnings are already covered by the periodic `_check_warning_task()` (`mainwindow.py:594`, every
+  5 s) plus the initial call in `open()`; add one `_check_warnings()` after the `_init_clients`
+  gather so the state is fresh immediately at startup. This kills the O(N²) Shell command-model
+  rebuild at startup and the duplicate all-clients scans per module.
+- **Keep the log-filter client menu current cheaply**: `_update_client_list()` is split into a
+  sync `_update_clients_menu()` (the `_clients_menu` rebuild — cheap, purely local) that stays
+  called per connect/disconnect, and the `shell.update_client_list()` → `CommandModel.init()` half
+  that is dropped from the per-connect path entirely. The Shell widget rebuilds its own model via
+  its `ModuleOpenedEvent`/`ModuleClosedEvent` handler (`shellwidget.py:203`), debounced and gated
+  on the Shell page being visible — see the `shellwidget.py` bullet in §5, which is a **required
+  dependency of this section, not a fast-follow**: without the shell-side gate, the O(N²) rebuild
+  still happens on every module change regardless of what the mainwindow does.
+- `_client_disconnected()` reworked — cancel **and await** the pending open before discarding, and
+  remove the placeholder page from the stack (a dict pop alone would leave a ghost QWidget in the
+  stack, and if the placeholder was the current page it would stay visible after the module
+  vanished):
   ```python
+  self._update_clients_menu()  # cheap, local; the shell model is the shell's own job now
+
+  if client not in self._widgets:
+      return False
+
+  # cancel a pending open BEFORE discard(), and await the cancellation: cancel() is not
+  # synchronous (the coroutine only unwinds at its next await inside widget.open()), so
+  # without this await, widget.discard() below could run concurrently with the tail of a
+  # not-yet-finished open() — e.g. sidebar widgets added after discard, or handlers
+  # re-registered after unregister. This race is newly exposed by this plan: registering
+  # the widget early (see §1) means _client_disconnected() no longer early-returns while
+  # open() is in flight. Today the widget isn't in self._widgets mid-open, so discard()
+  # can never run concurrently with open() at all — it is not pre-existing.
   task = self._pending_opens.pop(client, None)
   if task is not None:
       task.cancel()
+      with contextlib.suppress(asyncio.CancelledError):
+          await task
+
+  widget = self._widgets[client]
+
+  # is current? (the placeholder may be the current page mid-open)
+  if self.stackedWidget.currentWidget() in (widget, self._pages.get(client)):
+      self._current_widget = None
+
+  placeholder = self._pages.pop(client, None)
+  if placeholder is not None:
+      self.stackedWidget.removeWidget(placeholder)
+      placeholder.deleteLater()
+  self.stackedWidget.removeWidget(widget)
+
+  # ... existing nav-item removal and widget.discard() / del self._widgets[client] unchanged
   ```
-  and remove the placeholder/page from `self._pages` alongside the existing nav-item/widget
-  removal, so a module that vanishes mid-open leaves no ghost page. Note `task.cancel()` is not
-  synchronous — the coroutine only unwinds at its next `await` inside `widget.open()` — so the
-  `widget.discard()` call a few lines later in `_client_disconnected()` can still run concurrently
-  with the tail of a not-yet-cancelled `open()`. This is pre-existing risk shape (open() is already
-  unguarded against concurrent discard in theory), not newly introduced, but is worth a comment in
-  the code since it's easy to assume `cancel()` finishes the job.
 - **`discard_all_widgets()` (`mainwindow.py:375`) must also cancel `self._pending_opens`.** It
   exists specifically to stop async callbacks from firing after Qt starts tearing down widgets
   during `GUI._logout()`'s reconnect flow ("libshiboken: Internal C++ object already deleted").
@@ -185,30 +246,53 @@ async def _showEvent(self, event: QtGui.QShowEvent) -> None:
     if not self._initialized and hasattr(self, "_init"):
         if self._init_task is None:
             self._init_task = asyncio.create_task(self._run_init())
-        await self._init_task
+        try:
+            await self._init_task
+        except Exception:
+            # transient init failure (e.g. a comm RPC hiccup): log, and allow a retry on
+            # the next show instead of leaving the widget permanently marked initialized
+            log.exception("Init of %s failed; will retry on next show.", type(self).__name__)
+            self._init_task = None
 
 async def _run_init(self) -> None:
-    try:
-        await self._init()
-    finally:
-        self._initialized = True
+    await self._init()
+    self._initialized = True
 ```
+
+`self._init_task: asyncio.Task[Any] | None = None` must be added to `BaseWidget.__init__` — it
+does not exist today, so the snippet's `is None` check would otherwise AttributeError on the very
+first show. Failure semantics are preserved from today: a raising `_init()` leaves `_initialized`
+False and `_init_task` cleared, so the next show retries — the naive
+`finally: self._initialized = True` would instead mark a half-initialized widget done forever and
+leave the exception unretrieved in the memoized task.
 
 (Small, isolated; the placeholder design already guarantees `_init()` only ever runs after
 `open()` finished, since the real widget is only inserted/shown post-open — no new
 open/init concurrency is introduced.)
 
-### 5. Fast-follow widget cleanups (independent of the above, same PR or next)
+### 5. Widget cleanups (shell = required dependency of §3; telescope/camera = fast-follows)
 
+- `shellwidget.py` — debounce `CommandModel.init()` rebuilds and only rebuild when the Shell page
+  is visible, instead of on every module connect. **Required for §3's cost claim, same PR**:
+  `ShellWidget._module_changed` (`shellwidget.py:203`) fires on every module open/close regardless
+  of visibility and rebuilds unconditionally, so gating only the mainwindow side would leave the
+  O(N²) rebuilds running anyway. Concretely: skip the rebuild when `self.isVisible()` is False (a
+  stacked-page widget is hidden whenever it isn't the current page), debounce rapid module events
+  (a short timer/sleep that resets on each event), and rebuild on first show — e.g. a `showEvent`
+  override that rebuilds when the model is stale — so a Shell page that was never opened isn't left
+  with an empty command list.
 - `telescopewidget.py:_init()` — fire the five `subscribe_state` calls concurrently with
   `asyncio.gather` (each is independent; XmppComm's `_subscribe_state` already returns
   immediately and subscribes in background tasks, so this mainly removes the sequential await
-  hops).
+  hops). Fast-follow, same PR or next.
 - `camerawidget.py:_init()` — pass an explicit short `timeout=` to each `wait_for_state()`
   (e.g. 2 s instead of the 10 s default) and gather the independent capability/state fetches, so a
-  slow-publishing camera can't hold the page blank for ~70 s in the worst case.
-- `shellwidget.py` — debounce `CommandModel.init()` rebuilds (and only rebuild when the Shell page
-  is visible), instead of on every module connect.
+  slow-publishing camera can't hold the page blank for ~70 s in the worst case. Two notes: keep
+  each interface's caps → state → subscribe ordering intact inside the gather (they populate the
+  same control, e.g. `comboBinning` is filled from capabilities before its current value is set
+  from state); and with a short timeout the widget briefly shows default values for interfaces
+  that haven't published yet — acceptable, the subscription callback corrects them as soon as
+  state arrives. Fast-follow, same PR or next.
 
 ## Decisions
 
@@ -228,20 +312,29 @@ open/init concurrency is introduced.)
   content instant but adds state subscriptions for pages the user may never open (traffic and
   churn on every module the GUI is subscribed to). Revisit later if first-click latency after the
   placeholder swap still feels slow.
+- **Open failure = teardown, not a permanent "Loading…" page.** If `widget.open()` raises, the
+  client is removed (nav item, placeholder, registry entries) and the widget discarded (§1
+  `_fail_open`). Today the same failure leaves a nav item that silently does nothing on click; the
+  new behavior must not trade that for an equally dead page that *looks* intentional.
 
 ## Per-file change list
 
 All files under `pyobs_gui/` (plus `tests/`):
 
-1. `mainwindow.py` — `_add_client` restructure (§1: placeholder + background open + swap),
-   `_change_page` → `self._pages`, `_init_clients` → `asyncio.gather` (§2), drop per-connect
-   `_update_client_list`/`_check_warnings` and add the post-gather call (§3), `_client_disconnected`
-   cancels pending opens and cleans `_pages` (§3), `_make_loading_page` helper (§1),
-   `discard_all_widgets()` cancels and drains `_pending_opens` before discarding widgets (§3).
-2. `base.py` — memoized init task in `_showEvent` (§4).
-3. `shellwidget.py` — visibility-gated + debounced `CommandModel` rebuild (§5).
-4. `telescopewidget.py` — `_init()` gather (§5).
-5. `camerawidget.py` — explicit `wait_for_state` timeouts + gather in `_init()` (§5).
+1. `mainwindow.py` — `_add_client` restructure (§1: placeholder + background open + swap +
+   `_fail_open` teardown), `_change_page` → `self._pages`, `_init_clients` → `asyncio.gather` (§2),
+   drop per-connect `_update_client_list`/`_check_warnings` and add the post-gather call, extract
+   sync `_update_clients_menu()` (§3), `_client_disconnected` rework: cancel+await pending open,
+   remove the placeholder from the stack, drop per-disconnect `_check_warnings` (§3),
+   `_make_loading_page` helper (§1), `discard_all_widgets()` cancels and drains `_pending_opens`
+   before discarding widgets (§3), plus `import contextlib` and a module logger (used by the
+   open-failure path).
+2. `base.py` — `self._init_task = None` in `__init__`; memoized init task in `_showEvent` with
+   retry-on-failure (§4).
+3. `shellwidget.py` — visibility-gated + debounced `CommandModel` rebuild with a first-show
+   rebuild hook (§5, required by §3).
+4. `telescopewidget.py` — `_init()` gather (§5, fast-follow).
+5. `camerawidget.py` — explicit `wait_for_state` timeouts + gather in `_init()` (§5, fast-follow).
 6. `tests/` — new tests (see Verification).
 
 No `pyobs-core` changes.
@@ -255,10 +348,16 @@ No `pyobs-core` changes.
   immediately; `_change_page` to it shows the placeholder; when `open()` completes the real widget
   replaces the placeholder; if the page was current, `stackedWidget.currentWidget()` becomes the
   real widget (and `_init` fires). Fake `Comm` with `clients`, `proxy`, `register_event`,
-  `subscribe_state`, `get_interfaces`, `clients_with_interface` mocks, per the `FakeComm` pattern
-  in `tests/test_camerawidget.py`.
-- `_client_disconnected` mid-open: pending open task is cancelled, placeholder removed, no ghost
-  page.
+  `subscribe_state`, `get_interfaces`, `clients_with_interface` mocks — the existing `FakeComm` in
+  `tests/test_camerawidget.py` only implements `safe_proxy`, so this is a new, fuller fake built
+  on that pattern.
+- `_open_client` failure path: fake `BaseWidget.open()` that raises → the nav item and placeholder
+  are removed, the client leaves `_widgets`/`_pages`, `discard()` is called, and no "Loading…"
+  page remains. Also: a mid-open disconnect that cancels the task must not double-tear-down
+  (teardown runs exactly once, whether the disconnect or the failure happens first).
+- `_client_disconnected` mid-open: pending open task is cancelled **and awaited** before
+  `discard()` (no concurrent open-tail/discard window), placeholder removed from the stack, no
+  ghost page — including when the placeholder was the current page.
 - `_init_clients` parallel: two clients whose `open()` blocks on different events both reach the
   placeholder stage before either open completes (assert via event ordering, not wall-clock).
 - `TelescopeWidget._init` gather: fake comm records that all five `subscribe_state` calls are
@@ -290,8 +389,9 @@ Real-network run: click each module right after it appears — page switches ins
   pre-existing, unrelated to this plan): `ShellWidget.open()` (`shellwidget.py:164-165`) registers
   its `ModuleOpenedEvent`/`ModuleClosedEvent` handlers via `self.comm.register_event()` directly
   instead of the tracked `BaseWidget.register_event()` wrapper, so `discard()` never unregisters
-  them — a leak on every logout/reconnect — and it duplicates the `CommandModel` rebuild the
-  mainwindow-side `_update_client_list()` already triggers per connect. Worth its own fix later.
+  them — a leak on every logout/reconnect. (Once §3/§5 land, the mainwindow no longer triggers the
+  `CommandModel` rebuild per connect — the shell's own `_module_changed` handler becomes the sole
+  rebuild trigger, so it must carry the debounce/visibility gate.) Worth its own fix later.
 - Follow-up candidates (noted, not planned): auto-switch to a newly connected module when its
   nav item is already selected; show a spinner instead of the static label if the open takes
   long; pre-warm `_init` for the most recently used pages.
