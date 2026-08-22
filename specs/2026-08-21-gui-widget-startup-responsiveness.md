@@ -94,6 +94,12 @@ async def _open_client(self, client: str, widget: BaseWidget) -> None:
     placeholder = self._pages.get(client)
     if placeholder is None:
         return  # client disconnected while opening
+
+    # capture BEFORE removeWidget(placeholder): once the placeholder is removed from the
+    # stack it can never again be currentWidget(), so the check has to happen first or the
+    # "user is sitting on this page" branch below can never fire
+    was_current = self.stackedWidget.currentWidget() is placeholder
+
     idx = self.stackedWidget.indexOf(placeholder)
     self.stackedWidget.removeWidget(placeholder)
     placeholder.deleteLater()
@@ -102,7 +108,7 @@ async def _open_client(self, client: str, widget: BaseWidget) -> None:
 
     # if the user is sitting on this page, show the real widget now — showEvent ->
     # _init() runs and the content fills in
-    if self.stackedWidget.currentWidget() is placeholder:  # guard: may already be swapped
+    if was_current:
         self.stackedWidget.setCurrentWidget(widget)
 ```
 
@@ -139,9 +145,35 @@ handlers) are already dispatched as separate tasks by the comm layer, so they st
   `shell.update_client_list()` → `CommandModel.init()` half is gated on the Shell page being
   visible (and otherwise skipped, since the Shell widget already listens to module open/close
   events itself via `shellwidget.py:203` and can rebuild lazily on first show).
-- `_client_disconnected()` additionally: cancel `self._pending_opens.pop(client, None)` and remove
-  the placeholder/page from `self._pages` alongside the existing nav-item/widget removal, so a
-  module that vanishes mid-open leaves no ghost page.
+- `_client_disconnected()` additionally:
+  ```python
+  task = self._pending_opens.pop(client, None)
+  if task is not None:
+      task.cancel()
+  ```
+  and remove the placeholder/page from `self._pages` alongside the existing nav-item/widget
+  removal, so a module that vanishes mid-open leaves no ghost page. Note `task.cancel()` is not
+  synchronous — the coroutine only unwinds at its next `await` inside `widget.open()` — so the
+  `widget.discard()` call a few lines later in `_client_disconnected()` can still run concurrently
+  with the tail of a not-yet-cancelled `open()`. This is pre-existing risk shape (open() is already
+  unguarded against concurrent discard in theory), not newly introduced, but is worth a comment in
+  the code since it's easy to assume `cancel()` finishes the job.
+- **`discard_all_widgets()` (`mainwindow.py:375`) must also cancel `self._pending_opens`.** It
+  exists specifically to stop async callbacks from firing after Qt starts tearing down widgets
+  during `GUI._logout()`'s reconnect flow ("libshiboken: Internal C++ object already deleted").
+  The placeholder design adds exactly the kind of background task that can trigger this: an
+  `_open_client` task can still be running — touching `self.stackedWidget` and the widget it's
+  about to swap in — when logout starts. Add, at the top of `discard_all_widgets()`:
+  ```python
+  for task in self._pending_opens.values():
+      task.cancel()
+  for task in list(self._pending_opens.values()):
+      with contextlib.suppress(asyncio.CancelledError):
+          await task
+  self._pending_opens.clear()
+  ```
+  before the existing per-widget `discard()` loop, so no `_open_client` task is still mutating
+  `stackedWidget`/a widget after teardown begins.
 
 ### 4. Harden `_showEvent` against the pre-existing double-init race
 
@@ -204,7 +236,8 @@ All files under `pyobs_gui/` (plus `tests/`):
 1. `mainwindow.py` — `_add_client` restructure (§1: placeholder + background open + swap),
    `_change_page` → `self._pages`, `_init_clients` → `asyncio.gather` (§2), drop per-connect
    `_update_client_list`/`_check_warnings` and add the post-gather call (§3), `_client_disconnected`
-   cancels pending opens and cleans `_pages` (§3), `_make_loading_page` helper (§1).
+   cancels pending opens and cleans `_pages` (§3), `_make_loading_page` helper (§1),
+   `discard_all_widgets()` cancels and drains `_pending_opens` before discarding widgets (§3).
 2. `base.py` — memoized init task in `_showEvent` (§4).
 3. `shellwidget.py` — visibility-gated + debounced `CommandModel` rebuild (§5).
 4. `telescopewidget.py` — `_init()` gather (§5).
@@ -253,7 +286,12 @@ Real-network run: click each module right after it appears — page switches ins
 - Out of scope: pre-warming `_init()` at open time (Decision), moving `CommandModel.init`'s
   `inspect` work off the UI thread, `StatusWidget`'s own per-module RPC chains
   (`statuswidget.py:_add_module_details` — same "fills in later" UX but not part of the click
-  problem), and any pyobs-core `wait_for_state` default-timeout change.
+  problem), and any pyobs-core `wait_for_state` default-timeout change. Also out of scope (noted,
+  pre-existing, unrelated to this plan): `ShellWidget.open()` (`shellwidget.py:164-165`) registers
+  its `ModuleOpenedEvent`/`ModuleClosedEvent` handlers via `self.comm.register_event()` directly
+  instead of the tracked `BaseWidget.register_event()` wrapper, so `discard()` never unregisters
+  them — a leak on every logout/reconnect — and it duplicates the `CommandModel` rebuild the
+  mainwindow-side `_update_client_list()` already triggers per connect. Worth its own fix later.
 - Follow-up candidates (noted, not planned): auto-switch to a newly connected module when its
   nav item is already selected; show a spinner instead of the static label if the open takes
   long; pre-warm `_init` for the most recently used pages.
