@@ -1,3 +1,4 @@
+import asyncio
 from enum import Enum
 from typing import Any
 
@@ -199,15 +200,19 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.select_coord_type()
 
     async def _init(self) -> None:
-        await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
+        # fire the (up to five) subscribe_state calls concurrently -- each is independent, and
+        # the comm's subscribe_state returns immediately anyway, so this mainly removes the
+        # sequential await hops
+        calls = [self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)]
         if IPointingRaDec in self._interfaces:
-            await self.comm.subscribe_state(self.module, IPointingRaDec, self._on_radec_state)
+            calls.append(self.comm.subscribe_state(self.module, IPointingRaDec, self._on_radec_state))
         if IPointingAltAz in self._interfaces:
-            await self.comm.subscribe_state(self.module, IPointingAltAz, self._on_altaz_state)
+            calls.append(self.comm.subscribe_state(self.module, IPointingAltAz, self._on_altaz_state))
         if IOffsetsRaDec in self._interfaces:
-            await self.comm.subscribe_state(self.module, IOffsetsRaDec, self._on_offsets_radec_state)
+            calls.append(self.comm.subscribe_state(self.module, IOffsetsRaDec, self._on_offsets_radec_state))
         if IOffsetsAltAz in self._interfaces:
-            await self.comm.subscribe_state(self.module, IOffsetsAltAz, self._on_offsets_altaz_state)
+            calls.append(self.comm.subscribe_state(self.module, IOffsetsAltAz, self._on_offsets_altaz_state))
+        await asyncio.gather(*calls)
 
     # -------------------------------------------------------------------------
     # State callbacks

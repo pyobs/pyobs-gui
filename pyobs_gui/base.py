@@ -169,6 +169,10 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # has it been initialized?
         self._initialized = False
 
+        # memoized one-shot init task -- two rapid show/hide/show cycles must not run _init()
+        # twice concurrently (see _showEvent)
+        self._init_task: asyncio.Task[Any] | None = None
+
         # methods this GUI is permitted to invoke on self.module; None until fetched or if the
         # fetch failed, meaning "treat everything as permitted"
         self._permitted_methods: set[str] | None = None
@@ -263,13 +267,28 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         asyncio.create_task(self._showEvent(event))
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:
-        if self._initialized is False and hasattr(self, "_init"):
-            await self._init()
-            self._initialized = True
+        if self._initialized is False:
+            if self._init_task is None:
+                self._init_task = asyncio.create_task(self._run_init())
+            try:
+                await self._init_task
+            except Exception:
+                # transient init failure (e.g. a comm RPC hiccup): log, and allow a retry on
+                # the next show instead of leaving the widget permanently marked initialized
+                log.exception("Init of %s failed; will retry on next show.", type(self).__name__)
+                self._init_task = None
 
         if self._update_func:
             # start update task
             self._update_task = asyncio.create_task(self._update_loop())
+
+    async def _run_init(self) -> None:
+        await self._init()
+        self._initialized = True
+
+    async def _init(self) -> None:
+        """Default no-op init. Widgets with one-time subscription/state setup override this;
+        _showEvent memoizes the call so it runs exactly once per widget lifetime."""
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # run in loop
