@@ -81,6 +81,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self.socket: QtNetwork.QAbstractSocket | None = None
         self.scheme: str | None = None
 
+        # Authorization header for the raw-socket stream request, taken from the
+        # HttpFile the widget opens in _init (None when the VFS root configures no token)
+        self._auth_header: str | None = None
+
         # whether the HTTP response headers of the current stream connection have
         # been stripped from self.buffer yet (see _received_data)
         self._headers_received = False
@@ -140,6 +144,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         if not isinstance(video_file, HttpFile):
             log.error("VFS path to video of module %s must be an HttpFile.", self.module)
             return
+
+        # keep the Authorization header (Bearer token) for the raw-socket stream request --
+        # HttpFile sends it itself for VFS reads, but the stream bypasses HttpFile entirely
+        self._auth_header = video_file.headers.get("Authorization")
 
         # parse URL
         o = urlparse(video_file.url)
@@ -204,7 +212,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             # as the plain MJPEG byte stream (with Connection: close, which just means the
             # stream runs until the client disconnects).
             self.socket.write(
-                b"GET %s HTTP/1.0\r\nHost: %s\r\n\r\n" % (bytes(self.path, "UTF-8"), bytes(host_header, "UTF-8"))
+                b"GET %s HTTP/1.0\r\nHost: %s\r\n" % (bytes(self.path, "UTF-8"), bytes(host_header, "UTF-8"))
+                + (b"Authorization: %s\r\n" % bytes(self._auth_header, "UTF-8") if self._auth_header else b"")
+                + b"\r\n"
             )
             # new connection: the next bytes start with the HTTP response headers
             self._headers_received = False
