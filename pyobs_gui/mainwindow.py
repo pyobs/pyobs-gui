@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from typing import Optional, List, Any, Dict, Callable
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
@@ -29,7 +30,7 @@ from pyobs.interfaces import (
     IModule,
 )
 
-from .base import BaseWindow, BaseWidget
+from .base import BaseWindow, BaseWidget, cancel_and_drain
 from .acquisitionwidget import AcquisitionWidget
 from .autofocuswidget import AutoFocusWidget
 from .autoguidingwidget import AutoGuidingWidget
@@ -47,6 +48,8 @@ from .eventswidget import EventsWidget
 from .roofwidget import RoofWidget
 from .shellwidget import ShellWidget
 from .spectrographwidget import SpectrographWidget
+
+log = logging.getLogger(__name__)
 
 DEFAULT_WIDGETS = {
     ICamera: CameraWidget,
@@ -281,6 +284,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # list of widgets
         self._widgets: Dict[str, BaseWidget] = {}
+        # client -> current page in the stacked widget (a "Loading…" placeholder until the
+        # widget's open() finished, then the widget itself) -- see _add_client/_open_client
+        self._pages: Dict[str, QtWidgets.QWidget] = {}
+        # client -> in-flight background open task (see _add_client)
+        self._pending_opens: Dict[str, asyncio.Task[None]] = {}
         self._current_widget = None
         self.shell: Optional[ShellWidget] = None
         self.events: Optional[EventsWidget] = None
@@ -336,7 +344,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.listPages.currentRowChanged.connect(self._change_page)
 
         # get clients
-        await self._update_client_list()
+        self._update_clients_menu()
         await self._check_warnings()
 
         # subscribe to events
@@ -351,9 +359,13 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.warning_task = asyncio.create_task(self._check_warning_task())
 
     async def _init_clients(self) -> None:
-        # create other nav buttons and views
-        for client_name in self.comm.clients:
-            await self._client_connected(Event(), client_name)
+        # create other nav buttons and views -- in parallel, so a slow module (e.g. the
+        # telescope) no longer blocks every other module from appearing
+        await asyncio.gather(*(self._client_connected(Event(), c) for c in self.comm.clients))
+
+        # one fresh warning pass now that all modules are in (the periodic task keeps it
+        # current afterwards)
+        await self._check_warnings()
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         if self.warning_task is not None:
@@ -377,6 +389,15 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         *before* this window is closed/deleted as part of a reconnect (GUI._logout()), otherwise
         a stray in-flight event/state callback can fire after Qt has already destroyed the
         widget it targets (e.g. "libshiboken: Internal C++ object already deleted")."""
+        # cancel and drain any in-flight background opens first, so no _open_client task is
+        # still mutating the stackedWidget / a widget after teardown begins -- cancel all
+        # before draining any, so they unwind concurrently instead of one after another
+        for task in self._pending_opens.values():
+            task.cancel()
+        for task in list(self._pending_opens.values()):
+            await cancel_and_drain(task)
+        self._pending_opens.clear()
+
         for widget in list(self._widgets.values()):
             await widget.discard()
 
@@ -433,14 +454,90 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         self.listPages.addItem(item)
         self.listPages.sortItems()
 
-        # open and add widget
-        await widget.open(
-            modules=[client] if client is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
-        )
-        self.stackedWidget.addWidget(widget)
-
-        # store
+        # register immediately, so _change_page and the shortcuts always find the client --
+        # even while the widget's open() is still running below
         self._widgets[client] = widget
+
+        # placeholder page: clickable now, explains the delay, needs no per-widget changes
+        placeholder = self._make_loading_page(client, icon)
+        self.stackedWidget.addWidget(placeholder)
+        self._pages[client] = placeholder
+
+        # open in the background; swap in the real widget when done
+        self._pending_opens[client] = asyncio.create_task(self._open_client(client, widget))
+
+    async def _open_client(self, client: str, widget: BaseWidget) -> None:
+        try:
+            await widget.open(
+                modules=[client] if client is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
+            )
+        except Exception:
+            # open() failed (RPC errors etc.): tear the client down rather than leaving a
+            # permanent "Loading…" dead page behind. Note asyncio.CancelledError is NOT
+            # caught here (it subclasses BaseException), so a mid-open disconnect -- which
+            # cancels this task -- still unwinds through the finally below and never reaches
+            # this branch.
+            log.exception("Failed to open widget for %s", client)
+            await self._fail_open(client, widget)
+            return
+        finally:
+            self._pending_opens.pop(client, None)
+
+        # swap placeholder -> real widget at the same stackedWidget index
+        placeholder = self._pages.get(client)
+        if placeholder is None:
+            return  # client disconnected while opening
+
+        # capture BEFORE removeWidget(placeholder): once the placeholder is removed from the
+        # stack it can never again be currentWidget(), so the check has to happen first or the
+        # "user is sitting on this page" branch below can never fire
+        was_current = self.stackedWidget.currentWidget() is placeholder
+
+        idx = self.stackedWidget.indexOf(placeholder)
+        self.stackedWidget.removeWidget(placeholder)
+        placeholder.deleteLater()
+        self.stackedWidget.insertWidget(idx, widget)
+        self._pages[client] = widget
+
+        # if the user is sitting on this page, show the real widget now -- showEvent ->
+        # _init() runs and the content fills in
+        if was_current:
+            self.stackedWidget.setCurrentWidget(widget)
+
+    async def _fail_open(self, client: str, widget: BaseWidget) -> None:
+        """Undo a failed _add_client: nav item, placeholder page, and registry entries.
+        No-op if the client already disconnected mid-open (its own teardown handled it)."""
+        if self._pages.get(client) is None:
+            return
+        self._widgets.pop(client, None)
+        for row in range(self.listPages.count()):
+            if self.listPages.item(row).text() == client:
+                self.listPages.takeItem(row)
+                break
+        placeholder = self._pages.pop(client, None)
+        if placeholder is not None:
+            if self.stackedWidget.currentWidget() is placeholder:
+                self._current_widget = None
+            self.stackedWidget.removeWidget(placeholder)
+            placeholder.deleteLater()
+        await widget.discard()
+
+    def _make_loading_page(self, client: str, icon: QtGui.QIcon) -> QtWidgets.QWidget:
+        """Returns a plain "Loading <client>…" page (module icon + grey label) that stands in
+        for the real widget while its open() is still running. No new dependency."""
+        page = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(page)
+        layout.addStretch()
+        icon_label = QtWidgets.QLabel()
+        icon_label.setPixmap(icon.pixmap(48, 48))
+        icon_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(icon_label)
+        label = QtWidgets.QLabel(f"Loading {client}…")
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        label.setStyleSheet("color: grey;")
+        layout.addWidget(label)
+        layout.addStretch()
+        return page
 
     @QtCore.Slot(int)  # type: ignore
     def _change_page(self, idx: int) -> None:
@@ -454,12 +551,13 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         item = self.listPages.item(idx)
         client = item.text() if item is not None else None
 
-        # section headers (and an empty selection) aren't real pages
-        if client not in self._widgets:
+        # section headers (and an empty selection) aren't real pages -- they are in neither
+        # self._pages nor self._widgets
+        if client not in self._pages:
             return
 
-        # change to new page
-        self.stackedWidget.setCurrentWidget(self._widgets[client])
+        # change to new page (may be a placeholder while the widget is still opening)
+        self.stackedWidget.setCurrentWidget(self._pages[client])
 
         # get new widget
         self._current_widget = self.stackedWidget.currentWidget()
@@ -523,8 +621,10 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             return
         self._select_page_by_name(name)
 
-    async def _update_client_list(self) -> None:
-        """Updates the select-clients menu for the log."""
+    def _update_clients_menu(self) -> None:
+        """Rebuilds the select-clients menu for the log -- cheap and purely local, so it can run
+        per connect/disconnect. (The Shell command model is the Shell widget's own job -- it
+        rebuilds debounced and only while its page is visible, see shellwidget.py.)"""
 
         # rebuild the menu -- every connected client, checked (shown) by default. A checkbox
         # inside a QWidgetAction (rather than a plain checkable QAction) both lets the entry's
@@ -543,10 +643,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             action = QtWidgets.QWidgetAction(self._clients_menu)
             action.setDefaultWidget(checkbox)
             self._clients_menu.addAction(action)
-
-        # update shell
-        if self.shell is not None:
-            await self.shell.update_client_list()
 
     def _clear_log(self) -> None:
         self.log_model.clear()
@@ -648,8 +744,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         if client in self._widgets:
             return False
 
-        # update client list
-        await self._update_client_list()
+        # update client list (cheap menu rebuild; the shell model is the shell's own job)
+        self._update_clients_menu()
 
         # what do we have?
         async with self.comm.proxy(client) as proxy:
@@ -684,9 +780,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             self._add_section_header("Modules")
             self._modules_header_added = True
         await self._add_client(client, icon, widget)
-
-        # check mastermind
-        await self._check_warnings()
         return True
 
     async def _client_disconnected(self, event: Event, client: str) -> bool:
@@ -696,19 +789,38 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             client: Name of client.
         """
 
-        # update client list
-        await self._update_client_list()
+        # update client list (cheap menu rebuild; the shell model is the shell's own job)
+        self._update_clients_menu()
 
         # not in list?
         if client not in self._widgets:
             return False
 
+        # cancel a pending open BEFORE discard(), and await the cancellation: cancel() is not
+        # synchronous (the coroutine only unwinds at its next await inside widget.open()), so
+        # without this await, widget.discard() below could run concurrently with the tail of a
+        # not-yet-finished open() -- e.g. sidebar widgets added after discard, or handlers
+        # re-registered after unregister. This race is newly exposed by registering the widget
+        # early in _add_client: before, the widget wasn't in self._widgets mid-open, so this
+        # method returned early and discard() could never run while open() was in flight.
+        task = self._pending_opens.pop(client, None)
+        if task is not None:
+            await cancel_and_drain(task)
+
         # get widget
         widget = self._widgets[client]
 
-        # is current?
-        if self.stackedWidget.currentWidget() == widget:
+        # is current? (the placeholder may be the current page mid-open)
+        if self.stackedWidget.currentWidget() in (widget, self._pages.get(client)):
             self._current_widget = None
+
+        # remove placeholder page, if any -- a dict pop alone would leave a ghost QWidget in
+        # the stack, and if it was the current page it would stay visible after the module
+        # vanished
+        placeholder = self._pages.pop(client, None)
+        if placeholder is not None:
+            self.stackedWidget.removeWidget(placeholder)
+            placeholder.deleteLater()
 
         # remove widget
         self.stackedWidget.removeWidget(widget)
@@ -726,9 +838,6 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
         # remove from dict
         del self._widgets[client]
-
-        # check mastermind
-        await self._check_warnings()
         return True
 
     def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> dict[str, FitsHeaderEntry]:

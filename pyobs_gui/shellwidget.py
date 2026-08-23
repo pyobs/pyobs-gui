@@ -1,7 +1,7 @@
 import asyncio
 import re
 from typing import Any
-from PySide6 import QtWidgets, QtCore  # type: ignore
+from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 import inspect
 from enum import Enum
 import logging
@@ -13,7 +13,6 @@ from pyobs.utils.shellcommand import ShellCommand
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 from .qt.shellwidget_ui import Ui_ShellWidget
-
 
 log = logging.getLogger(__name__)
 
@@ -113,6 +112,13 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
         # commands
         self.command_model: CommandModel | None = None
         self.completer: QtWidgets.QCompleter | None = None
+        # True when the command model may not reflect comm.clients (module events arrived while
+        # the Shell page was hidden); the next showEvent triggers a rebuild
+        self._model_stale = False
+        # debounced rebuild task -- one per burst of module events (see _module_changed)
+        self._model_debounce_task: asyncio.Task[Any] | None = None
+        # serializes CommandModel.init() runs, so two rebuilds can never interleave
+        self._model_lock = asyncio.Lock()
         self.command_regexp = re.compile(r"(\w+)\.(\w+[_\w+]*)\(([^\)]*)\)")
         self.args_regexp = re.compile(r'(?:[^\s,"]|"(?:\\.|[^"])*")+')
 
@@ -158,11 +164,17 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
         table_view.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
 
         # await self.command_model.init()
-        await self.update_client_list()
+        await self.update_client_list(force=True)
 
         if self.comm is not None:
             await self.comm.register_event(ModuleOpenedEvent, self._module_changed)
             await self.comm.register_event(ModuleClosedEvent, self._module_changed)
+
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        super().showEvent(event)
+        # rebuild the command model lazily if module changes arrived while this page was hidden
+        if self._model_stale:
+            asyncio.create_task(self.update_client_list())
 
     def _add_command_log(self, msg: str, color: str | None = None) -> None:
         if color is not None:
@@ -201,11 +213,35 @@ class ShellWidget(BaseWidget, Ui_ShellWidget):
             doc = ""
 
     async def _module_changed(self, event: Event, sender: str) -> bool:
-        asyncio.create_task(self.update_client_list())
+        # debounce: restart the short delay on every module event, so a burst of
+        # connects/disconnects triggers exactly one rebuild
+        if self._model_debounce_task is not None:
+            self._model_debounce_task.cancel()
+        self._model_debounce_task = asyncio.create_task(self._debounced_rebuild())
         return True
 
-    async def update_client_list(self) -> None:
+    async def _debounced_rebuild(self) -> None:
+        try:
+            await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            return
+        await self.update_client_list()
+
+    async def update_client_list(self, force: bool = False) -> None:
+        """Rebuilds the command model from the current comm.clients.
+
+        Skipped (model marked stale) when the Shell page isn't visible, unless force=True --
+        open() forces the initial build, and the page's own showEvent triggers the rebuild
+        later. The lock serializes concurrent rebuilds so two CommandModel.init() runs can
+        never interleave.
+        """
         # create model for commands
-        if self.command_model is not None and self.completer is not None:
+        if self.command_model is None or self.completer is None:
+            return
+        if not force and not self.isVisible():
+            self._model_stale = True
+            return
+        async with self._model_lock:
             await self.command_model.init()
             self.completer.setModel(self.command_model)
+            self._model_stale = False
