@@ -1,6 +1,6 @@
 # Plan: pyobs-gui — make module widgets appear and respond immediately at startup
 
-Status: proposed
+Status: implemented, closed 2026-08-23 (PR #141, `123161b`)
 Audited: 2026-08-21
 
 ## Problem
