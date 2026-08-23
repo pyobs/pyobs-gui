@@ -3256,7 +3256,7 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "2.0.0.dev78"
+version = "2.0.0.dev93"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -3288,14 +3288,14 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/47/bd/f9cae7fc00382cfeedde9f8975a72a2f0c5a464e15ce7e2561482773fae7/pyobs_core-2.0.0.dev78.tar.gz", hash = "sha256:9b748a8af94b2cb1787e33fdead1f677021878b86897690ae6d5643d5ad53f93", size = 361666, upload-time = "2026-08-18T10:45:40.129Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6a/af/9430d1f7e917c748c219f0fce4a1760b08829559877008e9dc006fba8c3d/pyobs_core-2.0.0.dev93.tar.gz", hash = "sha256:d88b6312ca701da6bfc3f0ad3c3ddd25a4fa7eff488acded04721a1d38527184", size = 370770, upload-time = "2026-08-23T13:09:23.719Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/4b/0be191afcadc30ac49d39042249af637f221c3301297e2624ad2b6ef1353/pyobs_core-2.0.0.dev78-py3-none-any.whl", hash = "sha256:7833147de3b291767120b32333a384be66286f86d9be301ca20e194d6d867dac", size = 584432, upload-time = "2026-08-18T10:45:38.3Z" },
+    { url = "https://files.pythonhosted.org/packages/97/0f/4944d705950263bc8f615fd2069a1ef9c9fc7a3a99cbf965eb02de721f60/pyobs_core-2.0.0.dev93-py3-none-any.whl", hash = "sha256:a92e3b64bc5a93e7ae4f2a3c2c191c81d4a2098c0c6a5b77bc234320a132bc62", size = 593808, upload-time = "2026-08-23T13:09:22.045Z" },
 ]
 
 [[package]]
 name = "pyobs-gui"
-version = "2.0.0.dev19"
+version = "2.0.0.dev20"
 source = { editable = "." }
 dependencies = [
     { name = "astroplan" },
@@ -3338,7 +3338,7 @@ requires-dist = [
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "keyring", specifier = ">=25.7.0,<26" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
-    { name = "pyobs-core", specifier = ">=2.0.0.dev78,<3" },
+    { name = "pyobs-core", specifier = ">=2.0.0.dev93,<3" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.29" },
     { name = "qfitswidget", specifier = ">=0.13.1" },

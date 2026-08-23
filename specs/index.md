@@ -8,6 +8,10 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-08-21-gui-widget-startup-responsiveness.md` — **implemented, closed 2026-08-23 (PR #141,
+  `123161b`)**. Make module widgets appear and respond immediately at startup: non-blocking
+  `_add_client` with a "Loading…" placeholder page (clicks are never dropped), parallel
+  `_init_clients`, drop per-connect O(N) work, plus telescope/camera `_init` fast-follows.
 - `2026-08-20-gui-remote-call-error-handling.md` — **implemented, closed 2026-08-20 (PR #138,
   `bfc0a87`)**. Catch exceptions on remote method calls and show them in a messagebox (issue #134):
   route every user-triggered remote call through `run_background`, log throttled background
@@ -43,3 +47,6 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `pyobs-core/specs/plans/2026-07-29-gui-iautoguiding-widget.md` — **implemented, closed**. The
   `IAutoGuiding` widget; the follow-up refinement (`OffsetResult`/`OffsetFrame`, arcsec-based
   `GuidingState`) has shipped in both pyobs-core and pyobs-gui.
+- `pyobs-core/specs/plans/2026-08-21-basevideo-http-token-auth.md` — **proposed**. Shared-token
+  auth + browser login for `BaseVideo` (pyobs-core side); pyobs-gui side is a one-header change
+  in `VideoWidget`'s raw-socket GET (design: `pyobs-core/specs/design/basevideo-http-auth.md`).
