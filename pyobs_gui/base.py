@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Type, TypeVar, overload
 
@@ -42,6 +43,13 @@ async def show_remote_error(parent: QtWidgets.QWidget, exception: Exception) -> 
     else:
         log.exception("An error occurred.")
         await QAsyncMessageBox.warning(parent, "Error", str(exception))
+
+
+async def cancel_and_drain(task: asyncio.Task[Any]) -> None:
+    """Cancel a task and await its unwind, swallowing the resulting CancelledError."""
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await task
 
 
 class BaseWindow:
@@ -169,6 +177,14 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         # has it been initialized?
         self._initialized = False
 
+        # memoized one-shot init task -- two rapid show/hide/show cycles must not run _init()
+        # twice concurrently (see _showEvent)
+        self._init_task: asyncio.Task[Any] | None = None
+
+        # keys of _init_once() sub-steps that already completed, so a retried _init() (see
+        # _showEvent) skips steps that already ran instead of re-subscribing to comm state
+        self._init_steps_done: set[str] = set()
+
         # methods this GUI is permitted to invoke on self.module; None until fetched or if the
         # fetch failed, meaning "treat everything as permitted"
         self._permitted_methods: set[str] | None = None
@@ -251,6 +267,15 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         in Comm._event_handlers forever, keeping this widget alive and still reacting to
         events for as long as the app runs.
         """
+        # cancel a still-in-flight one-time _init() first: comm's own disconnect-triggered
+        # subscription cleanup (Comm._client_disconnected) runs before this method is called,
+        # so a subscribe_state() call inside _init_task that resolves afterwards would leak a
+        # subscription bound to this now-discarded widget -- the same stale-callback crash
+        # class this method otherwise guards against
+        if self._init_task is not None:
+            await cancel_and_drain(self._init_task)
+            self._init_task = None
+
         for event_class, handler in self._registered_event_handlers:
             await self.comm.unregister_event(event_class, handler)
         self._registered_event_handlers.clear()
@@ -263,13 +288,43 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         asyncio.create_task(self._showEvent(event))
 
     async def _showEvent(self, event: QtGui.QShowEvent) -> None:
-        if self._initialized is False and hasattr(self, "_init"):
-            await self._init()
-            self._initialized = True
+        if self._initialized is False:
+            if self._init_task is None:
+                self._init_task = asyncio.create_task(self._run_init())
+            try:
+                await self._init_task
+            except Exception:
+                # transient init failure (e.g. a comm RPC hiccup): log, and allow a retry on
+                # the next show instead of leaving the widget permanently marked initialized
+                log.exception("Init of %s failed; will retry on next show.", type(self).__name__)
+                self._init_task = None
 
         if self._update_func:
             # start update task
             self._update_task = asyncio.create_task(self._update_loop())
+
+    async def _run_init(self) -> None:
+        await self._init()
+        self._initialized = True
+
+    async def _init(self) -> None:
+        """Default no-op init. Widgets with one-time subscription/state setup override this;
+        _showEvent memoizes the call so it runs exactly once per widget lifetime."""
+
+    async def _init_once(self, key: str, coro_func: Callable[..., Coroutine[Any, Any, None]], *args: Any) -> None:
+        """Run one sub-step of _init() at most once across retries.
+
+        _showEvent retries the whole _init() after a partial failure (e.g. one of several
+        gathered comm.subscribe_state() calls raising while its siblings already subscribed).
+        comm.subscribe_state() unconditionally appends to comm's subscription list with no
+        deduplication, so a sub-step that already succeeded must not run again on retry --
+        override _init() and wrap each independent, subscribing sub-step in this instead of
+        calling it directly.
+        """
+        if key in self._init_steps_done:
+            return
+        await coro_func(*args)
+        self._init_steps_done.add(key)
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
         # run in loop
