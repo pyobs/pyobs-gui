@@ -122,14 +122,14 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         # wait_for_state timeout); now each interface waits at most _WAIT_FOR_STATE_TIMEOUT and
         # the others fill in regardless
         await asyncio.gather(
-            self._init_window(),
-            self._init_binning(),
-            self._init_gain(),
-            self._init_image_format(),
-            self._init_image_type(),
-            self._init_exposure(),
-            self._init_exposure_time(),
-            self._init_data_sequence(),
+            self._init_once("window", self._init_window),
+            self._init_once("binning", self._init_binning),
+            self._init_once("gain", self._init_gain),
+            self._init_once("image_format", self._init_image_format),
+            self._init_once("image_type", self._init_image_type),
+            self._init_once("exposure", self._init_exposure),
+            self._init_once("exposure_time", self._init_exposure_time),
+            self._init_once("data_sequence", self._init_data_sequence),
         )
 
         # update GUI

@@ -1,5 +1,4 @@
 import asyncio
-import contextlib
 import logging
 import os
 from typing import Optional, List, Any, Dict, Callable
@@ -31,7 +30,7 @@ from pyobs.interfaces import (
     IModule,
 )
 
-from .base import BaseWindow, BaseWidget
+from .base import BaseWindow, BaseWidget, cancel_and_drain
 from .acquisitionwidget import AcquisitionWidget
 from .autofocuswidget import AutoFocusWidget
 from .autoguidingwidget import AutoGuidingWidget
@@ -391,12 +390,12 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         a stray in-flight event/state callback can fire after Qt has already destroyed the
         widget it targets (e.g. "libshiboken: Internal C++ object already deleted")."""
         # cancel and drain any in-flight background opens first, so no _open_client task is
-        # still mutating the stackedWidget / a widget after teardown begins
+        # still mutating the stackedWidget / a widget after teardown begins -- cancel all
+        # before draining any, so they unwind concurrently instead of one after another
         for task in self._pending_opens.values():
             task.cancel()
         for task in list(self._pending_opens.values()):
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
+            await cancel_and_drain(task)
         self._pending_opens.clear()
 
         for widget in list(self._widgets.values()):
@@ -806,9 +805,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # method returned early and discard() could never run while open() was in flight.
         task = self._pending_opens.pop(client, None)
         if task is not None:
-            task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
+            await cancel_and_drain(task)
 
         # get widget
         widget = self._widgets[client]
