@@ -8,6 +8,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
+  `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
+  modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
 - `2026-08-21-gui-widget-startup-responsiveness.md` — **implemented, closed 2026-08-23 (PR #141,
   `123161b`)**. Make module widgets appear and respond immediately at startup: non-blocking
   `_add_client` with a "Loading…" placeholder page (clicks are never dropped), parallel
