@@ -34,6 +34,23 @@ unconditionally at startup. astropy's cds/ogip/vounit formats and astropy.coordi
 the same PLY pattern and would need the identical treatment if/when they're actually exercised in
 the compiled binary.
 
+Two caveats learned the hard way (pyobs-gui issue #151):
+
+- **The patch must be a strict no-op under a regular interpreter.** The wrapper functions below
+  add one stack frame, which shifts astropy's frame-level bookkeeping: ``astropy.utils.parsing``
+  calls ``get_caller_module_dict(2)`` directly, and its own ``_patch_ply_module`` wrapper adds two
+  more levels, so the extra frame makes the walk land on astropy's parsing wrapper instead of the
+  grammar-defining frame -- the fallback fired on plain CPython and corrupted unit/coordinate
+  parsing when running from source ("Invalid coordinates" in the Telescope widget, astropy units
+  failing to import). Therefore the patched functions step one level deeper (``levels + 1``) to
+  restore the original frame targeting, and ``patch_generic_unit_parser`` only installs at all
+  when running under Nuitka (``"__compiled__" in globals()``); otherwise it returns immediately.
+- **The vendored grammar must be a *registered* module.** PLY validates p-functions with
+  ``inspect.getmodule()``/``getsourcefile()``, which resolve the function's ``__module__`` through
+  ``sys.modules`` and want a real source file. ``_build_generic_grammar_namespace`` therefore
+  registers the namespace under its name and materializes its ``__file__`` stub; without that the
+  parser rebuild dies with "Unable to build parser" (``TypeError ... got NoneType``).
+
 Must run before ``astropy.units`` is imported anywhere, i.e. as the first thing in
 ``pyobs_gui/__init__.py``.
 """
@@ -41,6 +58,7 @@ Must run before ``astropy.units`` is imported anywhere, i.e. as the first thing 
 from __future__ import annotations
 
 import re
+import sys
 import tempfile
 import types
 from fractions import Fraction
@@ -75,6 +93,18 @@ def _build_generic_grammar_namespace() -> types.ModuleType:
     ns: Any = types.ModuleType("_pyobs_gui_generic_grammar")
     ns.__file__ = str(stub_dir / "generic.py")
     ns.tokens = tokens
+
+    # Register the namespace under its own name and materialize its __file__ so PLY's
+    # grammar validation can resolve it: ParserReflect.get_pfunctions() calls
+    # inspect.getmodule() on every p_* function (which looks the function's __module__ up
+    # in sys.modules), and validate_pfunctions() calls inspect.getsourcefile() on the
+    # result -- both need a real, registered module or the rebuild dies with
+    # "Unable to build parser" / "TypeError: ... got NoneType".
+    sys.modules.setdefault(ns.__name__, ns)
+    (stub_dir / "generic.py").write_text(
+        "# pyobs-gui: vendored astropy.units.format.generic PLY grammar (Nuitka workaround).\n",
+        encoding="utf-8",
+    )
 
     ns.t_COMMA = r"\,"
     ns.t_PRODUCT = "[*.]"
@@ -410,12 +440,23 @@ def _namespace_pdict(ns: types.ModuleType) -> dict[str, Any]:
     return {k: getattr(ns, k) for k in dir(ns)}
 
 
-def patch_generic_unit_parser() -> None:
+def patch_generic_unit_parser(*, compiled: bool | None = None) -> None:
     """Patch astropy.extern.ply's frame-walking helpers to fall back to our vendored grammar.
 
-    Safe to call unconditionally (frozen or not) -- under a normal, unfrozen interpreter the
-    original frame walk always succeeds, so the fallback path never triggers.
+    Only intended for the Nuitka-compiled standalone binary. Under a regular interpreter the
+    original frame walk always finds the grammar, and installing the wrapper would *shift* the
+    walk by one stack frame and break astropy's parsing (see module docstring / pyobs-gui issue
+    #151), so unless ``compiled`` is true this is a strict no-op.
+
+    Pass ``compiled`` as ``"__compiled__" in globals()`` evaluated in the entry package
+    (``pyobs_gui/__init__.py``), which is guaranteed to be compiled in the binary. When left as
+    None the marker is checked in this module's own globals instead.
     """
+    if compiled is None:
+        compiled = "__compiled__" in globals()
+    if not compiled:
+        return
+
     from astropy.extern.ply import lex as ply_lex
     from astropy.extern.ply import yacc as ply_yacc
 
@@ -423,6 +464,14 @@ def patch_generic_unit_parser() -> None:
     original_lex_dict = ply_lex.get_caller_module_dict
 
     def _fallback_pdict(pdict: dict[str, Any] | None) -> dict[str, Any]:
+        # Only the *generic unit* format's grammar is vendored here. astropy's other PLY
+        # grammars (angle/cds/ogip/vounit) would need the identical treatment, and feeding
+        # them the generic grammar would silently parse with the wrong productions (that is
+        # exactly how the binary's coordinate parsing broke: the angle parser got the unit
+        # grammar). For any other grammar return the broken-locals pdict unchanged so the
+        # build fails loudly instead of corrupting results.
+        if pdict is not None and pdict.get("__name__") != "astropy.units.format.generic":
+            return dict(pdict)
         # Keep whatever the real (possibly broken-locals) pdict already has -- __file__/
         # __package__/__name__ are module globals and come through fine even on a compiled
         # frame -- and only supplement the missing tokens/p_*/t_* grammar entries. Replacing
@@ -435,7 +484,12 @@ def patch_generic_unit_parser() -> None:
 
     def patched_yacc_dict(levels: int) -> dict[str, Any]:
         try:
-            pdict = original_yacc_dict(levels)
+            # Our wrapper adds one frame compared with the unpatched call chain (the original
+            # walk is now called from here instead of directly from astropy's parsing.yacc /
+            # _patch_ply_module wrapper), so step one level deeper to land on the same frame
+            # the original walk would have inspected. Without this the fallback fires under
+            # plain CPython and astropy's parsing breaks (pyobs-gui issue #151).
+            pdict = original_yacc_dict(levels + 1)
         except Exception:
             return _fallback_pdict(None)
         if "tokens" not in pdict:
@@ -444,7 +498,7 @@ def patch_generic_unit_parser() -> None:
 
     def patched_lex_dict(levels: int) -> dict[str, Any]:
         try:
-            pdict = original_lex_dict(levels)
+            pdict = original_lex_dict(levels + 1)
         except Exception:
             return _fallback_pdict(None)
         if "tokens" not in pdict:
