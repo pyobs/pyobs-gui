@@ -11,6 +11,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
   `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
   modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
+- `2026-08-28-gui-main-vs-sidebar-widgets.md` — **draft**. Fleshed-out issue #150: explicit
+  main-widget/sidebar-widget distinction, automatic tab pages for multi-widget modules (shared
+  sidebar, merge-per-interface custom config, standalone parity).
 - `2026-08-21-gui-widget-startup-responsiveness.md` — **implemented, closed 2026-08-23 (PR #141,
   `123161b`)**. Make module widgets appear and respond immediately at startup: non-blocking
   `_add_client` with a "Loading…" placeholder page (clicks are never dropped), parallel
@@ -22,6 +25,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Relevant from pyobs-core
 
+- `pyobs-core/specs/design/irobotic.md` — `IRobotic` (executor) / `IRoboticScheduler`
+  (planner) interfaces + `RoboticWidget` / `ScheduleWidget`. *proposed* (pyobs-core
+  issue #825) — start here.
 - `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
   single compiled binary that works across sites with no rebuild. *proposed* — start here.
 - `pyobs-core/specs/plans/2026-07-26-gui-interactive-login.md` — interactive login/settings
