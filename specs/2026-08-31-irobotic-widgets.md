@@ -1,6 +1,6 @@
 # Plan: pyobs-gui — `RoboticWidget` / `ScheduleWidget` (`IRobotic` / `IRoboticScheduler`)
 
-Status: proposed (issue #825)
+Status: implemented, closed (issue #825, PR #155, merged `5794186`)
 Audited: 2026-08-31
 
 ## Problem
@@ -20,14 +20,10 @@ except where they directly drive a widget/test decision.
   `pyobs/interfaces/IRoboticScheduler.py`), wired into `Mastermind` (executor) and `Scheduler`
   (planner). `DummyMastermind`/`DummyScheduler` (commit `30b198a6`) exist for GUI-side dev/testing
   without live hardware.
-- **Not yet in a pyobs-core release.** `pyobs-gui`'s `pyproject.toml` pins
-  `pyobs-core>=2.0.0,<3`; the installed PyPI `2.0.0` does not have `IRobotic`. This plan's
-  implementation was developed and tested against a local editable install of pyobs-core's
-  `develop` checkout (`uv pip install --python .venv/bin/python -e ../pyobs-core`, venv-only,
-  not committed to `pyproject.toml`/`uv.lock`). **This PR cannot be merged into a state that
-  passes CI/installs cleanly until pyobs-core ships a release containing `IRobotic`** — either
-  hold the PR until that release, or bump the floor (`pyobs-core>=2.1.0` or whatever version
-  ships it) as part of merging this.
+- **Resolved**: pyobs-core `2.1.0` (containing `IRobotic`/`IRoboticScheduler`) was released to
+  PyPI 2026-08-31 while this PR was open. `pyproject.toml`'s floor bumped to
+  `pyobs-core>=2.1.0,<3` and `uv.lock` re-resolved; CI (which had failed pyrefly against the
+  stale locked `2.0.0`) went green after that.
 - **pyobs-gui side not started** before this plan: no `RoboticWidget`/`ScheduleWidget`, no
   matching branch, no existing plan doc (confirmed via `git log --all`, `git branch -a`, and a
   file search across `specs/` and `pyobs_gui/`).
