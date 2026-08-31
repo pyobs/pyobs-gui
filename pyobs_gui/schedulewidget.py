@@ -25,10 +25,8 @@ class ScheduleWidget(BaseWidget, Ui_ScheduleWidget):
         BaseWidget.__init__(self, update_func=self._tick, **kwargs)
         self.setupUi(self)  # type: ignore
 
-        # size columns to their content (start/end/task/target/state/priority all vary a lot in
-        # width) instead of the designer's equal-width default; last column still stretches to
-        # fill (horizontalHeaderStretchLastSection, set in the .ui)
-        self.tableSchedule.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        # equal-width columns that always fill the table's full width
+        self.tableSchedule.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
 
         # cached state
         self._running = False
