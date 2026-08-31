@@ -24,6 +24,8 @@ from pyobs.interfaces import (
     IWeather,
     IVideo,
     IAutonomous,
+    IRobotic,
+    IRoboticScheduler,
     ISpectrograph,
     IFilters,
     IMode,
@@ -37,6 +39,8 @@ from .autoguidingwidget import AutoGuidingWidget
 from .camerawidget import CameraWidget
 from .filterwidget import FilterWidget
 from .modewidget import ModeWidget
+from .roboticwidget import RoboticWidget
+from .schedulewidget import ScheduleWidget
 from .statuswidget import StatusWidget
 from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
@@ -64,6 +68,8 @@ DEFAULT_WIDGETS = {
     ISpectrograph: SpectrographWidget,
     IFilters: FilterWidget,
     IMode: ModeWidget,
+    IRobotic: RoboticWidget,
+    IRoboticScheduler: ScheduleWidget,
 }
 
 DEFAULT_ICONS = {
@@ -80,6 +86,8 @@ DEFAULT_ICONS = {
     ISpectrograph: "ei.graph",
     IFilters: "ei.graph",
     IMode: "ei.video",
+    IRobotic: "mdi.robot",
+    IRoboticScheduler: "mdi.calendar-clock",
 }
 
 
@@ -98,6 +106,8 @@ DEFAULT_CONFIG = [
     {"widget": VideoWidget, "interfaces": "IVideo", "icon": "fa5s.video"},
     {"widget": SpectrographWidget, "interfaces": "ISpectrograph", "icon": "ei.graph"},
     {"widget": FilterWidget, "interfaces": "IFilters", "icon": "mdi.air-filter"},
+    {"widget": RoboticWidget, "interfaces": "IRobotic", "icon": "mdi.robot"},
+    {"widget": ScheduleWidget, "interfaces": "IRoboticScheduler", "icon": "mdi.calendar-clock"},
 ]
 
 
