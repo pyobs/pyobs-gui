@@ -70,7 +70,8 @@ class Ui_ScheduleWidget(object):
         self.tableSchedule.setHorizontalHeaderItem(5, __qtablewidgetitem5)
         self.tableSchedule.setObjectName(u"tableSchedule")
         self.tableSchedule.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableSchedule.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.tableSchedule.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.tableSchedule.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tableSchedule.horizontalHeader().setStretchLastSection(True)
 
         self.verticalLayout.addWidget(self.tableSchedule)
