@@ -12,6 +12,10 @@ location:
 modules:
   mastermind:
     class: pyobs.modules.robotic.DummyMastermind
+    # raised from the 0.2 default so the "next up" / cant_run_reason panel is visible more often
+    # for visual testing -- RoboticState.next is only populated during a simulated "can't run"
+    # wait, same as the real Mastermind (see specs/design/irobotic.md in pyobs-core)
+    blocked_probability: 0.6
     comm:
       class: pyobs.comm.local.LocalComm
       name: mastermind
