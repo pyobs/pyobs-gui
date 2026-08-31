@@ -28,6 +28,12 @@ class ScheduleWidget(BaseWidget, Ui_ScheduleWidget):
         # equal-width columns that always fill the table's full width
         self.tableSchedule.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
 
+        # no row-number sidebar, no selection highlighting/focus rect -- this table is read-only
+        # display, not something to click into (selectionMode: NoSelection in the .ui already
+        # disallows selecting, but doesn't hide the row headers or the focus rectangle)
+        self.tableSchedule.verticalHeader().setVisible(False)
+        self.tableSchedule.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
         # cached state
         self._running = False
         self._last_reschedule: Time | None = None
