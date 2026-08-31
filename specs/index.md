@@ -8,9 +8,8 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
-- `2026-08-31-irobotic-widgets.md` — **proposed (issue #825)**. `RoboticWidget` /
-  `ScheduleWidget` for `IRobotic`/`IRoboticScheduler` (pyobs-core side already landed on
-  `develop`, unreleased — see the plan's "Current state" for the pyobs-core-version blocker).
+- `2026-08-31-irobotic-widgets.md` — **implemented, closed (issue #825, PR #155, `5794186`)**.
+  `RoboticWidget` / `ScheduleWidget` for `IRobotic`/`IRoboticScheduler`.
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
   `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
   modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
@@ -29,9 +28,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 ## Relevant from pyobs-core
 
 - `pyobs-core/specs/design/irobotic.md` — `IRobotic` (executor) / `IRoboticScheduler`
-  (planner) interfaces + `RoboticWidget` / `ScheduleWidget`. *partially implemented*
-  (pyobs-core issue #825): pyobs-core side (interfaces, `Mastermind`, `Scheduler`) landed on
-  `develop`; the pyobs-gui widgets are not started — start here.
+  (planner) interfaces + `RoboticWidget` / `ScheduleWidget`. **implemented, closed** (issue #825).
+  pyobs-core side shipped in `v2.1.0`; pyobs-gui side is this repo's own
+  `2026-08-31-irobotic-widgets.md`, above.
 - `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
   single compiled binary that works across sites with no rebuild. *proposed* — start here.
 - `pyobs-core/specs/plans/2026-07-26-gui-interactive-login.md` — interactive login/settings
