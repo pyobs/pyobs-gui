@@ -8,6 +8,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-08-31-irobotic-widgets.md` — **proposed (issue #825)**. `RoboticWidget` /
+  `ScheduleWidget` for `IRobotic`/`IRoboticScheduler` (pyobs-core side already landed on
+  `develop`, unreleased — see the plan's "Current state" for the pyobs-core-version blocker).
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
   `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
   modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
