@@ -26,8 +26,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 ## Relevant from pyobs-core
 
 - `pyobs-core/specs/design/irobotic.md` — `IRobotic` (executor) / `IRoboticScheduler`
-  (planner) interfaces + `RoboticWidget` / `ScheduleWidget`. *proposed* (pyobs-core
-  issue #825) — start here.
+  (planner) interfaces + `RoboticWidget` / `ScheduleWidget`. *partially implemented*
+  (pyobs-core issue #825): pyobs-core side (interfaces, `Mastermind`, `Scheduler`) landed on
+  `develop`; the pyobs-gui widgets are not started — start here.
 - `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
   single compiled binary that works across sites with no rebuild. *proposed* — start here.
 - `pyobs-core/specs/plans/2026-07-26-gui-interactive-login.md` — interactive login/settings
