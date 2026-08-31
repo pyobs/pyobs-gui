@@ -1,0 +1,33 @@
+# Test config for RoboticWidget/ScheduleWidget (IRobotic/IRoboticScheduler), issue #825.
+# Requires pyobs-core installed from a checkout with IRobotic/IRoboticScheduler (unreleased as
+# of 2026-08-31 -- see specs/2026-08-31-irobotic-widgets.md's "Current state").
+# Run with: pyobs test/robotic.yaml
+class: pyobs.modules.MultiModule
+
+location:
+  longitude: 9.944722
+  latitude: 51.560583
+  elevation: 201
+
+modules:
+  mastermind:
+    class: pyobs.modules.robotic.DummyMastermind
+    # raised from the 0.2 default so the "next up" / cant_run_reason panel is visible more often
+    # for visual testing -- RoboticState.next is only populated during a simulated "can't run"
+    # wait, same as the real Mastermind (see specs/design/irobotic.md in pyobs-core)
+    blocked_probability: 0.6
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: mastermind
+
+  scheduler:
+    class: pyobs.modules.robotic.DummyScheduler
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: scheduler
+
+  gui:
+    class: pyobs_gui.GUI
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui
