@@ -1,6 +1,7 @@
 # Plan: pyobs-gui — main widgets vs. sidebar widgets, automatic tab pages for multi-widget modules
 
-Status: draft
+Status: implemented, merged to develop (PR #157, `b7a14a6`) — issue #150 stays open until this
+reaches a release on `main`, per repo convention.
 Audited: 2026-08-28
 Revised: 2026-09-01 (D1, D2 — see "Revision 2026-09-01" below; adds D6)
 
@@ -465,31 +466,41 @@ update; run `pytest -q` offscreen (`QT_QPA_PLATFORM=offscreen`, already the conf
 
 ## Implementation checklist
 
-- [ ] Add `MainWidgetEntry` (with `sidebar_preferred`/`paired_sidebar_widget`, 2026-09-01) +
+- [x] Add `MainWidgetEntry` (with `sidebar_preferred`/`paired_sidebar_widget`, 2026-09-01) +
       `MAIN_WIDGETS` registry (D1); delete `DEFAULT_WIDGETS`, `DEFAULT_ICONS`, and dead
       `DEFAULT_CONFIG`; fix `IMode`/`IFilters` data; add standalone `ITemperatures`/`ICooling`
       entries (2026-09-01, needed for the promotion rule to have something to promote to)
-- [ ] Add `ALWAYS_SIDEBAR_WIDGETS` (2026-09-01, D2)
-- [ ] Add `collect_main_widgets(matchable, custom)` helper with D3 merge/overwrite semantics and
+- [x] Add `ALWAYS_SIDEBAR_WIDGETS` (2026-09-01, D2)
+- [x] Add `collect_main_widgets(matchable, custom)` helper with D3 merge/overwrite semantics and
       the promotion rule (2026-09-01, D1)
-- [ ] Add `ModulePage` container, now the universal page host for every module (2026-09-01, D2):
+- [x] Add `ModulePage` container, now the universal page host for every module (2026-09-01, D2):
       tabs (only rendered when ≥2) + shared sidebar column, `add_to_sidebar`/`discard`/
-      `get_fits_headers`, hide-empty-sidebar
-- [ ] Rework `_client_connected`/`_add_client`/`_open_client`: collect all, host-always,
+      `get_fits_headers`, hide-empty-sidebar. Sidebar column also wrapped in a vertical-only
+      `QScrollArea` (post-merge follow-up, not in the original plan) since the shared/union
+      sidebar can grow taller than any single old widget's did.
+- [x] Rework `_client_connected`/`_add_client`/`_open_client`: collect all, host-always,
       gather-open with per-tab failure handling (D5), sidebar fill application (always-list +
       declared fills + promoted-away `sidebar_preferred` matches + paired sidebar widgets + custom
-      config, in that order)
-- [ ] Move sidebar fills out of `CameraWidget.open()`/`TelescopeWidget.open()` into
+      config, in that order). Deviation: `_add_client`'s signature was left unchanged rather than
+      switched to `List[WidgetChoice]`; `_open_client` instead dispatches on
+      `isinstance(widget, ModulePage)`, so non-module pages (Shell/Events/Status) take the
+      original path untouched — smaller blast radius, same behavior.
+- [x] Move sidebar fills out of `CameraWidget.open()`/`TelescopeWidget.open()` into
       `sidebar_fills` class attributes; delete old fill blocks
-- [ ] Add generic `paired_sidebar_widget` instantiation/wiring in the assembly helper (D6,
+- [x] Add generic `paired_sidebar_widget` instantiation/wiring in the assembly helper (D6,
       2026-09-01) — no consumer yet, see `2026-09-01-gui-video-widget-split.md` for the first one
-- [ ] Update `_client_disconnected` / `discard_all_widgets` verification for host pages
+- [x] Update `_client_disconnected` / `discard_all_widgets` verification for host pages
       (should be a no-op change, verify)
-- [ ] Update `ModuleWindow.open()` (`modulegui.py:24-36`) to use the shared helper + assembly
-- [ ] Update `tests/test_mainwindow_startup.py` for the `_add_client` signature; add
-      `tests/test_multiwidget_pages.py` (see Test plan, includes 2026-09-01 regression tests)
-- [ ] Update `docs/source/index.rst`; index this plan in `specs/index.md`
+- [x] Update `ModuleWindow.open()` (`modulegui.py:24-36`) to use the shared helper + assembly
+- [x] Update `tests/test_mainwindow_startup.py` for the `_add_client` signature; add
+      `tests/test_multiwidget_pages.py` (see Test plan, includes 2026-09-01 regression tests) —
+      15 new tests, 79 total, all passing
+- [x] Update `docs/source/index.rst`; index this plan in `specs/index.md`
 - [ ] Manual smoke: GUI against a fixture module implementing `ICamera` + `IFocuser` (confirm no
       "Focuser" tab appears — demoted to sidebar) and a standalone filter-wheel-only fixture
       (confirm it still gets its own page): tabs switch, sidebar persists, per-tab state is live,
-      disconnect leaves no ghost page
+      disconnect leaves no ghost page. Partial: a real module's sidebar (FITS headers,
+      Temperatures, Cooling) was visually reviewed post-merge and rendering correctly, which
+      surfaced two follow-up fixes (`1e89069` sidebar alignment, `f05bcba` scrollable sidebar) —
+      but the specific tab-demotion/standalone-page/disconnect scenarios above weren't explicitly
+      walked through.
