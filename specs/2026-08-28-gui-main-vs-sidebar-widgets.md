@@ -176,8 +176,8 @@ ALWAYS_SIDEBAR_WIDGETS: tuple[type[BaseWidget], ...] = (FitsHeadersWidget,)   # 
   icon along the way (use the `DEFAULT_CONFIG` value `"mdi.air-filter"` for `IFilters`).
 - `DEFAULT_CONFIG` is unreferenced dead code; **delete it** (its only data not already in
   `DEFAULT_WIDGETS` is the Shell/Events/Status "always" entries, which are built unconditionally
-  in `MainWindow.open()`, `mainwindow.py:320-341`). If a maintainer objects, fold the always-rows
-  into a documented constant instead.
+  in `MainWindow.open()`, `mainwindow.py:320-341`). Confirmed no maintainer objection — deleting
+  outright, no fallback constant needed.
 - Widget authors can later override `label`/`icon` per class via class attributes — explicitly
   out of scope for v1 (documented in the registry docstring instead).
 - **2026-09-01: promotion rule.** `collect_main_widgets` (see "Design details") splits its matches
