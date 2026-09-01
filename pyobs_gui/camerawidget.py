@@ -17,9 +17,6 @@ from pyobs.interfaces import (
     IBinning,
     BinningState,
     IWindow,
-    IFilters,
-    ICooling,
-    ITemperatures,
     IGain,
     GainState,
     IExposure,
@@ -30,10 +27,7 @@ from pyobs.interfaces import (
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
-from .coolingwidget import CoolingWidget
-from .filterwidget import FilterWidget
 from .fitsheaderswidget import FitsHeadersWidget
-from .temperatureswidget import TemperaturesWidget
 from .qt.camerawidget_ui import Ui_CameraWidget
 
 log = logging.getLogger(__name__)
@@ -52,12 +46,11 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     # declared sidebar fills (mainwindow.py, MAIN_WIDGETS/collect_main_widgets): consulted via
     # getattr(widget_class, "sidebar_fills", ...) so a site that wires CameraWidget in via
-    # custom widgets: config still gets these.
+    # custom widgets: config still gets these. IFilters/ICooling/ITemperatures are NOT listed
+    # here -- they're sidebar_preferred MAIN_WIDGETS entries, already demoted into the sidebar by
+    # the promotion rule; declaring them here too would add each one twice (PR #157 review).
     sidebar_fills = [
         (None, FitsHeadersWidget),
-        (IFilters, FilterWidget),
-        (ICooling, CoolingWidget),
-        (ITemperatures, TemperaturesWidget),
     ]
 
     def __init__(self, **kwargs: Any):

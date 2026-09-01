@@ -40,7 +40,12 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
             if main_choices:
                 page = self.create_widget(ModulePage, choices=main_choices, sidebar_preferred=sidebar_preferred_choices)
                 self.setCentralWidget(page)
-                await open_module_page(page, module.name, self.comm, self.observer, self.vfs, self.create_widget)
+                # raise on total failure so it propagates the same way a failing widget.open()
+                # did in the old single-widget code, instead of silently leaving an empty page
+                if not await open_module_page(
+                    page, module.name, self.comm, self.observer, self.vfs, self.create_widget
+                ):
+                    raise RuntimeError(f"All main widgets failed to open for {module.name}")
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
