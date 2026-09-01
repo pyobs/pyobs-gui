@@ -17,9 +17,6 @@ from pyobs.interfaces import (
     IBinning,
     BinningState,
     IWindow,
-    IFilters,
-    ICooling,
-    ITemperatures,
     IGain,
     GainState,
     IExposure,
@@ -30,9 +27,6 @@ from pyobs.interfaces import (
 from pyobs.utils.enums import ImageType, ImageFormat, ExposureStatus
 from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
-from .coolingwidget import CoolingWidget
-from .filterwidget import FilterWidget
-from .temperatureswidget import TemperaturesWidget
 from .fitsheaderswidget import FitsHeadersWidget
 from .qt.camerawidget_ui import Ui_CameraWidget
 
@@ -49,6 +43,15 @@ _WAIT_FOR_STATE_TIMEOUT = 2.0
 class CameraWidget(BaseWidget, Ui_CameraWidget):
     signal_update_gui = QtCore.Signal()
     signal_new_image = QtCore.Signal(NewImageEvent, str)
+
+    # declared sidebar fills (mainwindow.py, MAIN_WIDGETS/collect_main_widgets): consulted via
+    # getattr(widget_class, "sidebar_fills", ...) so a site that wires CameraWidget in via
+    # custom widgets: config still gets these. IFilters/ICooling/ITemperatures are NOT listed
+    # here -- they're sidebar_preferred MAIN_WIDGETS entries, already demoted into the sidebar by
+    # the promotion rule; declaring them here too would add each one twice (PR #157 review).
+    sidebar_fills = [
+        (None, FitsHeadersWidget),
+    ]
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -106,14 +109,9 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         self.butExpose.clicked.connect(self.expose)
         self.butAbort.clicked.connect(self.abort)
 
-        # fill sidebar
-        await self.add_to_sidebar(self.create_widget(FitsHeadersWidget, module=self.module))
-        if await self.comm.has_proxy(self.module, IFilters):
-            await self.add_to_sidebar(self.create_widget(FilterWidget, module=self.module))
-        if await self.comm.has_proxy(self.module, ICooling):
-            await self.add_to_sidebar(self.create_widget(CoolingWidget, module=self.module))
-        if await self.comm.has_proxy(self.module, ITemperatures):
-            await self.add_to_sidebar(self.create_widget(TemperaturesWidget, module=self.module))
+        # sidebar fills are applied by the page assembler (mainwindow.py: open_module_page),
+        # driven by this class's sidebar_fills attribute -- see specs/2026-08-28-gui-main-vs-
+        # sidebar-widgets.md, D2
 
     async def _init(self) -> None:
         # every interface is initialized independently (caps -> state -> subscribe, in that

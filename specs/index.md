@@ -8,6 +8,22 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-08-31-irobotic-widgets.md` — **implemented, closed (issue #825, PR #155, `5794186`)**.
+  `RoboticWidget` / `ScheduleWidget` for `IRobotic`/`IRoboticScheduler`.
+- `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
+  `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
+  modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
+- `2026-08-28-gui-main-vs-sidebar-widgets.md` — **implemented, merged to develop (PR #157,
+  `b7a14a6`)**. Issue #150 stays open until this reaches a release on `main`. Explicit
+  main-widget/sidebar-widget distinction, automatic tab pages for multi-widget modules (shared
+  sidebar, merge-per-interface custom config, standalone parity), `sidebar_preferred` promotion
+  rule, universal sidebar container, `paired_sidebar_widget` mechanism (D6, no consumer yet).
+  Post-merge follow-ups: sidebar-fill dedup + D5 sidebar-failure isolation + 3 other review
+  findings (`fccf0e0`), FITS-headers sidebar box alignment (`1e89069`), vertical-only scrollable
+  sidebar (`f05bcba`).
+- `2026-09-01-gui-video-widget-split.md` — **draft**. Follow-up to the above (D6): split
+  `VideoWidget` into a live-view main widget + a `VideoControlsWidget` paired sidebar widget, the
+  first consumer of the `paired_sidebar_widget` mechanism. Dependency landed (PR #157) — unblocked.
 - `2026-08-21-gui-widget-startup-responsiveness.md` — **implemented, closed 2026-08-23 (PR #141,
   `123161b`)**. Make module widgets appear and respond immediately at startup: non-blocking
   `_add_client` with a "Loading…" placeholder page (clicks are never dropped), parallel
@@ -19,6 +35,10 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Relevant from pyobs-core
 
+- `pyobs-core/specs/design/irobotic.md` — `IRobotic` (executor) / `IRoboticScheduler`
+  (planner) interfaces + `RoboticWidget` / `ScheduleWidget`. **implemented, closed** (issue #825).
+  pyobs-core side shipped in `v2.1.0`; pyobs-gui side is this repo's own
+  `2026-08-31-irobotic-widgets.md`, above.
 - `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
   single compiled binary that works across sites with no rebuild. *proposed* — start here.
 - `pyobs-core/specs/plans/2026-07-26-gui-interactive-login.md` — interactive login/settings

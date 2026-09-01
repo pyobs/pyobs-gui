@@ -10,14 +10,12 @@ location:
 modules:
   telescope:
     class: pyobs.modules.telescope.DummyAltAzTelescope
-    name: telescope
     comm:
       class: pyobs.comm.local.LocalComm
       name: telescope
 
   gui:
     class: pyobs_gui.GUI
-    name: gui
     comm:
       class: pyobs.comm.local.LocalComm
       name: gui

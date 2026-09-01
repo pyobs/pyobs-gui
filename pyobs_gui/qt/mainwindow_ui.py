@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.1
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -59,6 +59,7 @@ class Ui_MainWindow(object):
         self.labelAutonomousWarning.setAutoFillBackground(True)
         self.labelAutonomousWarning.setFrameShape(QFrame.Shape.Box)
         self.labelAutonomousWarning.setLineWidth(2)
+        self.labelAutonomousWarning.setMaximumSize(QSize(16777215, 32))
         self.labelAutonomousWarning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelAutonomousWarning.setMargin(0)
 

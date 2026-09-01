@@ -10,14 +10,12 @@ location:
 modules:
   acquisition:
     class: pyobs.modules.pointing.DummyAcquisition
-    name: acquisition
     comm:
       class: pyobs.comm.local.LocalComm
       name: acquisition
 
   gui:
     class: pyobs_gui.GUI
-    name: gui
     comm:
       class: pyobs.comm.local.LocalComm
       name: gui
