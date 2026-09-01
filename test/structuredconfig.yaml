@@ -1,0 +1,16 @@
+# Test config for structuredconfigwidget
+# Run with: pyobs test/structuredconfig.yaml
+class: pyobs.modules.MultiModule
+
+modules:
+  config:
+    class: pyobs.modules.utils.dummystructuredconfig.DummyStructuredConfig
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: config
+
+  gui:
+    class: pyobs_gui.GUI
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: gui
