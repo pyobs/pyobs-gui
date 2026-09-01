@@ -2,13 +2,47 @@
 
 Status: draft
 Audited: 2026-08-28
+Revised: 2026-09-01 (D1, D2 — see "Revision 2026-09-01" below; adds D6)
 
 This is the fleshed-out version of [pyobs-gui issue #150]
 (https://github.com/pyobs/pyobs-gui/issues/150). The issue body stays the tracker; this doc
 carries the verified problem statement, the resolved design decisions, and the implementation
 checklist. **Decisions recorded here that the issue left open:** shared sidebar (D2), custom
 config = merge per interface / `overwrite: true` replaces (D3), registry-provided tab
-labels/icons (D1), single nav entry per module (D4), partial-open-failure keeps the page (D5).
+labels/icons (D1), single nav entry per module (D4), partial-open-failure keeps the page (D5),
+same-interface paired main+sidebar widgets (D6, 2026-09-01).
+
+## Revision 2026-09-01
+
+Three fixes to the 2026-08-28 design, found while re-deriving it independently and cross-checking
+against this doc afterward:
+
+1. **D1 had an unfixed double-display bug.** `collect_main_widgets` keeps *every* matching
+   `MAIN_WIDGETS` entry with no exclusivity — so a module implementing `ICamera` + `IFilters` got
+   both a "Camera" tab *and* an independent "Filter wheel" tab, while Camera's own declared
+   `sidebar` tuple *also* added `FilterWidget` to Camera's sidebar (line 106 below) because
+   `IFilters` matched. Filter controls rendered twice. Fixed by adding `sidebar_preferred: bool =
+   False` to `MainWidgetEntry` (set on the `IFilters`/`IFocuser`/`ITemperatures`/`ICooling`
+   entries) plus a promotion rule in `collect_main_widgets`: `main = [e for e in matches if not
+   e.sidebar_preferred]`; if `main` is empty, promote every `sidebar_preferred` match into `main`
+   instead (so a standalone filter-wheel module, no camera, still gets its own page/tabs).
+   Otherwise the `sidebar_preferred` matches fill the sidebar per their own entry, same as today.
+2. **D2's "known wrinkle" is fixed properly, not deferred.** The original D2 explicitly punted:
+   "a custom `sidebar:` entry for [a widget with no declared `sidebar` tuple, e.g. Roof] is opened
+   but invisible today, and stays that way in v1... Flagged as a possible follow-up." Instead:
+   `ModulePage` becomes the page host for **every** module, not just ones with ≥2 main widgets —
+   it just renders its one widget directly (no `QTabWidget` chrome) when there's exactly one. The
+   sidebar host is then always the container, so a custom `sidebar:` entry is visible regardless
+   of the module's widget type. A new `ALWAYS_SIDEBAR_WIDGETS` list (just `FitsHeadersWidget` for
+   now) replaces the ad hoc `(None, FitsHeadersWidget)` entry that today only exists on Camera's
+   tuple (Telescope's doesn't have one) — every module's sidebar gets it unconditionally, added by
+   `collect_main_widgets`'s caller rather than per-entry.
+3. **New D6: paired sidebar widgets**, for a same-interface main+sidebar pair (as opposed to
+   `sidebar_preferred`'s cross-interface demotion) — see below and the sibling follow-up plan
+   `2026-09-01-gui-video-widget-split.md`.
+
+The rest of this doc is otherwise unchanged from 2026-08-28; read D1/D2 below with the above fixes
+layered on top (marked inline where they touch specific code).
 
 ## Problem
 
@@ -99,30 +133,43 @@ class MainWidgetEntry:
     label: str          # tab text for multi-widget pages
     icon: str           # qtawesome name; tab icon + nav-icon fallback
     sidebar: tuple[tuple[type[Interface] | None, type[BaseWidget]], ...] = ()
+    sidebar_preferred: bool = False   # 2026-09-01: see "Revision" — promoted to main only when
+                                      # the module has no non-sidebar_preferred match at all
+    paired_sidebar_widget: type[BaseWidget] | None = None   # 2026-09-01: D6, see below
 
 MAIN_WIDGETS: list[MainWidgetEntry] = [
     MainWidgetEntry(ICamera, CameraWidget, "Camera", "fa5s.camera", sidebar=(
-        (None, FitsHeadersWidget),               # always
         (IFilters, FilterWidget),
         (ICooling, CoolingWidget),
         (ITemperatures, TemperaturesWidget),
-    )),
+    )),  # (None, FitsHeadersWidget) removed 2026-09-01 -- now ALWAYS_SIDEBAR_WIDGETS, see D2
     MainWidgetEntry(ITelescope, TelescopeWidget, "Telescope", "msc.telescope", sidebar=(
         (IFilters, FilterWidget),
         (IFocuser, FocusWidget),
         (ITemperatures, TemperaturesWidget),
     )),
     MainWidgetEntry(IRoof, RoofWidget, "Roof", "ph.house"),
-    MainWidgetEntry(IFocuser, FocusWidget, "Focuser", "mdi.image-filter-center-focus"),
+    MainWidgetEntry(IFocuser, FocusWidget, "Focuser", "mdi.image-filter-center-focus",
+                     sidebar_preferred=True),   # 2026-09-01
     MainWidgetEntry(IAutoFocus, AutoFocusWidget, "Auto focus", "mdi.chart-bell-curve"),
     MainWidgetEntry(IAcquisition, AcquisitionWidget, "Acquisition", "mdi.target"),
     MainWidgetEntry(IAutoGuiding, AutoGuidingWidget, "Auto guiding", "mdi.crosshairs-gps"),
     MainWidgetEntry(IWeather, WeatherWidget, "Weather", "fa5s.cloud-sun"),
     MainWidgetEntry(IVideo, VideoWidget, "Video", "fa5s.video"),
     MainWidgetEntry(ISpectrograph, SpectrographWidget, "Spectrograph", "ei.graph"),
-    MainWidgetEntry(IFilters, FilterWidget, "Filter wheel", "mdi.air-filter"),
+    MainWidgetEntry(IFilters, FilterWidget, "Filter wheel", "mdi.air-filter",
+                     sidebar_preferred=True),   # 2026-09-01: was a plain always-included entry;
+                                                 # that's what caused the Camera+Filters double tab
+    MainWidgetEntry(ITemperatures, TemperaturesWidget, "Temperatures", "mdi.thermometer",
+                     sidebar_preferred=True),   # 2026-09-01: was missing a standalone entry
+                                                 # entirely -- a temperatures-only module had no
+                                                 # page at all before the promotion rule existed
+    MainWidgetEntry(ICooling, CoolingWidget, "Cooling", "mdi.snowflake",
+                     sidebar_preferred=True),   # 2026-09-01: same gap as ITemperatures above
     MainWidgetEntry(IMode, ModeWidget, "Mode", "ei.video"),
 ]
+
+ALWAYS_SIDEBAR_WIDGETS: tuple[type[BaseWidget], ...] = (FitsHeadersWidget,)   # 2026-09-01, see D2
 ```
 
 - `DEFAULT_ICONS` merges into the entries and is deleted. Fix the `IMode` gap and the `IFilters`
@@ -133,16 +180,33 @@ MAIN_WIDGETS: list[MainWidgetEntry] = [
   into a documented constant instead.
 - Widget authors can later override `label`/`icon` per class via class attributes — explicitly
   out of scope for v1 (documented in the registry docstring instead).
+- **2026-09-01: promotion rule.** `collect_main_widgets` (see "Design details") splits its matches
+  into `main = [e for e in matches if not e.sidebar_preferred]` and, if `main` is empty, promotes
+  every `sidebar_preferred` match into `main` instead. This is what makes a standalone
+  filter-wheel/focuser/temperature-sensor/cooling module still get its own page (1 promoted match)
+  or tabs (≥2 promoted matches), while a camera-that-is-also-a-filter-wheel gets one "Camera" page
+  with filters demoted to the sidebar (`main = [Camera]` is non-empty, so no promotion happens).
+  `ITemperatures`/`ICooling` gained standalone entries above specifically so they have something
+  to promote *to* — before this revision they only existed as sidebar fills on Camera/Telescope,
+  so a bare temperature-sensor or cooling-only module got no page at all, a bug nobody had
+  previously noticed because no such module exists yet in the fleet.
 
 ### D2 — Shared sidebar (per issue recommendation, confirmed)
 
 **A module page's sidebar is a property of the module, not of one tab.** Concretely:
 
-- **Single main widget:** the page is the widget itself, and the sidebar attaches to the widget —
-  exactly today's UX (`widget.add_to_sidebar()`, no tab bar, no container).
-- **≥ 2 main widgets:** the page is a new container widget (`ModulePage`, see "Design details")
-  holding the `QTabWidget` plus its own sidebar column. `add_to_sidebar()` targets the container,
-  so FITS headers / filter / focus / temperatures blocks stay visible while switching tabs.
+- **2026-09-01 revision: `ModulePage` is the page host for every module, one match or many** —
+  not just the ≥2 case. It renders its one entry's widget directly (no `QTabWidget` chrome) when
+  there's exactly one match, and wraps them in a `QTabWidget` when there are several; either way
+  `add_to_sidebar()`/`discard()`/`get_fits_headers()` behave identically since the container's
+  shape doesn't change. This is what fixes the "known wrinkle" below instead of deferring it: a
+  custom `sidebar:` entry, and `ALWAYS_SIDEBAR_WIDGETS`, are now visible for *every* module,
+  because every module's sidebar host is the same kind of object.
+- **1 main widget:** the container renders that widget with no visible tab bar — the page reads
+  exactly like today's bare-widget page, just wrapped.
+- **≥ 2 main widgets:** the container's `QTabWidget` shows one tab per widget, plus its own
+  sidebar column. `add_to_sidebar()` targets the container, so FITS headers / filter / focus /
+  temperatures blocks stay visible while switching tabs.
 - **Where the fills come from:** the sidebar-fill *triggers* move out of
   `CameraWidget.open()`/`TelescopeWidget.open()` and into the page-assembly layer, driven by the
   `sidebar` tuple on each matched `MainWidgetEntry` (D1). For a single-widget page the assembler
@@ -163,11 +227,13 @@ MAIN_WIDGETS: list[MainWidgetEntry] = [
   has an empty `sidebar` tuple unless the class declares `sidebar_fills` (see "Custom config",
   D3 — optional class attribute, uniform application rule).
 - **Empty sidebar:** the container hides its sidebar column when it ends up with zero sidebar
-  widgets (so e.g. a focuser+filter-wheel tab page gains no stray empty column). A single-widget
-  page without a `widgetSidebar` area (roof, weather, …) behaves exactly as today: no sidebar.
-  Known wrinkle, kept for parity: a custom `sidebar:` entry for such a widget is opened but
-  invisible today, and stays that way in v1; the container page is where custom sidebar entries
-  are guaranteed visible. Flagged as a possible follow-up.
+  widgets. Given `ALWAYS_SIDEBAR_WIDGETS` (2026-09-01), this only happens if that list itself is
+  ever emptied — today it always contains at least `FitsHeadersWidget`, so no page is ever
+  genuinely without a sidebar in practice.
+- ~~Known wrinkle: a custom `sidebar:` entry for a widget with no `sidebar` tuple (roof, weather,
+  …) is opened but invisible.~~ **Fixed 2026-09-01**, not deferred: every module's page host is
+  now `ModulePage` (see above), so a custom `sidebar:` entry is visible regardless of the module's
+  widget type.
 
 ### D3 — Custom config: merge per interface, `overwrite: true` replaces
 
@@ -209,6 +275,22 @@ others, so:
   widget dropped from the sidebar — a deliberate small improvement over today, where a sidebar
   open failure propagates up through the main widget's `open()` and kills the whole page.
 
+### D6 — Paired sidebar widgets (2026-09-01)
+
+Different from `sidebar_preferred` (D1's promotion rule): that's a *cross-interface* demotion — a
+widget acts as sidebar only because a *different* interface's widget won the main slot, and
+promotes back to main the moment it doesn't. A paired sidebar widget is *same-interface* and never
+promoted or demoted: one interface, backed by two widget classes that always render together
+whenever that interface produces a main widget at all — `MainWidgetEntry.paired_sidebar_widget`.
+
+Candidate first consumer: `VideoWidget`, which today combines the MJPEG live-view display and a
+full set of exposure controls in one class. Splitting it (live view → main, controls → paired
+sidebar) is enough of a refactor — the two halves share instance state directly today
+(`exposures_left`, `datadisplay`) — to warrant its own plan rather than folding it into this one:
+see `2026-09-01-gui-video-widget-split.md`. This plan only needs to support the mechanism (the
+assembly helper instantiates and wires a `paired_sidebar_widget` when one is declared); no entry
+in `MAIN_WIDGETS` sets it yet.
+
 ## Design details
 
 ### Registry and collection (shared helper)
@@ -222,14 +304,17 @@ def collect_main_widgets(matchable: Any, custom: list[dict[str, Any]] | None = N
 
 `matchable` is the comm proxy (MainWindow) or the `Module` instance (ModuleWindow);
 `isinstance(matchable, entry.interface)` works for both. `WidgetChoice` carries
-`(widget, label, icon)` plus the entry's `sidebar` tuple. The helper:
+`(widget, label, icon)` plus the entry's `sidebar` and `paired_sidebar_widget`. The helper:
 
-1. Walks `MAIN_WIDGETS` in order, keeping **every** entry whose interface matches → derived
-   choices.
-2. Applies `custom` entries per D3 (interface replacement keeps the slot; appends land after;
-   `overwrite: true` replaces the derived list entirely).
-3. Returns the ordered choice list (empty → caller shows no page, exactly today's
-   `mainwindow.py:768-769` behavior).
+1. Walks `MAIN_WIDGETS` in order, keeping every entry whose interface matches → `matches`.
+2. **2026-09-01:** `main = [e for e in matches if not e.sidebar_preferred]`; if `main` is empty,
+   `main = [e for e in matches if e.sidebar_preferred]` instead (promotion rule, D1). Otherwise
+   the `sidebar_preferred` matches are recorded separately to fill the sidebar (not dropped).
+3. Applies `custom` entries per D3 to `main` (interface replacement keeps the slot; appends land
+   after; `overwrite: true` replaces the derived list entirely).
+4. Returns the ordered `main` choice list (empty → caller shows no page, exactly today's
+   `mainwindow.py:768-769` behavior) plus the recorded `sidebar_preferred` matches for step 3 of
+   `_open_client` below.
 
 `ModuleWindow.open()` (`modulegui.py:24-36`) replaces its copy of the first-match loop with
 `collect_main_widgets(module)` + the same assembly below. (`ModuleWindow` gets no custom-config
@@ -271,10 +356,11 @@ class ModulePage(QtWidgets.QWidget):
 
 - `_client_connected()` (`mainwindow.py:722-783`): replace the first-match loop and the
   custom-widget replacement with:
-  1. `choices = collect_main_widgets(proxy, self.custom_widgets)`; empty → `return False`.
-  2. Determine the page host *upfront*: 1 choice → the widget itself; ≥ 2 → a `ModulePage`
-     built from the choices (created via `create_widget` so tabs are tracked in
-     `_base_widgets` like today).
+  1. `choices, sidebar_preferred_matches = collect_main_widgets(proxy, self.custom_widgets)`;
+     `choices` empty → `return False`.
+  2. **2026-09-01:** the page host is always a `ModulePage` (built via `create_widget` so its
+     children are tracked in `_base_widgets` like today) — no more 1-vs-≥2 branch on whether a
+     container exists at all, only on whether it shows a `QTabWidget`.
   3. `await self._add_client(client, icon, host, choices)` — nav item, `_widgets[client] = host`
      registered immediately (shortcuts / `_client_disconnected` keep working mid-open, as today,
      `mainwindow.py:457-459`), placeholder page added, one background `_open_client` task.
@@ -282,10 +368,14 @@ class ModulePage(QtWidgets.QWidget):
   1. `results = await asyncio.gather(*(w.open(modules=[client], comm=..., observer=..., vfs=...) for w in choices), return_exceptions=True)`.
   2. Failed opens: log, `await widget.discard()`, drop the widget (and its tab) from the host.
      All failed → `_fail_open` (existing path).
-  3. Apply sidebar fills: for each surviving choice, for each `(interface, klass)` in the unioned
-     `sidebar` tuples where `interface is None or await comm.has_proxy(client, interface)` →
-     `host.add_to_sidebar(create_widget(klass, module=client))`; then the custom `sidebar:`
-     entries (`mainwindow.py:771-774`).
+  3. Apply sidebar fills, in order: (a) `ALWAYS_SIDEBAR_WIDGETS` unconditionally; (b) for each
+     surviving choice, for each `(interface, klass)` in its `sidebar` tuple where
+     `await comm.has_proxy(client, interface)` → `host.add_to_sidebar(create_widget(klass,
+     module=client))`; (c) each `sidebar_preferred_matches` entry from step 2 of
+     `collect_main_widgets` (only reached when `main` was non-empty, i.e. these weren't promoted);
+     (d) if a surviving choice declares `paired_sidebar_widget`, create it, set
+     `main_widget.paired_sidebar`/`sidebar_widget.paired_main` (plain attributes, D6), and add it
+     to the sidebar; (e) the custom `sidebar:` entries (`mainwindow.py:771-774`).
   4. Swap placeholder → host at the same `stackedWidget` index, preserving the
      was-current/show-event logic (`mainwindow.py:486-505`).
 - **Lazy init:** no new machinery. Hidden tabs don't run `_init()`/update loops until first shown
@@ -327,17 +417,30 @@ in-`open()` fill blocks (`camerawidget.py:109-116`, `telescopewidget.py:180-186`
   (single-entry list keeps them one line each).
 - Non-goals: per-tab nav entries, per-tab sidebars, per-class label/icon overrides, unwrapping a
   1-tab container, `ModuleWindow` custom-config support, removing vestigial `.ui` sidebar areas,
-  config-driven `DEFAULT_CONFIG`-style page sets.
+  config-driven `DEFAULT_CONFIG`-style page sets, splitting `VideoWidget` to actually use
+  `paired_sidebar_widget` (D6) — tracked separately in `2026-09-01-gui-video-widget-split.md`.
 
 ## Tests
 
 New `tests/test_multiwidget_pages.py` (offscreen pytest, same `qapp`/fake-comm infra as
 `tests/test_mainwindow_startup.py`):
 
-- Proxy implementing `ICamera` + `IFocuser` → one nav entry; `_pages[client]` is a `ModulePage`;
-  tab texts "Camera"/"Focuser"; sidebar fills (FitsHeadersWidget etc.) land on the container.
-- Single interface → page is the bare widget (`not isinstance(page, ModulePage)`), no tab bar.
+- Proxy implementing `ICamera` + `IFocuser` → one nav entry; `_pages[client]` is a `ModulePage`
+  with **one** tab ("Camera") and no tab bar, since `IFocuser` is `sidebar_preferred` and `main`
+  is non-empty — `FocusWidget` lands in the sidebar instead of getting its own tab (2026-09-01
+  regression test for the double-display bug fixed by the promotion rule).
+- Proxy implementing only `IFilters` + `ITemperatures` (no camera/telescope) → `ModulePage` with
+  two tabs, "Filter wheel" and "Temperatures" — both promoted per D1's promotion rule since `main`
+  would otherwise be empty (2026-09-01).
+- Single interface (e.g. bare `IRoof`) → `_pages[client]` is still a `ModulePage`, but with no
+  visible `QTabWidget` chrome — same visual result as today's bare-widget page (2026-09-01: this
+  is the point of making `ModulePage` universal, not conditional on ≥2 matches).
 - No matching interface → `_client_connected` returns `False`, no nav item.
+- Bare `IRoof` module + a custom `sidebar:` entry → the sidebar entry is actually visible
+  (2026-09-01 regression test for the "known wrinkle" the 2026-08-28 version deferred).
+- Every module's sidebar contains `ALWAYS_SIDEBAR_WIDGETS` (`FitsHeadersWidget`) regardless of
+  interface matches or promotion, including a module whose only matches were promoted into tabs
+  (2026-09-01).
 - Custom config: two `widgets:` entries → two tabs; `interface:` entry replaces the same-
   interface tab (slot order kept); `overwrite: true` → exactly the custom entries.
 - Disconnect a multi-widget module → `discard()` called on every tab and every sidebar widget
@@ -362,21 +465,31 @@ update; run `pytest -q` offscreen (`QT_QPA_PLATFORM=offscreen`, already the conf
 
 ## Implementation checklist
 
-- [ ] Add `MainWidgetEntry` + `MAIN_WIDGETS` registry (D1); delete `DEFAULT_WIDGETS`,
-      `DEFAULT_ICONS`, and dead `DEFAULT_CONFIG`; fix `IMode`/`IFilters` data
-- [ ] Add `collect_main_widgets(matchable, custom)` helper with D3 merge/overwrite semantics
-- [ ] Add `ModulePage` container: tabs + shared sidebar column, `add_to_sidebar`/`discard`/
-      `get_fits_headers`, hide-empty-sidebar (D2)
-- [ ] Rework `_client_connected`/`_add_client`/`_open_client`: collect all, host-upfront,
-      gather-open with per-tab failure handling (D5), sidebar fill application
+- [ ] Add `MainWidgetEntry` (with `sidebar_preferred`/`paired_sidebar_widget`, 2026-09-01) +
+      `MAIN_WIDGETS` registry (D1); delete `DEFAULT_WIDGETS`, `DEFAULT_ICONS`, and dead
+      `DEFAULT_CONFIG`; fix `IMode`/`IFilters` data; add standalone `ITemperatures`/`ICooling`
+      entries (2026-09-01, needed for the promotion rule to have something to promote to)
+- [ ] Add `ALWAYS_SIDEBAR_WIDGETS` (2026-09-01, D2)
+- [ ] Add `collect_main_widgets(matchable, custom)` helper with D3 merge/overwrite semantics and
+      the promotion rule (2026-09-01, D1)
+- [ ] Add `ModulePage` container, now the universal page host for every module (2026-09-01, D2):
+      tabs (only rendered when ≥2) + shared sidebar column, `add_to_sidebar`/`discard`/
+      `get_fits_headers`, hide-empty-sidebar
+- [ ] Rework `_client_connected`/`_add_client`/`_open_client`: collect all, host-always,
+      gather-open with per-tab failure handling (D5), sidebar fill application (always-list +
+      declared fills + promoted-away `sidebar_preferred` matches + paired sidebar widgets + custom
+      config, in that order)
 - [ ] Move sidebar fills out of `CameraWidget.open()`/`TelescopeWidget.open()` into
       `sidebar_fills` class attributes; delete old fill blocks
+- [ ] Add generic `paired_sidebar_widget` instantiation/wiring in the assembly helper (D6,
+      2026-09-01) — no consumer yet, see `2026-09-01-gui-video-widget-split.md` for the first one
 - [ ] Update `_client_disconnected` / `discard_all_widgets` verification for host pages
       (should be a no-op change, verify)
 - [ ] Update `ModuleWindow.open()` (`modulegui.py:24-36`) to use the shared helper + assembly
 - [ ] Update `tests/test_mainwindow_startup.py` for the `_add_client` signature; add
-      `tests/test_multiwidget_pages.py` (see Test plan)
+      `tests/test_multiwidget_pages.py` (see Test plan, includes 2026-09-01 regression tests)
 - [ ] Update `docs/source/index.rst`; index this plan in `specs/index.md`
-- [ ] Manual smoke: GUI against a fixture module implementing `ICamera` + `IFocuser` (and
-      `ITelescope` + `IFocuser`): tabs switch, sidebar persists, per-tab state is live, disconnect
-      leaves no ghost page
+- [ ] Manual smoke: GUI against a fixture module implementing `ICamera` + `IFocuser` (confirm no
+      "Focuser" tab appears — demoted to sidebar) and a standalone filter-wheel-only fixture
+      (confirm it still gets its own page): tabs switch, sidebar persists, per-tab state is live,
+      disconnect leaves no ghost page
