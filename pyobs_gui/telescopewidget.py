@@ -58,6 +58,15 @@ class COORDS(Enum):
 class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     signal_update_gui = QtCore.Signal()
 
+    # declared sidebar fills (mainwindow.py, MAIN_WIDGETS/collect_main_widgets): consulted via
+    # getattr(widget_class, "sidebar_fills", ...) so a site that wires TelescopeWidget in via
+    # custom widgets: config still gets these.
+    sidebar_fills = [
+        (IFilters, FilterWidget),
+        (IFocuser, FocusWidget),
+        (ITemperatures, TemperaturesWidget),
+    ]
+
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)  # type: ignore
@@ -177,13 +186,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.groupEquatorialOffsets.setVisible(IOffsetsRaDec in self._interfaces)
         self.groupHorizontalOffsets.setVisible(IOffsetsAltAz in self._interfaces)
 
-        # fill sidebar
-        if IFilters in self._interfaces:
-            await self.add_to_sidebar(self.create_widget(FilterWidget, module=self.module))
-        if IFocuser in self._interfaces:
-            await self.add_to_sidebar(self.create_widget(FocusWidget, module=self.module))
-        if ITemperatures in self._interfaces:
-            await self.add_to_sidebar(self.create_widget(TemperaturesWidget, module=self.module))
+        # sidebar fills are applied by the page assembler (mainwindow.py: open_module_page),
+        # driven by this class's sidebar_fills attribute -- see specs/2026-08-28-gui-main-vs-
+        # sidebar-widgets.md, D2
 
         # standalone/login-window mode never configures a local location (there's no YAML at
         # all), so fall back to the telescope module's own published location instead -- mirrors

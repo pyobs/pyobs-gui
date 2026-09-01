@@ -9,7 +9,7 @@ from PySide6 import QtWidgets, QtGui  # type: ignore
 from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 from .base import BaseWindow
-from .mainwindow import DEFAULT_WIDGETS
+from .mainwindow import ModulePage, collect_main_widgets, open_module_page
 
 if TYPE_CHECKING:
     import asyncio
@@ -24,16 +24,23 @@ class ModuleWindow(QtWidgets.QMainWindow, BaseWindow):  # type: ignore
     async def open(self, module: Module | None = None, **kwargs: Any) -> None:  # type: ignore
         """Open module."""
 
-        # what do we have?
-        for interface, klass in DEFAULT_WIDGETS.items():
-            if isinstance(module, interface):
-                widget = self.create_widget(klass)
-                self.setCentralWidget(widget)
-                break
-
-        # open widgets
+        # set up comm/vfs/observer/modules first -- _base_widgets is still empty at this point
+        # (no widget has been created yet), so this loop is a no-op; the main widget(s) below
+        # are opened explicitly via open_module_page() instead, since that also needs D5's
+        # per-tab failure handling and the sidebar-fill steps, which the generic _base_widgets
+        # auto-open loop doesn't provide
         modules = [module.name] if module is not None else []
         await BaseWindow.open(self, modules=modules, **kwargs)
+
+        # what do we have? (same registry-driven matching as MainWindow, D1/D2; ModuleWindow has
+        # no custom-config surface, so `custom` is always empty -- parity here means the
+        # multi-widget/sidebar behavior, not config, same as today)
+        if module is not None:
+            main_choices, sidebar_preferred_choices = collect_main_widgets(module, self.create_widget)
+            if main_choices:
+                page = self.create_widget(ModulePage, choices=main_choices, sidebar_preferred=sidebar_preferred_choices)
+                self.setCentralWidget(page)
+                await open_module_page(page, module.name, self.comm, self.observer, self.vfs, self.create_widget)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.gui_module.quit()
