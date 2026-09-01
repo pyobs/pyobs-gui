@@ -1,7 +1,8 @@
 import asyncio
 import logging
 import os
-from typing import Optional, List, Any, Dict, Callable
+from dataclasses import dataclass
+from typing import Optional, List, Any, Dict, Callable, Tuple, Type
 from PySide6 import QtWidgets, QtCore, QtGui  # type: ignore
 from pyobs.utils.time import Time
 from colour import Color  # type: ignore
@@ -17,10 +18,13 @@ from pyobs.interfaces import (
     IAutoFocus,
     IAutoGuiding,
     ICamera,
+    ICooling,
+    Interface,
     ITelescope,
     IRoof,
     IFocuser,
     IRunning,
+    ITemperatures,
     IWeather,
     IVideo,
     IAutonomous,
@@ -37,13 +41,16 @@ from .acquisitionwidget import AcquisitionWidget
 from .autofocuswidget import AutoFocusWidget
 from .autoguidingwidget import AutoGuidingWidget
 from .camerawidget import CameraWidget
+from .coolingwidget import CoolingWidget
 from .filterwidget import FilterWidget
+from .fitsheaderswidget import FitsHeadersWidget
 from .modewidget import ModeWidget
 from .roboticwidget import RoboticWidget
 from .schedulewidget import ScheduleWidget
 from .statuswidget import StatusWidget
 from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
+from .temperatureswidget import TemperaturesWidget
 from .weatherwidget import WeatherWidget
 from .videowidget import VideoWidget
 from .qt.mainwindow_ui import Ui_MainWindow
@@ -55,60 +62,345 @@ from .spectrographwidget import SpectrographWidget
 
 log = logging.getLogger(__name__)
 
-DEFAULT_WIDGETS = {
-    ICamera: CameraWidget,
-    ITelescope: TelescopeWidget,
-    IRoof: RoofWidget,
-    IFocuser: FocusWidget,
-    IAutoFocus: AutoFocusWidget,
-    IAcquisition: AcquisitionWidget,
-    IAutoGuiding: AutoGuidingWidget,
-    IWeather: WeatherWidget,
-    IVideo: VideoWidget,
-    ISpectrograph: SpectrographWidget,
-    IFilters: FilterWidget,
-    IMode: ModeWidget,
-    IRobotic: RoboticWidget,
-    IRoboticScheduler: ScheduleWidget,
-}
-
-DEFAULT_ICONS = {
-    None: "fa5.question-circle",
-    ICamera: "fa5s.camera",
-    ITelescope: "msc.telescope",
-    IRoof: "ph.house",
-    IFocuser: "mdi.image-filter-center-focus",
-    IAutoFocus: "mdi.chart-bell-curve",
-    IAcquisition: "mdi.target",
-    IAutoGuiding: "mdi.crosshairs-gps",
-    IWeather: "fa5s.cloud-sun",
-    IVideo: "fa5s.video",
-    ISpectrograph: "ei.graph",
-    IFilters: "ei.graph",
-    IMode: "ei.video",
-    IRobotic: "mdi.robot",
-    IRoboticScheduler: "mdi.calendar-clock",
-}
+# icon shown for a custom widget entry (in widgets:/sidebar: config) that declares no icon of
+# its own
+_DEFAULT_ICON = "fa5.question-circle"
 
 
-DEFAULT_CONFIG = [
-    {"widget": ShellWidget, "label": "Shell", "always": True},
-    {"widget": EventsWidget, "label": "Events", "always": True},
-    {"widget": StatusWidget, "label": "Status", "always": True},
-    {"widget": CameraWidget, "interfaces": "ICamera", "icon": "fa5s.camera"},
-    {"widget": TelescopeWidget, "interfaces": "ITelescope", "icon": "msc.telescope"},
-    {"widget": RoofWidget, "interfaces": "IRoof", "icon": "ph.house"},
-    {"widget": FocusWidget, "interfaces": "IFocuser", "icon": "mdi.image-filter-center-focus"},
-    {"widget": AutoFocusWidget, "interfaces": "IAutoFocus", "icon": "mdi.chart-bell-curve"},
-    {"widget": AcquisitionWidget, "interfaces": "IAcquisition", "icon": "mdi.target"},
-    {"widget": AutoGuidingWidget, "interfaces": "IAutoGuiding", "icon": "mdi.crosshairs-gps"},
-    {"widget": WeatherWidget, "interfaces": "IWeather", "icon": "fa5s.cloud-sun"},
-    {"widget": VideoWidget, "interfaces": "IVideo", "icon": "fa5s.video"},
-    {"widget": SpectrographWidget, "interfaces": "ISpectrograph", "icon": "ei.graph"},
-    {"widget": FilterWidget, "interfaces": "IFilters", "icon": "mdi.air-filter"},
-    {"widget": RoboticWidget, "interfaces": "IRobotic", "icon": "mdi.robot"},
-    {"widget": ScheduleWidget, "interfaces": "IRoboticScheduler", "icon": "mdi.calendar-clock"},
+@dataclass(frozen=True)
+class MainWidgetEntry:
+    """One row of the MAIN_WIDGETS registry: an interface, the main widget it drives, its tab
+    label/icon, the sidebar widgets it declares, and the two demotion mechanisms (see
+    specs/2026-08-28-gui-main-vs-sidebar-widgets.md, D1/D6)."""
+
+    interface: Type[Interface]
+    widget: Type[BaseWidget]
+    label: str
+    icon: str
+    sidebar: Tuple[Tuple[Optional[Type[Interface]], Type[BaseWidget]], ...] = ()
+    # cross-interface demotion: only promoted into `main` when nothing else matched (D1)
+    sidebar_preferred: bool = False
+    # same-interface pairing: always rendered together whenever this entry survives into `main`
+    # (D6); no MAIN_WIDGETS entry sets this yet -- first consumer is the VideoWidget split,
+    # tracked separately in specs/2026-09-01-gui-video-widget-split.md
+    paired_sidebar_widget: Optional[Type[BaseWidget]] = None
+
+
+MAIN_WIDGETS: List[MainWidgetEntry] = [
+    # IFilters/ICooling/ITemperatures are NOT declared here even though Camera wants them in its
+    # sidebar -- they're sidebar_preferred entries below, so collect_main_widgets()'s promotion
+    # rule already demotes them into the sidebar whenever Camera (or any other non-preferred
+    # match) wins. Declaring them here too would add each one to the sidebar twice (confirmed
+    # regression, PR #157 review) -- only FitsHeadersWidget, which has no registry entry of its
+    # own, belongs in a declared `sidebar` tuple.
+    MainWidgetEntry(ICamera, CameraWidget, "Camera", "fa5s.camera", sidebar=((None, FitsHeadersWidget),)),
+    # IFilters/IFocuser/ITemperatures: same reasoning as Camera above -- all sidebar_preferred,
+    # already demoted into the sidebar by the promotion rule, not declared here.
+    MainWidgetEntry(ITelescope, TelescopeWidget, "Telescope", "msc.telescope"),
+    MainWidgetEntry(IRoof, RoofWidget, "Roof", "ph.house"),
+    MainWidgetEntry(IFocuser, FocusWidget, "Focuser", "mdi.image-filter-center-focus", sidebar_preferred=True),
+    MainWidgetEntry(IAutoFocus, AutoFocusWidget, "Auto focus", "mdi.chart-bell-curve"),
+    MainWidgetEntry(IAcquisition, AcquisitionWidget, "Acquisition", "mdi.target"),
+    MainWidgetEntry(IAutoGuiding, AutoGuidingWidget, "Auto guiding", "mdi.crosshairs-gps"),
+    MainWidgetEntry(IWeather, WeatherWidget, "Weather", "fa5s.cloud-sun"),
+    MainWidgetEntry(IVideo, VideoWidget, "Video", "fa5s.video", sidebar=((None, FitsHeadersWidget),)),
+    MainWidgetEntry(ISpectrograph, SpectrographWidget, "Spectrograph", "ei.graph"),
+    MainWidgetEntry(IFilters, FilterWidget, "Filter wheel", "mdi.air-filter", sidebar_preferred=True),
+    MainWidgetEntry(ITemperatures, TemperaturesWidget, "Temperatures", "mdi.thermometer", sidebar_preferred=True),
+    MainWidgetEntry(ICooling, CoolingWidget, "Cooling", "mdi.snowflake", sidebar_preferred=True),
+    MainWidgetEntry(IMode, ModeWidget, "Mode", "ei.video"),
+    # not part of the #150 audit's original snippet (added to DEFAULT_WIDGETS by the later
+    # irobotic-widgets plan, #825/PR #155) -- kept here so the registry consolidation doesn't
+    # regress robotic-module support
+    MainWidgetEntry(IRobotic, RoboticWidget, "Robotic", "mdi.robot"),
+    MainWidgetEntry(IRoboticScheduler, ScheduleWidget, "Scheduler", "mdi.calendar-clock"),
 ]
+
+# added to every module's sidebar unconditionally, regardless of interface matches or promotion
+# (D2) -- for content that isn't tied to any one interface. Empty today: FITS headers only make
+# sense for modules that actually write FITS files (ICamera, IVideo), so that's a per-entry
+# `sidebar=((None, FitsHeadersWidget), ...)` declaration on those two MAIN_WIDGETS rows instead
+# of a universal one -- see those entries above. Kept as a real (if currently unused) mechanism
+# since D2 explicitly wants an escape hatch for genuinely module-agnostic sidebar content.
+ALWAYS_SIDEBAR_WIDGETS: Tuple[Type[BaseWidget], ...] = ()
+
+
+@dataclass
+class WidgetChoice:
+    """One instantiated main widget plus everything needed to place it: its tab label/icon, the
+    sidebar widgets it declares (or its class's `sidebar_fills` override, see
+    collect_main_widgets), and its D6 paired sidebar widget class, if any."""
+
+    widget: BaseWidget
+    label: str
+    icon: QtGui.QIcon
+    sidebar: Tuple[Tuple[Optional[Type[Interface]], Type[BaseWidget]], ...] = ()
+    paired_sidebar_widget: Optional[Type[BaseWidget]] = None
+    # the MAIN_WIDGETS interface this choice originated from (None for a custom widgets: entry
+    # that isn't replacing a registry slot) -- used only to dedupe a sidebar_preferred choice
+    # against an overlapping declared `sidebar` fill on another entry, see open_module_page()
+    interface: Optional[Type[Interface]] = None
+
+
+def _custom_widget_choice(
+    cw: Dict[str, Any], make_widget: Callable[[Any], BaseWidget], interface: Optional[Type[Interface]] = None
+) -> WidgetChoice:
+    widget = make_widget(cw["widget"])
+    label = cw.get("label", type(widget).__name__)
+    icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(_DEFAULT_ICON)
+    # a custom widgets: entry has no registry `sidebar` tuple of its own -- fall back to the
+    # widget class's own `sidebar_fills`, if it declares one (see "Sidebar fills: the
+    # class-attribute option"), so wiring e.g. CameraWidget in via custom config doesn't lose
+    # its built-in sidebar
+    sidebar = getattr(type(widget), "sidebar_fills", ())
+    # `interface` is set only when this entry is replacing a registry slot in place (D3), so it
+    # still "counts" as covering that interface for open_module_page()'s sidebar dedup even
+    # though the widget class itself is now a custom one
+    return WidgetChoice(widget=widget, label=label, icon=icon, sidebar=sidebar, interface=interface)
+
+
+def collect_main_widgets(
+    matchable: Any,
+    make_widget: Callable[[Any], BaseWidget],
+    custom: Optional[List[Dict[str, Any]]] = None,
+) -> Tuple[List[WidgetChoice], List[WidgetChoice]]:
+    """Walks MAIN_WIDGETS for every entry whose interface `matchable` (a comm proxy or a Module
+    instance) implements, applies the sidebar_preferred promotion rule (D1), then layers the
+    custom widgets: config on top (D3).
+
+    Returns `(main, sidebar_preferred)`:
+      - `main`: ordered list of widgets to show as page content. Empty means "no page for this
+        module" (today's behavior, unchanged).
+      - `sidebar_preferred`: matches that were NOT promoted into `main` (because `main` was
+        already non-empty) and should instead fill the page's sidebar.
+    """
+    matches = [e for e in MAIN_WIDGETS if isinstance(matchable, e.interface)]
+    main_entries = [e for e in matches if not e.sidebar_preferred]
+    sidebar_preferred_entries: List[MainWidgetEntry] = []
+    if main_entries:
+        sidebar_preferred_entries = [e for e in matches if e.sidebar_preferred]
+    else:
+        # nothing else matched -- promote every sidebar_preferred match into main instead, so a
+        # standalone filter-wheel/focuser/temperature-sensor/cooling module still gets its own
+        # page (or tabs, if it matches more than one)
+        main_entries = [e for e in matches if e.sidebar_preferred]
+
+    custom = custom or []
+
+    # D3: interface: None + overwrite: true -- the page becomes exactly the custom entries
+    overwrite_entries = [cw for cw in custom if cw.get("interface") is None and cw.get("overwrite")]
+    if overwrite_entries:
+        return [_custom_widget_choice(cw, make_widget) for cw in overwrite_entries], []
+
+    def entry_choice(entry: MainWidgetEntry) -> WidgetChoice:
+        return WidgetChoice(
+            widget=make_widget(entry.widget),
+            label=entry.label,
+            icon=qta.icon(entry.icon),
+            sidebar=getattr(entry.widget, "sidebar_fills", entry.sidebar),
+            paired_sidebar_widget=entry.paired_sidebar_widget,
+            interface=entry.interface,
+        )
+
+    main_choices: List[WidgetChoice] = [entry_choice(e) for e in main_entries]
+    sidebar_preferred_choices: List[WidgetChoice] = [entry_choice(e) for e in sidebar_preferred_entries]
+
+    for cw in custom:
+        interface_name = cw.get("interface")
+        if interface_name is not None and cw.get("overwrite"):
+            # ambiguous combination: overwrite_entries above only fires for interface: None, so
+            # this entry falls through to the interface-replace branch below and its
+            # `overwrite` key is simply never read -- not a bug, but silent, so flag it
+            log.warning(
+                "Custom widget config for interface %r also sets overwrite: true; overwrite is "
+                "only honored without an interface -- this entry replaces just that interface's "
+                "slot, overwrite is ignored.",
+                interface_name,
+            )
+        if interface_name is not None:
+            # replace the same-interface slot in place, whether it's a plain main-widget slot or
+            # one currently demoted into the sidebar (sidebar_preferred); keeps tab/sidebar order.
+            # Ignored with a log if the module doesn't actually implement that interface at all.
+            idx = next((i for i, e in enumerate(main_entries) if e.interface.__name__ == interface_name), None)
+            if idx is not None and isinstance(matchable, main_entries[idx].interface):
+                main_choices[idx] = _custom_widget_choice(cw, make_widget, interface=main_entries[idx].interface)
+                continue
+            sidx = next(
+                (i for i, e in enumerate(sidebar_preferred_entries) if e.interface.__name__ == interface_name), None
+            )
+            if sidx is not None and isinstance(matchable, sidebar_preferred_entries[sidx].interface):
+                sidebar_preferred_choices[sidx] = _custom_widget_choice(
+                    cw, make_widget, interface=sidebar_preferred_entries[sidx].interface
+                )
+                continue
+            log.warning("Custom widget config for interface %r ignored: module doesn't implement it.", interface_name)
+        elif not cw.get("overwrite"):
+            # no interface, no overwrite -- appended as an extra tab
+            main_choices.append(_custom_widget_choice(cw, make_widget))
+
+    return main_choices, sidebar_preferred_choices
+
+
+class ModulePage(BaseWidget):
+    """Page host for one connected module -- the universal page host, whether the module matched
+    one main widget or several (D2). Exactly one widget renders directly with no tab chrome;
+    two or more get a QTabWidget, one tab per widget. The sidebar column is a property of the
+    page, shared across every tab: add_to_sidebar()/get_fits_headers() are inherited unchanged
+    from BaseWidget (they already work on any object exposing `self.widgetSidebar`); only
+    discard() and get_fits_headers() need widening to also cover the tab widgets themselves.
+    """
+
+    def __init__(
+        self,
+        choices: List[WidgetChoice],
+        sidebar_preferred: Optional[List[WidgetChoice]] = None,
+        custom_sidebar: Optional[List[Dict[str, Any]]] = None,
+        **kwargs: Any,
+    ) -> None:
+        BaseWidget.__init__(self, **kwargs)
+        self.choices = choices
+        self.widgets: List[BaseWidget] = [c.widget for c in choices]
+        self.tab_widget: Optional[QtWidgets.QTabWidget] = None
+        # carried through from collect_main_widgets() for open_module_page() to consume once
+        # this page's widgets have actually opened -- see its sidebar-fill steps (c) and (e)
+        self.sidebar_preferred_choices: List[WidgetChoice] = sidebar_preferred or []
+        self.custom_sidebar: List[Dict[str, Any]] = custom_sidebar or []
+
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        if len(choices) == 1:
+            content: QtWidgets.QWidget = choices[0].widget
+        else:
+            self.tab_widget = QtWidgets.QTabWidget()
+            for choice in choices:
+                self.tab_widget.addTab(choice.widget, choice.icon, choice.label)
+            content = self.tab_widget
+        layout.addWidget(content, 1)
+
+        # sidebar column -- BaseWidget.add_to_sidebar() fills this in via `hasattr(self,
+        # "widgetSidebar")`, exactly like the per-widget .ui-declared ones (camerawidget.ui etc.).
+        # Wrapped in a QScrollArea since the shared sidebar (D2) aggregates fills across every
+        # tab, so it can grow taller than any single old widget's hand-picked sidebar ever did.
+        self.widgetSidebar = QtWidgets.QWidget()
+
+        self.sidebar_scroll = QtWidgets.QScrollArea()
+        self.sidebar_scroll.setWidget(self.widgetSidebar)
+        self.sidebar_scroll.setWidgetResizable(True)
+        self.sidebar_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.sidebar_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.sidebar_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.sidebar_scroll.setMaximumWidth(320)
+        self.sidebar_scroll.setVisible(False)
+        layout.addWidget(self.sidebar_scroll)
+
+    def remove_widget(self, widget: BaseWidget) -> None:
+        """Removes one tab (D5: a partially-failed open drops just that widget's tab, keeping
+        the rest of the page). No-op if `widget` is the page's sole (non-tabbed) content --
+        callers are expected to have already checked for the all-failed case."""
+        if widget not in self.widgets:
+            return
+        self.widgets.remove(widget)
+        if self.tab_widget is not None:
+            idx = self.tab_widget.indexOf(widget)
+            if idx != -1:
+                self.tab_widget.removeTab(idx)
+
+    def hide_if_empty_sidebar(self) -> None:
+        self.sidebar_scroll.setVisible(len(self.sidebar_widgets) > 0)
+
+    async def discard(self) -> None:
+        for widget in list(self.widgets):
+            await widget.discard()
+        await super().discard()
+
+    def get_fits_headers(self, namespaces: Optional[List[str]] = None, **kwargs: Any) -> dict[str, FitsHeaderEntry]:
+        hdr: dict[str, FitsHeaderEntry] = {}
+        for widget in self.widgets:
+            if hasattr(widget, "get_fits_headers"):
+                for k, v in widget.get_fits_headers(namespaces, **kwargs).items():
+                    hdr[k] = v
+        for k, v in super().get_fits_headers(namespaces, **kwargs).items():
+            hdr[k] = v
+        return hdr
+
+
+async def open_module_page(
+    page: ModulePage,
+    client: str,
+    comm: Any,
+    observer: Any,
+    vfs: Any,
+    create_widget: Callable[..., BaseWidget],
+) -> bool:
+    """Opens every one of `page`'s main widgets concurrently (D5), then applies the sidebar
+    fills in order: (a) ALWAYS_SIDEBAR_WIDGETS, (b) each surviving choice's declared/class
+    sidebar fills, (c) promoted-away sidebar_preferred matches, (d) paired sidebar widgets (D6),
+    (e) custom sidebar entries. Shared between MainWindow._open_client (background, per-client
+    open task) and ModuleWindow.open() (standalone mode) so both get identical behavior.
+
+    A failing widget is logged, discarded, and its tab dropped; the page survives as long as at
+    least one widget opened successfully -- returns False only when every widget failed, so the
+    caller can treat that like a whole-client open failure (mirrors today's single-widget
+    _fail_open path).
+    """
+    await page.open(modules=[client], comm=comm, observer=observer, vfs=vfs)
+
+    results = await asyncio.gather(
+        *(w.open(modules=[client], comm=comm, observer=observer, vfs=vfs) for w in page.widgets),
+        return_exceptions=True,
+    )
+    survivors: List[WidgetChoice] = []
+    for choice, result in zip(list(page.choices), results, strict=True):
+        if isinstance(result, BaseException):
+            if isinstance(result, asyncio.CancelledError):
+                raise result
+            log.error("Failed to open widget %s for %s", type(choice.widget).__name__, client, exc_info=result)
+            page.remove_widget(choice.widget)
+            await choice.widget.discard()
+        else:
+            survivors.append(choice)
+
+    if not survivors:
+        return False
+
+    for klass in ALWAYS_SIDEBAR_WIDGETS:
+        await page.add_to_sidebar(create_widget(klass, module=client))
+
+    # an interface already covered by a demoted sidebar_preferred match (below) is skipped here
+    # even if some survivor's declared `sidebar` tuple also names it -- keyed by interface, not
+    # widget class, so this still holds when a custom widgets: entry (D3) has replaced that
+    # demoted slot with a different widget class. Defends against the exact double-add
+    # regression PR #157 review found in the production registry (Camera/Telescope's declared
+    # fills used to duplicate their own sidebar_preferred entries); the registry itself no
+    # longer declares such overlaps, but this keeps a future one from silently reintroducing
+    # duplicate sidebar widgets
+    demoted_interfaces = {c.interface for c in page.sidebar_preferred_choices if c.interface is not None}
+    for choice in survivors:
+        for interface, klass in choice.sidebar:
+            if interface is not None and interface in demoted_interfaces:
+                continue
+            if interface is None or await comm.has_proxy(client, interface):
+                await page.add_to_sidebar(create_widget(klass, module=client))
+
+    for sidebar_choice in page.sidebar_preferred_choices:
+        # add_to_sidebar() -> _open_child() opens the widget itself (module/comm/observer/vfs
+        # come from `page`, set by page.open() above) -- no separate explicit open() call here,
+        # so a failure is caught by add_to_sidebar's own isolation (D5) like every other fill
+        await page.add_to_sidebar(sidebar_choice.widget)
+
+    for choice in survivors:
+        if choice.paired_sidebar_widget is not None:
+            sidebar_widget = create_widget(choice.paired_sidebar_widget, module=client)
+            choice.widget.paired_sidebar = sidebar_widget  # type: ignore[attr-defined]
+            sidebar_widget.paired_main = choice.widget  # type: ignore[attr-defined]
+            await page.add_to_sidebar(sidebar_widget)
+
+    for csw in page.custom_sidebar:
+        await page.add_to_sidebar(create_widget(csw["widget"], module=client))
+
+    page.hide_if_empty_sidebar()
+    return True
 
 
 def _is_float(s: str) -> bool:
@@ -478,9 +770,20 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
 
     async def _open_client(self, client: str, widget: BaseWidget) -> None:
         try:
-            await widget.open(
-                modules=[client] if client is not None else [], comm=self.comm, observer=self.observer, vfs=self.vfs
-            )
+            if isinstance(widget, ModulePage):
+                # D5: gather-open with per-tab failure handling, then apply sidebar fills.
+                # Raise so the except branch below runs the same _fail_open teardown as a
+                # plain single-widget open failure -- open_module_page returns False only
+                # when every one of the page's main widgets failed.
+                if not await open_module_page(widget, client, self.comm, self.observer, self.vfs, self.create_widget):
+                    raise RuntimeError(f"All main widgets failed to open for {client}")
+            else:
+                await widget.open(
+                    modules=[client] if client is not None else [],
+                    comm=self.comm,
+                    observer=self.observer,
+                    vfs=self.vfs,
+                )
         except Exception:
             # open() failed (RPC errors etc.): tear the client down rather than leaving a
             # permanent "Loading…" dead page behind. Note asyncio.CancelledError is NOT
@@ -757,39 +1060,33 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         # update client list (cheap menu rebuild; the shell model is the shell's own job)
         self._update_clients_menu()
 
-        # what do we have?
+        # what do we have? (D1/D3: registry match + custom widgets: config merge/overwrite)
+        custom = [cw for cw in self.custom_widgets if cw["module"] == client]
         async with self.comm.proxy(client) as proxy:
-            widget, icon = None, None
-            for interface, klass in DEFAULT_WIDGETS.items():
-                if isinstance(proxy, interface):
-                    widget = self.create_widget(klass, module=client)
-                    icon = qta.icon(DEFAULT_ICONS[interface])
-                    break
-
-        # look at custom widgets
-        for cw in self.custom_widgets:
-            if cw["module"] == client:
-                widget = self.create_widget(cw["widget"], module=client)
-
-                # got an icon?
-                icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(DEFAULT_ICONS[None])
+            main_choices, sidebar_preferred_choices = collect_main_widgets(
+                proxy, lambda klass: self.create_widget(klass, module=client), custom
+            )
 
         # still nothing?
-        if widget is None:
+        if not main_choices:
             return False
 
-        # custom sidebar?
-        for csw in self.custom_sidebar_widgets:
-            if csw["module"] == client:
-                await widget.add_to_sidebar(self.create_widget(csw["widget"], module=client))
+        # custom sidebar (D2: applied at page-assembly time, always visible regardless of the
+        # module's widget type -- see ModulePage)
+        custom_sidebar = [csw for csw in self.custom_sidebar_widgets if csw["module"] == client]
 
-        # add it
-        if icon is None:
-            icon = qta.icon(DEFAULT_ICONS[None])
+        # D4: nav icon is the first matched (or custom-replacing) entry's icon
+        icon = main_choices[0].icon
         if not self._modules_header_added:
             self._add_section_header("Modules")
             self._modules_header_added = True
-        await self._add_client(client, icon, widget)
+        page = self.create_widget(
+            ModulePage,
+            choices=main_choices,
+            sidebar_preferred=sidebar_preferred_choices,
+            custom_sidebar=custom_sidebar,
+        )
+        await self._add_client(client, icon, page)
         return True
 
     async def _client_disconnected(self, event: Event, client: str) -> bool:

@@ -112,8 +112,9 @@ def test_update_gui_status_line() -> None:
 def test_registered_in_mainwindow_default_widgets() -> None:
     from pyobs_gui import mainwindow
 
-    assert mainwindow.DEFAULT_WIDGETS[IRoboticScheduler] is ScheduleWidget
-    assert IRoboticScheduler in mainwindow.DEFAULT_ICONS
+    entry = next(e for e in mainwindow.MAIN_WIDGETS if e.interface is IRoboticScheduler)
+    assert entry.widget is ScheduleWidget
+    assert entry.icon
 
 
 def test_reschedule_button_gated_by_permissions() -> None:
