@@ -20,7 +20,6 @@ vfs: &vfs
 modules:
   camera:
     class: pyobs.modules.camera.DummyCamera
-    name: camera
     telescope: telescope
     vfs: *vfs
     comm:
@@ -29,28 +28,24 @@ modules:
 
   telescope:
     class: pyobs.modules.telescope.DummyAltAzTelescope
-    name: telescope
     comm:
       class: pyobs.comm.local.LocalComm
       name: telescope
 
   roof:
     class: pyobs.modules.roof.DummyRoof
-    name: roof
     comm:
       class: pyobs.comm.local.LocalComm
       name: roof
 
   mode:
     class: pyobs.modules.utils.dummymode.DummyMode
-    name: mode
     comm:
       class: pyobs.comm.local.LocalComm
       name: mode
 
   video:
     class: pyobs.modules.camera.dummyvideo.DummyVideo
-    name: video
     port: 37077
     vfs: *vfs
     comm:
@@ -59,28 +54,24 @@ modules:
 
   autofocus:
     class: pyobs.modules.focus.DummyAutoFocus
-    name: autofocus
     comm:
       class: pyobs.comm.local.LocalComm
       name: autofocus
 
   acquisition:
     class: pyobs.modules.pointing.DummyAcquisition
-    name: acquisition
     comm:
       class: pyobs.comm.local.LocalComm
       name: acquisition
 
   guiding:
     class: pyobs.modules.pointing.DummyAutoGuiding
-    name: guiding
     comm:
       class: pyobs.comm.local.LocalComm
       name: guiding
 
   gui:
     class: pyobs_gui.GUI
-    name: gui
     vfs: *vfs
     comm:
       class: pyobs.comm.local.LocalComm

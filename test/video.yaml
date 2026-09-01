@@ -15,7 +15,6 @@ vfs: &vfs
 modules:
   video:
     class: pyobs.modules.camera.dummyvideo.DummyVideo
-    name: video
     port: 37077
     vfs: *vfs
     comm:
@@ -24,7 +23,6 @@ modules:
 
   gui:
     class: pyobs_gui.GUI
-    name: gui
     vfs: *vfs
     comm:
       class: pyobs.comm.local.LocalComm
