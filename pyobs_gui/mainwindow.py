@@ -279,11 +279,20 @@ class ModulePage(BaseWidget):
         layout.addWidget(content, 1)
 
         # sidebar column -- BaseWidget.add_to_sidebar() fills this in via `hasattr(self,
-        # "widgetSidebar")`, exactly like the per-widget .ui-declared ones (camerawidget.ui etc.)
+        # "widgetSidebar")`, exactly like the per-widget .ui-declared ones (camerawidget.ui etc.).
+        # Wrapped in a QScrollArea since the shared sidebar (D2) aggregates fills across every
+        # tab, so it can grow taller than any single old widget's hand-picked sidebar ever did.
         self.widgetSidebar = QtWidgets.QWidget()
-        self.widgetSidebar.setMaximumWidth(320)
-        self.widgetSidebar.setVisible(False)
-        layout.addWidget(self.widgetSidebar)
+
+        self.sidebar_scroll = QtWidgets.QScrollArea()
+        self.sidebar_scroll.setWidget(self.widgetSidebar)
+        self.sidebar_scroll.setWidgetResizable(True)
+        self.sidebar_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        self.sidebar_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.sidebar_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.sidebar_scroll.setMaximumWidth(320)
+        self.sidebar_scroll.setVisible(False)
+        layout.addWidget(self.sidebar_scroll)
 
     def remove_widget(self, widget: BaseWidget) -> None:
         """Removes one tab (D5: a partially-failed open drops just that widget's tab, keeping
@@ -298,7 +307,7 @@ class ModulePage(BaseWidget):
                 self.tab_widget.removeTab(idx)
 
     def hide_if_empty_sidebar(self) -> None:
-        self.widgetSidebar.setVisible(len(self.sidebar_widgets) > 0)
+        self.sidebar_scroll.setVisible(len(self.sidebar_widgets) > 0)
 
     async def discard(self) -> None:
         for widget in list(self.widgets):
