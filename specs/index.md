@@ -13,9 +13,15 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
   `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
   modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
-- `2026-08-28-gui-main-vs-sidebar-widgets.md` — **draft**. Fleshed-out issue #150: explicit
-  main-widget/sidebar-widget distinction, automatic tab pages for multi-widget modules (shared
-  sidebar, merge-per-interface custom config, standalone parity).
+- `2026-08-28-gui-main-vs-sidebar-widgets.md` — **draft, revised 2026-09-01**. Fleshed-out issue
+  #150: explicit main-widget/sidebar-widget distinction, automatic tab pages for multi-widget
+  modules (shared sidebar, merge-per-interface custom config, standalone parity). 2026-09-01
+  revision adds a `sidebar_preferred` promotion rule (fixes a double-display bug in the original
+  D1), makes the sidebar container universal instead of ≥2-widgets-only (fixes a gap the original
+  D2 had deferred), and adds the `paired_sidebar_widget` mechanism (D6).
+- `2026-09-01-gui-video-widget-split.md` — **draft**. Follow-up to the above (D6): split
+  `VideoWidget` into a live-view main widget + a `VideoControlsWidget` paired sidebar widget, the
+  first consumer of the `paired_sidebar_widget` mechanism.
 - `2026-08-21-gui-widget-startup-responsiveness.md` — **implemented, closed 2026-08-23 (PR #141,
   `123161b`)**. Make module widgets appear and respond immediately at startup: non-blocking
   `_add_client` with a "Loading…" placeholder page (clicks are never dropped), parallel
