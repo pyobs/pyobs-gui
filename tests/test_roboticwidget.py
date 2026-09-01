@@ -113,8 +113,9 @@ async def test_stop_calls_proxy_stop() -> None:
 def test_registered_in_mainwindow_default_widgets() -> None:
     from pyobs_gui import mainwindow
 
-    assert mainwindow.DEFAULT_WIDGETS[IRobotic] is RoboticWidget
-    assert IRobotic in mainwindow.DEFAULT_ICONS
+    entry = next(e for e in mainwindow.MAIN_WIDGETS if e.interface is IRobotic)
+    assert entry.widget is RoboticWidget
+    assert entry.icon
 
 
 def test_buttons_gated_by_running_state_and_permissions() -> None:

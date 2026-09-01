@@ -27,18 +27,12 @@ from pyobs.interfaces import (
     RaDecOffsetState,
     IOffsetsAltAz,
     AltAzOffsetState,
-    IFilters,
-    IFocuser,
-    ITemperatures,
     IMotion,
     MotionState,
     IModule,
 )
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
-from .filterwidget import FilterWidget
-from .focuswidget import FocusWidget
-from .temperatureswidget import TemperaturesWidget
 from .compassmovewidget import CompassMoveWidget
 from .qt.telescopewidget_ui import Ui_TelescopeWidget
 from .base import BaseWidget
@@ -57,6 +51,11 @@ class COORDS(Enum):
 
 class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     signal_update_gui = QtCore.Signal()
+
+    # No declared sidebar_fills: IFilters/IFocuser/ITemperatures are sidebar_preferred
+    # MAIN_WIDGETS entries, already demoted into the sidebar by collect_main_widgets()'s
+    # promotion rule whenever Telescope wins the main slot -- declaring them here too would add
+    # each one twice (PR #157 review; see the same note on CameraWidget.sidebar_fills).
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -177,13 +176,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         self.groupEquatorialOffsets.setVisible(IOffsetsRaDec in self._interfaces)
         self.groupHorizontalOffsets.setVisible(IOffsetsAltAz in self._interfaces)
 
-        # fill sidebar
-        if IFilters in self._interfaces:
-            await self.add_to_sidebar(self.create_widget(FilterWidget, module=self.module))
-        if IFocuser in self._interfaces:
-            await self.add_to_sidebar(self.create_widget(FocusWidget, module=self.module))
-        if ITemperatures in self._interfaces:
-            await self.add_to_sidebar(self.create_widget(TemperaturesWidget, module=self.module))
+        # sidebar fills are applied by the page assembler (mainwindow.py: open_module_page),
+        # driven by this class's sidebar_fills attribute -- see specs/2026-08-28-gui-main-vs-
+        # sidebar-widgets.md, D2
 
         # standalone/login-window mode never configures a local location (there's no YAML at
         # all), so fall back to the telescope module's own published location instead -- mirrors
