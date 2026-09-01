@@ -93,6 +93,7 @@ MAIN_WIDGETS: List[MainWidgetEntry] = [
         "Camera",
         "fa5s.camera",
         sidebar=(
+            (None, FitsHeadersWidget),
             (IFilters, FilterWidget),
             (ICooling, CoolingWidget),
             (ITemperatures, TemperaturesWidget),
@@ -115,7 +116,7 @@ MAIN_WIDGETS: List[MainWidgetEntry] = [
     MainWidgetEntry(IAcquisition, AcquisitionWidget, "Acquisition", "mdi.target"),
     MainWidgetEntry(IAutoGuiding, AutoGuidingWidget, "Auto guiding", "mdi.crosshairs-gps"),
     MainWidgetEntry(IWeather, WeatherWidget, "Weather", "fa5s.cloud-sun"),
-    MainWidgetEntry(IVideo, VideoWidget, "Video", "fa5s.video"),
+    MainWidgetEntry(IVideo, VideoWidget, "Video", "fa5s.video", sidebar=((None, FitsHeadersWidget),)),
     MainWidgetEntry(ISpectrograph, SpectrographWidget, "Spectrograph", "ei.graph"),
     MainWidgetEntry(IFilters, FilterWidget, "Filter wheel", "mdi.air-filter", sidebar_preferred=True),
     MainWidgetEntry(ITemperatures, TemperaturesWidget, "Temperatures", "mdi.thermometer", sidebar_preferred=True),
@@ -128,8 +129,13 @@ MAIN_WIDGETS: List[MainWidgetEntry] = [
     MainWidgetEntry(IRoboticScheduler, ScheduleWidget, "Scheduler", "mdi.calendar-clock"),
 ]
 
-# always added to every module's sidebar, regardless of interface matches or promotion (D2)
-ALWAYS_SIDEBAR_WIDGETS: Tuple[Type[BaseWidget], ...] = (FitsHeadersWidget,)
+# added to every module's sidebar unconditionally, regardless of interface matches or promotion
+# (D2) -- for content that isn't tied to any one interface. Empty today: FITS headers only make
+# sense for modules that actually write FITS files (ICamera, IVideo), so that's a per-entry
+# `sidebar=((None, FitsHeadersWidget), ...)` declaration on those two MAIN_WIDGETS rows instead
+# of a universal one -- see those entries above. Kept as a real (if currently unused) mechanism
+# since D2 explicitly wants an escape hatch for genuinely module-agnostic sidebar content.
+ALWAYS_SIDEBAR_WIDGETS: Tuple[Type[BaseWidget], ...] = ()
 
 
 @dataclass

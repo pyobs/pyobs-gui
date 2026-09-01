@@ -32,6 +32,7 @@ from pyobs.vfs import VirtualFileSystem
 from .base import BaseWidget
 from .coolingwidget import CoolingWidget
 from .filterwidget import FilterWidget
+from .fitsheaderswidget import FitsHeadersWidget
 from .temperatureswidget import TemperaturesWidget
 from .qt.camerawidget_ui import Ui_CameraWidget
 
@@ -51,9 +52,9 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
 
     # declared sidebar fills (mainwindow.py, MAIN_WIDGETS/collect_main_widgets): consulted via
     # getattr(widget_class, "sidebar_fills", ...) so a site that wires CameraWidget in via
-    # custom widgets: config still gets these. FitsHeadersWidget is NOT listed here -- every
-    # module's sidebar gets it unconditionally via ALWAYS_SIDEBAR_WIDGETS instead.
+    # custom widgets: config still gets these.
     sidebar_fills = [
+        (None, FitsHeadersWidget),
         (IFilters, FilterWidget),
         (ICooling, CoolingWidget),
         (ITemperatures, TemperaturesWidget),
