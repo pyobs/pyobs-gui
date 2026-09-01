@@ -27,6 +27,7 @@ class Ui_FitsHeadersWidget(object):
         FitsHeadersWidget.resize(262, 425)
         self.horizontalLayout = QHBoxLayout(FitsHeadersWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.groupBox = QGroupBox(FitsHeadersWidget)
         self.groupBox.setObjectName(u"groupBox")
         self.formLayout = QFormLayout(self.groupBox)
