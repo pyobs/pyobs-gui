@@ -18,6 +18,11 @@ This is an example configuration for a GUI that defines one custom widget for th
         widget:
           class: mypackage.GuidingWidget
 
+    sidebar:
+      - module: guiding
+        widget:
+          class: mypackage.GuidingExtraSidebarWidget
+
     comm:
       jid: test@example.com
       password: ***
@@ -54,9 +59,39 @@ GUI
 Widgets
 *******
 
-The GUI shows one page per connected module, picking a widget by the module's interfaces
-(``DEFAULT_WIDGETS`` in ``mainwindow.py``), plus three always-present "Tools" pages. No screenshots
-yet — this section was written from source, not from a running GUI; add screenshots as a follow-up.
+The GUI shows one page per connected module, matching its interfaces against an ordered registry
+of **main widgets** (``MAIN_WIDGETS`` in ``mainwindow.py``) — see below for the current list — plus
+three always-present "Tools" pages. No screenshots yet — this section was written from source, not
+from a running GUI; add screenshots as a follow-up.
+
+Main widgets vs. sidebar widgets
+=================================
+Every entry in the registry drives either a **main widget** (fills the page) or is declared as a
+**sidebar widget** for one or more main widgets (lives only in the page's sidebar, e.g. filter
+wheel, focuser, temperature, cooling and FITS-header controls). A module matching several main
+widgets gets one nav entry whose page is a tab widget, one tab per main widget (e.g. a camera
+module that is also a filter wheel shows a "Camera" tab, with filter controls in the shared
+sidebar rather than a separate tab); one match keeps a plain, tab-bar-less page; the sidebar itself
+is shared across every tab, so e.g. FITS-header info stays visible while switching tabs. Some
+interfaces (``IFilters``, ``IFocuser``, ``ITemperatures``, ``ICooling``) are *sidebar-preferred*:
+they fill a sidebar slot on another matched main widget by default, but still get their own page if
+a module implements one of them standalone (e.g. a bare filter-wheel-only module).
+
+Custom ``widgets:``/``sidebar:`` config
+==========================================
+Each ``widgets:`` entry (``module``, ``widget``, optional ``label``, ``icon``, ``interface``,
+``overwrite``) targets one connected module:
+
+- ``interface: ICamera`` replaces/merges only the ``ICamera``-derived tab for that module (same
+  registry slot, so tab order is stable); ignored with a log message if the module doesn't
+  implement it.
+- No ``interface`` and no ``overwrite`` — the entry is appended as an **extra tab** alongside
+  whatever the registry already matched.
+- No ``interface`` and ``overwrite: true`` — the page becomes **exactly** the custom entries (the
+  ``guiding`` example above).
+
+``sidebar:`` entries (``module``, ``widget``) are always appended to the page's sidebar, visible
+regardless of the module's matched interfaces.
 
 Shell
 =====
@@ -117,6 +152,16 @@ Grab a spectrum, abort an in-progress exposure.
 Filter wheel — drives ``IFilters``
 =====================================
 Set the active filter.
+
+Temperatures — drives ``ITemperatures``
+==========================================
+Live sensor readout. Normally a sidebar block on a camera/telescope page; a temperature-sensor-only
+module gets its own page.
+
+Cooling — drives ``ICooling``
+================================
+Set/get the cooling setpoint. Normally a sidebar block on a camera page; a cooling-only module
+gets its own page.
 
 
 Keyboard shortcuts
