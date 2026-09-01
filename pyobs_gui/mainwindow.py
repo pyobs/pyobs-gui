@@ -34,6 +34,7 @@ from pyobs.interfaces import (
     IFilters,
     IMode,
     IModule,
+    IStructuredConfig,
 )
 
 from .base import BaseWindow, BaseWidget, cancel_and_drain
@@ -59,6 +60,7 @@ from .eventswidget import EventsWidget
 from .roofwidget import RoofWidget
 from .shellwidget import ShellWidget
 from .spectrographwidget import SpectrographWidget
+from .structuredconfigwidget import StructuredConfigWidget
 
 log = logging.getLogger(__name__)
 
@@ -114,6 +116,14 @@ MAIN_WIDGETS: List[MainWidgetEntry] = [
     # regress robotic-module support
     MainWidgetEntry(IRobotic, RoboticWidget, "Robotic", "mdi.robot"),
     MainWidgetEntry(IRoboticScheduler, ScheduleWidget, "Scheduler", "mdi.calendar-clock"),
+    # generic schema-driven form for any module implementing IStructuredConfig (#154); not
+    # sidebar_preferred -- it's a main page in its own right, not a cross-interface demotion
+    # candidate. A module also matching a specialized main widget (e.g. the FTS: ISpectrograph +
+    # IStructuredConfig) now shows both as separate tabs (every matching main-role interface
+    # renders, per D2) rather than one hiding the other -- see
+    # specs/plans/2026-08-28-structuredconfig-widget.md (pyobs-core repo) for why that's an
+    # accepted consequence here, not a bug.
+    MainWidgetEntry(IStructuredConfig, StructuredConfigWidget, "Config", "fa5s.cog"),
 ]
 
 # added to every module's sidebar unconditionally, regardless of interface matches or promotion
