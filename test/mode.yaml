@@ -5,14 +5,12 @@ class: pyobs.modules.MultiModule
 modules:
   mode:
     class: pyobs.modules.utils.dummymode.DummyMode
-    name: mode
     comm:
       class: pyobs.comm.local.LocalComm
       name: mode
 
   gui:
     class: pyobs_gui.GUI
-    name: gui
     comm:
       class: pyobs.comm.local.LocalComm
       name: gui
