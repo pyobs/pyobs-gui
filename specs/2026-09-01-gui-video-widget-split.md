@@ -2,6 +2,9 @@
 
 Status: draft
 
+Dependency landed 2026-09-01: `2026-08-28-gui-main-vs-sidebar-widgets.md` merged to develop as
+PR #157 (`b7a14a6`), including the `paired_sidebar_widget` field and wiring — unblocked.
+
 Depends on `2026-08-28-gui-main-vs-sidebar-widgets.md` (specifically its 2026-09-01 revision,
 D6 — the `MainWidgetEntry.paired_sidebar_widget` field and `MAIN_WIDGETS`/`collect_main_widgets`/
 `ModulePage` mechanism) landing first. This plan is that mechanism's first concrete consumer, and
