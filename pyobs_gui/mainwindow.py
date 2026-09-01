@@ -87,29 +87,16 @@ class MainWidgetEntry:
 
 
 MAIN_WIDGETS: List[MainWidgetEntry] = [
-    MainWidgetEntry(
-        ICamera,
-        CameraWidget,
-        "Camera",
-        "fa5s.camera",
-        sidebar=(
-            (None, FitsHeadersWidget),
-            (IFilters, FilterWidget),
-            (ICooling, CoolingWidget),
-            (ITemperatures, TemperaturesWidget),
-        ),
-    ),
-    MainWidgetEntry(
-        ITelescope,
-        TelescopeWidget,
-        "Telescope",
-        "msc.telescope",
-        sidebar=(
-            (IFilters, FilterWidget),
-            (IFocuser, FocusWidget),
-            (ITemperatures, TemperaturesWidget),
-        ),
-    ),
+    # IFilters/ICooling/ITemperatures are NOT declared here even though Camera wants them in its
+    # sidebar -- they're sidebar_preferred entries below, so collect_main_widgets()'s promotion
+    # rule already demotes them into the sidebar whenever Camera (or any other non-preferred
+    # match) wins. Declaring them here too would add each one to the sidebar twice (confirmed
+    # regression, PR #157 review) -- only FitsHeadersWidget, which has no registry entry of its
+    # own, belongs in a declared `sidebar` tuple.
+    MainWidgetEntry(ICamera, CameraWidget, "Camera", "fa5s.camera", sidebar=((None, FitsHeadersWidget),)),
+    # IFilters/IFocuser/ITemperatures: same reasoning as Camera above -- all sidebar_preferred,
+    # already demoted into the sidebar by the promotion rule, not declared here.
+    MainWidgetEntry(ITelescope, TelescopeWidget, "Telescope", "msc.telescope"),
     MainWidgetEntry(IRoof, RoofWidget, "Roof", "ph.house"),
     MainWidgetEntry(IFocuser, FocusWidget, "Focuser", "mdi.image-filter-center-focus", sidebar_preferred=True),
     MainWidgetEntry(IAutoFocus, AutoFocusWidget, "Auto focus", "mdi.chart-bell-curve"),
@@ -149,9 +136,15 @@ class WidgetChoice:
     icon: QtGui.QIcon
     sidebar: Tuple[Tuple[Optional[Type[Interface]], Type[BaseWidget]], ...] = ()
     paired_sidebar_widget: Optional[Type[BaseWidget]] = None
+    # the MAIN_WIDGETS interface this choice originated from (None for a custom widgets: entry
+    # that isn't replacing a registry slot) -- used only to dedupe a sidebar_preferred choice
+    # against an overlapping declared `sidebar` fill on another entry, see open_module_page()
+    interface: Optional[Type[Interface]] = None
 
 
-def _custom_widget_choice(cw: Dict[str, Any], make_widget: Callable[[Any], BaseWidget]) -> WidgetChoice:
+def _custom_widget_choice(
+    cw: Dict[str, Any], make_widget: Callable[[Any], BaseWidget], interface: Optional[Type[Interface]] = None
+) -> WidgetChoice:
     widget = make_widget(cw["widget"])
     label = cw.get("label", type(widget).__name__)
     icon = qta.icon(cw["icon"]) if "icon" in cw else qta.icon(_DEFAULT_ICON)
@@ -160,7 +153,10 @@ def _custom_widget_choice(cw: Dict[str, Any], make_widget: Callable[[Any], BaseW
     # class-attribute option"), so wiring e.g. CameraWidget in via custom config doesn't lose
     # its built-in sidebar
     sidebar = getattr(type(widget), "sidebar_fills", ())
-    return WidgetChoice(widget=widget, label=label, icon=icon, sidebar=sidebar)
+    # `interface` is set only when this entry is replacing a registry slot in place (D3), so it
+    # still "counts" as covering that interface for open_module_page()'s sidebar dedup even
+    # though the widget class itself is now a custom one
+    return WidgetChoice(widget=widget, label=label, icon=icon, sidebar=sidebar, interface=interface)
 
 
 def collect_main_widgets(
@@ -203,27 +199,45 @@ def collect_main_widgets(
             icon=qta.icon(entry.icon),
             sidebar=getattr(entry.widget, "sidebar_fills", entry.sidebar),
             paired_sidebar_widget=entry.paired_sidebar_widget,
+            interface=entry.interface,
         )
 
     main_choices: List[WidgetChoice] = [entry_choice(e) for e in main_entries]
+    sidebar_preferred_choices: List[WidgetChoice] = [entry_choice(e) for e in sidebar_preferred_entries]
 
     for cw in custom:
         interface_name = cw.get("interface")
+        if interface_name is not None and cw.get("overwrite"):
+            # ambiguous combination: overwrite_entries above only fires for interface: None, so
+            # this entry falls through to the interface-replace branch below and its
+            # `overwrite` key is simply never read -- not a bug, but silent, so flag it
+            log.warning(
+                "Custom widget config for interface %r also sets overwrite: true; overwrite is "
+                "only honored without an interface -- this entry replaces just that interface's "
+                "slot, overwrite is ignored.",
+                interface_name,
+            )
         if interface_name is not None:
-            # replace the same-interface slot in place (keeps tab order); ignored with a log if
-            # the module doesn't actually implement that interface or has no such slot
+            # replace the same-interface slot in place, whether it's a plain main-widget slot or
+            # one currently demoted into the sidebar (sidebar_preferred); keeps tab/sidebar order.
+            # Ignored with a log if the module doesn't actually implement that interface at all.
             idx = next((i for i, e in enumerate(main_entries) if e.interface.__name__ == interface_name), None)
             if idx is not None and isinstance(matchable, main_entries[idx].interface):
-                main_choices[idx] = _custom_widget_choice(cw, make_widget)
-            else:
-                log.warning(
-                    "Custom widget config for interface %r ignored: module doesn't implement it.", interface_name
+                main_choices[idx] = _custom_widget_choice(cw, make_widget, interface=main_entries[idx].interface)
+                continue
+            sidx = next(
+                (i for i, e in enumerate(sidebar_preferred_entries) if e.interface.__name__ == interface_name), None
+            )
+            if sidx is not None and isinstance(matchable, sidebar_preferred_entries[sidx].interface):
+                sidebar_preferred_choices[sidx] = _custom_widget_choice(
+                    cw, make_widget, interface=sidebar_preferred_entries[sidx].interface
                 )
+                continue
+            log.warning("Custom widget config for interface %r ignored: module doesn't implement it.", interface_name)
         elif not cw.get("overwrite"):
             # no interface, no overwrite -- appended as an extra tab
             main_choices.append(_custom_widget_choice(cw, make_widget))
 
-    sidebar_preferred_choices = [entry_choice(e) for e in sidebar_preferred_entries]
     return main_choices, sidebar_preferred_choices
 
 
@@ -344,13 +358,26 @@ async def open_module_page(
     for klass in ALWAYS_SIDEBAR_WIDGETS:
         await page.add_to_sidebar(create_widget(klass, module=client))
 
+    # an interface already covered by a demoted sidebar_preferred match (below) is skipped here
+    # even if some survivor's declared `sidebar` tuple also names it -- keyed by interface, not
+    # widget class, so this still holds when a custom widgets: entry (D3) has replaced that
+    # demoted slot with a different widget class. Defends against the exact double-add
+    # regression PR #157 review found in the production registry (Camera/Telescope's declared
+    # fills used to duplicate their own sidebar_preferred entries); the registry itself no
+    # longer declares such overlaps, but this keeps a future one from silently reintroducing
+    # duplicate sidebar widgets
+    demoted_interfaces = {c.interface for c in page.sidebar_preferred_choices if c.interface is not None}
     for choice in survivors:
         for interface, klass in choice.sidebar:
+            if interface is not None and interface in demoted_interfaces:
+                continue
             if interface is None or await comm.has_proxy(client, interface):
                 await page.add_to_sidebar(create_widget(klass, module=client))
 
     for sidebar_choice in page.sidebar_preferred_choices:
-        await sidebar_choice.widget.open(modules=[client], comm=comm, observer=observer, vfs=vfs)
+        # add_to_sidebar() -> _open_child() opens the widget itself (module/comm/observer/vfs
+        # come from `page`, set by page.open() above) -- no separate explicit open() call here,
+        # so a failure is caught by add_to_sidebar's own isolation (D5) like every other fill
         await page.add_to_sidebar(sidebar_choice.widget)
 
     for choice in survivors:

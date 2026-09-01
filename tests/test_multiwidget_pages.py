@@ -101,7 +101,17 @@ class CustomSidebarWidget(_FakeWidget):
 
 
 FAKE_MAIN_WIDGETS = [
-    MainWidgetEntry(IMainA, MainAWidget, "Main A", "fa5s.camera", sidebar=((IFillGate, FillGateWidget),)),
+    # IMainA's sidebar tuple deliberately also declares (IPreferred1, Preferred1Widget) --
+    # IPreferred1 is ALSO a sidebar_preferred entry below (mirrors the real registry's
+    # pre-fix Camera/Telescope declarations, PR #157 review finding #1). Exercises that a
+    # declared fill overlapping a demoted sidebar_preferred match doesn't add the widget twice.
+    MainWidgetEntry(
+        IMainA,
+        MainAWidget,
+        "Main A",
+        "fa5s.camera",
+        sidebar=((IFillGate, FillGateWidget), (IPreferred1, Preferred1Widget)),
+    ),
     MainWidgetEntry(IMainB, MainBWidget, "Main B", "ph.house"),
     MainWidgetEntry(IPreferred1, Preferred1Widget, "Preferred 1", "mdi.air-filter", sidebar_preferred=True),
     MainWidgetEntry(IPreferred2, Preferred2Widget, "Preferred 2", "mdi.thermometer", sidebar_preferred=True),
@@ -134,6 +144,13 @@ class ProxyNoMatch:
 
 class FakeModule(IMainA, IMainB):
     """Doubles as a Module for the ModuleWindow test -- just needs a `.name`."""
+
+    def __init__(self, name: str = "modx"):
+        self.name = name
+
+
+class FakeModuleMainAOnly(IMainA):
+    """Single-match variant, for the ModuleWindow total-open-failure test."""
 
     def __init__(self, name: str = "modx"):
         self.name = name
@@ -225,6 +242,24 @@ async def test_promotion_rule_demotes_sidebar_preferred_when_main_nonempty(qapp,
         assert [type(w) for w in page.widgets] == [MainAWidget]
 
         assert any(isinstance(w, Preferred1Widget) for w in page.sidebar_widgets)
+    finally:
+        window.deleteLater()
+
+
+@pytest.mark.asyncio
+async def test_declared_fill_overlapping_sidebar_preferred_not_duplicated(qapp, monkeypatch) -> None:
+    """PR #157 review, finding #1 (HIGH, confirmed): IMainA's declared `sidebar` tuple ALSO
+    names (IPreferred1, Preferred1Widget) -- the same interface/widget as the standalone
+    sidebar_preferred entry for IPreferred1. In the real (pre-fix) registry, Camera's/
+    Telescope's declared fills fully overlapped their own sidebar_preferred entries this way,
+    and every overlapping interface was added to the sidebar twice. Must land exactly once."""
+    window = _make_window(monkeypatch, matchable=ProxyMainAAndPreferred1())
+    try:
+        assert await _connect_and_wait(window, "mod")
+        page = _get_page(window, "mod")
+
+        preferred1_instances = [w for w in page.sidebar_widgets if isinstance(w, Preferred1Widget)]
+        assert len(preferred1_instances) == 1
     finally:
         window.deleteLater()
 
@@ -464,5 +499,95 @@ async def test_module_window_multi_interface_gets_tabbed_module_page(qapp, monke
         assert isinstance(page, ModulePage)
         assert page.tab_widget is not None
         assert page.tab_widget.count() == 2
+    finally:
+        window.deleteLater()
+
+
+@pytest.mark.asyncio
+async def test_sidebar_widget_open_failure_is_dropped_not_fatal(qapp, monkeypatch) -> None:
+    """PR #157 review, finding #2 (MEDIUM): a sidebar widget's open() failure must be caught by
+    add_to_sidebar() (base.py) and the widget dropped, not propagate and tear down the whole
+    page -- D5 promises this for sidebar widgets too, not just main widgets."""
+    monkeypatch.setattr(FillGateWidget, "__init__", lambda self, **kw: _FakeWidget.__init__(self, fail=True, **kw))
+
+    class ProxyMainAWithFailingGate(IMainA, IFillGate):
+        pass
+
+    window = _make_window(monkeypatch, matchable=ProxyMainAWithFailingGate())
+    try:
+        assert await _connect_and_wait(window, "mod")
+
+        page = _get_page(window, "mod")
+        # the page survives: the main widget opened fine, only the sidebar widget failed
+        assert [type(w) for w in page.widgets] == [MainAWidget]
+        assert not any(isinstance(w, FillGateWidget) for w in page.sidebar_widgets)
+        assert "mod" in window._widgets
+    finally:
+        window.deleteLater()
+
+
+@pytest.mark.asyncio
+async def test_custom_widget_interface_replaces_demoted_sidebar_slot(qapp, monkeypatch) -> None:
+    """PR #157 review, finding #3: interface: can target an interface that's currently demoted
+    into the sidebar (sidebar_preferred), not just a plain main-widget slot."""
+    window = _make_window(
+        monkeypatch,
+        matchable=ProxyMainAAndPreferred1(),
+        widgets=[{"module": "mod", "widget": ReplacementWidget, "interface": "IPreferred1"}],
+    )
+    try:
+        assert await _connect_and_wait(window, "mod")
+        page = _get_page(window, "mod")
+        assert any(isinstance(w, ReplacementWidget) for w in page.sidebar_widgets)
+        assert not any(isinstance(w, Preferred1Widget) for w in page.sidebar_widgets)
+    finally:
+        window.deleteLater()
+
+
+@pytest.mark.asyncio
+async def test_custom_widget_overwrite_with_interface_warns_and_interface_wins(
+    qapp, monkeypatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """PR #157 review, finding #4: interface: + overwrite: true together is ambiguous -- logs a
+    warning, and behavior is unchanged (interface-replace wins, overwrite is silently ignored
+    without the warning)."""
+    window = _make_window(
+        monkeypatch,
+        matchable=ProxyMainAAndMainB(),
+        widgets=[{"module": "mod", "widget": ReplacementWidget, "interface": "IMainA", "overwrite": True}],
+    )
+    try:
+        with caplog.at_level("WARNING", logger="pyobs_gui.mainwindow"):
+            assert await _connect_and_wait(window, "mod")
+        assert any("overwrite" in rec.message.lower() for rec in caplog.records)
+
+        page = _get_page(window, "mod")
+        types = [type(w) for w in page.widgets]
+        assert types == [ReplacementWidget, MainBWidget]  # interface-replace won, not overwrite
+    finally:
+        window.deleteLater()
+
+
+@pytest.mark.asyncio
+async def test_module_window_raises_on_total_open_failure(qapp, monkeypatch) -> None:
+    """PR #157 review, finding #5: a total open failure in standalone mode must propagate
+    (matching the old single-widget code's behavior), not leave a silent empty page."""
+    monkeypatch.setattr(mw, "MAIN_WIDGETS", FAKE_MAIN_WIDGETS)
+    monkeypatch.setattr(mw, "ALWAYS_SIDEBAR_WIDGETS", FAKE_ALWAYS_SIDEBAR_WIDGETS)
+    monkeypatch.setattr(MainAWidget, "__init__", lambda self, **kw: _FakeWidget.__init__(self, fail=True, **kw))
+
+    class _StubGuiModule:
+        def quit(self) -> None:
+            pass
+
+    window = ModuleWindow(_StubGuiModule())  # pyrefly: ignore [bad-argument-type]
+    try:
+        with pytest.raises(RuntimeError):
+            await window.open(
+                module=FakeModuleMainAOnly("mod"),  # pyrefly: ignore [bad-argument-type]
+                comm=_FakeComm(matchable=FakeModuleMainAOnly("mod")),
+                vfs=None,
+                observer=None,
+            )
     finally:
         window.deleteLater()

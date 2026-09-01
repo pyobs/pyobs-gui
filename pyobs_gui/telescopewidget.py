@@ -27,18 +27,12 @@ from pyobs.interfaces import (
     RaDecOffsetState,
     IOffsetsAltAz,
     AltAzOffsetState,
-    IFilters,
-    IFocuser,
-    ITemperatures,
     IMotion,
     MotionState,
     IModule,
 )
 from pyobs.utils.enums import MotionStatus
 from pyobs.utils.time import Time
-from .filterwidget import FilterWidget
-from .focuswidget import FocusWidget
-from .temperatureswidget import TemperaturesWidget
 from .compassmovewidget import CompassMoveWidget
 from .qt.telescopewidget_ui import Ui_TelescopeWidget
 from .base import BaseWidget
@@ -58,14 +52,10 @@ class COORDS(Enum):
 class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
     signal_update_gui = QtCore.Signal()
 
-    # declared sidebar fills (mainwindow.py, MAIN_WIDGETS/collect_main_widgets): consulted via
-    # getattr(widget_class, "sidebar_fills", ...) so a site that wires TelescopeWidget in via
-    # custom widgets: config still gets these.
-    sidebar_fills = [
-        (IFilters, FilterWidget),
-        (IFocuser, FocusWidget),
-        (ITemperatures, TemperaturesWidget),
-    ]
+    # No declared sidebar_fills: IFilters/IFocuser/ITemperatures are sidebar_preferred
+    # MAIN_WIDGETS entries, already demoted into the sidebar by collect_main_widgets()'s
+    # promotion rule whenever Telescope wins the main slot -- declaring them here too would add
+    # each one twice (PR #157 review; see the same note on CameraWidget.sidebar_fills).
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)

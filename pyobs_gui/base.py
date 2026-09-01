@@ -241,8 +241,17 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             if hasattr(self, "widgetSidebar"):
                 self.widgetSidebar.setLayout(self.sidebar_layout)
 
-        # open it
-        await self._open_child(widget)
+        # open it -- a failing sidebar widget is logged and dropped rather than left to propagate:
+        # otherwise one flaky sidebar widget (e.g. a filter wheel briefly unreachable) would kill
+        # the whole page it's attached to, including every already-open main widget/tab
+        try:
+            await self._open_child(widget)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            log.exception("Failed to open sidebar widget %s; dropping it.", type(widget).__name__)
+            await widget.discard()
+            return
 
         # append widget
         self.sidebar_widgets.append(widget)
@@ -251,7 +260,7 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
     async def register_event(self, event_class: type[Event], handler: Callable[[Event, str], Any]) -> None:
         """Register an event handler through comm, tracked so discard() can unregister it later.
 
-        Widgets that are created/destroyed per connected client (see DEFAULT_WIDGETS in
+        Widgets that are created/destroyed per connected client (see MAIN_WIDGETS in
         mainwindow.py) must use this instead of calling self.comm.register_event() directly,
         so their handler stops firing once the widget is discarded.
         """
