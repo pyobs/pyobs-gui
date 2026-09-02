@@ -167,7 +167,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 state = await proxy.wait_for_state(IBinning, timeout=_WAIT_FOR_STATE_TIMEOUT)
                 if state is not None:
                     self.comboBinning.setCurrentText(f"{state.x}x{state.y}")
-        await self.comm.subscribe_state(self.module, IBinning, self._update_binning)
+                await self.comm.subscribe_state(self.module, IBinning, self._update_binning)
 
     async def _init_gain(self) -> None:
         # gain
@@ -177,7 +177,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 if state is not None:
                     self.spinGain.setValue(state.gain)
                     self.spinGainOffset.setValue(state.offset)
-        await self.comm.subscribe_state(self.module, IGain, self._update_gain)
+                await self.comm.subscribe_state(self.module, IGain, self._update_gain)
 
     async def _init_image_format(self) -> None:
         # image format
@@ -191,7 +191,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 state = await proxy.wait_for_state(IImageFormat, timeout=_WAIT_FOR_STATE_TIMEOUT)
                 if state is not None:
                     self.comboImageFormat.setCurrentText(state.image_format.name)
-        await self.comm.subscribe_state(self.module, IImageFormat, self._update_image_format)
+                await self.comm.subscribe_state(self.module, IImageFormat, self._update_image_format)
 
     async def _init_image_type(self) -> None:
         # image type
@@ -200,7 +200,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 state = await proxy.wait_for_state(IImageType, timeout=_WAIT_FOR_STATE_TIMEOUT)
                 if state is not None:
                     self.comboImageType.setCurrentText(state.image_type.name)
-        await self.comm.subscribe_state(self.module, IImageType, self._update_image_type)
+                await self.comm.subscribe_state(self.module, IImageType, self._update_image_type)
 
     async def _init_exposure(self) -> None:
         # exposure (status, progress, time left)
@@ -211,7 +211,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                     self.exposure_status = state.status
                     self.exposure_progress = state.progress
                     self.exposure_time_left = state.exposure_time_left
-        await self.comm.subscribe_state(self.module, IExposure, self._update_exposure)
+                await self.comm.subscribe_state(self.module, IExposure, self._update_exposure)
 
     async def _init_exposure_time(self) -> None:
         # exposure time
@@ -220,7 +220,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
                 state = await proxy.wait_for_state(IExposureTime, timeout=_WAIT_FOR_STATE_TIMEOUT)
                 if state is not None:
                     self.spinExpTime.setValue(state.exposure_time)
-        await self.comm.subscribe_state(self.module, IExposureTime, self._update_exposure_time)
+                await self.comm.subscribe_state(self.module, IExposureTime, self._update_exposure_time)
 
     async def _init_data_sequence(self) -> None:
         # data sequence
