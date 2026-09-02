@@ -5,7 +5,7 @@ from typing import Any
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 
 from pyobs.events import Event, FocusFoundEvent
@@ -28,8 +28,10 @@ class AutoFocusWidget(BaseWidget, Ui_AutoFocusWidget):
         self._running = False
         self._last_result: tuple[float, float] | None = None
 
-        # add plot
-        self.figure, self.ax = plt.subplots()
+        # add plot -- built via the plain OO Figure API, not pyplot: see comment in
+        # acquisitionwidget.py for why (avoids a several-second first-use event-loop stall)
+        self.figure = Figure()
+        self.ax = self.figure.add_subplot()
         layout = QtWidgets.QVBoxLayout(self.framePlot)
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)

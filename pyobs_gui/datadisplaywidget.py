@@ -5,9 +5,9 @@ import os
 from typing import Any, TYPE_CHECKING
 import numpy as np
 from PySide6 import QtWidgets, QtCore  # type: ignore
-from matplotlib import pyplot as plt
 
 os.environ["QT_API"] = "PySide6"
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT  # pyrefly: ignore [missing-module-attribute]
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from qfitswidget import QFitsWidget  # type: ignore
@@ -19,7 +19,6 @@ from .base import BaseWidget
 from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
 
 if TYPE_CHECKING:
-    from matplotlib.figure import Figure
     from matplotlib.axes import Axes
     from astropy.io import fits
 
@@ -66,7 +65,10 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         self.imageLayout = QtWidgets.QVBoxLayout(self.tabImage)
         if await self.comm.has_proxy(self.module, ISpectrograph):
             self.is_spectrograph = True
-            self.figure, self.ax = plt.subplots()
+            # built via the plain OO Figure API, not pyplot: see comment in acquisitionwidget.py
+            # for why (avoids a several-second first-use event-loop stall)
+            self.figure = Figure()
+            self.ax = self.figure.add_subplot()
             self.canvas = FigureCanvas(self.figure)
             self.plotTools = NavigationToolbar2QT(self.canvas, self.tabImage)
             self.imageLayout.addWidget(self.plotTools)

@@ -7,7 +7,7 @@ import pandas as pd
 from PySide6 import QtWidgets, QtCore  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.dates import DateFormatter
 
@@ -22,8 +22,13 @@ class TemperaturesPlotWidget(QtWidgets.QWidget, Ui_TemperaturesPlotWidget):  # t
         QtWidgets.QWidget.__init__(self)
         self.setupUi(self)  # type: ignore
 
-        # add plot
-        self.figure, self.ax = plt.subplots()
+        # add plot -- built via the plain OO Figure API, not pyplot: pyplot.subplots() does
+        # one-time GUI-backend registration (and can pop up a throwaway Qt window) on its first
+        # call anywhere in the process, synchronously on whatever thread calls it. In this app
+        # that's the shared qasync loop, so the first widget of this kind to open in a session
+        # stalls the event loop for several seconds. Figure() sidesteps pyplot entirely.
+        self.figure = Figure()
+        self.ax = self.figure.add_subplot()
         layout = QtWidgets.QVBoxLayout(self.frame)
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
