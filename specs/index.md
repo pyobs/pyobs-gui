@@ -21,10 +21,14 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
   Post-merge follow-ups: sidebar-fill dedup + D5 sidebar-failure isolation + 3 other review
   findings (`fccf0e0`), FITS-headers sidebar box alignment (`1e89069`), vertical-only scrollable
   sidebar (`f05bcba`).
-- `2026-09-01-gui-video-widget-split.md` — **implemented, closed**. Split `VideoWidget` into two
-  independent main widgets (`VideoWidget` "Live View" + new `VideoGrabWidget` "FITS Image"), both
-  matched on `IVideo`, rendered as separate tabs — turned out not to need the `paired_sidebar_widget`
-  mechanism (D6) the draft was written for; the two halves never shared state to begin with.
+- `2026-09-01-gui-video-widget-split.md` — **implemented, closed, released `v2.3.0`**. Split
+  `VideoWidget` into two independent main widgets (`VideoWidget` "Live View" + new
+  `VideoGrabWidget` "FITS Image"), both matched on `IVideo`, rendered as separate tabs — turned out
+  not to need the `paired_sidebar_widget` mechanism (D6) the draft was written for; the two halves
+  never shared state to begin with. Same release also carries two unplanned same-day fixes with no
+  dedicated doc: `CameraWidget`'s control panel clipping its right edge (`scrollArea` sized off a
+  stale `.ui` width hint instead of real content, `c22d7c7`) and `ModeWidget`'s edit button staying
+  permanently disabled for an `IMode` module with no `IMotion` (`1439437`).
 - `2026-08-21-gui-widget-startup-responsiveness.md` — **implemented, closed 2026-08-23 (PR #141,
   `123161b`)**. Make module widgets appear and respond immediately at startup: non-blocking
   `_add_client` with a "Loading…" placeholder page (clicks are never dropped), parallel
