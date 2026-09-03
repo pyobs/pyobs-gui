@@ -1,7 +1,6 @@
 # Plan: pyobs-gui — main widgets vs. sidebar widgets, automatic tab pages for multi-widget modules
 
-Status: implemented, merged to develop (PR #157, `b7a14a6`) — issue #150 stays open until this
-reaches a release on `main`, per repo convention.
+Status: implemented, closed (PR #157, `b7a14a6`; released `v2.3.0`, `main`). Issue #150 closed.
 Audited: 2026-08-28
 Revised: 2026-09-01 (D1, D2 — see "Revision 2026-09-01" below; adds D6)
 

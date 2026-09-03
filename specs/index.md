@@ -13,14 +13,14 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
   `StructuredConfigWidget`: schema-driven, auto-built editable form for `IStructuredConfig`
   modules (from `ConfigSchema` capabilities + `ConfigAppliedState` + `set_config`).
-- `2026-08-28-gui-main-vs-sidebar-widgets.md` — **implemented, merged to develop (PR #157,
-  `b7a14a6`)**. Issue #150 stays open until this reaches a release on `main`. Explicit
-  main-widget/sidebar-widget distinction, automatic tab pages for multi-widget modules (shared
-  sidebar, merge-per-interface custom config, standalone parity), `sidebar_preferred` promotion
-  rule, universal sidebar container, `paired_sidebar_widget` mechanism (D6, no consumer yet).
-  Post-merge follow-ups: sidebar-fill dedup + D5 sidebar-failure isolation + 3 other review
-  findings (`fccf0e0`), FITS-headers sidebar box alignment (`1e89069`), vertical-only scrollable
-  sidebar (`f05bcba`).
+- `2026-08-28-gui-main-vs-sidebar-widgets.md` — **implemented, closed (PR #157, `b7a14a6`;
+  released `v2.3.0`)**. Issue #150 closed. Explicit main-widget/sidebar-widget distinction,
+  automatic tab pages for multi-widget modules (shared sidebar, merge-per-interface custom
+  config, standalone parity), `sidebar_preferred` promotion rule, universal sidebar container,
+  `paired_sidebar_widget` mechanism (D6, still no consumer — the video-widget split below ended up
+  not needing it). Post-merge follow-ups: sidebar-fill dedup + D5 sidebar-failure isolation + 3
+  other review findings (`fccf0e0`), FITS-headers sidebar box alignment (`1e89069`),
+  vertical-only scrollable sidebar (`f05bcba`).
 - `2026-09-01-gui-video-widget-split.md` — **implemented, closed, released `v2.3.0`**. Split
   `VideoWidget` into two independent main widgets (`VideoWidget` "Live View" + new
   `VideoGrabWidget` "FITS Image"), both matched on `IVideo`, rendered as separate tabs — turned out
