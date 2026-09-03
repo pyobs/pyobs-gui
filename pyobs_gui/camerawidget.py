@@ -57,6 +57,15 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
         BaseWidget.__init__(self, **kwargs)
         self.setupUi(self)  # type: ignore
 
+        # scrollArea's horizontal scrollbar is off (this panel should never need to scroll
+        # sideways), but with widgetResizable=True that leaves nothing to widen the scroll area
+        # itself to fit its content -- it was clipping the right edge of every group box
+        # (values/buttons ran past the visible border) because the .ui's Designer-time width hint
+        # (239px) is narrower than the controls' actual required width. Size it from the real
+        # content instead of a hardcoded guess; recomputed again at the end of _init() once
+        # capability-dependent combo boxes (binning, image format) have their real items.
+        self._size_scroll_area_to_content()
+
         # variables
         self.new_image = False
         self.image_filename = None
@@ -130,8 +139,15 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
             self._init_once("data_sequence", self._init_data_sequence),
         )
 
+        # capability-dependent combo boxes (binning, image format) may have widened the panel
+        # further, now that they're populated
+        self._size_scroll_area_to_content()
+
         # update GUI
         self.signal_update_gui.emit()
+
+    def _size_scroll_area_to_content(self) -> None:
+        self.scrollArea.setMinimumWidth(self.scrollAreaWidgetContents.sizeHint().width())
 
     async def _init_window(self) -> None:
         # window
