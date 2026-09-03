@@ -17,6 +17,7 @@ from .datadisplaywidget import DataDisplayWidget
 from .coolingwidget import CoolingWidget
 from .shellwidget import ShellWidget
 from .videowidget import VideoWidget
+from .videograbwidget import VideoGrabWidget
 from .focuswidget import FocusWidget
 from .telescopewidget import TelescopeWidget
 from .weatherwidget import WeatherWidget

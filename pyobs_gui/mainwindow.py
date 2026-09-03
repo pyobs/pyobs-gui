@@ -53,6 +53,7 @@ from .telescopewidget import TelescopeWidget
 from .focuswidget import FocusWidget
 from .temperatureswidget import TemperaturesWidget
 from .weatherwidget import WeatherWidget
+from .videograbwidget import VideoGrabWidget
 from .videowidget import VideoWidget
 from .qt.mainwindow_ui import Ui_MainWindow
 from .logmodel import LogModel, LogModelProxy
@@ -83,8 +84,11 @@ class MainWidgetEntry:
     # cross-interface demotion: only promoted into `main` when nothing else matched (D1)
     sidebar_preferred: bool = False
     # same-interface pairing: always rendered together whenever this entry survives into `main`
-    # (D6); no MAIN_WIDGETS entry sets this yet -- first consumer is the VideoWidget split,
-    # tracked separately in specs/2026-09-01-gui-video-widget-split.md
+    # (D6); no MAIN_WIDGETS entry sets this yet. specs/2026-09-01-gui-video-widget-split.md's
+    # original plan was going to be the first consumer, but VideoWidget ended up split into two
+    # independent same-interface entries (see the two IVideo rows below) instead -- each tab is
+    # fully self-contained, with no state to share across a widget boundary, so this mechanism
+    # wasn't needed after all.
     paired_sidebar_widget: Optional[Type[BaseWidget]] = None
 
 
@@ -105,7 +109,16 @@ MAIN_WIDGETS: List[MainWidgetEntry] = [
     MainWidgetEntry(IAcquisition, AcquisitionWidget, "Acquisition", "mdi.target"),
     MainWidgetEntry(IAutoGuiding, AutoGuidingWidget, "Auto guiding", "mdi.crosshairs-gps"),
     MainWidgetEntry(IWeather, WeatherWidget, "Weather", "fa5s.cloud-sun"),
-    MainWidgetEntry(IVideo, VideoWidget, "Video", "fa5s.video", sidebar=((None, FitsHeadersWidget),)),
+    # two entries sharing one interface: collect_main_widgets() matches every entry whose
+    # interface the module implements (D2), so both render as separate tabs for any IVideo
+    # module -- live view and the FITS-grab controls, fully independent widgets/state
+    # (previously one VideoWidget combining both; see
+    # specs/2026-09-01-gui-video-widget-split.md). Note: a custom `widgets:` config entry with
+    # `interface: IVideo` can only ever replace the first of these two matches (mainwindow.py's
+    # replace-in-place lookup keys on interface name, not registry position) -- a known, unused
+    # edge case, not a blocker for this pair.
+    MainWidgetEntry(IVideo, VideoWidget, "Live View", "fa5s.video"),
+    MainWidgetEntry(IVideo, VideoGrabWidget, "FITS Image", "fa5s.image", sidebar=((None, FitsHeadersWidget),)),
     MainWidgetEntry(ISpectrograph, SpectrographWidget, "Spectrograph", "ei.graph"),
     MainWidgetEntry(IFilters, FilterWidget, "Filter wheel", "mdi.air-filter", sidebar_preferred=True),
     MainWidgetEntry(ITemperatures, TemperaturesWidget, "Temperatures", "mdi.thermometer", sidebar_preferred=True),
