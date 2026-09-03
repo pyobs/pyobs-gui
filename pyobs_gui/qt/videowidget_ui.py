@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'videowidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -15,28 +15,18 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
-    QFormLayout, QFrame, QGridLayout, QGroupBox,
-    QHBoxLayout, QLabel, QPushButton, QSizePolicy,
-    QSpacerItem, QSpinBox, QTabWidget, QVBoxLayout,
-    QWidget)
-
-from ..datadisplaywidget import DataDisplayWidget
+from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QFormLayout, QFrame,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
 
 class Ui_VideoWidget(object):
     def setupUi(self, VideoWidget):
         if not VideoWidget.objectName():
             VideoWidget.setObjectName(u"VideoWidget")
         VideoWidget.resize(618, 530)
-        self.horizontalLayout_2 = QHBoxLayout(VideoWidget)
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.tabWidget = QTabWidget(VideoWidget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabLiveView = QWidget()
-        self.tabLiveView.setObjectName(u"tabLiveView")
-        self.horizontalLayout = QHBoxLayout(self.tabLiveView)
+        self.horizontalLayout = QHBoxLayout(VideoWidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.frame = QFrame(self.tabLiveView)
+        self.frame = QFrame(VideoWidget)
         self.frame.setObjectName(u"frame")
         self.frame.setFrameShape(QFrame.Shape.StyledPanel)
         self.frame.setFrameShadow(QFrame.Shadow.Raised)
@@ -86,7 +76,7 @@ class Ui_VideoWidget(object):
 
         self.horizontalLayout.addWidget(self.frame)
 
-        self.frameLiveView = QWidget(self.tabLiveView)
+        self.frameLiveView = QWidget(VideoWidget)
         self.frameLiveView.setObjectName(u"frameLiveView")
         self.verticalLayout_4 = QVBoxLayout(self.frameLiveView)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
@@ -94,242 +84,8 @@ class Ui_VideoWidget(object):
         self.horizontalLayout.addWidget(self.frameLiveView)
 
         self.horizontalLayout.setStretch(1, 1)
-        self.tabWidget.addTab(self.tabLiveView, "")
-        self.tabFitsImage = QWidget()
-        self.tabFitsImage.setObjectName(u"tabFitsImage")
-        self.horizontalLayout_3 = QHBoxLayout(self.tabFitsImage)
-        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.frame_2 = QFrame(self.tabFitsImage)
-        self.frame_2.setObjectName(u"frame_2")
-        self.frame_2.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frame_2.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout = QVBoxLayout(self.frame_2)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.groupExposure_2 = QGroupBox(self.frame_2)
-        self.groupExposure_2.setObjectName(u"groupExposure_2")
-        self.gridLayout_5 = QGridLayout(self.groupExposure_2)
-        self.gridLayout_5.setSpacing(0)
-        self.gridLayout_5.setObjectName(u"gridLayout_5")
-        self.labelImageType = QLabel(self.groupExposure_2)
-        self.labelImageType.setObjectName(u"labelImageType")
-
-        self.gridLayout_5.addWidget(self.labelImageType, 0, 0, 1, 1)
-
-        self.label_9 = QLabel(self.groupExposure_2)
-        self.label_9.setObjectName(u"label_9")
-
-        self.gridLayout_5.addWidget(self.label_9, 1, 0, 1, 1)
-
-        self.checkBroadcast = QCheckBox(self.groupExposure_2)
-        self.checkBroadcast.setObjectName(u"checkBroadcast")
-        self.checkBroadcast.setChecked(True)
-
-        self.gridLayout_5.addWidget(self.checkBroadcast, 2, 1, 1, 1)
-
-        self.buttonGrabImage = QPushButton(self.groupExposure_2)
-        self.buttonGrabImage.setObjectName(u"buttonGrabImage")
-        palette = QPalette()
-        brush = QBrush(QColor(255, 255, 255, 255))
-        brush.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush)
-        brush1 = QBrush(QColor(0, 85, 0, 255))
-        brush1.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Button, brush1)
-        brush2 = QBrush(QColor(0, 127, 0, 255))
-        brush2.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Light, brush2)
-        brush3 = QBrush(QColor(0, 106, 0, 255))
-        brush3.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Midlight, brush3)
-        brush4 = QBrush(QColor(0, 42, 0, 255))
-        brush4.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Dark, brush4)
-        brush5 = QBrush(QColor(0, 56, 0, 255))
-        brush5.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Mid, brush5)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, brush)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.BrightText, brush)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
-        brush6 = QBrush(QColor(0, 0, 0, 255))
-        brush6.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Base, brush6)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Window, brush1)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Shadow, brush6)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.AlternateBase, brush4)
-        brush7 = QBrush(QColor(255, 255, 220, 255))
-        brush7.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipBase, brush7)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush6)
-        brush8 = QBrush(QColor(255, 255, 255, 128))
-        brush8.setStyle(Qt.BrushStyle.NoBrush)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush8)
-#endif
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush1)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush2)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Midlight, brush3)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Dark, brush4)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Mid, brush5)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.BrightText, brush)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ButtonText, brush)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Base, brush6)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Window, brush1)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Shadow, brush6)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.AlternateBase, brush4)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipBase, brush7)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush6)
-        brush9 = QBrush(QColor(255, 255, 255, 128))
-        brush9.setStyle(Qt.BrushStyle.NoBrush)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush9)
-#endif
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush4)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush1)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush2)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Midlight, brush3)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Dark, brush4)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Mid, brush5)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, brush4)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.BrightText, brush)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, brush4)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Base, brush1)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Window, brush1)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Shadow, brush6)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.AlternateBase, brush1)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipBase, brush7)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush6)
-        brush10 = QBrush(QColor(255, 255, 255, 128))
-        brush10.setStyle(Qt.BrushStyle.NoBrush)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        palette.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush10)
-#endif
-        self.buttonGrabImage.setPalette(palette)
-
-        self.gridLayout_5.addWidget(self.buttonGrabImage, 3, 0, 1, 2)
-
-        self.spinCount = QSpinBox(self.groupExposure_2)
-        self.spinCount.setObjectName(u"spinCount")
-        self.spinCount.setMinimum(1)
-        self.spinCount.setMaximum(9999)
-
-        self.gridLayout_5.addWidget(self.spinCount, 1, 1, 1, 1)
-
-        self.comboImageType = QComboBox(self.groupExposure_2)
-        self.comboImageType.setObjectName(u"comboImageType")
-
-        self.gridLayout_5.addWidget(self.comboImageType, 0, 1, 1, 1)
-
-        self.buttonAbort = QPushButton(self.groupExposure_2)
-        self.buttonAbort.setObjectName(u"buttonAbort")
-        palette1 = QPalette()
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush6)
-        brush11 = QBrush(QColor(170, 0, 0, 255))
-        brush11.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Button, brush11)
-        brush12 = QBrush(QColor(255, 0, 0, 255))
-        brush12.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Light, brush12)
-        brush13 = QBrush(QColor(212, 0, 0, 255))
-        brush13.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Midlight, brush13)
-        brush14 = QBrush(QColor(85, 0, 0, 255))
-        brush14.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Dark, brush14)
-        brush15 = QBrush(QColor(113, 0, 0, 255))
-        brush15.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Mid, brush15)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.BrightText, brush)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Base, brush)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Window, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Shadow, brush6)
-        brush16 = QBrush(QColor(212, 127, 127, 255))
-        brush16.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.AlternateBase, brush16)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipBase, brush7)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ToolTipText, brush6)
-        brush17 = QBrush(QColor(0, 0, 0, 128))
-        brush17.setStyle(Qt.BrushStyle.NoBrush)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.PlaceholderText, brush17)
-#endif
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Button, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Light, brush12)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Midlight, brush13)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Dark, brush14)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Mid, brush15)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.BrightText, brush)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ButtonText, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Base, brush)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Window, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Shadow, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.AlternateBase, brush16)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipBase, brush7)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ToolTipText, brush6)
-        brush18 = QBrush(QColor(0, 0, 0, 128))
-        brush18.setStyle(Qt.BrushStyle.NoBrush)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.PlaceholderText, brush18)
-#endif
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, brush14)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Button, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Light, brush12)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Midlight, brush13)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Dark, brush14)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Mid, brush15)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, brush14)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.BrightText, brush)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, brush14)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Base, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Window, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Shadow, brush6)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.AlternateBase, brush11)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipBase, brush7)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ToolTipText, brush6)
-        brush19 = QBrush(QColor(0, 0, 0, 128))
-        brush19.setStyle(Qt.BrushStyle.NoBrush)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
-        palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush19)
-#endif
-        self.buttonAbort.setPalette(palette1)
-
-        self.gridLayout_5.addWidget(self.buttonAbort, 4, 0, 1, 2)
-
-
-        self.verticalLayout.addWidget(self.groupExposure_2)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout.addItem(self.verticalSpacer_2)
-
-        self.labelExposuresLeft = QLabel(self.frame_2)
-        self.labelExposuresLeft.setObjectName(u"labelExposuresLeft")
-        self.labelExposuresLeft.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.verticalLayout.addWidget(self.labelExposuresLeft)
-
-
-        self.horizontalLayout_3.addWidget(self.frame_2)
-
-        self.datadisplay = DataDisplayWidget(self.tabFitsImage)
-        self.datadisplay.setObjectName(u"datadisplay")
-
-        self.horizontalLayout_3.addWidget(self.datadisplay)
-
-        self.tabWidget.addTab(self.tabFitsImage, "")
-
-        self.horizontalLayout_2.addWidget(self.tabWidget)
-
 
         self.retranslateUi(VideoWidget)
-
-        self.tabWidget.setCurrentIndex(1)
-
 
         QMetaObject.connectSlotsByName(VideoWidget)
     # setupUi
@@ -341,14 +97,5 @@ class Ui_VideoWidget(object):
         self.labelExpTime.setText(QCoreApplication.translate("VideoWidget", u"ExpTime:", None))
         self.groupGain.setTitle("")
         self.label_11.setText(QCoreApplication.translate("VideoWidget", u"Gain:", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLiveView), QCoreApplication.translate("VideoWidget", u"Live View", None))
-        self.groupExposure_2.setTitle(QCoreApplication.translate("VideoWidget", u"Exposure", None))
-        self.labelImageType.setText(QCoreApplication.translate("VideoWidget", u"Type:", None))
-        self.label_9.setText(QCoreApplication.translate("VideoWidget", u"Count:", None))
-        self.checkBroadcast.setText(QCoreApplication.translate("VideoWidget", u"Broadcast", None))
-        self.buttonGrabImage.setText(QCoreApplication.translate("VideoWidget", u"Grab image", None))
-        self.buttonAbort.setText(QCoreApplication.translate("VideoWidget", u"Abort sequence", None))
-        self.labelExposuresLeft.setText(QCoreApplication.translate("VideoWidget", u"IDLE", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabFitsImage), QCoreApplication.translate("VideoWidget", u"FITS Image", None))
     # retranslateUi
 
