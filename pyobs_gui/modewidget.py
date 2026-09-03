@@ -24,6 +24,11 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         self._mode_options: dict[str, list[str]] = {}
         self._modes: dict[str, str] = {}
         self._motion_status = MotionStatus.UNKNOWN
+        # whether self.module implements IMotion at all -- an IMode module doesn't have to be a
+        # motion device (e.g. a plain camera's fiber-hole/video-path selector), and gating the
+        # edit button on motion status for one that isn't left it permanently disabled: the
+        # IMotion state subscription below never fires, so _motion_status never leaves UNKNOWN
+        self._has_motion = False
         self._mode_widgets: dict[str, tuple[QtWidgets.QLineEdit, QtWidgets.QToolButton]] = {}
 
         # connect signals
@@ -42,7 +47,9 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
         await self.register_event(ModeChangedEvent, self._on_mode_changed)
 
     async def _init(self) -> None:
-        await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
+        self._has_motion = await self.comm.has_proxy(self.module, IMotion)
+        if self._has_motion:
+            await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
 
         # permitted methods (ACLs)
         await self._fetch_permitted_methods()
@@ -80,7 +87,7 @@ class ModeWidget(BaseWidget, Ui_ModeWidget):
     def update_gui(self) -> None:
         self.setEnabled(True)
         self.textStatus.setText(self._motion_status.name)
-        initialized = self._motion_status in [
+        initialized = not self._has_motion or self._motion_status in [
             MotionStatus.SLEWING,
             MotionStatus.TRACKING,
             MotionStatus.IDLE,
