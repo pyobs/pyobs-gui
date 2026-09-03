@@ -7,7 +7,7 @@ from typing import Any
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.ticker import MaxNLocator
 
@@ -37,8 +37,11 @@ class AutoGuidingWidget(BaseWidget, Ui_AutoGuidingWidget):
         self._offset: tuple[float, float] | None = None  # last (lon, lat), arcsec
         self._offset_history: deque[tuple[float, float]] = deque(maxlen=_HISTORY_LENGTH)
 
-        # add plots: offset magnitude vs. sample, and the lon/lat scatter
-        self.figure, (self.ax, self.ax2) = plt.subplots(1, 2)
+        # add plots: offset magnitude vs. sample, and the lon/lat scatter -- built via the plain
+        # OO Figure API, not pyplot: see comment in acquisitionwidget.py for why (avoids a
+        # several-second first-use event-loop stall)
+        self.figure = Figure()
+        self.ax, self.ax2 = self.figure.subplots(1, 2)
         layout = QtWidgets.QVBoxLayout(self.framePlot)
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)

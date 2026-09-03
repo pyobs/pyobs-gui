@@ -5,7 +5,7 @@ from PySide6 import QtWidgets, QtGui, QtCore  # type: ignore
 import logging
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.dates import DateFormatter
 
@@ -105,8 +105,9 @@ class WeatherWidget(BaseWidget, Ui_WeatherWidget):
         self._current_widgets: Dict[str, WidgetCurrentSensor] = {}
         self._history: Dict[WeatherSensors, "Deque[Tuple[Time, float]]"] = {}
 
-        # add plot
-        self.figure = plt.figure()
+        # add plot -- built via the plain OO Figure API, not pyplot: see comment in
+        # acquisitionwidget.py for why (avoids a several-second first-use event-loop stall)
+        self.figure = Figure()
         layout = QtWidgets.QVBoxLayout(self.framePlot)
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)

@@ -5,7 +5,7 @@ from typing import Any
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 os.environ["QT_API"] = "PySide6"
-from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.ticker import MaxNLocator
 
@@ -36,8 +36,14 @@ class AcquisitionWidget(BaseWidget, Ui_AcquisitionWidget):
         self._running = False
         self._result: AcquisitionResult | None = None
 
-        # add plots: distance vs. attempt, and the 2D offset trajectory
-        self.figure, (self.ax, self.ax2) = plt.subplots(1, 2)
+        # add plots: distance vs. attempt, and the 2D offset trajectory -- built via the plain OO
+        # Figure API, not pyplot: pyplot.subplots() does one-time GUI-backend registration (and
+        # can pop up a throwaway Qt window) on its first call anywhere in the process,
+        # synchronously on whatever thread calls it. In this app that's the shared qasync loop,
+        # so the first widget of this kind to open in a session stalls the event loop for
+        # several seconds. Figure() sidesteps pyplot entirely.
+        self.figure = Figure()
+        self.ax, self.ax2 = self.figure.subplots(1, 2)
         layout = QtWidgets.QVBoxLayout(self.framePlot)
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)

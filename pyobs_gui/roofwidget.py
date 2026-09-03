@@ -30,7 +30,8 @@ class RoofWidget(BaseWidget, Ui_RoofWidget):
 
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IMotion, self._on_motion_state)
-        await self.comm.subscribe_state(self.module, IPointingAltAz, self._on_pointing_state)
+        if await self.comm.has_proxy(self.module, IPointingAltAz):
+            await self.comm.subscribe_state(self.module, IPointingAltAz, self._on_pointing_state)
 
     def _on_motion_state(self, state: MotionState) -> None:
         self._motion_status = state.status
