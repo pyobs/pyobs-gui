@@ -1,11 +1,12 @@
 import dataclasses
 import logging
-from typing import Any, Callable, Dict, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from PySide6 import QtCore, QtWidgets  # type: ignore
 
 from pyobs.interfaces import ConfigAppliedState, ConfigFieldSchema, ConfigSchema, IStructuredConfig
 from pyobs.interfaces.IStructuredConfig import ConfigValue
+from pyobs.utils.enums import AccessLevel
 from .base import BaseWidget
 
 log = logging.getLogger(__name__)
@@ -27,6 +28,16 @@ class _FieldEditor:
     get_value: Callable[[], ConfigValue]
     set_value: Callable[[ConfigValue], None]
     children: Optional[Dict[str, "_FieldEditor"]] = None
+    level: AccessLevel = AccessLevel.BASIC
+
+
+def _collect_by_level(editor: "_FieldEditor", level: AccessLevel) -> List[QtWidgets.QWidget]:
+    """Recursively gather every editor widget (including nested-object children) tagged at
+    exactly the given level, for the basic/expert toggle to enable/disable as a group."""
+    widgets = [editor.widget] if editor.level == level else []
+    for child in (editor.children or {}).values():
+        widgets.extend(_collect_by_level(child, level))
+    return widgets
 
 
 def _nested_get(children: Dict[str, _FieldEditor]) -> Dict[str, ConfigValue]:
@@ -49,7 +60,9 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         if schema.default is not None:
             line_edit.setText(str(schema.default))
         line_edit.textChanged.connect(lambda _: on_change())
-        return _FieldEditor(line_edit, line_edit.text, lambda value: line_edit.setText(str(value)))
+        if schema.level == AccessLevel.EXPERT:
+            line_edit.setEnabled(False)
+        return _FieldEditor(line_edit, line_edit.text, lambda value: line_edit.setText(str(value)), level=schema.level)
 
     if schema.type == "int":
         spin_box = QtWidgets.QSpinBox()
@@ -57,7 +70,11 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         if schema.default is not None:
             spin_box.setValue(int(schema.default))
         spin_box.valueChanged.connect(lambda _: on_change())
-        return _FieldEditor(spin_box, spin_box.value, lambda value: spin_box.setValue(int(cast("int", value))))
+        if schema.level == AccessLevel.EXPERT:
+            spin_box.setEnabled(False)
+        return _FieldEditor(
+            spin_box, spin_box.value, lambda value: spin_box.setValue(int(cast("int", value))), level=schema.level
+        )
 
     if schema.type == "float":
         double_spin_box = QtWidgets.QDoubleSpinBox()
@@ -68,8 +85,13 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         if schema.default is not None:
             double_spin_box.setValue(float(schema.default))
         double_spin_box.valueChanged.connect(lambda _: on_change())
+        if schema.level == AccessLevel.EXPERT:
+            double_spin_box.setEnabled(False)
         return _FieldEditor(
-            double_spin_box, double_spin_box.value, lambda value: double_spin_box.setValue(float(cast("float", value)))
+            double_spin_box,
+            double_spin_box.value,
+            lambda value: double_spin_box.setValue(float(cast("float", value))),
+            level=schema.level,
         )
 
     if schema.type == "bool":
@@ -77,7 +99,11 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         if schema.default is not None:
             check_box.setChecked(bool(schema.default))
         check_box.toggled.connect(lambda _: on_change())
-        return _FieldEditor(check_box, check_box.isChecked, lambda value: check_box.setChecked(bool(value)))
+        if schema.level == AccessLevel.EXPERT:
+            check_box.setEnabled(False)
+        return _FieldEditor(
+            check_box, check_box.isChecked, lambda value: check_box.setChecked(bool(value)), level=schema.level
+        )
 
     if schema.type == "enum":
         combo_box = QtWidgets.QComboBox()
@@ -86,7 +112,14 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         if schema.default is not None and str(schema.default) in options:
             combo_box.setCurrentText(str(schema.default))
         combo_box.currentTextChanged.connect(lambda _: on_change())
-        return _FieldEditor(combo_box, combo_box.currentText, lambda value: combo_box.setCurrentText(str(value)))
+        if schema.level == AccessLevel.EXPERT:
+            combo_box.setEnabled(False)
+        return _FieldEditor(
+            combo_box,
+            combo_box.currentText,
+            lambda value: combo_box.setCurrentText(str(value)),
+            level=schema.level,
+        )
 
     if schema.type == "object" and schema.nested is not None:
         group_box = QtWidgets.QGroupBox(name)
@@ -94,14 +127,19 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         group_box.setLayout(form_layout)
         children: Dict[str, _FieldEditor] = {}
         for child_name, child_schema in schema.nested.items():
+            if child_schema.level == AccessLevel.HIDDEN:
+                continue
             child_editor = _build_editor(child_name, child_schema, on_change)
             form_layout.addRow(child_name, child_editor.widget)
             children[child_name] = child_editor
+        if schema.level == AccessLevel.EXPERT:
+            group_box.setEnabled(False)
         return _FieldEditor(
             group_box,
             lambda: _nested_get(children),
             lambda value: _nested_set(children, value),
             children=children,
+            level=schema.level,
         )
 
     # object without a nested schema (pydantic freeform dict), or any other schema type this
@@ -120,6 +158,8 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
     placeholder.setReadOnly(True)
     placeholder.setEnabled(False)
     placeholder.setToolTip(f"Field type {schema.type!r} has no schema-driven editor for this widget.")
+    # always BASIC regardless of schema.level: this widget is permanently disabled (nothing to
+    # edit), so it must never be swept into the expert-toggle's re-enable group
     return _FieldEditor(placeholder, _get_raw, _set_raw)
 
 
@@ -142,9 +182,18 @@ class StructuredConfigWidget(BaseWidget):
         # itself register as a user edit (which would otherwise re-enable Apply/Reset for a
         # change that came from the module, not from the operator)
         self._applying_state = False
+        # every EXPERT-level editor widget across the whole (possibly nested) form, collected
+        # once in _build_form; toggled together by checkBoxAdvanced. No password gate, unlike
+        # pyftscontrol's Expert Mode button -- operators here are already authenticated via the
+        # comm layer, so it's just a basic/expert visibility toggle, not an access control.
+        self._expert_widgets: List[QtWidgets.QWidget] = []
 
         outer_layout = QtWidgets.QVBoxLayout()
         self.setLayout(outer_layout)
+
+        self.checkBoxAdvanced = QtWidgets.QCheckBox("Show advanced fields")
+        self.checkBoxAdvanced.toggled.connect(self._on_advanced_toggled)
+        outer_layout.addWidget(self.checkBoxAdvanced)
 
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -186,6 +235,8 @@ class StructuredConfigWidget(BaseWidget):
     def _build_form(self, schema: ConfigSchema) -> None:
         children: Dict[str, _FieldEditor] = {}
         for name, field_schema in schema.fields.items():
+            if field_schema.level == AccessLevel.HIDDEN:
+                continue
             editor = _build_editor(name, field_schema, self._on_editor_changed)
             self._form_layout.addRow(name, editor.widget)
             children[name] = editor
@@ -195,10 +246,16 @@ class StructuredConfigWidget(BaseWidget):
             lambda value: _nested_set(children, value),
             children=children,
         )
+        self._expert_widgets = _collect_by_level(self._root, AccessLevel.EXPERT)
+        self._on_advanced_toggled(self.checkBoxAdvanced.isChecked())
         # a state may already have arrived (and been cached) before the form existed to receive
         # it -- apply it now instead of waiting for the next update
         if self._last_applied is not None:
             self.signal_update_gui.emit()
+
+    def _on_advanced_toggled(self, checked: bool) -> None:
+        for widget in self._expert_widgets:
+            widget.setEnabled(checked)
 
     def _on_state(self, state: ConfigAppliedState) -> None:
         self._last_applied = dict(state.config)

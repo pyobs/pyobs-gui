@@ -1,6 +1,6 @@
 # `VideoWidget` split into two independent main widgets
 
-Status: implemented, closed.
+Status: implemented, closed (`cf42ab4`; released `v2.3.0`).
 
 Dependency landed 2026-09-01: `2026-08-28-gui-main-vs-sidebar-widgets.md` merged to develop as
 PR #157 (`b7a14a6`).
