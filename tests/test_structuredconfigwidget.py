@@ -5,7 +5,7 @@ from PySide6 import QtWidgets  # type: ignore
 
 from pyobs.interfaces import ConfigAppliedState, ConfigFieldSchema, ConfigSchema
 from pyobs.utils import exceptions as exc
-from pyobs.utils.enums import Unit
+from pyobs.utils.enums import AccessLevel, Unit
 from pyobs_gui.structuredconfigwidget import StructuredConfigWidget, _build_editor, _nested_get
 
 # -- shared fixtures -----------------------------------------------------------------------
@@ -150,6 +150,82 @@ def test_unsupported_field_type_is_also_a_disabled_placeholder() -> None:
     assert isinstance(editor.widget, QtWidgets.QLineEdit)
     assert editor.widget.isEnabled() is False
     assert editor.get_value() == [1, 2]
+
+
+# -- _build_editor / _build_form: basic/expert level ----------------------------------------
+
+
+def test_basic_field_starts_enabled() -> None:
+    editor = _build_editor("count", ConfigFieldSchema(type="int", default=3, level=AccessLevel.BASIC), lambda: None)
+    assert editor.widget.isEnabled() is True
+    assert editor.level == AccessLevel.BASIC
+
+
+def test_expert_field_starts_disabled() -> None:
+    editor = _build_editor("count", ConfigFieldSchema(type="int", default=3, level=AccessLevel.EXPERT), lambda: None)
+    assert editor.widget.isEnabled() is False
+    assert editor.level == AccessLevel.EXPERT
+
+
+def test_unsupported_type_placeholder_ignores_expert_level_for_toggle_grouping() -> None:
+    """A permanently non-editable placeholder must never be swept into the expert-toggle's
+    re-enable group, even if the underlying field is tagged EXPERT -- see the comment in
+    _build_editor's fallback branch."""
+    editor = _build_editor(
+        "items", ConfigFieldSchema(type="list", default=[1, 2], level=AccessLevel.EXPERT), lambda: None
+    )
+    assert editor.level == AccessLevel.BASIC
+    assert editor.widget.isEnabled() is False
+
+
+def test_nested_object_skips_hidden_children_and_disables_whole_group_when_expert() -> None:
+    schema = ConfigFieldSchema(
+        type="object",
+        level=AccessLevel.EXPERT,
+        nested={
+            "az": ConfigFieldSchema(type="float", default=1.0),
+            "secret": ConfigFieldSchema(type="float", default=2.0, level=AccessLevel.HIDDEN),
+        },
+    )
+    editor = _build_editor("pointing", schema, lambda: None)
+    assert editor.children is not None and set(editor.children) == {"az"}
+    assert editor.widget.isEnabled() is False
+
+
+def _sample_schema_with_levels() -> ConfigSchema:
+    return ConfigSchema(
+        fields={
+            "name": ConfigFieldSchema(type="str", default="foo", level=AccessLevel.BASIC),
+            "gain": ConfigFieldSchema(type="int", default=1, level=AccessLevel.EXPERT),
+            "secret": ConfigFieldSchema(type="int", default=0, level=AccessLevel.HIDDEN),
+        }
+    )
+
+
+def test_build_form_skips_hidden_fields_entirely() -> None:
+    widget = StructuredConfigWidget()
+    widget._build_form(_sample_schema_with_levels())
+
+    assert widget._form_layout.rowCount() == 2  # name + gain, not secret
+    assert widget._root is not None and widget._root.children is not None
+    assert set(widget._root.children) == {"name", "gain"}
+    widget.close()
+
+
+def test_advanced_checkbox_toggles_expert_fields_enabled() -> None:
+    widget = StructuredConfigWidget()
+    widget._build_form(_sample_schema_with_levels())
+    assert widget._root is not None and widget._root.children is not None
+    expert_widget = widget._root.children["gain"].widget
+
+    assert expert_widget.isEnabled() is False  # starts locked
+
+    widget.checkBoxAdvanced.setChecked(True)
+    assert expert_widget.isEnabled() is True
+
+    widget.checkBoxAdvanced.setChecked(False)
+    assert expert_widget.isEnabled() is False
+    widget.close()
 
 
 # -- StructuredConfigWidget: state population, dirty tracking, apply/reset ------------------
