@@ -153,23 +153,21 @@ def test_unsupported_field_type_is_also_a_disabled_placeholder() -> None:
 
 
 # -- _build_editor / _build_form: basic/expert level ----------------------------------------
+#
+# _build_editor itself only *tags* each editor with its level; it doesn't touch visibility --
+# that's StructuredConfigWidget's job (_build_form/_on_advanced_toggled), tested below.
 
 
-def test_basic_field_starts_enabled() -> None:
-    editor = _build_editor("count", ConfigFieldSchema(type="int", default=3, level=AccessLevel.BASIC), lambda: None)
-    assert editor.widget.isEnabled() is True
-    assert editor.level == AccessLevel.BASIC
-
-
-def test_expert_field_starts_disabled() -> None:
-    editor = _build_editor("count", ConfigFieldSchema(type="int", default=3, level=AccessLevel.EXPERT), lambda: None)
-    assert editor.widget.isEnabled() is False
-    assert editor.level == AccessLevel.EXPERT
+def test_editor_is_tagged_with_its_schema_level() -> None:
+    basic = _build_editor("count", ConfigFieldSchema(type="int", default=3, level=AccessLevel.BASIC), lambda: None)
+    expert = _build_editor("count", ConfigFieldSchema(type="int", default=3, level=AccessLevel.EXPERT), lambda: None)
+    assert basic.level == AccessLevel.BASIC
+    assert expert.level == AccessLevel.EXPERT
 
 
 def test_unsupported_type_placeholder_ignores_expert_level_for_toggle_grouping() -> None:
     """A permanently non-editable placeholder must never be swept into the expert-toggle's
-    re-enable group, even if the underlying field is tagged EXPERT -- see the comment in
+    hide/show group, even if the underlying field is tagged EXPERT -- see the comment in
     _build_editor's fallback branch."""
     editor = _build_editor(
         "items", ConfigFieldSchema(type="list", default=[1, 2], level=AccessLevel.EXPERT), lambda: None
@@ -178,7 +176,7 @@ def test_unsupported_type_placeholder_ignores_expert_level_for_toggle_grouping()
     assert editor.widget.isEnabled() is False
 
 
-def test_nested_object_skips_hidden_children_and_disables_whole_group_when_expert() -> None:
+def test_nested_object_skips_hidden_children() -> None:
     schema = ConfigFieldSchema(
         type="object",
         level=AccessLevel.EXPERT,
@@ -189,7 +187,7 @@ def test_nested_object_skips_hidden_children_and_disables_whole_group_when_exper
     )
     editor = _build_editor("pointing", schema, lambda: None)
     assert editor.children is not None and set(editor.children) == {"az"}
-    assert editor.widget.isEnabled() is False
+    assert editor.level == AccessLevel.EXPERT
 
 
 def _sample_schema_with_levels() -> ConfigSchema:
@@ -212,19 +210,70 @@ def test_build_form_skips_hidden_fields_entirely() -> None:
     widget.close()
 
 
-def test_advanced_checkbox_toggles_expert_fields_enabled() -> None:
+def test_expert_field_row_starts_hidden_basic_field_row_does_not() -> None:
     widget = StructuredConfigWidget()
     widget._build_form(_sample_schema_with_levels())
     assert widget._root is not None and widget._root.children is not None
-    expert_widget = widget._root.children["gain"].widget
+    basic_editor = widget._root.children["name"]
+    expert_editor = widget._root.children["gain"]
 
-    assert expert_widget.isEnabled() is False  # starts locked
+    assert basic_editor.widget.isHidden() is False
+    assert basic_editor.row_label is not None and basic_editor.row_label.isHidden() is False
+    assert expert_editor.widget.isHidden() is True
+    assert expert_editor.row_label is not None and expert_editor.row_label.isHidden() is True
+    widget.close()
+
+
+def test_advanced_checkbox_shows_and_hides_expert_field_row() -> None:
+    widget = StructuredConfigWidget()
+    widget._build_form(_sample_schema_with_levels())
+    assert widget._root is not None and widget._root.children is not None
+    expert_editor = widget._root.children["gain"]
 
     widget.checkBoxAdvanced.setChecked(True)
-    assert expert_widget.isEnabled() is True
+    assert expert_editor.widget.isHidden() is False
+    assert expert_editor.row_label is not None and expert_editor.row_label.isHidden() is False
 
     widget.checkBoxAdvanced.setChecked(False)
-    assert expert_widget.isEnabled() is False
+    assert expert_editor.widget.isHidden() is True
+    assert expert_editor.row_label is not None and expert_editor.row_label.isHidden() is True
+
+
+# -- _build_editor: description rendered below the widget -----------------------------------
+
+
+def test_field_without_description_is_not_wrapped() -> None:
+    editor = _build_editor("count", ConfigFieldSchema(type="int", default=3), lambda: None)
+    assert editor.row_widget is None
+    assert editor.display_widget is editor.widget
+
+
+def test_field_with_description_wraps_widget_with_label_below() -> None:
+    schema = ConfigFieldSchema(type="int", default=3, description="Number of exposures to take")
+    editor = _build_editor("count", schema, lambda: None)
+
+    assert editor.row_widget is not None
+    assert editor.display_widget is editor.row_widget
+    container_layout = editor.row_widget.layout()
+    assert container_layout.count() == 2
+    assert container_layout.itemAt(0).widget() is editor.widget
+    description_label = container_layout.itemAt(1).widget()
+    assert isinstance(description_label, QtWidgets.QLabel)
+    assert description_label.text() == "Number of exposures to take"
+
+
+def test_build_form_places_description_wrapper_in_the_row() -> None:
+    widget = StructuredConfigWidget()
+    schema = ConfigSchema(
+        fields={"count": ConfigFieldSchema(type="int", default=3, description="Number of exposures to take")}
+    )
+    widget._build_form(schema)
+
+    assert widget._root is not None and widget._root.children is not None
+    editor = widget._root.children["count"]
+    row_field_item = widget._form_layout.itemAt(0, QtWidgets.QFormLayout.ItemRole.FieldRole)
+    assert row_field_item.widget() is editor.row_widget
+    widget.close()
     widget.close()
 
 
