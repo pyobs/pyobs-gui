@@ -237,6 +237,43 @@ def test_advanced_checkbox_shows_and_hides_expert_field_row() -> None:
     widget.checkBoxAdvanced.setChecked(False)
     assert expert_editor.widget.isHidden() is True
     assert expert_editor.row_label is not None and expert_editor.row_label.isHidden() is True
+
+
+# -- _build_editor: description rendered below the widget -----------------------------------
+
+
+def test_field_without_description_is_not_wrapped() -> None:
+    editor = _build_editor("count", ConfigFieldSchema(type="int", default=3), lambda: None)
+    assert editor.row_widget is None
+    assert editor.display_widget is editor.widget
+
+
+def test_field_with_description_wraps_widget_with_label_below() -> None:
+    schema = ConfigFieldSchema(type="int", default=3, description="Number of exposures to take")
+    editor = _build_editor("count", schema, lambda: None)
+
+    assert editor.row_widget is not None
+    assert editor.display_widget is editor.row_widget
+    container_layout = editor.row_widget.layout()
+    assert container_layout.count() == 2
+    assert container_layout.itemAt(0).widget() is editor.widget
+    description_label = container_layout.itemAt(1).widget()
+    assert isinstance(description_label, QtWidgets.QLabel)
+    assert description_label.text() == "Number of exposures to take"
+
+
+def test_build_form_places_description_wrapper_in_the_row() -> None:
+    widget = StructuredConfigWidget()
+    schema = ConfigSchema(
+        fields={"count": ConfigFieldSchema(type="int", default=3, description="Number of exposures to take")}
+    )
+    widget._build_form(schema)
+
+    assert widget._root is not None and widget._root.children is not None
+    editor = widget._root.children["count"]
+    row_field_item = widget._form_layout.itemAt(0, QtWidgets.QFormLayout.ItemRole.FieldRole)
+    assert row_field_item.widget() is editor.row_widget
+    widget.close()
     widget.close()
 
 

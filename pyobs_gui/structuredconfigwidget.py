@@ -29,11 +29,19 @@ class _FieldEditor:
     set_value: Callable[[ConfigValue], None]
     children: Optional[Dict[str, "_FieldEditor"]] = None
     level: AccessLevel = AccessLevel.BASIC
-    # the row's label, so the basic/expert toggle can hide it alongside `widget` -- addRow(str,
-    # widget) auto-creates one, but we build it explicitly at each row-adding call site instead
-    # so we have a handle on it (QFormLayout.labelForField exists but is keyed per-layout-
-    # instance, awkward to thread through recursion; a direct reference is simpler)
+    # the row's label, so the basic/expert toggle can hide it alongside `display_widget` --
+    # addRow(str, widget) auto-creates one, but we build it explicitly at each row-adding call
+    # site instead so we have a handle on it (QFormLayout.labelForField exists but is keyed
+    # per-layout-instance, awkward to thread through recursion; a direct reference is simpler)
     row_label: Optional[QtWidgets.QLabel] = None
+    # set only when the field has a description: a small container with `widget` on top and the
+    # description label below it. `widget` itself (get_value/set_value's target) never changes
+    # shape, so a description doesn't affect how values round-trip -- only what goes in the row.
+    row_widget: Optional[QtWidgets.QWidget] = None
+
+    @property
+    def display_widget(self) -> QtWidgets.QWidget:
+        return self.row_widget if self.row_widget is not None else self.widget
 
 
 def _collect_by_level(editor: "_FieldEditor", level: AccessLevel) -> List["_FieldEditor"]:
@@ -43,6 +51,26 @@ def _collect_by_level(editor: "_FieldEditor", level: AccessLevel) -> List["_Fiel
     for child in (editor.children or {}).values():
         editors.extend(_collect_by_level(child, level))
     return editors
+
+
+def _wrap_with_description(widget: QtWidgets.QWidget, description: Optional[str]) -> Optional[QtWidgets.QWidget]:
+    """Stack `widget` over a dimmed, word-wrapped description label, for the field's row to show
+    the description below the input rather than only as e.g. a tooltip. Returns None (meaning:
+    just use `widget` directly, no wrapping) when there's no description."""
+    if not description:
+        return None
+    container = QtWidgets.QWidget()
+    layout = QtWidgets.QVBoxLayout(container)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.setSpacing(2)
+    layout.addWidget(widget)
+    description_label = QtWidgets.QLabel(description)
+    description_label.setWordWrap(True)
+    # palette(mid) is a 3D-effect shade (borders/shadows), too dark to read comfortably as text;
+    # placeholder-text is Qt's actual semantic role for secondary-but-legible text
+    description_label.setStyleSheet("color: palette(placeholder-text);")
+    layout.addWidget(description_label)
+    return container
 
 
 def _nested_get(children: Dict[str, _FieldEditor]) -> Dict[str, ConfigValue]:
@@ -65,7 +93,13 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         if schema.default is not None:
             line_edit.setText(str(schema.default))
         line_edit.textChanged.connect(lambda _: on_change())
-        return _FieldEditor(line_edit, line_edit.text, lambda value: line_edit.setText(str(value)), level=schema.level)
+        return _FieldEditor(
+            line_edit,
+            line_edit.text,
+            lambda value: line_edit.setText(str(value)),
+            level=schema.level,
+            row_widget=_wrap_with_description(line_edit, schema.description),
+        )
 
     if schema.type == "int":
         spin_box = QtWidgets.QSpinBox()
@@ -74,7 +108,11 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
             spin_box.setValue(int(schema.default))
         spin_box.valueChanged.connect(lambda _: on_change())
         return _FieldEditor(
-            spin_box, spin_box.value, lambda value: spin_box.setValue(int(cast("int", value))), level=schema.level
+            spin_box,
+            spin_box.value,
+            lambda value: spin_box.setValue(int(cast("int", value))),
+            level=schema.level,
+            row_widget=_wrap_with_description(spin_box, schema.description),
         )
 
     if schema.type == "float":
@@ -91,6 +129,7 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
             double_spin_box.value,
             lambda value: double_spin_box.setValue(float(cast("float", value))),
             level=schema.level,
+            row_widget=_wrap_with_description(double_spin_box, schema.description),
         )
 
     if schema.type == "bool":
@@ -99,7 +138,11 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
             check_box.setChecked(bool(schema.default))
         check_box.toggled.connect(lambda _: on_change())
         return _FieldEditor(
-            check_box, check_box.isChecked, lambda value: check_box.setChecked(bool(value)), level=schema.level
+            check_box,
+            check_box.isChecked,
+            lambda value: check_box.setChecked(bool(value)),
+            level=schema.level,
+            row_widget=_wrap_with_description(check_box, schema.description),
         )
 
     if schema.type == "enum":
@@ -114,6 +157,7 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
             combo_box.currentText,
             lambda value: combo_box.setCurrentText(str(value)),
             level=schema.level,
+            row_widget=_wrap_with_description(combo_box, schema.description),
         )
 
     if schema.type == "object" and schema.nested is not None:
@@ -126,7 +170,7 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
                 continue
             child_editor = _build_editor(child_name, child_schema, on_change)
             child_label = QtWidgets.QLabel(child_name)
-            form_layout.addRow(child_label, child_editor.widget)
+            form_layout.addRow(child_label, child_editor.display_widget)
             child_editor.row_label = child_label
             children[child_name] = child_editor
         return _FieldEditor(
@@ -135,6 +179,7 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
             lambda value: _nested_set(children, value),
             children=children,
             level=schema.level,
+            row_widget=_wrap_with_description(group_box, schema.description),
         )
 
     # object without a nested schema (pydantic freeform dict), or any other schema type this
@@ -155,7 +200,9 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
     placeholder.setToolTip(f"Field type {schema.type!r} has no schema-driven editor for this widget.")
     # always BASIC regardless of schema.level: this is a loud "unsupported type" flag, meant to
     # stay visible so a developer notices it, never swept into the expert-toggle's hide group
-    return _FieldEditor(placeholder, _get_raw, _set_raw)
+    return _FieldEditor(
+        placeholder, _get_raw, _set_raw, row_widget=_wrap_with_description(placeholder, schema.description)
+    )
 
 
 class StructuredConfigWidget(BaseWidget):
@@ -235,7 +282,7 @@ class StructuredConfigWidget(BaseWidget):
                 continue
             editor = _build_editor(name, field_schema, self._on_editor_changed)
             label = QtWidgets.QLabel(name)
-            self._form_layout.addRow(label, editor.widget)
+            self._form_layout.addRow(label, editor.display_widget)
             editor.row_label = label
             children[name] = editor
         self._root = _FieldEditor(
@@ -253,7 +300,7 @@ class StructuredConfigWidget(BaseWidget):
 
     def _on_advanced_toggled(self, checked: bool) -> None:
         for editor in self._expert_editors:
-            editor.widget.setVisible(checked)
+            editor.display_widget.setVisible(checked)
             if editor.row_label is not None:
                 editor.row_label.setVisible(checked)
 
