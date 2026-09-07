@@ -3342,7 +3342,7 @@ requires-dist = [
     { name = "pyobs-core", specifier = ">=2.7.2,<3" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "qasync", specifier = ">=0.27.1,<0.29" },
-    { name = "qfitswidget", specifier = ">=1.1.1" },
+    { name = "qfitswidget", specifier = ">=1.1.2" },
     { name = "qtawesome", specifier = ">=1.4.0,<2" },
     { name = "secretstorage", specifier = ">=3.5.0,<4" },
     { name = "sunpy", extras = ["all"], specifier = ">=7.0.1" },
@@ -3651,7 +3651,7 @@ wheels = [
 
 [[package]]
 name = "qfitswidget"
-version = "1.1.1"
+version = "1.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astropy" },
@@ -3662,9 +3662,9 @@ dependencies = [
     { name = "opencv-python-headless" },
     { name = "qtpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/62/f3/03b2d06a6476e73d58891a58d59421f19678bea8efa986ba3a312bf350fe/qfitswidget-1.1.1.tar.gz", hash = "sha256:c7b8569cc6732728bee02ee2f7a04604617b0c176921bf4c84931b3a31ff3aee", size = 16500, upload-time = "2026-09-07T18:06:11.164Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/b8/9c8daf7e7f7c59e36ff7edcb69195377b03ab03461e5b6bcd1783ee92ae6/qfitswidget-1.1.2.tar.gz", hash = "sha256:e5e9c67999fb963ac21a5cb1e99f4483f3ed5427ed983b7f4f3b7ebcc91d78a8", size = 16616, upload-time = "2026-09-07T18:17:22.59Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/fe/029cb9d05770c9cac1a0d4482d50394b628f10cfa75383840fe591558e38/qfitswidget-1.1.1-py3-none-any.whl", hash = "sha256:53819b41005fe5d66c15767aaedf75769653c2e99ffdda4f7dbe6ff84291730a", size = 20722, upload-time = "2026-09-07T18:06:10.197Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/91/9d84d8abccbf0c747b6f5f183ab4c4be3517811b5693ca6a679c63789402/qfitswidget-1.1.2-py3-none-any.whl", hash = "sha256:9fa07bf61b5c31e04a42630cacde8c09b89fe9148fbd1d93f41c938b94b25b16", size = 20835, upload-time = "2026-09-07T18:17:21.706Z" },
 ]
 
 [[package]]
