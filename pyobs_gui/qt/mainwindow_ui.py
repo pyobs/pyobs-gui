@@ -17,9 +17,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHeaderView,
     QLabel, QListView, QListWidget, QListWidgetItem,
-    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
-    QSplitter, QStackedWidget, QTableView, QToolButton,
-    QVBoxLayout, QWidget)
+    QMainWindow, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QSplitter, QStackedWidget, QTableView,
+    QToolButton, QVBoxLayout, QWidget)
 from . import resources_rc
 
 class Ui_MainWindow(object):
@@ -141,9 +141,16 @@ class Ui_MainWindow(object):
         self.splitterToolBox = QSplitter(self.splitterLog)
         self.splitterToolBox.setObjectName(u"splitterToolBox")
         self.splitterToolBox.setOrientation(Qt.Orientation.Horizontal)
-        self.stackedWidget = QStackedWidget(self.splitterToolBox)
+        self.stackedWidgetScroll = QScrollArea(self.splitterToolBox)
+        self.stackedWidgetScroll.setObjectName(u"stackedWidgetScroll")
+        self.stackedWidgetScroll.setWidgetResizable(True)
+        self.stackedWidgetScroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.stackedWidgetScroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.stackedWidgetScroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.stackedWidget = QStackedWidget()
         self.stackedWidget.setObjectName(u"stackedWidget")
-        self.splitterToolBox.addWidget(self.stackedWidget)
+        self.stackedWidgetScroll.setWidget(self.stackedWidget)
+        self.splitterToolBox.addWidget(self.stackedWidgetScroll)
         self.splitterLog.addWidget(self.splitterToolBox)
         self.splitterClients = QSplitter(self.splitterLog)
         self.splitterClients.setObjectName(u"splitterClients")

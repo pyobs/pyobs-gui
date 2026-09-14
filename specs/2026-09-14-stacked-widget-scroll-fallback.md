@@ -1,6 +1,12 @@
 # Plan: scrollable fallback around each module page, instead of a hard window-width floor
 
-Status: proposed
+Status: implemented (pyobs-gui `develop`, 2026-09-14) — `mainwindow.ui`'s `stackedWidget` wrapped
+in `stackedWidgetScroll` as designed below. Risk #1 (wheel-over-spinbox) confirmed real via a
+headless test (an unfocused `QDoubleSpinBox`'s value changed from a wheel event before the fix),
+not just theoretical — fixed with `pyobs_gui/nowheelfilter.py`'s `NoWheelWhenUnfocused`, an
+app-wide event filter installed in `GUI.new_event_loop()`. Risks #2/#3 spot-checked (camera page
+at 700x400: renders correctly, horizontal scrollbar appears exactly where expected, no visual
+corruption); not exhaustively swept across every widget type in the fleet.
 
 ## Problem
 
