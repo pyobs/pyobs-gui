@@ -8,6 +8,11 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-09-14-stacked-widget-scroll-fallback.md` — **proposed**. Wrap `stackedWidget` in a
+  `QScrollArea` (`setWidgetResizable(True)`, both scrollbars `ScrollBarAsNeeded`) as a general
+  fallback once a module page can't shrink further, instead of every such floor needing its own
+  individual fix. Risks flagged: mouse-wheel-over-spinbox papercut, needs a visual pass across
+  widget shapes, interaction with `MainWindow.resizeEvent`'s forced splitter sizing.
 - `2026-09-14-fitswidget-toolbar-overflow.md` — **proposed**. Repos: qfitswidget (hosted here
   since qfitswidget has no `specs/` of its own). Responsive Cuts/Stretch/Colormap toolbar in
   `QFitsWidget`: hide-then-overflow (not wrap) as width shrinks, `QMenu`/`QWidgetAction` overflow
