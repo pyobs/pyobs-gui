@@ -8,6 +8,11 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-09-14-fitswidget-toolbar-overflow.md` — **proposed**. Repos: qfitswidget (hosted here
+  since qfitswidget has no `specs/` of its own). Responsive Cuts/Stretch/Colormap toolbar in
+  `QFitsWidget`: hide-then-overflow (not wrap) as width shrinks, `QMenu`/`QWidgetAction` overflow
+  for the two checkboxes, manual-cuts fields hidden outright whenever Cuts ≠ Manual. Surfaced
+  while shrinking pyobs-gui's `CameraWidget` page as far as it goes.
 - `2026-08-31-irobotic-widgets.md` — **implemented, closed (issue #825, PR #155, `5794186`)**.
   `RoboticWidget` / `ScheduleWidget` for `IRobotic`/`IRoboticScheduler`.
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic

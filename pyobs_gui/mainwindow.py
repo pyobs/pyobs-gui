@@ -288,6 +288,9 @@ class ModulePage(BaseWidget):
         # this page's widgets have actually opened -- see its sidebar-fill steps (c) and (e)
         self.sidebar_preferred_choices: List[WidgetChoice] = sidebar_preferred or []
         self.custom_sidebar: List[Dict[str, Any]] = custom_sidebar or []
+        # user's manual show/hide choice via sidebar_toggle -- independent of
+        # hide_if_empty_sidebar()'s content-driven hiding, see _update_sidebar_visibility()
+        self._sidebar_collapsed = False
 
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -311,11 +314,48 @@ class ModulePage(BaseWidget):
         self.sidebar_scroll.setWidget(self.widgetSidebar)
         self.sidebar_scroll.setWidgetResizable(True)
         self.sidebar_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+        # No horizontal scrollbar -- deliberately. Without a real minimum width, that would leave
+        # the sidebar's own content as the only thing standing between "fits" and "silently
+        # clipped" once something upstream (MainWindow.resizeEvent's forced splitterNav.setSizes())
+        # squeezes this pane below its natural size. _update_sidebar_min_width() is what actually
+        # keeps it from getting that small in the first place -- see there.
         self.sidebar_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.sidebar_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.sidebar_scroll.setMaximumWidth(320)
         self.sidebar_scroll.setVisible(False)
+
         layout.addWidget(self.sidebar_scroll)
+
+        # manual show/hide toggle -- independent of the automatic content-driven hiding in
+        # hide_if_empty_sidebar(). Lets someone reclaim the sidebar's width on a narrow window
+        # without that width being a permanent, un-opt-outable floor.
+        #
+        # Deliberately NOT a layout item (a QHBoxLayout cell always spans the full row height, so
+        # a small button in its own cell reads as a tall, mostly-empty column -- confirmed against
+        # a real screenshot, not just theory). Instead it's a small floating overlay, positioned by
+        # _position_sidebar_toggle(), parented directly on `self` and raised above everything else.
+        self.sidebar_toggle = QtWidgets.QToolButton(self)
+        self.sidebar_toggle.setAutoRaise(True)
+        self.sidebar_toggle.clicked.connect(self._toggle_sidebar)
+        self.sidebar_toggle.setVisible(False)
+        self._update_sidebar_visibility()
+
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+        super().resizeEvent(event)
+        self._position_sidebar_toggle()
+
+    def _position_sidebar_toggle(self) -> None:
+        """Pins the toggle just outside the sidebar's left edge when it's shown (a compact handle
+        right at the boundary, not a dedicated column), or to the page's right edge when it's
+        collapsed (so there's still something to click to bring it back)."""
+        margin = 4
+        y = margin
+        if self.sidebar_scroll.isVisible():
+            x = self.sidebar_scroll.x() - self.sidebar_toggle.width() - margin
+        else:
+            x = self.width() - self.sidebar_toggle.width() - margin
+        self.sidebar_toggle.move(max(0, x), y)
+        self.sidebar_toggle.raise_()
 
     def remove_widget(self, widget: BaseWidget) -> None:
         """Removes one tab (D5: a partially-failed open drops just that widget's tab, keeping
@@ -329,8 +369,35 @@ class ModulePage(BaseWidget):
             if idx != -1:
                 self.tab_widget.removeTab(idx)
 
+    async def add_to_sidebar(self, widget: BaseWidget) -> None:
+        await super().add_to_sidebar(widget)
+        self._update_sidebar_min_width()
+
+    def _update_sidebar_min_width(self) -> None:
+        """Give sidebar_scroll a real minimum width tracking its content, so the horizontal
+        scrollbar being off (see __init__) doesn't mean content silently gets compressed below
+        what it needs instead. Capped at the same 320px the column's own maximumWidth already
+        uses -- content that genuinely needs more than that was already going to clip; not this
+        method's problem to solve."""
+        self.sidebar_scroll.setMinimumWidth(min(self.widgetSidebar.sizeHint().width(), 320))
+
     def hide_if_empty_sidebar(self) -> None:
-        self.sidebar_scroll.setVisible(len(self.sidebar_widgets) > 0)
+        self._update_sidebar_visibility()
+
+    def _toggle_sidebar(self) -> None:
+        self._sidebar_collapsed = not self._sidebar_collapsed
+        self._update_sidebar_visibility()
+
+    def _update_sidebar_visibility(self) -> None:
+        has_content = len(self.sidebar_widgets) > 0
+        shown = has_content and not self._sidebar_collapsed
+        self.sidebar_toggle.setVisible(has_content)
+        self.sidebar_scroll.setVisible(shown)
+        self.sidebar_toggle.setIcon(qta.icon("fa5s.angle-double-left" if shown else "fa5s.angle-double-right"))
+        self.sidebar_toggle.setToolTip("Hide sidebar" if shown else "Show sidebar")
+        # sidebar_scroll's geometry only settles after Qt processes this visibility/layout change
+        # -- queue the reposition for right after that, rather than reading stale geometry now.
+        QtCore.QTimer.singleShot(0, self._position_sidebar_toggle)
 
     async def discard(self) -> None:
         for widget in list(self.widgets):
