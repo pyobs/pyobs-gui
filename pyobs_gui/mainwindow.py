@@ -393,7 +393,9 @@ class ModulePage(BaseWidget):
         shown = has_content and not self._sidebar_collapsed
         self.sidebar_toggle.setVisible(has_content)
         self.sidebar_scroll.setVisible(shown)
-        self.sidebar_toggle.setIcon(qta.icon("fa5s.angle-double-left" if shown else "fa5s.angle-double-right"))
+        # icon points the direction the *next click* moves the sidebar, not the current state:
+        # left = "click to bring it in and show it", right = "click to push it out and hide it"
+        self.sidebar_toggle.setIcon(qta.icon("fa5s.angle-double-right" if shown else "fa5s.angle-double-left"))
         self.sidebar_toggle.setToolTip("Hide sidebar" if shown else "Show sidebar")
         # sidebar_scroll's geometry only settles after Qt processes this visibility/layout change
         # -- queue the reposition for right after that, rather than reading stale geometry now.
