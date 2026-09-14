@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'focuswidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -33,6 +33,7 @@ class Ui_FocusWidget(object):
         self.groupBox_5.setObjectName(u"groupBox_5")
         self.formLayout = QFormLayout(self.groupBox_5)
         self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         self.label_12 = QLabel(self.groupBox_5)
         self.label_12.setObjectName(u"label_12")
 

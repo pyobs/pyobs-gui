@@ -733,4 +733,9 @@ class TelescopeWidget(BaseWidget, Ui_TelescopeWidget):
         except ValueError:
             return
         self.stackedMove.setCurrentWidget(self._MOVE_WIDGETS[coord])
+        # MoveStack sizes itself to the current page, not the widest one (see movestack.py) --
+        # updateGeometry() re-triggers layout after the current page changed, so the window
+        # actually shrinks/grows to match instead of staying pinned at whatever page was
+        # previously widest.
+        self.stackedMove.updateGeometry()
         self._DEST_CALC[coord]()

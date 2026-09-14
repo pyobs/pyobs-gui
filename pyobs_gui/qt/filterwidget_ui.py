@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'filterwidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -31,6 +31,7 @@ class Ui_FilterWidget(object):
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.formLayout = QFormLayout(self.groupBox_2)
         self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         self.label_9 = QLabel(self.groupBox_2)
         self.label_9.setObjectName(u"label_9")
 
