@@ -1,7 +1,8 @@
 # Plan: qfitswidget — responsive Cuts/Stretch/Colormap toolbar (hide + overflow, not wrap)
 
-Status: implemented (qfitswidget `develop`, 2026-09-14) — see "Implementation notes" below for
-three real bugs found and fixed during verification, and one design change from what this doc
+Status: implemented, closed — released in qfitswidget v1.1.3, `pyobs-gui`'s floor bumped to match
+and released in v2.4.2. See "Implementation notes" below for the full list of real bugs found and
+fixed during live verification (eight, not three), and one design change from what this doc
 originally proposed (thresholds are measured at runtime, not hardcoded).
 
 Repos: qfitswidget (all implementation here; surfaced from pyobs-gui work, see "Context" below)
