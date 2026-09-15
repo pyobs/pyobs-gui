@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 
+from .nowheelfilter import NoWheelWhenUnfocused
 from .utils import QAsyncMessageBox
 
 log = logging.getLogger(__name__)
@@ -20,6 +21,9 @@ class GUI(Module, IFitsHeaderBefore):
     __module__ = "pyobs_gui"
 
     app: QtWidgets.QApplication | None = None
+    # kept alive here -- QApplication.installEventFilter() doesn't itself keep a Python reference,
+    # and an unparented QObject with nothing else referencing it is fair game for GC
+    _wheel_filter: NoWheelWhenUnfocused | None = None
 
     def __init__(
         self,
@@ -67,6 +71,8 @@ class GUI(Module, IFitsHeaderBefore):
         # "quit when the last window closes" would tear down the whole event loop right there,
         # so this app manages its own lifetime exclusively through Module.quit() instead.
         GUI.app.setQuitOnLastWindowClosed(False)
+        GUI._wheel_filter = NoWheelWhenUnfocused()
+        GUI.app.installEventFilter(GUI._wheel_filter)
         return cast("asyncio.AbstractEventLoop", qasync.QEventLoop(GUI.app))
 
     async def open(self) -> None:

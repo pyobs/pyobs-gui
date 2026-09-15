@@ -8,6 +8,18 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-09-14-stacked-widget-scroll-fallback.md` — **implemented**. `stackedWidget` wrapped in a
+  `QScrollArea` (`stackedWidgetScroll`) as a general fallback once a module page can't shrink
+  further, instead of every such floor needing its own individual fix. The flagged
+  mouse-wheel-over-spinbox papercut was confirmed real (not just theoretical) and fixed via
+  `nowheelfilter.py`'s app-wide event filter.
+- `2026-09-14-fitswidget-toolbar-overflow.md` — **implemented**. Repos: qfitswidget (hosted here
+  since qfitswidget has no `specs/` of its own). Responsive Cuts/Stretch/Colormap toolbar in
+  `QFitsWidget`: hide-then-overflow (not wrap) as width shrinks, `QMenu`/`QWidgetAction` overflow
+  for the two checkboxes, manual-cuts fields hidden outright whenever Cuts ≠ Manual. Thresholds
+  measured at runtime rather than hardcoded; three real bugs found via testing (dangling
+  `QWidgetAction` widget, reparent-hides-widget, `self.width()` vs `event.size()`) — see the plan
+  doc's "Implementation notes".
 - `2026-08-31-irobotic-widgets.md` — **implemented, closed (issue #825, PR #155, `5794186`)**.
   `RoboticWidget` / `ScheduleWidget` for `IRobotic`/`IRoboticScheduler`.
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
@@ -45,15 +57,17 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
   pyobs-core side shipped in `v2.1.0`; pyobs-gui side is this repo's own
   `2026-08-31-irobotic-widgets.md`, above.
 - `pyobs-core/specs/design/gui-standalone-binary.md` — big picture: shipping `pyobs-gui` as a
-  single compiled binary that works across sites with no rebuild. *proposed* — start here.
+  single compiled binary that works across sites with no rebuild. **rejected 2026-09-14** — the
+  real build came out several GB, not viable as a one-file download. The two pieces below shipped
+  independently and aren't affected.
 - `pyobs-core/specs/plans/2026-07-26-gui-interactive-login.md` — interactive login/settings
   dialog to replace the current YAML-config-file requirement (pyobs-core side).
   **implemented, closed** (landed 2026-07-27)
 - `pyobs-core/specs/plans/2026-07-27-gui-login-window.md` — the actual login window UI
   (pyobs-gui side, depends on the above). **implemented, closed**
 - `pyobs-core/specs/plans/2026-07-27-gui-widget-plugins-and-packaging.md` — external plugin
-  directory for custom widgets, plus the `pyside6-deploy` packaging pipeline itself. **draft** —
-  loading mechanism decided + spiked; widget-selection mechanism still open
+  directory for custom widgets, plus the `pyside6-deploy` packaging pipeline itself. **abandoned
+  2026-09-14** — umbrella goal above rejected; kept for the packaging spikes' findings
 - `pyobs-core/specs/plans/2026-07-19-pyobs_2_0_work_plan.md` — the `IRunning.is_running()`
   removal item required updating `mainwindow.py`'s two RPC calls to that method to read
   `IRunning`'s pushed state instead. **implemented, closed**

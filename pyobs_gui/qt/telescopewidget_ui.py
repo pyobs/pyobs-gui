@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'telescopewidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.1
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -18,10 +18,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFormLayout,
     QFrame, QGridLayout, QGroupBox, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QSizePolicy,
-    QSpacerItem, QSpinBox, QStackedWidget, QToolButton,
-    QVBoxLayout, QWidget)
+    QSpacerItem, QSpinBox, QToolButton, QVBoxLayout,
+    QWidget)
 
 from ..compassmovewidget import CompassMoveWidget
+from ..movestack import MoveStack
 from . import resources_rc
 
 class Ui_TelescopeWidget(object):
@@ -236,7 +237,7 @@ class Ui_TelescopeWidget(object):
 
         self.verticalLayout_7.addWidget(self.comboMoveType)
 
-        self.stackedMove = QStackedWidget(self.groupBox_5)
+        self.stackedMove = MoveStack(self.groupBox_5)
         self.stackedMove.setObjectName(u"stackedMove")
         self.pageMoveEquatorial = QWidget()
         self.pageMoveEquatorial.setObjectName(u"pageMoveEquatorial")
@@ -244,6 +245,7 @@ class Ui_TelescopeWidget(object):
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.formLayout = QFormLayout()
         self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         self.label_11 = QLabel(self.pageMoveEquatorial)
         self.label_11.setObjectName(u"label_11")
 
