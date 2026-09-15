@@ -321,8 +321,9 @@ class ModulePage(BaseWidget):
         # keeps it from getting that small in the first place -- see there.
         self.sidebar_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.sidebar_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.sidebar_scroll.setMaximumWidth(320)
         self.sidebar_scroll.setVisible(False)
+        # _update_sidebar_min_width() (called below and on every add_to_sidebar()) sets both the
+        # min and max width from real content -- nothing hardcoded here to get stale
 
         layout.addWidget(self.sidebar_scroll)
 
@@ -373,13 +374,25 @@ class ModulePage(BaseWidget):
         await super().add_to_sidebar(widget)
         self._update_sidebar_min_width()
 
+    _SIDEBAR_DEFAULT_MAX_WIDTH = 320
+
     def _update_sidebar_min_width(self) -> None:
         """Give sidebar_scroll a real minimum width tracking its content, so the horizontal
         scrollbar being off (see __init__) doesn't mean content silently gets compressed below
-        what it needs instead. Capped at the same 320px the column's own maximumWidth already
-        uses -- content that genuinely needs more than that was already going to clip; not this
-        method's problem to solve."""
-        self.sidebar_scroll.setMinimumWidth(min(self.widgetSidebar.sizeHint().width(), 320))
+        what it needs instead.
+
+        Previous version capped the minimum at the same 320px the column's maximumWidth uses,
+        on the theory that content needing more than that was already going to clip and this
+        method wasn't responsible for that case -- wrong in practice: real content (a populated
+        FITS-headers table, Temperatures/Cooling widgets) routinely exceeds 320px, and capping
+        the *minimum* at the same value as the *maximum* left no room between them, so it clipped
+        regardless of how correct the minimum-width mechanism otherwise was. The maximum now
+        grows to match real content instead: 320px stays the default ceiling for typical small
+        content (letting it size elastically within that range, same as before), but never
+        shrinks below what's actually needed."""
+        natural = self.widgetSidebar.sizeHint().width()
+        self.sidebar_scroll.setMaximumWidth(max(natural, self._SIDEBAR_DEFAULT_MAX_WIDTH))
+        self.sidebar_scroll.setMinimumWidth(natural)
 
     def hide_if_empty_sidebar(self) -> None:
         self._update_sidebar_visibility()

@@ -13,11 +13,13 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
   further, instead of every such floor needing its own individual fix. The flagged
   mouse-wheel-over-spinbox papercut was confirmed real (not just theoretical) and fixed via
   `nowheelfilter.py`'s app-wide event filter.
-- `2026-09-14-fitswidget-toolbar-overflow.md` — **proposed**. Repos: qfitswidget (hosted here
+- `2026-09-14-fitswidget-toolbar-overflow.md` — **implemented**. Repos: qfitswidget (hosted here
   since qfitswidget has no `specs/` of its own). Responsive Cuts/Stretch/Colormap toolbar in
   `QFitsWidget`: hide-then-overflow (not wrap) as width shrinks, `QMenu`/`QWidgetAction` overflow
-  for the two checkboxes, manual-cuts fields hidden outright whenever Cuts ≠ Manual. Surfaced
-  while shrinking pyobs-gui's `CameraWidget` page as far as it goes.
+  for the two checkboxes, manual-cuts fields hidden outright whenever Cuts ≠ Manual. Thresholds
+  measured at runtime rather than hardcoded; three real bugs found via testing (dangling
+  `QWidgetAction` widget, reparent-hides-widget, `self.width()` vs `event.size()`) — see the plan
+  doc's "Implementation notes".
 - `2026-08-31-irobotic-widgets.md` — **implemented, closed (issue #825, PR #155, `5794186`)**.
   `RoboticWidget` / `ScheduleWidget` for `IRobotic`/`IRoboticScheduler`.
 - `2026-08-28-structuredconfig-widget.md` — **proposed (issue #154)**. Generic
