@@ -4,7 +4,7 @@ import logging
 from typing import Any, TYPE_CHECKING
 from PySide6 import QtCore  # type: ignore
 
-from pyobs.interfaces import IAbortable, IExposure, ExposureState
+from pyobs.interfaces import IAbortable, IExposure, ExposureState, IDataSequence, DataSequenceState
 from pyobs.utils.enums import ExposureStatus
 from .base import BaseWidget
 
@@ -53,9 +53,15 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
 
     async def _init(self) -> None:
         await self.comm.subscribe_state(self.module, IExposure, self._on_exposure_state)
+        if await self.comm.has_proxy(self.module, IDataSequence):
+            await self.comm.subscribe_state(self.module, IDataSequence, self._on_sequence_state)
 
     def _on_exposure_state(self, state: ExposureState) -> None:
         self.exposure_status = state.status
+        self.signal_update_gui.emit()
+
+    def _on_sequence_state(self, state: DataSequenceState) -> None:
+        self.exposures_left = state.count_left
         self.signal_update_gui.emit()
 
     def grab_spectrum(self) -> None:
@@ -64,23 +70,48 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     async def _grab_spectra(self) -> None:
         broadcast = self.checkBroadcast.isChecked()
 
-        # take the requested number of spectra; an exception (e.g. from a failed exposure,
-        # or abort() zeroing exposures_left mid-loop) stops the sequence
         self.exposures_left = self.spinCount.value()
         self.signal_update_gui.emit()
+
+        # if the module can grab a counted sequence server-side, let it -- but only when
+        # broadcasting, since grab_sequence() doesn't hand filenames back to the caller and
+        # the client has no other way to learn a spectrum is ready to display
+        if broadcast:
+            async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
+                if proxy is not None:
+                    await proxy.grab_sequence(self.exposures_left, broadcast)
+                    return
+
+        # fall back to a client-side loop for modules that don't support IDataSequence, or
+        # when not broadcasting (grab_data() returns the filename directly for display); an
+        # exception (e.g. from a failed exposure, or abort() zeroing exposures_left mid-loop)
+        # stops the sequence
         while self.exposures_left > 0:
             await self.datadisplay.grab_data(broadcast)
             self.exposures_left -= 1
             self.signal_update_gui.emit()
 
     def abort(self) -> None:
-        # stop the sequence after the current spectrum finishes aborting
-        self.exposures_left = 0
-        self.run_background(self._abort_sequence)
+        # do we have a running sequence?
+        if self.exposures_left == 0:
+            return
 
-    async def _abort_sequence(self) -> None:
-        async with self.comm.proxy(self.module, IAbortable) as proxy:
-            await proxy.abort()
+        self.run_background(self._do_abort)
+
+    async def _do_abort(self) -> None:
+        # got spectra left?
+        if self.exposures_left > 1:
+            # soft-stop the sequence server-side (current spectrum finishes normally), if
+            # supported; otherwise just stop the client-side loop after the current spectrum
+            async with self.comm.safe_proxy(self.module, IDataSequence) as proxy:
+                if proxy is not None:
+                    await proxy.abort_sequence()
+                    return
+            self.exposures_left = 0
+        else:
+            async with self.comm.safe_proxy(self.module, IAbortable) as proxy:
+                if proxy is not None:
+                    await proxy.abort()
 
     def update_gui(self) -> None:
         self.setEnabled(True)
