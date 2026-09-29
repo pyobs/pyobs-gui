@@ -85,7 +85,7 @@ class CameraWidget(BaseWidget, Ui_CameraWidget):
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
-        await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self._open_child(self.datadisplay)
 
         # set exposure types
         image_types = sorted([it.name for it in ImageType])
