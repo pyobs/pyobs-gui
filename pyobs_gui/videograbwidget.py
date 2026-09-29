@@ -59,7 +59,7 @@ class VideoGrabWidget(BaseWidget, Ui_VideoGrabWidget):
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
-        await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self._open_child(self.datadisplay)
 
     async def _init(self) -> None:
         # get interfaces for visibility checks

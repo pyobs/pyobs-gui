@@ -47,7 +47,7 @@ class SpectrographWidget(BaseWidget, Ui_SpectrographWidget):
     ) -> None:
         """Open module."""
         await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
-        await self.datadisplay.open(modules=modules, comm=comm, observer=observer, vfs=vfs)
+        await self._open_child(self.datadisplay)
 
         self.butAbort.setVisible(await self.comm.has_proxy(self.module, IAbortable))
 

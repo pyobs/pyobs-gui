@@ -61,6 +61,9 @@ class BaseWindow:
         self.vfs: VirtualFileSystem | dict[str, Any] | None = None
         self._base_widgets: list[BaseWidget] = []
 
+        # every child widget opened via _open_child(), so BaseWidget.discard() can discard them too
+        self._opened_children: list[BaseWidget] = []
+
     @property
     def comm(self) -> Comm:
         if self._comm is None:
@@ -142,6 +145,8 @@ class BaseWindow:
             await self._open_child(widget)
 
     async def _open_child(self, widget: BaseWidget) -> None:
+        # track before opening, so a child failing halfway through open() still gets discarded
+        self._opened_children.append(widget)
         await widget.open(modules=self.modules, vfs=self.vfs, comm=self.comm, observer=self.observer)
 
 
@@ -269,7 +274,8 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
 
     async def discard(self) -> None:
         """Tear down everything this widget registered with comm, and recursively discard
-        its sidebar widgets.
+        its child widgets: sidebar widgets and everything opened via _open_child(), e.g. an
+        embedded DataDisplayWidget. Safe to call more than once.
 
         Must be called (e.g. from mainwindow._client_disconnected) whenever a widget is
         removed from the UI -- otherwise a handler registered via register_event() lingers
@@ -289,7 +295,9 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
             await self.comm.unregister_event(event_class, handler)
         self._registered_event_handlers.clear()
 
-        for widget in self.sidebar_widgets:
+        # sidebar widgets are opened via _open_child() as well, so skip duplicates
+        children = list(dict.fromkeys([*self._opened_children, *self.sidebar_widgets]))
+        for widget in children:
             await widget.discard()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
