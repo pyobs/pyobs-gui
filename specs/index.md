@@ -92,3 +92,7 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `pyobs-core/specs/plans/2026-08-21-basevideo-http-token-auth.md` — **proposed**. Shared-token
   auth + browser login for `BaseVideo` (pyobs-core side); pyobs-gui side is a one-header change
   in `VideoWidget`'s raw-socket GET (design: `pyobs-core/specs/design/basevideo-http-auth.md`).
+- `pyobs-core/specs/design/basevideo-live-view.md`: **proposed** (2026-09-29). User-selectable
+  live view in `VideoWidget`: MJPEG with server-side stretch for slow links, or `/video.raw` with
+  client-side stretch/cuts and crop on zoom. Plan: `pyobs-core/specs/plans/2026-09-29-basevideo-frame-buffer-redesign.md`
+  (phase 6).
