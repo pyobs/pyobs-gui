@@ -117,3 +117,55 @@ async def test_logout_stops_the_manager_before_the_comm_is_closed(gui: GUI, monk
 
     assert order == ["manager", "comm"]
     assert gui._notifications is None
+
+
+# ── test button of the settings dialog ────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_the_test_notification_goes_through_the_backend_and_a_click_raises_the_window(
+    gui: GUI, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    backend = MagicMock()
+    backend.send = AsyncMock()
+    monkeypatch.setattr(gui_module, "DesktopNotifierBackend", MagicMock(return_value=backend))
+    window = MagicMock()
+    gui._window = window
+
+    await gui._send_test_notification()
+
+    title, message, critical, on_clicked = backend.send.call_args.args
+    assert (title, critical) == ("pyobs-gui", False) and message
+    on_clicked()
+    window.bring_to_front.assert_called_once_with(None)
+
+
+@pytest.mark.asyncio
+async def test_a_problem_with_the_test_notification_reaches_the_dialog(
+    gui: GUI, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from pyobs_gui.notifier import NotifierError
+
+    backend = MagicMock()
+    backend.send = AsyncMock(side_effect=NotifierError("not allowed"))
+    monkeypatch.setattr(gui_module, "DesktopNotifierBackend", MagicMock(return_value=backend))
+    with pytest.raises(NotifierError, match="not allowed"):
+        await gui._send_test_notification()
+
+
+@pytest.mark.asyncio
+async def test_notifications_and_the_test_button_share_one_backend(gui: GUI, monkeypatch: pytest.MonkeyPatch) -> None:
+    backend = MagicMock()
+    backend.send = AsyncMock()
+    factory = MagicMock(return_value=backend)
+    monkeypatch.setattr(gui_module, "DesktopNotifierBackend", factory)
+    await gui._start_notifications()
+    await gui._send_test_notification()
+    factory.assert_called_once_with()
+
+
+def test_the_settings_dialog_gets_the_test_button(gui: GUI, monkeypatch: pytest.MonkeyPatch) -> None:
+    dialog_class = MagicMock()
+    monkeypatch.setattr(gui_module, "SettingsDialog", dialog_class)
+    gui._open_settings()
+    assert dialog_class.call_args.kwargs["send_test"] == gui._send_test_notification

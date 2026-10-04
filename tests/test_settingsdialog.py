@@ -1,6 +1,7 @@
+import asyncio
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from pydantic import BaseModel
@@ -9,6 +10,7 @@ from pyobs.comm.local import LocalComm
 from pyobs_gui.gui import GUI
 from pyobs_gui.mainwindow import MainWindow
 from pyobs_gui.settings import GuiSettings, NotificationSettings, SettingsStore, VfsSettings
+from pyobs_gui.notifier import NotifierError
 from pyobs_gui.settingsdialog import SettingsDialog
 
 ROOTS = {
@@ -226,3 +228,109 @@ def test_standalone_gui_starts_with_defaults_if_the_file_is_unreadable(
     gui = _gui(monkeypatch, SettingsStore(path), standalone=True, settings_key="acc")
     assert gui.settings == GuiSettings()
     assert path.read_text() == "accounts: [unclosed"
+
+
+# ── test notification ─────────────────────────────────────────────────────
+
+
+async def _settle() -> None:
+    for _ in range(5):
+        await asyncio.sleep(0)
+
+
+def _test_dialog(send_test: Any) -> SettingsDialog:
+    return SettingsDialog(GuiSettings(), [], MagicMock(), send_test=send_test)
+
+
+def test_no_test_button_without_a_way_to_send() -> None:
+    assert not hasattr(_dialog(), "_test_button")
+
+
+@pytest.mark.asyncio
+async def test_clicking_sends_one_test_notification_and_reports_it() -> None:
+    send = AsyncMock()
+    dialog = _test_dialog(send)
+    dialog.show()
+    dialog._test_button.click()
+    await _settle()
+    send.assert_awaited_once()
+    assert dialog._test_status.text().startswith("Sent.")
+    assert not dialog._test_status.isHidden()
+    assert dialog._test_button.isEnabled()
+    dialog.close()
+
+
+@pytest.mark.asyncio
+async def test_a_failure_is_shown_in_the_dialog() -> None:
+    dialog = _test_dialog(AsyncMock(side_effect=NotifierError("Notifications are not allowed for pyobs-gui.")))
+    dialog._test_button.click()
+    await _settle()
+    assert dialog._test_status.text() == "Notifications are not allowed for pyobs-gui."
+    assert "c0392b" in dialog._test_status.styleSheet()
+    assert dialog._test_button.isEnabled()
+
+
+@pytest.mark.asyncio
+async def test_an_unexpected_error_is_shown_too() -> None:
+    dialog = _test_dialog(AsyncMock(side_effect=RuntimeError("boom")))
+    dialog._test_button.click()
+    await _settle()
+    assert "boom" in dialog._test_status.text()
+
+
+@pytest.mark.asyncio
+async def test_clicks_while_a_test_is_running_are_ignored() -> None:
+    release = asyncio.Event()
+    calls: list[int] = []
+
+    async def slow() -> None:
+        calls.append(1)
+        await release.wait()
+
+    dialog = _test_dialog(slow)
+    dialog._test_button.click()
+    await _settle()
+    assert not dialog._test_button.isEnabled()
+    dialog._test()  # what a second click would do
+    await _settle()
+    release.set()
+    await _settle()
+    assert calls == [1] and dialog._test_button.isEnabled()
+
+
+@pytest.mark.asyncio
+async def test_a_second_test_is_possible_after_the_first() -> None:
+    send = AsyncMock()
+    dialog = _test_dialog(send)
+    dialog._test_button.click()
+    await _settle()
+    dialog._test_button.click()
+    await _settle()
+    assert send.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_nothing_is_sent_unless_the_button_is_clicked() -> None:
+    send = AsyncMock()
+    dialog = _test_dialog(send)
+    dialog.show()
+    dialog._apply()
+    dialog.reject()
+    await _settle()
+    send.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "platform, expected",
+    [("win32", "Focus Assist"), ("darwin", "System Settings"), ("linux", "Do Not Disturb")],
+)
+def test_hint_for_a_test_that_showed_nothing(platform: str, expected: str) -> None:
+    from pyobs_gui.settingsdialog import no_notification_hint
+
+    assert expected in no_notification_hint(platform)
+
+
+def test_windows_hint_mentions_the_start_menu_entry() -> None:
+    from pyobs_gui.settingsdialog import no_notification_hint
+
+    assert "Start Menu" in no_notification_hint("win32")

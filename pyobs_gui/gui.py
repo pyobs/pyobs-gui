@@ -1,4 +1,5 @@
 import asyncio
+from functools import partial
 import logging
 import sys
 from typing import Any, cast, TYPE_CHECKING
@@ -94,6 +95,7 @@ class GUI(Module, IFitsHeaderBefore):
         self._store: SettingsStore | None = SettingsStore() if standalone and settings_key else None
         self._settings_dialog: SettingsDialog | None = None
         self._notifications: NotificationManager | None = None
+        self._notifier_backend: DesktopNotifierBackend | None = None
         if self._store is not None and settings_key is not None:
             self.settings = self._load_settings(settings_key)
 
@@ -131,7 +133,13 @@ class GUI(Module, IFitsHeaderBefore):
             self._settings_dialog.raise_()
             self._settings_dialog.activateWindow()
             return
-        dialog = SettingsDialog(self.settings, list(self.comm.clients), self.apply_settings, parent=self._window)
+        dialog = SettingsDialog(
+            self.settings,
+            list(self.comm.clients),
+            self.apply_settings,
+            send_test=self._send_test_notification,
+            parent=self._window,
+        )
         dialog.finished.connect(lambda _result: setattr(self, "_settings_dialog", None))
         self._settings_dialog = dialog
         dialog.open()
@@ -175,9 +183,22 @@ class GUI(Module, IFitsHeaderBefore):
         self._window.show()
         await self._start_notifications()
 
+    def _get_notifier_backend(self) -> DesktopNotifierBackend:
+        """One backend for the notifications and the test button, so the system sees one app."""
+        if self._notifier_backend is None:
+            self._notifier_backend = DesktopNotifierBackend()
+        return self._notifier_backend
+
+    async def _send_test_notification(self) -> None:
+        """The settings dialog's test button: straight through the backend, so a problem is raised
+        (as NotifierError) and the filters of the policy don't apply."""
+        await self._get_notifier_backend().send(
+            "pyobs-gui", "Desktop notifications work.", False, partial(self._bring_window_to_front, None)
+        )
+
     async def _start_notifications(self) -> None:
         """Desktop notifications for module errors. A problem here must not keep the GUI from starting."""
-        backend = DesktopNotifierBackend()
+        backend = self._get_notifier_backend()
         manager = NotificationManager(
             comm=self.comm,
             settings=lambda: self.settings.notifications,

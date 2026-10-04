@@ -6,7 +6,9 @@ effect); a problem, in the input or reported by `on_apply`, is shown in the dial
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import sys
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -16,10 +18,11 @@ from pydantic import ValidationError
 from pyobs.object import get_class_from_string
 from PySide6 import QtWidgets  # type: ignore
 
+from .notifier import NotifierError
 from .settings import GuiSettings, NotificationSettings, VfsSettings
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +37,22 @@ _VFS_CLASSES = [
     "pyobs.vfs.MemoryFile",
     "pyobs.vfs.TempFile",
 ]
+
+
+def no_notification_hint(platform: str) -> str:
+    """What to check when a test notification was sent without an error but nothing appeared. A
+    notification the system drops is not an error the application can see, Windows does it
+    without a word when the app has no identity."""
+    if platform == "win32":
+        return (
+            "If nothing appeared, check that Focus Assist / Do Not Disturb is off and that notifications are "
+            "allowed for pyobs-gui (Settings > System > Notifications). Windows needs the 'pyobs-gui' entry in "
+            "the Start Menu for notifications, which pyobs-gui creates by itself: if it was deleted, restart "
+            "pyobs-gui. Windows gives no error when it drops a notification."
+        )
+    if platform == "darwin":
+        return "If nothing appeared, check Focus and the notification settings for pyobs-gui in System Settings."
+    return "If nothing appeared, check that Do Not Disturb is off and that your desktop shows notifications."
 
 
 @dataclass
@@ -60,12 +79,15 @@ class SettingsDialog(QtWidgets.QDialog):
         settings: GuiSettings,
         modules: list[str],
         on_apply: Callable[[GuiSettings], None],
+        send_test: Callable[[], Awaitable[None]] | None = None,
         parent: QtWidgets.QWidget | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.resize(640, 480)
         self._on_apply = on_apply
+        self._send_test = send_test
+        self._test_task: asyncio.Task[None] | None = None
         self._modules = sorted(modules)
         self._entries: list[_RootEntry] = []
         self._current = -1
@@ -135,7 +157,43 @@ class SettingsDialog(QtWidgets.QDialog):
         muted.addLayout(add_row)
         muted.addWidget(remove)
         form.addRow("Never notify for", muted)
+
+        if self._send_test is not None:
+            self._test_button = QtWidgets.QPushButton("Send test notification")
+            self._test_button.clicked.connect(self._test)
+            self._test_status = QtWidgets.QLabel()
+            self._test_status.setWordWrap(True)
+            self._test_status.setVisible(False)
+            form.addRow(self._test_button)
+            form.addRow(self._test_status)
         return tab
+
+    def _test(self) -> None:
+        """Send a test notification straight through the backend, whatever the checkboxes say: this is
+        where the user finds out whether the desktop shows notifications at all."""
+        if self._test_task is None or self._test_task.done():
+            self._test_task = asyncio.ensure_future(self._run_test())
+
+    async def _run_test(self) -> None:
+        assert self._send_test is not None
+        self._test_button.setEnabled(False)
+        self._show_test_status("Sending...", error=False)
+        try:
+            await self._send_test()
+        except NotifierError as e:
+            self._show_test_status(str(e), error=True)
+        except Exception as e:
+            log.warning("Test notification failed.", exc_info=True)
+            self._show_test_status(f"Could not send the notification: {e}", error=True)
+        else:
+            self._show_test_status(f"Sent. {no_notification_hint(sys.platform)}", error=False)
+        finally:
+            self._test_button.setEnabled(True)
+
+    def _show_test_status(self, text: str, error: bool) -> None:
+        self._test_status.setStyleSheet("color: #c0392b;" if error else "")
+        self._test_status.setText(text)
+        self._test_status.setVisible(True)
 
     def _add_muted(self) -> None:
         name = self._muted_add.text().strip()
