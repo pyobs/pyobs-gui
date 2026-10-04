@@ -63,8 +63,8 @@ notifications:
 
 ### Standalone mode
 
-- Settings live in a YAML file in the user config dir, `QStandardPaths.AppConfigLocation` +
-  `settings.yaml` (no new dependency). Layout:
+- Settings live in a YAML file in the user config dir (`QStandardPaths.GenericConfigLocation` +
+  `pyobs/pyobs-gui/settings.yaml`, not `AppConfigLocation`, which has no app subdirectory here). Layout:
 
   ```yaml
   accounts:

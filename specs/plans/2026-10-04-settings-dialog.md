@@ -27,7 +27,7 @@ settings).
 ## 3. Settings schema and store
 
 - [x] `pyobs_gui/settings.py`: `NotificationSettings`, `VfsSettings`, `GuiSettings` (pydantic).
-- [x] `SettingsStore` (Qt-free): load/save `settings.yaml` in `QStandardPaths.AppConfigLocation`,
+- [x] `SettingsStore` (Qt-free): load/save `settings.yaml` in `QStandardPaths.GenericConfigLocation`/pyobs/pyobs-gui,
       per account id, atomic write, mode `0600` on POSIX, unknown keys preserved.
 - [x] Tests: round trip, unknown keys kept, missing file gives defaults, corrupt file gives a
       clear error and does not overwrite it, per-account isolation.
@@ -36,11 +36,12 @@ settings).
 
 ## 4. Live VFS roots
 
-- [ ] pyobs-core: `VirtualFileSystem.set_roots(roots)` (keeps default roots unless overridden),
-      PR pyobs-core#939 (needs merge and release),
-      test, release. Bump the floor in pyobs-gui.
-- [ ] GUI: apply `vfs.roots` from `GuiSettings` at startup (standalone: from the store; YAML
-      mode: unchanged, uses the core `vfs:` config).
+- [x] pyobs-core: `VirtualFileSystem.set_roots(roots)` (keeps default roots unless overridden).
+      Merged (pyobs-core#939), released in v2.13.5. Floor bumped here, the temporary pyrefly
+      ignores are gone, and the tests use the real `set_roots()`.
+- [x] GUI: apply `vfs.roots` from `GuiSettings` at startup (`GUI._apply_vfs_roots()` in `open()`,
+      standalone only; YAML mode keeps the core `vfs:` config) and on change
+      (`GUI.apply_settings()`: save, `set_roots()`, emit `settings_changed`).
 - [x] `settings_changed` signal (`guisignals.py`, app-wide, emitted by whoever applies settings);
       `VideoWidget` re-resolves stream URLs on it and completes a failed init. Running streams are
       left alone until the next connect, and old URLs are kept if nothing resolves any more.
@@ -51,14 +52,21 @@ settings).
 
 ## 5. Dialog
 
-- [ ] `SettingsDialog` (`QDialog`), tabs Notifications and VFS, OK/Apply/Cancel.
-- [ ] "Settings" button next to `buttonQuit` in `MainWindow`, created only when
-      `on_logout is not None`. Update the `.ui` file and regenerate (`qt/compile.sh`).
-- [ ] VFS tab: roots table, class combo from `pyobs.vfs`, key/value parameters with a YAML edit
-      toggle, class-path validation on Apply.
-- [ ] Notifications tab: five fields, `muted_modules` list with completer from connected modules.
-- [ ] Test that walks `GuiSettings.model_fields` and fails on any field without a dialog widget.
-- [ ] Test that the button does not exist in YAML mode.
+- [x] Settings key per connection: `ConnectionRequest.account_id`, `login.settings_key()` (saved
+      account id, or `jid:<bare jid>` for an unsaved connection), returned by
+      `show_login_and_connect()` and re-read on log out/in.
+- [x] `SettingsDialog` (`QDialog`, `settingsdialog.py`), tabs Notifications and VFS,
+      OK/Apply/Cancel. Problems are shown in the dialog, which stays open.
+- [x] "Settings" button above `buttonQuit`, created in code only when `on_settings` is given
+      (standalone), so no `.ui` change.
+- [x] VFS tab: root list, name, class box (known `pyobs.vfs` classes, any path can be typed) and
+      parameters as YAML text. Class path, YAML and names are validated on Apply. Deviation from
+      the design: no key/value table, YAML text only.
+- [x] Notifications tab: five fields, `muted_modules` list with completer from connected modules.
+- [x] Test that walks `GuiSettings.model_fields` and fails on any field without a dialog widget.
+- [x] Tests that the button and the store only exist in standalone mode.
+- [x] Fixed in `default_settings_path()`: `AppConfigLocation` has no app subdirectory here and
+      would have put the file into `~/.config`.
 
 ## 6. Hand-off to #168
 

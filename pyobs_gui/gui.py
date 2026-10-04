@@ -12,7 +12,9 @@ from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 
 from .nowheelfilter import NoWheelWhenUnfocused
-from .settings import GuiSettings, NotificationSettings, unknown_keys
+from .guisignals import gui_signals
+from .settings import GuiSettings, NotificationSettings, SettingsError, SettingsStore, unknown_keys
+from .settingsdialog import SettingsDialog
 from .utils import QAsyncMessageBox
 
 log = logging.getLogger(__name__)
@@ -36,6 +38,7 @@ class GUI(Module, IFitsHeaderBefore):
         sidebar: list[dict[str, Any]] | None = None,
         standalone: bool = False,
         notifications: dict[str, Any] | None = None,
+        settings_key: str | None = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -53,6 +56,9 @@ class GUI(Module, IFitsHeaderBefore):
                 login window instead of quitting the whole app.
             notifications: Notification settings, see `NotificationSettings`. Unknown keys are
                 rejected, so a typo in the YAML doesn't silently do nothing.
+            settings_key: Standalone only: key of this connection's settings in the settings file
+                (see `login.settings_key`). The settings then come from that file and can be
+                edited with the settings dialog, `notifications` is not used.
         """
 
         unknown = unknown_keys(NotificationSettings, notifications or {}, "notifications.")
@@ -73,6 +79,52 @@ class GUI(Module, IFitsHeaderBefore):
         self._standalone = standalone
         self._logging_out = False
 
+        # standalone: settings live in a file, per connection
+        self._settings_key = settings_key
+        self._store: SettingsStore | None = SettingsStore() if standalone and settings_key else None
+        self._settings_dialog: SettingsDialog | None = None
+        if self._store is not None and settings_key is not None:
+            self.settings = self._load_settings(settings_key)
+
+    def _load_settings(self, key: str) -> GuiSettings:
+        """Settings from the file. An unreadable file must not keep the GUI from starting, so
+        that falls back to the defaults (saving then fails with the same error, rather than
+        overwriting the file)."""
+        assert self._store is not None
+        try:
+            return self._store.get(key)
+        except SettingsError:
+            log.exception("Could not load settings, using defaults.")
+            return GuiSettings()
+
+    def _apply_vfs_roots(self) -> None:
+        if self._store is not None:
+            self.vfs.set_roots(self.settings.vfs.roots)
+
+    def apply_settings(self, settings: GuiSettings) -> None:
+        """Standalone only: save the settings, put them into effect and tell the widgets.
+
+        Raises:
+            SettingsError: The file couldn't be written. Nothing was changed then.
+        """
+        if self._store is None or self._settings_key is None:
+            raise RuntimeError("Settings can only be changed in standalone mode.")
+        self._store.set(self._settings_key, settings)
+        self.settings = settings
+        self._apply_vfs_roots()
+        gui_signals.settings_changed.emit()
+
+    def _open_settings(self) -> None:
+        """Wired to MainWindow's "Settings" button (standalone mode only)."""
+        if self._settings_dialog is not None:
+            self._settings_dialog.raise_()
+            self._settings_dialog.activateWindow()
+            return
+        dialog = SettingsDialog(self.settings, list(self.comm.clients), self.apply_settings, parent=self._window)
+        dialog.finished.connect(lambda _result: setattr(self, "_settings_dialog", None))
+        self._settings_dialog = dialog
+        dialog.open()
+
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         GUI.app = QtWidgets.QApplication(sys.argv)
@@ -90,6 +142,7 @@ class GUI(Module, IFitsHeaderBefore):
         from .mainwindow import MainWindow
 
         await Module.open(self)
+        self._apply_vfs_roots()
 
         # create and show window
         self._window = MainWindow(
@@ -100,6 +153,7 @@ class GUI(Module, IFitsHeaderBefore):
             widgets=self._custom_widgets,
             sidebar=self._custom_sidebar_widgets,
             on_logout=self._request_logout if self._standalone else None,
+            on_settings=self._open_settings if self._store is not None else None,
         )
         await self._window.open(
             module=self,
@@ -119,6 +173,8 @@ class GUI(Module, IFitsHeaderBefore):
             return  # already logging out -- ignore a repeat click
         self._logging_out = True
 
+        if self._settings_dialog is not None:
+            self._settings_dialog.close()
         old_window = self._window
         self._window = None
         if old_window is not None:
@@ -151,7 +207,7 @@ class GUI(Module, IFitsHeaderBefore):
         from .login import show_login_and_connect
 
         try:
-            new_comm = await show_login_and_connect()
+            new_comm, new_key = await show_login_and_connect()
         except asyncio.CancelledError:
             log.info("Login window closed without connecting; nothing left to do but quit.")
             self.quit()
@@ -165,6 +221,9 @@ class GUI(Module, IFitsHeaderBefore):
             self._logging_out = False
 
         self._comm = new_comm
+        if self._store is not None:
+            self._settings_key = new_key
+            self.settings = self._load_settings(new_key)
         try:
             await self.startup()
         except Exception as e:

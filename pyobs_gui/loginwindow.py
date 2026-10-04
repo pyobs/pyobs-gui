@@ -30,6 +30,8 @@ class ConnectionRequest:
     server: str | None
     use_tls: bool
     insecure_skip_tls: bool
+    # id of the saved account this was built from, empty for an unsaved connection
+    account_id: str = ""
 
 
 def build_connection_request(
@@ -359,6 +361,7 @@ class LoginWindow(QtWidgets.QDialog):
         )
         if request is None:
             return
+        request.account_id = self._selected_account_id
 
         if self._selected_account_id:
             self._accounts.last_selected_account_id = self._selected_account_id

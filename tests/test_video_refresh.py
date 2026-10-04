@@ -18,11 +18,7 @@ def _root(port: int) -> dict[str, Any]:
 
 
 def _set_webcam_root(vfs: VirtualFileSystem, port: int | None) -> None:
-    # what pyobs-core's VirtualFileSystem.set_roots() does, without needing that release
-    if port is None:
-        vfs._roots.pop("webcam", None)
-    else:
-        vfs._roots["webcam"] = _root(port)
+    vfs.set_roots({} if port is None else {"webcam": _root(port)})
 
 
 async def _settle() -> None:
