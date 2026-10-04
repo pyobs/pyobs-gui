@@ -49,27 +49,35 @@ send a second one while the script's own window is focused.
       "fallback" (QtDBus + Windows toast library, macOS needs its own backend) and update the
       design doc.
 
-## 2. Interface and policy (no dependency, can start now)
+## 2. Interface and policy (no dependency, done)
 
-- [ ] `pyobs_gui/notifier.py`: `Notifier` protocol (`send(title, message, critical, on_clicked)`)
-      and a `FakeNotifier` for tests that records calls.
-- [ ] `pyobs_gui/notifications.py`: `NotificationPolicy`, pure, injectable clock. Events in
-      (`module_state(module, state, error, initial)`, `log(sender, level, message)`), decisions
-      out (what to send, plus timers to schedule for the startup summary and trailing "N more").
-  - [ ] Module `ERROR` transition notifies, `ERROR` -> `READY` and other states don't.
-  - [ ] Log events at `min_log_level` and above notify, below don't.
-  - [ ] Muted modules: nothing, for state and log events, and not in the startup summary.
-  - [ ] Own sender (this GUI's module name) is ignored.
-  - [ ] Startup summary: initial `ERROR` states collected, one notification when all initial
-        callbacks are in or after 3 s, names cut after a few. Later changes and late-appearing
-        modules are normal events.
-  - [ ] Per-module `rate_limit`: first immediately, rest counted, one trailing "N more" at the end
+- [x] `pyobs_gui/notifier.py`: `Notifier` protocol (`send(title, message, critical, on_clicked)`).
+      The `FakeNotifier` that records calls comes with the manager tests in step 4, nothing uses it
+      before that, and it belongs in `tests/`, not in the package.
+- [x] `pyobs_gui/notifications.py`: `NotificationPolicy`, pure, injectable clock and application
+      state. Events in (`start(modules)`, `module_state(module, state, error)`,
+      `module_closed(module)`, `log(sender, level, message)`), notices out, plus `tick()` and
+      `next_deadline()` for what is due by time alone (startup summary, trailing "N more", folded
+      notices). The caller schedules the timer. The first presence per module after `start()` is
+      initial state, the policy tracks that itself.
+  - [x] Module `ERROR` transition notifies, `ERROR` -> `READY` and other states don't. A repeat
+        of the same state and error text is not a transition.
+  - [x] Log events at `min_log_level` and above notify, below don't.
+  - [x] Muted modules: nothing, for state and log events, and not in the startup summary.
+  - [x] Own sender (this GUI's module name) is ignored.
+  - [x] Startup summary: initial `ERROR` states collected, one notification when all initial
+        callbacks are in or after 3 s, names cut after a few. A single error is announced like
+        any other. Later changes and late-appearing modules are normal events.
+  - [x] Per-module `rate_limit`: first immediately, rest counted, one trailing "N more" at the end
         of the window, `0` turns it off.
-  - [ ] Global cap, 5 per 30 s, rest folded into one "+N more" (constants, not settings).
-  - [ ] `only_when_inactive`, with the application state passed in. Suppressed events don't count
-        towards the rate limits.
-  - [ ] `enabled = False` sends nothing and drops pending trailing notifications.
-- [ ] Tests for each line above with a fake clock.
+  - [x] Global cap, 5 per 30 s, rest folded into one "+N more" (constants, not settings).
+  - [x] `only_when_inactive`, with the application state passed in. Suppressed events don't count
+        towards the rate limits. A trailing or folded notice is dropped if the application is
+        active by the time it is due.
+  - [x] `enabled = False` sends nothing and drops pending trailing notifications.
+- [x] Tests for each line above with a fake clock (`tests/test_notifications.py`, 45). Checked
+      by breaking the policy on purpose five ways (transition check, own sender, cap off by one,
+      window end, inactive check): each is caught.
 
 ## 3. Backend (after the spike)
 
