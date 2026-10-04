@@ -1,18 +1,15 @@
 import asyncio
 import logging
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlencode, urlparse
 
-import numpy as np
 from astroplan import Observer
-from numpy.typing import NDArray
 from pyobs.comm import Comm
 from pyobs.interfaces import ExposureTimeState, GainState, IExposureTime, IGain, IVideo
-from pyobs.utils.stretch import CUTS_MODES, STRETCH_FUNCTIONS, StretchParams, stretch_to_uint8
 from pyobs.vfs import HttpFile, VirtualFileSystem
-from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
+from PySide6 import QtCore, QtGui, QtNetwork  # type: ignore
+from qfitswidget import QImageWidget
 
 from .accounts import _APPLICATION, _ORGANIZATION
 from .base import BaseWidget, missing_root_message
@@ -27,31 +24,9 @@ MJPEG = "mjpeg"
 RAW = "raw"
 _MODES = {MJPEG: "MJPEG (low bandwidth)", RAW: "Raw (full quality)"}
 
-# cuts entry that sends no cuts at all (MJPEG: the module's default, raw: StretchParams' default)
-_AUTO_CUTS = "auto"
-
 # delay before a changed MJPEG setting or a resize reconnects, so typing into a spin box or
 # dragging a window edge doesn't reconnect on every step
 _RECONNECT_DELAY_MS = 500
-
-
-class ScaledLabel(QtWidgets.QLabel):  # type: ignore
-    resized = QtCore.Signal()
-
-    def __init__(self, **kwargs: Any):
-        QtWidgets.QLabel.__init__(self, **kwargs)
-        self._pixmap: QtGui.QPixmap | None = None
-        self.setMinimumSize(QtCore.QSize(10, 10))
-
-    def setPixmap(self, pixmap: QtGui.QPixmap) -> None:
-        self._pixmap = pixmap
-        scaled = pixmap.scaled(self.width(), self.height(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
-        QtWidgets.QLabel.setPixmap(self, scaled)
-
-    def resizeEvent(self, event: Any) -> None:
-        if self._pixmap is not None:
-            self.setPixmap(self._pixmap)
-        self.resized.emit()
 
 
 @dataclass
@@ -65,35 +40,15 @@ class _StreamUrl:
     auth_header: str | None
 
 
-def render_raw(data: NDArray[Any], params: StretchParams, source_dtype: str | None = None) -> QtGui.QImage:
-    """Stretch a raw frame to 8 bit and turn it into a QImage. Runs in a worker thread.
-
-    source_dtype is the frame's dtype before the server binned it (meta `SRCDTYPE`), which the cuts
-    follow: binning turns integer data into float32.
-
-    Flipped vertically like the server's JPEGs, since FITS rows go bottom-up.
-    """
-    img = np.ascontiguousarray(np.flip(stretch_to_uint8(data, params, dtype=source_dtype), axis=0))
-    height, width = img.shape[:2]
-    if img.ndim == 3 and img.shape[2] == 3:
-        fmt = QtGui.QImage.Format.Format_RGB888
-    elif img.ndim == 3 and img.shape[2] == 4:
-        fmt = QtGui.QImage.Format.Format_RGBA8888
-    else:
-        if img.ndim == 3:
-            img = np.ascontiguousarray(img[..., 0])
-        fmt = QtGui.QImage.Format.Format_Grayscale8
-    # copy, since the QImage would otherwise point into the numpy buffer
-    return QtGui.QImage(img.data, width, height, img.strides[0], fmt).copy()
-
-
 class VideoWidget(BaseWidget, Ui_VideoWidget):
     """Live view of a module's video stream, plus exposure-time/gain controls. Paired with
     VideoGrabWidget (same IVideo interface, a separate tab) for the FITS-grab side -- the two
     don't share any state, mirroring how they were already independent halves of one class.
 
     The live view either shows the MJPEG stream, stretched on the server, or reads the raw stream
-    and stretches it here (see specs/2026-09-29-live-view-mjpeg-raw.md)."""
+    and stretches it here (see specs/2026-09-29-live-view-mjpeg-raw.md). Either way it is a
+    qfitswidget QImageWidget with the same stretch/cuts controls as the FITS display: in raw mode it
+    stretches the frames itself, in MJPEG mode it only provides the controls."""
 
     def __init__(self, **kwargs: Any):
         BaseWidget.__init__(self, **kwargs)
@@ -105,29 +60,25 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # current mode
         self._mode = MJPEG
 
-        # add live view
-        self.widgetLiveView = ScaledLabel()
+        # add live view, with its own stretch/cuts controls below the image
+        self.widgetLiveView = QImageWidget(origin="lower")
         self.frameLiveView.layout().addWidget(self.widgetLiveView)
+        self._live_controls = self.widgetLiveView.controls
+        self._render_error: str | None = None
 
         # fill live view controls
         for mode, label in _MODES.items():
             self.comboMode.addItem(label, mode)
-        for stretch in STRETCH_FUNCTIONS:
-            self.comboStretch.addItem(stretch, stretch)
-        for cuts in (_AUTO_CUTS, *CUTS_MODES):
-            self.comboCuts.addItem(cuts, cuts)
 
         # connect signals
         self.spinExpTime.valueChanged.connect(self.exposure_time_changed)
         self.spinGain.valueChanged.connect(self.gain_changed)
         self.comboMode.currentIndexChanged.connect(self._mode_changed)
-        self.comboStretch.currentIndexChanged.connect(self._stretch_changed)
-        self.comboCuts.currentIndexChanged.connect(self._cuts_changed)
-        self.spinLo.valueChanged.connect(self._stretch_changed)
-        self.spinHi.valueChanged.connect(self._stretch_changed)
+        self.widgetLiveView.params_changed.connect(self._stretch_changed)
+        self.widgetLiveView.render_failed.connect(self._on_render_failed)
         self.spinQuality.valueChanged.connect(self._stream_params_changed)
         self.spinMaxRate.valueChanged.connect(self._stream_params_changed)
-        self.widgetLiveView.resized.connect(self._reconnect_timer_start)
+        self.widgetLiveView.view_resized.connect(self._reconnect_timer_start)
 
         # reconnects, delayed (see _RECONNECT_DELAY_MS)
         self._reconnect_timer = QtCore.QTimer(self)
@@ -151,14 +102,6 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # to fit the stream to the view; the size is only known after the first frame
         self._full_size: tuple[int, int] | None = None
         self._factor = 1
-
-        # raw mode: newest frame, kept to re-render when the stretch changes; rendering happens in
-        # a worker thread, and frames arriving while it's busy only replace the newest one
-        self._raw_frame: RawFrame | None = None
-        self._render_busy = False
-        self._render_again = False
-        self._executor: ThreadPoolExecutor | None = None
-        self._render_error: str | None = None
 
         # set while resolving stream URLs if a VFS root is not configured
         self._missing_root_message: str | None = None
@@ -355,13 +298,13 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         """Query parameters for the current mode's stream."""
         q: dict[str, str] = {}
         if self._mode == MJPEG:
-            q["stretch"] = self.comboStretch.currentData()
-            cuts = self.comboCuts.currentData()
-            if cuts != _AUTO_CUTS:
-                q["cuts"] = cuts
-            if cuts in ("percentile", "manual"):
-                q["lo"] = repr(self.spinLo.value())
-                q["hi"] = repr(self.spinHi.value())
+            params = self.widgetLiveView.stretch_params
+            q["stretch"] = params.stretch
+            if params.cuts is not None:
+                q["cuts"] = params.cuts
+            if params.lo is not None and params.hi is not None:
+                q["lo"] = repr(params.lo)
+                q["hi"] = repr(params.hi)
             if self._factor > 1:
                 q["scale"] = str(self._factor)
             if self.spinQuality.value() > 0:
@@ -450,18 +393,17 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             self._show_raw(frames[-1])
 
     def _show_jpeg(self, jpeg: bytes) -> None:
-        qp = QtGui.QPixmap()
-        if not qp.loadFromData(jpeg):
+        image = QtGui.QImage()
+        if not image.loadFromData(jpeg):
             return
-        self._set_full_size(qp.width() * self._factor, qp.height() * self._factor)
-        self.widgetLiveView.setPixmap(qp)
+        self._set_full_size(image.width() * self._factor, image.height() * self._factor)
+        self.widgetLiveView.display_image(image)
 
     def _show_raw(self, frame: RawFrame) -> None:
         binning = int(frame.meta.get("SWBIN", 1))
         height, width = frame.data.shape[:2]
         self._set_full_size(width * binning, height * binning)
-        self._raw_frame = frame
-        self._render()
+        self.widgetLiveView.display(frame.data, source_dtype=frame.meta.get("SRCDTYPE"))
 
     # ── fit to view ────────────────────────────────────────────────────────
 
@@ -478,7 +420,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
     def _fit_factor(self) -> int:
         if self._full_size is None:
             return 1
-        view = self.widgetLiveView.size()
+        view = self.widgetLiveView.view_size
         return fit_factor(*self._full_size, view.width(), view.height())
 
     def _reconnect_timer_start(self) -> None:
@@ -491,54 +433,11 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self._factor = self._fit_factor()
         self._connect()
 
-    # ── client-side stretch (raw mode) ─────────────────────────────────────
-
-    def _stretch_params(self) -> StretchParams:
-        cuts = self.comboCuts.currentData()
-        lo_hi = cuts in ("percentile", "manual")
-        return StretchParams(
-            stretch=self.comboStretch.currentData(),
-            cuts=None if cuts == _AUTO_CUTS else cuts,
-            lo=self.spinLo.value() if lo_hi else None,
-            hi=self.spinHi.value() if lo_hi else None,
-        )
-
-    def _render(self) -> None:
-        """Render the newest raw frame, unless a render is already running (it picks it up)."""
-        if self._raw_frame is None:
-            return
-        if self._render_busy:
-            self._render_again = True
-            return
-        self._render_busy = True
-        asyncio.create_task(self._render_loop())
-
-    async def _render_loop(self) -> None:
-        loop = asyncio.get_running_loop()
-        if self._executor is None:
-            self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="liveview")
-        try:
-            while self._raw_frame is not None:
-                self._render_again = False
-                try:
-                    params = self._stretch_params()
-                    frame = self._raw_frame
-                    image = await loop.run_in_executor(
-                        self._executor, render_raw, frame.data, params, frame.meta.get("SRCDTYPE")
-                    )
-                except ValueError as e:
-                    # e.g. invalid percentiles or "full" cuts on float data; log each problem once
-                    if str(e) != self._render_error:
-                        log.warning("Could not stretch live view of %s: %s", self.module, e)
-                        self._render_error = str(e)
-                else:
-                    self._render_error = None
-                    if self._mode == RAW:
-                        self.widgetLiveView.setPixmap(QtGui.QPixmap.fromImage(image))
-                if not self._render_again:
-                    break
-        finally:
-            self._render_busy = False
+    def _on_render_failed(self, message: str) -> None:
+        # e.g. invalid percentiles or "full" cuts on float data; log each problem once
+        if message != self._render_error:
+            log.warning("Could not stretch live view of %s: %s", self.module, message)
+            self._render_error = message
 
     # ── controls ───────────────────────────────────────────────────────────
 
@@ -546,9 +445,8 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         """Set the controls from the current mode and enable what applies to it."""
         with QtCore.QSignalBlocker(self.comboMode):
             self.comboMode.setCurrentIndex(self.comboMode.findData(self._mode))
-        cuts = self.comboCuts.currentData()
-        for w in (self.labelLo, self.spinLo, self.labelHi, self.spinHi):
-            w.setEnabled(cuts in ("percentile", "manual"))
+        # only raw frames are stretched here, MJPEG ones come stretched from the server
+        self.widgetLiveView.stretch_locally = self._mode == RAW
         for w in (self.labelQuality, self.spinQuality):
             w.setVisible(self._mode == MJPEG)
         for w in (self.labelMaxRate, self.spinMaxRate):
@@ -556,27 +454,17 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
     def _mode_changed(self) -> None:
         self._mode = self.comboMode.currentData()
-        self._raw_frame = None
+        self.widgetLiveView.clear()
         self._update_controls()
         self._save_settings()
         if self.socket is not None:
             self._connect()
 
-    def _cuts_changed(self) -> None:
-        # percentiles outside 0..100 (e.g. left over from manual cuts) would be rejected
-        if self.comboCuts.currentData() == "percentile" and not (0 <= self.spinLo.value() < self.spinHi.value() <= 100):
-            for spin, value in ((self.spinLo, 0.5), (self.spinHi, 99.5)):
-                with QtCore.QSignalBlocker(spin):
-                    spin.setValue(value)
-        self._update_controls()
-        self._stretch_changed()
-
     def _stretch_changed(self) -> None:
-        """Stretch or cuts changed: raw re-renders the last frame, MJPEG needs a new stream."""
+        """Stretch or cuts changed: raw re-renders the last frame by itself, MJPEG needs a new stream."""
+        self._render_error = None
         self._save_settings()
-        if self._mode == RAW:
-            self._render()
-        else:
+        if self._mode == MJPEG:
             self._reconnect_timer_start()
 
     def _stream_params_changed(self) -> None:
@@ -597,10 +485,11 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             return
         s = self._settings()
         s.setValue(self._settings_key("mode"), self._mode)
-        s.setValue(self._settings_key("stretch"), self.comboStretch.currentData())
-        s.setValue(self._settings_key("cuts"), self.comboCuts.currentData())
-        s.setValue(self._settings_key("lo"), self.spinLo.value())
-        s.setValue(self._settings_key("hi"), self.spinHi.value())
+        controls = self._live_controls
+        s.setValue(self._settings_key("stretch"), controls.stretch)
+        s.setValue(self._settings_key("cuts"), controls.cuts_mode)
+        s.setValue(self._settings_key("lo"), controls.cut_lo)
+        s.setValue(self._settings_key("hi"), controls.cut_hi)
         s.setValue(self._settings_key("quality"), self.spinQuality.value())
         s.setValue(self._settings_key("max_rate"), self.spinMaxRate.value())
 
@@ -610,15 +499,22 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         mode = s.value(self._settings_key("mode"), MJPEG)
         self._mode = mode if mode in _MODES else MJPEG
 
-        for combo, name in ((self.comboStretch, "stretch"), (self.comboCuts, "cuts")):
-            index = combo.findData(s.value(self._settings_key(name)))
-            if index >= 0:
-                with QtCore.QSignalBlocker(combo):
+        # the controls' own signals are blocked, so restoring doesn't re-render or save
+        controls = self._live_controls
+        with QtCore.QSignalBlocker(controls):
+            for combo, name in ((controls.comboStretch, "stretch"), (controls.comboCuts, "cuts")):
+                index = combo.findText(str(s.value(self._settings_key(name))))
+                if index >= 0:
                     combo.setCurrentIndex(index)
+            cut_values: list[float] = [controls.cut_lo, controls.cut_hi]
+            for i, name in enumerate(("lo", "hi")):
+                try:
+                    cut_values[i] = float(s.value(self._settings_key(name)))
+                except (TypeError, ValueError):
+                    pass
+            controls.set_cut_values(*cut_values)
 
         spins: list[tuple[Any, str, type]] = [
-            (self.spinLo, "lo", float),
-            (self.spinHi, "hi", float),
             (self.spinQuality, "quality", int),
             (self.spinMaxRate, "max_rate", float),
         ]

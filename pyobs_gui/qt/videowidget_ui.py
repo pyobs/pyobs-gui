@@ -84,58 +84,10 @@ class Ui_VideoWidget(object):
 
         self.formLayoutLiveView.setWidget(0, QFormLayout.ItemRole.FieldRole, self.comboMode)
 
-        self.labelStretch = QLabel(self.groupLiveView)
-        self.labelStretch.setObjectName(u"labelStretch")
-
-        self.formLayoutLiveView.setWidget(1, QFormLayout.ItemRole.LabelRole, self.labelStretch)
-
-        self.comboStretch = QComboBox(self.groupLiveView)
-        self.comboStretch.setObjectName(u"comboStretch")
-
-        self.formLayoutLiveView.setWidget(1, QFormLayout.ItemRole.FieldRole, self.comboStretch)
-
-        self.labelCuts = QLabel(self.groupLiveView)
-        self.labelCuts.setObjectName(u"labelCuts")
-
-        self.formLayoutLiveView.setWidget(2, QFormLayout.ItemRole.LabelRole, self.labelCuts)
-
-        self.comboCuts = QComboBox(self.groupLiveView)
-        self.comboCuts.setObjectName(u"comboCuts")
-
-        self.formLayoutLiveView.setWidget(2, QFormLayout.ItemRole.FieldRole, self.comboCuts)
-
-        self.labelLo = QLabel(self.groupLiveView)
-        self.labelLo.setObjectName(u"labelLo")
-
-        self.formLayoutLiveView.setWidget(3, QFormLayout.ItemRole.LabelRole, self.labelLo)
-
-        self.spinLo = QDoubleSpinBox(self.groupLiveView)
-        self.spinLo.setObjectName(u"spinLo")
-        self.spinLo.setDecimals(2)
-        self.spinLo.setMinimum(-1000000000.000000000000000)
-        self.spinLo.setMaximum(1000000000.000000000000000)
-        self.spinLo.setValue(0.500000000000000)
-
-        self.formLayoutLiveView.setWidget(3, QFormLayout.ItemRole.FieldRole, self.spinLo)
-
-        self.labelHi = QLabel(self.groupLiveView)
-        self.labelHi.setObjectName(u"labelHi")
-
-        self.formLayoutLiveView.setWidget(4, QFormLayout.ItemRole.LabelRole, self.labelHi)
-
-        self.spinHi = QDoubleSpinBox(self.groupLiveView)
-        self.spinHi.setObjectName(u"spinHi")
-        self.spinHi.setDecimals(2)
-        self.spinHi.setMinimum(-1000000000.000000000000000)
-        self.spinHi.setMaximum(1000000000.000000000000000)
-        self.spinHi.setValue(99.500000000000000)
-
-        self.formLayoutLiveView.setWidget(4, QFormLayout.ItemRole.FieldRole, self.spinHi)
-
         self.labelQuality = QLabel(self.groupLiveView)
         self.labelQuality.setObjectName(u"labelQuality")
 
-        self.formLayoutLiveView.setWidget(5, QFormLayout.ItemRole.LabelRole, self.labelQuality)
+        self.formLayoutLiveView.setWidget(1, QFormLayout.ItemRole.LabelRole, self.labelQuality)
 
         self.spinQuality = QSpinBox(self.groupLiveView)
         self.spinQuality.setObjectName(u"spinQuality")
@@ -143,12 +95,12 @@ class Ui_VideoWidget(object):
         self.spinQuality.setMaximum(95)
         self.spinQuality.setValue(0)
 
-        self.formLayoutLiveView.setWidget(5, QFormLayout.ItemRole.FieldRole, self.spinQuality)
+        self.formLayoutLiveView.setWidget(1, QFormLayout.ItemRole.FieldRole, self.spinQuality)
 
         self.labelMaxRate = QLabel(self.groupLiveView)
         self.labelMaxRate.setObjectName(u"labelMaxRate")
 
-        self.formLayoutLiveView.setWidget(6, QFormLayout.ItemRole.LabelRole, self.labelMaxRate)
+        self.formLayoutLiveView.setWidget(2, QFormLayout.ItemRole.LabelRole, self.labelMaxRate)
 
         self.spinMaxRate = QDoubleSpinBox(self.groupLiveView)
         self.spinMaxRate.setObjectName(u"spinMaxRate")
@@ -157,7 +109,7 @@ class Ui_VideoWidget(object):
         self.spinMaxRate.setMaximum(60.000000000000000)
         self.spinMaxRate.setValue(5.000000000000000)
 
-        self.formLayoutLiveView.setWidget(6, QFormLayout.ItemRole.FieldRole, self.spinMaxRate)
+        self.formLayoutLiveView.setWidget(2, QFormLayout.ItemRole.FieldRole, self.spinMaxRate)
 
 
         self.verticalLayout_2.addWidget(self.groupLiveView)
@@ -192,10 +144,6 @@ class Ui_VideoWidget(object):
         self.label_11.setText(QCoreApplication.translate("VideoWidget", u"Gain:", None))
         self.groupLiveView.setTitle(QCoreApplication.translate("VideoWidget", u"Live view", None))
         self.labelMode.setText(QCoreApplication.translate("VideoWidget", u"Mode:", None))
-        self.labelStretch.setText(QCoreApplication.translate("VideoWidget", u"Stretch:", None))
-        self.labelCuts.setText(QCoreApplication.translate("VideoWidget", u"Cuts:", None))
-        self.labelLo.setText(QCoreApplication.translate("VideoWidget", u"Lo:", None))
-        self.labelHi.setText(QCoreApplication.translate("VideoWidget", u"Hi:", None))
         self.labelQuality.setText(QCoreApplication.translate("VideoWidget", u"Quality:", None))
         self.spinQuality.setSpecialValueText(QCoreApplication.translate("VideoWidget", u"default", None))
         self.labelMaxRate.setText(QCoreApplication.translate("VideoWidget", u"Max rate:", None))
