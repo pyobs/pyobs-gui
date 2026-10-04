@@ -148,10 +148,18 @@ send a second one while the script's own window is focused.
       `tests/test_settings.py` (YAML default). Checked by breaking the code on purpose seven ways
       (unsubscribe on close, dedupe, timer stop, own name, logout teardown, YAML default,
       page selection): each is caught.
-- [ ] Live check on KDE and GNOME with `test/full.yaml`: an error in a dummy module shows a
-      toast, the click selects the module and the window asks for attention, nothing while the
-      window is active, the startup summary with a module already in `ERROR`. Not done, needs
-      someone at the screen.
+- [x] Live check on KDE (Plasma 6.6.6, Wayland), 2026-10-04: the real GUI started through
+      `pyobs <config>` with scripted dummy modules (throwaway config, not in the repo). Toasts for a
+      module ERROR (critical, click selects the module), a log error (click only raises), a burst
+      of five (one toast, then "4 more" ten seconds after the first), and nothing while the GUI
+      window was active. Tim: "all seemed good". The decisions are also in the program output.
+      It also found the pydantic/PySide6 import-order regression (fixed in `9066c29`).
+- [ ] Live check still open: GNOME; the startup summary with modules already in `ERROR` before
+      the GUI starts (the dummy modules went into ERROR just after, so they came as two single
+      toasts, the summary is only covered by unit tests); and the traceback after SIGTERM at
+      shutdown (`nowheelfilter.eventFilter` recursion, then `BaseWidget.hideEvent` with "no
+      running event loop"), not checked whether it already happens without notifications.
+
 ## 5. Dialog
 
 - [ ] Notifications tab: "Send test notification" button. Runs through the backend, shows the
