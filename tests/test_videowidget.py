@@ -202,10 +202,9 @@ async def test_mjpeg_frame_is_shown_as_is_and_stretch_change_reconnects(tmp_path
     await widget._showEvent(MagicMock())
     image = QtGui.QImage(4, 3, QtGui.QImage.Format.Format_RGB888)
     image.fill(QtGui.QColor(10, 20, 30))
-    buffer = QtCore.QBuffer()
-    buffer.open(QtCore.QIODevice.OpenModeFlag.WriteOnly)
-    image.save(buffer, b"PNG")
-    widget._show_jpeg(bytes(buffer.data()))
+    path = tmp_path / "frame.png"
+    assert image.save(str(path))
+    widget._show_jpeg(path.read_bytes())
     assert widget.widgetLiveView.image is not None
     assert (widget.widgetLiveView.image.width(), widget.widgetLiveView.image.height()) == (4, 3)
 
