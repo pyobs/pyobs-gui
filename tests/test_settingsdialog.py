@@ -182,7 +182,6 @@ def test_settings_button_only_with_a_handler() -> None:
 def _gui(monkeypatch: pytest.MonkeyPatch, store: SettingsStore, **kwargs: Any) -> GUI:
     monkeypatch.setattr("pyobs_gui.gui.SettingsStore", lambda: store)
     gui = GUI(comm=LocalComm(name="gui"), **kwargs)
-    gui._vfs = MagicMock()  # set_roots() needs a pyobs-core release this repo doesn't depend on yet
     return gui
 
 
@@ -200,6 +199,8 @@ def test_standalone_gui_loads_saves_and_applies(monkeypatch: pytest.MonkeyPatch,
     gui = _gui(monkeypatch, store, standalone=True, settings_key="acc")
     assert gui.settings.notifications.enabled is False
 
+    spy = MagicMock(wraps=gui.vfs.set_roots)
+    monkeypatch.setattr(gui.vfs, "set_roots", spy)
     emitted = MagicMock()
     from pyobs_gui.guisignals import gui_signals
 
@@ -212,7 +213,8 @@ def test_standalone_gui_loads_saves_and_applies(monkeypatch: pytest.MonkeyPatch,
 
     assert store.get("acc") == new
     assert gui.settings == new
-    gui.vfs.set_roots.assert_called_once_with(ROOTS)  # pyrefly: ignore [missing-attribute]
+    spy.assert_called_once_with(ROOTS)
+    assert gui.vfs.open_file("/cache/x", "r") is not None  # the root is really in effect
     emitted.assert_called_once()
 
 

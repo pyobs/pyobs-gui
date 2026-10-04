@@ -3263,7 +3263,7 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "2.13.4"
+version = "2.13.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -3295,9 +3295,9 @@ dependencies = [
     { name = "tenacity" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/69/96/180fbfb00f04a5ca54d92663fc70ad07e234b79bcce72f0dbcc1d2c1940e/pyobs_core-2.13.4.tar.gz", hash = "sha256:3a004cfb85234012d426671a0f8ed9e41abc59657988eb0fe8fe6bc30935d394", size = 451546, upload-time = "2026-10-04T09:31:28.418Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/63/e03b8445105159124ccc49a8791ce5863f59832d8aaea85695fef351bce7/pyobs_core-2.13.5.tar.gz", hash = "sha256:d4384451c0e117d63a95f5c54bf23f929733b0d63c2738004f8d24db8ddd929a", size = 451738, upload-time = "2026-10-04T10:29:53.559Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/10/ba15a1bff91e522200b77ea23a501bbfe05d562bc4f9bd6b7ef56df841bc/pyobs_core-2.13.4-py3-none-any.whl", hash = "sha256:f549638398a735538206cccaef5a8e13ba79be8454551ed2e75fa88bdf208828", size = 690473, upload-time = "2026-10-04T09:31:26.718Z" },
+    { url = "https://files.pythonhosted.org/packages/b2/f7/1528df960c1af3b317a6c817b14fa4c1726c05e6339623f7df87c92653d2/pyobs_core-2.13.5-py3-none-any.whl", hash = "sha256:82fdb2c472b6e2d925532c3e39d8ffc4f6fa4e3b7068b004b5a5b38441d28f6d", size = 690663, upload-time = "2026-10-04T10:29:52.01Z" },
 ]
 
 [[package]]
@@ -3349,7 +3349,7 @@ requires-dist = [
     { name = "keyring", specifier = ">=25.7.0,<26" },
     { name = "matplotlib", specifier = ">=3.10.1,<4" },
     { name = "pydantic", specifier = ">=2.12.5,<3" },
-    { name = "pyobs-core", specifier = ">=2.13.4,<3" },
+    { name = "pyobs-core", specifier = ">=2.13.5,<3" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "pyyaml", specifier = ">=6.0.2,<7" },
     { name = "qasync", specifier = ">=0.27.1,<0.29" },

@@ -36,10 +36,9 @@ settings).
 
 ## 4. Live VFS roots
 
-- [ ] pyobs-core: `VirtualFileSystem.set_roots(roots)` (keeps default roots unless overridden).
-      Merged (pyobs-core#939), **not released yet**. Then bump the `pyobs-core` floor in
-      pyobs-gui and drop the two `pyrefly: ignore [missing-attribute]` (marked TODO in `gui.py`
-      and `tests/test_settingsdialog.py`).
+- [x] pyobs-core: `VirtualFileSystem.set_roots(roots)` (keeps default roots unless overridden).
+      Merged (pyobs-core#939), released in v2.13.5. Floor bumped here, the temporary pyrefly
+      ignores are gone, and the tests use the real `set_roots()`.
 - [x] GUI: apply `vfs.roots` from `GuiSettings` at startup (`GUI._apply_vfs_roots()` in `open()`,
       standalone only; YAML mode keeps the core `vfs:` config) and on change
       (`GUI.apply_settings()`: save, `set_roots()`, emit `settings_changed`).

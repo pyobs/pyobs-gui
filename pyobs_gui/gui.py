@@ -99,8 +99,7 @@ class GUI(Module, IFitsHeaderBefore):
 
     def _apply_vfs_roots(self) -> None:
         if self._store is not None:
-            # TODO: drop the ignore once pyobs-core with VirtualFileSystem.set_roots() (#939) is the floor
-            self.vfs.set_roots(self.settings.vfs.roots)  # pyrefly: ignore [missing-attribute]
+            self.vfs.set_roots(self.settings.vfs.roots)
 
     def apply_settings(self, settings: GuiSettings) -> None:
         """Standalone only: save the settings, put them into effect and tell the widgets.
