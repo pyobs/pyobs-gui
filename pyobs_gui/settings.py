@@ -105,11 +105,15 @@ def _merge(model_class: type[BaseModel], raw: dict[str, Any], new: dict[str, Any
 
 
 def default_settings_path() -> Path:
-    """`settings.yaml` in the platform's per-user app config dir."""
+    """`settings.yaml` in the per-user config dir, next to where `QSettings("pyobs", "pyobs-gui")` lives.
+
+    Not `AppConfigLocation`: that has no app subdirectory unless the application name is set, which
+    it is not here, and would put the file straight into `~/.config`.
+    """
     from PySide6 import QtCore
 
-    location = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.StandardLocation.AppConfigLocation)
-    return Path(location) / SETTINGS_FILENAME
+    location = QtCore.QStandardPaths.writableLocation(QtCore.QStandardPaths.StandardLocation.GenericConfigLocation)
+    return Path(location) / "pyobs" / "pyobs-gui" / SETTINGS_FILENAME
 
 
 class SettingsStore:

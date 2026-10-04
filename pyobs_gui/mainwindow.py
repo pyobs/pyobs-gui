@@ -620,6 +620,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         widgets: Optional[List[Dict[str, Any]]] = None,
         sidebar: Optional[List[Dict[str, Any]]] = None,
         on_logout: Optional[Callable[[], None]] = None,
+        on_settings: Optional[Callable[[], None]] = None,
         **kwargs: Any,
     ):
         """Init window.
@@ -634,6 +635,8 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             on_logout: If given, the bottom-left button reads "Log out" and invokes this
                 instead of closing the window -- used in standalone (login-window) mode, where
                 the GUI module stays alive and reconnects rather than the whole app quitting.
+            on_settings: If given, a "Settings" button above the Log out button invokes this.
+                Only passed in standalone mode, where settings are editable.
         """
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
@@ -688,6 +691,11 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             self.buttonQuit.clicked.connect(on_logout)
         else:
             self.buttonQuit.clicked.connect(self.close)
+        if on_settings is not None:
+            self.buttonSettings = QtWidgets.QPushButton("Settings", self)
+            self.buttonSettings.clicked.connect(on_settings)
+            layout = self.buttonQuit.parentWidget().layout()
+            layout.insertWidget(layout.indexOf(self.buttonQuit), self.buttonSettings)
 
         # list of widgets
         self._widgets: Dict[str, BaseWidget] = {}
