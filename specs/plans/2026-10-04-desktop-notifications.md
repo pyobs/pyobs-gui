@@ -79,24 +79,40 @@ send a second one while the script's own window is focused.
       by breaking the policy on purpose five ways (transition check, own sender, cap off by one,
       window end, inactive check): each is caught.
 
-## 3. Backend (after the spike)
+## 3. Backend (KDE, GNOME and Windows spikes done, macOS open)
 
-- [ ] Add the dependency (`desktop-notifier`, floor from the spike) and relock.
-- [ ] `DesktopNotifierBackend` in `pyobs_gui/notifier.py`: `app_name` `pyobs-gui`, app icon,
-      urgency mapping, `on_clicked` turned into a Qt signal emission (the callback may be on
-      another thread), authorization check on enable.
-- [ ] Failure handling: a failed send is logged once at `WARNING`, never `ERROR` (no log
-      feedback loop), and later failures stay quiet. Note that on Windows a missing app identity
-      is not an error at all, the toast is silently dropped (see the Windows spike result).
-- [ ] Windows app identity: before the first toast, make sure a Start Menu shortcut with the
-      AppUserModelID `pyobs-gui` exists, targeting however the app was started (interpreter or the
-      `pyobs-gui` launcher). First check whether `desktop-notifier` can create it, otherwise
-      create it ourselves (COM `IPropertyStore` via `pywin32` or `comtypes`, Windows-only
-      dependency). No installer exists (the standalone binary was rejected). The registry key the
-      library writes is not enough on Windows 11.
-- [ ] Tests with a fake `DesktopNotifier`: send arguments, click marshalled to the main thread,
-      failing backend logs once at `WARNING`.
-- [ ] Per-platform fallback backends, only for what the spike marked as failing.
+- [x] Add the dependencies and relock: `desktop-notifier>=6.2,<7`, and `pywin32>=312` on Windows
+      only (for the shortcut below).
+- [x] `DesktopNotifierBackend` in `pyobs_gui/notifier_backend.py`: `app_name` `pyobs-gui`, urgency
+      mapping (critical or normal), the library object built on first use, `on_clicked` relayed
+      through a Qt signal so the callback always runs on the main thread, authorization checked
+      (and asked for) before the first send and remembered once granted
+      (`ensure_authorisation()`, which the manager and the dialog can call too). Errors are
+      raised as `NotifierError` with a message for the user, which the dialog test button needs.
+      Open: **no app icon**, the repository has no pyobs logo file, so the library's default
+      (a Python icon) is shown. Needs a logo from Tim.
+- [x] Failure handling: `GuardedNotifier` (in `pyobs_gui/notifier.py`) wraps a notifier for the
+      application's own notifications: the first failure is logged once at `WARNING`, never
+      `ERROR` (no log feedback loop), further ones are quiet until one succeeds again. The dialog
+      test button uses the unguarded backend. On Windows a missing app identity is not an error
+      at all, see the next item.
+- [x] Windows app identity (`pyobs_gui/windows_identity.py`): before the library object is built
+      the backend makes sure the Start Menu shortcut `pyobs-gui.lnk` exists, with the
+      AppUserModelID `pyobs-gui` (what the library uses as its id), targeting however the app was
+      started (the `pyobs-gui` launcher, or the interpreter with `-m pyobs_gui`). `desktop-notifier`
+      only writes the registry key and cannot create the shortcut. An existing shortcut is left
+      alone, a failure is a warning and the toast is still tried. **The COM part
+      (`create_link_com`, pywin32) is untested**, everything around it is tested with a fake.
+      Needs a run on Windows, see the open items below.
+- [x] Tests: `tests/test_notifier_backend.py` (send arguments, urgency, built once and identity
+      first, errors, authorization asked and remembered, click from another thread runs on the
+      main thread, guard logs once and again after a success), `tests/test_windows_identity.py`.
+      Checked by breaking the code on purpose four ways (click not relayed, authorization not
+      remembered, guard logging every time, guard never resetting): each is caught.
+- [ ] Windows: run `create_link_com` on a Windows machine (shortcut appears in the Start Menu, the
+      toast shows afterwards, the shortcut is only created once). Same for a first run with a
+      shortcut that already exists. Hand over to the Windows agent.
+- [ ] Per-platform fallback backends, only for what the spikes mark as failing. None so far.
 
 ## 4. Manager and wiring
 
