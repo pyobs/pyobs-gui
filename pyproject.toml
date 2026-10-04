@@ -1,6 +1,6 @@
 [project]
 name = "pyobs-gui"
-version = "2.6.0"
+version = "2.6.1"
 description = "A remote GUI for pyobs"
 authors = [{ name = "Tim-Oliver Husser", email = "thusser@uni-goettingen.de" }]
 requires-python = ">=3.11"
@@ -14,7 +14,7 @@ dependencies = [
     "astroquery>=0.4.10,<0.5",
     "QtAwesome>=1.4.0,<2",
     "qfitswidget>=1.2.0",
-    "pyobs-core>=2.13.5,<3",
+    "pyobs-core>=2.14.0,<3",
     "pyside6-essentials>=6.10.1",
     "astroplan>=0.10.1",
     "astropy>=7.0.1,<8",
