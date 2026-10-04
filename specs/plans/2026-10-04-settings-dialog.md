@@ -37,12 +37,17 @@ settings).
 ## 4. Live VFS roots
 
 - [ ] pyobs-core: `VirtualFileSystem.set_roots(roots)` (keeps default roots unless overridden),
+      PR pyobs-core#939 (needs merge and release),
       test, release. Bump the floor in pyobs-gui.
 - [ ] GUI: apply `vfs.roots` from `GuiSettings` at startup (standalone: from the store; YAML
       mode: unchanged, uses the core `vfs:` config).
-- [ ] `settings_changed` signal; `VideoWidget` re-resolves stream URLs on it and after a failed
-      resolve. Running streams are left alone until the next connect.
-- [ ] Tests: add a root at runtime, a previously failing path now resolves.
+- [x] `settings_changed` signal (`guisignals.py`, app-wide, emitted by whoever applies settings);
+      `VideoWidget` re-resolves stream URLs on it and completes a failed init. Running streams are
+      left alone until the next connect, and old URLs are kept if nothing resolves any more.
+- [x] Tests (`tests/test_video_refresh.py`): a previously failing init is completed by a new root,
+      new URL used at next connect without reconnecting, old URLs kept, ignored before init,
+      no reaction after discard. They add the root to `vfs._roots` directly, to be switched to
+      `set_roots()` once released.
 
 ## 5. Dialog
 
