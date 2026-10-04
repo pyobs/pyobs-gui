@@ -90,6 +90,15 @@ events. A module that appears already in `ERROR` is therefore notified individua
   be wrong in practice.
 - Both use an injectable clock, so the logic is tested without waiting.
 
+### App identity (Windows)
+
+On the tested Windows 11, toasts only show for an app that has an AppUserModelID registered through a Start Menu
+shortcut (other Windows versions untested). Without it the toast is silently dropped, there is no error to catch. So before the first
+notification the Windows backend makes sure a shortcut with the id `pyobs-gui` exists (target: the
+running executable), created by the library if it can, otherwise by us (or by the installer of the
+standalone build). The test button can't detect a dropped toast, so its text says what to check if
+nothing appeared. A packaged build (MSIX) would get an identity from the package instead.
+
 ### Authorization (macOS)
 
 `desktop-notifier` has `has_authorisation()` and `request_authorisation()`. As far as I know macOS
@@ -137,8 +146,18 @@ signal and the work happens on the main thread.
 
 ## Not verified yet, spike first
 
-1. **Windows:** nothing here can test it. Does a toast appear without an installed shortcut or
-   app identity, is the app name/icon right, does `on_clicked` fire, and on which thread.
+1. **Windows (checked 2026-10-04, Windows 11 Pro 25H2, Python 3.13, `desktop-notifier` 6.2.0, run by an
+   agent on the machine):** the first run showed **no toast at all** and reported no error. The
+   registry key `desktop-notifier` writes (`HKCU\Software\Classes\AppUserModelId\<id>`, display
+   name and icon) existed and Windows reported notifications as enabled for the id, yet toasts
+   under it were dropped, also when sent directly through WinRT from PowerShell. A toast under
+   PowerShell's built-in id displayed, so toasts work on the machine. A Start Menu shortcut with
+   the AppUserModelID set (`System.AppUserModel.ID`, target `python.exe`) fixed it. With it:
+   toast shows, `on_clicked` fires on the Qt main thread, and the minimized window was restored
+   and active afterwards, so raise-on-click works on Windows, unlike on KDE and GNOME. A normal
+   toast went to the Action Center by itself and `on_dismissed` did not fire for it or for the
+   critical one within 70 s (as on KDE and GNOME). Not measured: app name and icon shown, seconds
+   on screen, whether critical is sticky, `on_dismissed` on removal from the Action Center.
 2. **GNOME (checked 2026-10-04, GNOME Shell 50.1, Wayland, Kubuntu 26.04 with `gnome-session` added,
    `desktop-notifier` 6.2.0 under qasync):** the server reports notification spec version 1.2 and the
    capabilities `actions`, `body`, `body-markup`, `icon-static`, `persistence`, `sound` (no tray

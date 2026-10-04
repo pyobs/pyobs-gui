@@ -35,9 +35,13 @@ send a second one while the script's own window is focused.
       `on_clicked`, raising the window from the click does **not** work (same as KDE), see the
       design doc. Still open: toast lifetime and urgency (look at the screen), X11 (probably not
       available on GNOME 50), app identity in the notification list.
-- [ ] Windows (needs a machine): toast shows without an installed shortcut or app identity (and
-      if not, what is the smallest thing that fixes it), app name and icon, click fires, which
-      thread.
+- [x] Windows (11 Pro 25H2, Python 3.13, run by an agent on the machine), done 2026-10-04: **no toast
+      at all** without a Start Menu shortcut carrying the AppUserModelID (the registry key
+      `desktop-notifier` writes is not enough, and nothing is reported as an error). With the
+      shortcut: toast shows, click fires on the Qt thread, and the minimized window is restored
+      and active after the click. Still open: app name and icon in the toast, seconds on screen
+      for normal and critical, whether critical is sticky, whether `on_dismissed` fires when the
+      user removes a toast from the Action Center.
 - [ ] macOS (needs a machine): authorization prompt appears and `has_authorisation()` reflects
       the answer, toast shows, click fires, behavior while the app is frontmost.
 - [ ] Packaging: build the standalone binary with `pyside6-deploy` on Linux (local) and on each
@@ -76,7 +80,13 @@ send a second one while the script's own window is focused.
       urgency mapping, `on_clicked` turned into a Qt signal emission (the callback may be on
       another thread), authorization check on enable.
 - [ ] Failure handling: a failed send is logged once at `WARNING`, never `ERROR` (no log
-      feedback loop), and later failures stay quiet.
+      feedback loop), and later failures stay quiet. Note that on Windows a missing app identity
+      is not an error at all, the toast is silently dropped (see the Windows spike result).
+- [ ] Windows app identity: before the first toast, make sure a Start Menu shortcut with the
+      AppUserModelID `pyobs-gui` exists (target: the running executable). First check whether
+      `desktop-notifier` can create it, otherwise create it ourselves (COM `IPropertyStore` via
+      `pywin32` or `comtypes`, Windows-only dependency) or in the installer of the standalone
+      build. The registry key the library writes is not enough on Windows 11.
 - [ ] Tests with a fake `DesktopNotifier`: send arguments, click marshalled to the main thread,
       failing backend logs once at `WARNING`.
 - [ ] Per-platform fallback backends, only for what the spike marked as failing.
@@ -102,7 +112,8 @@ send a second one while the script's own window is focused.
 
 - [ ] Notifications tab: "Send test notification" button. Runs through the backend, shows the
       error in the dialog if sending fails, and on macOS reports a refused authorization with
-      the System Settings hint.
+      the System Settings hint. On Windows a missing app identity gives no error, so the dialog
+      text must say what to check if nothing appeared.
 - [ ] Authorization is requested when notifications get enabled (startup in standalone mode, or
       the checkbox in the dialog).
 - [ ] Tests: button calls the notifier, failure and refusal are shown, nothing sent when the
