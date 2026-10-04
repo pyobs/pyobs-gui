@@ -6,8 +6,9 @@ Status: in progress (issue #182). Server side: pyobs-core #926, released in pyob
 ## Scope
 
 - Per-camera choice of live-view mode in `VideoWidget`: **MJPEG** (default) or **Raw**.
-- New "Live view" group in the left panel, under ExpTime/Gain: Mode, Stretch, Cuts, Lo, Hi,
-  Quality (MJPEG only), Max rate (Raw only).
+- New "Live view" group in the left panel, under ExpTime/Gain: Mode, Quality (MJPEG only),
+  Max rate (Raw only). Stretch, Cuts and their Lo/Hi values are the controls row of the live view
+  itself (below the image), the same as in the FITS display (see "Live view widget" below).
 - Settings (mode + stretch/cuts/lo/hi/quality/max rate) remembered per camera module via
   `QSettings("pyobs", "pyobs-gui")`, key `liveview/<module>/...`.
 - **Out of scope:** zoom/pan and the server-side crop (`x`/`y`/`w`/`h`) that goes with it. Follow-up
@@ -34,6 +35,13 @@ Status: in progress (issue #182). Server side: pyobs-core #926, released in pyob
   (Raw). Floor, so the delivered image is never smaller than the view. Full frame size is learned
   from the first frame (`NAXISn * SWBIN` for raw, JPEG size × scale for MJPEG); a resize recomputes
   it (debounced) and reconnects only if the factor changed.
+- **Live view widget:** the view is qfitswidget's `QImageWidget` (qfitswidget#38), which brings
+  the same stretch/cuts controls as `QFitsWidget` (cuts: auto/full/minmax/percentile/manual with
+  Lo/Hi boxes for the last two, stretch: linear/sqrt/asinh/log). In Raw mode (`stretch_locally`)
+  the widget stretches frames itself in a worker thread, with a copy of
+  `pyobs.utils.stretch` that qfitswidget tests against pyobs-core. In MJPEG mode it only shows the
+  decoded JPEG (`display_image()`) and its `params_changed` signal drives the query string and
+  the debounced reconnect. This replaced the hand-built controls and `render_raw()` here.
 - **Cuts "auto"** omits `cuts` (MJPEG: module's configured default; Raw: `StretchParams` default,
   i.e. full for 8 bit, minmax otherwise). Lo/Hi only enabled for percentile/manual.
 

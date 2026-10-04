@@ -91,79 +91,13 @@
           <widget class="QComboBox" name="comboMode"/>
          </item>
          <item row="1" column="0">
-          <widget class="QLabel" name="labelStretch">
-           <property name="text">
-            <string>Stretch:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QComboBox" name="comboStretch"/>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="labelCuts">
-           <property name="text">
-            <string>Cuts:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QComboBox" name="comboCuts"/>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="labelLo">
-           <property name="text">
-            <string>Lo:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="spinLo">
-           <property name="decimals">
-            <number>2</number>
-           </property>
-           <property name="minimum">
-            <double>-1000000000.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>1000000000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.500000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="labelHi">
-           <property name="text">
-            <string>Hi:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QDoubleSpinBox" name="spinHi">
-           <property name="decimals">
-            <number>2</number>
-           </property>
-           <property name="minimum">
-            <double>-1000000000.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>1000000000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>99.500000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
           <widget class="QLabel" name="labelQuality">
            <property name="text">
             <string>Quality:</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="1" column="1">
           <widget class="QSpinBox" name="spinQuality">
            <property name="specialValueText">
             <string>default</string>
@@ -179,14 +113,14 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
+         <item row="2" column="0">
           <widget class="QLabel" name="labelMaxRate">
            <property name="text">
             <string>Max rate:</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="2" column="1">
           <widget class="QDoubleSpinBox" name="spinMaxRate">
            <property name="specialValueText">
             <string>unlimited</string>
