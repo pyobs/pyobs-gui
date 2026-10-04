@@ -1,6 +1,6 @@
 # Desktop notifications for module ERROR and log ERROR/CRITICAL
 
-Status: proposed (issue #168). Settings come from `specs/2026-10-04-settings-dialog.md`
+Status: implemented on KDE, other platforms still to check (issue #168). Settings come from `specs/2026-10-04-settings-dialog.md`
 (`NotificationSettings`, implemented).
 Related, independent: pyobs-core `specs/design/push-notification-module.md` (mobile push relay,
 for when nothing is running).

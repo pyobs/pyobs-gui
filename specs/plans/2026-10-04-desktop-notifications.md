@@ -1,6 +1,6 @@
 # Plan: desktop notifications for module ERROR and log ERROR/CRITICAL
 
-Status: proposed. Design: `specs/2026-10-04-desktop-notifications.md`.
+Status: implemented (steps 1 to 5 and the KDE live check). #168 stays open for the checks on GNOME, Windows and macOS, see step 6. Design: `specs/2026-10-04-desktop-notifications.md`.
 Issue: #168. Settings (`NotificationSettings`, the dialog) are implemented, see
 `specs/plans/2026-10-04-settings-dialog.md`.
 
@@ -162,22 +162,32 @@ send a second one while the script's own window is focused.
 
 ## 5. Dialog
 
-- [ ] Notifications tab: "Send test notification" button. Runs through the backend, shows the
-      error in the dialog if sending fails, and on macOS reports a refused authorization with
-      the System Settings hint. On Windows a missing app identity gives no error, so the dialog
-      text must say what to check if nothing appeared.
-- [ ] Authorization is requested when notifications get enabled (startup in standalone mode, or
-      the checkbox in the dialog).
-- [ ] Tests: button calls the notifier, failure and refusal are shown, nothing sent when the
-      dialog is cancelled.
+- [x] Notifications tab: "Send test notification" button (`SettingsDialog(send_test=...)`, wired by
+      `GUI._send_test_notification`). Goes straight through the shared backend, so the policy filters
+      do not apply and a failure raises `NotifierError`, which the dialog shows in red. A refused
+      permission (macOS) comes with the System Settings hint from the backend. On success the dialog
+      says "Sent." plus a per-platform hint (`no_notification_hint`), on Windows including the Start
+      Menu entry, since Windows drops a notification without any error.
+- [x] Authorization is requested when notifications get enabled: at startup, and through
+      `settings_changed` when the checkbox is applied (done in step 4). The test button asks too.
+- [x] Tests: button sends once, success and failure shown, unexpected errors shown, clicks while
+      running ignored, nothing sent unless clicked, per-platform hints, GUI wiring (shared backend,
+      click raises the window). Checked by breaking the code six ways: each is caught.
 
 ## 6. Wrap-up
 
-- [ ] Manual run on every platform from step 1: error in a dummy module (`test/full.yaml`), toast
-      shows, click raises and selects, toast suppressed while the window is active, summary on
-      connect with a module already in `ERROR`, flapping module folds into "N more".
-- [ ] User docs: the `notifications:` YAML block, the dialog tab, what to do if nothing appears
-      (per platform).
-- [ ] `pyrefly`, `ruff`, `black`, full `pytest`.
-- [ ] Update the status lines in `specs/index.md`, `specs/plans/index.md` and the design doc, and
-      close #168.
+- [ ] Manual run on the remaining platforms: GNOME, Windows (after the COM shortcut check), macOS.
+      Done on KDE, see step 4. Includes the startup summary with a module already in `ERROR`
+      before the GUI starts, which no live run has shown yet.
+- [x] User docs (`docs/source/index.rst`, "Settings and desktop notifications"): the
+      `notifications:` YAML block, the standalone settings dialog and file, what to do if nothing
+      appears, per platform.
+- [x] `pyrefly`, `ruff`, `black`, full `pytest` (301 tests) for everything up to step 5.
+- [x] Status lines in `specs/index.md`, `specs/plans/index.md` and the design doc: implemented,
+      with the open checks named.
+- [ ] Close #168 once the remaining platform checks are done or listed as untested in the user
+      docs (the docs already say macOS is untested).
+
+Open items, collected: Windows COM shortcut check, macOS check, GNOME live check, startup summary
+live, the shutdown traceback after SIGTERM, toast lifetimes (KDE, GNOME, Windows), a pyobs logo for
+the notification icon.

@@ -44,6 +44,63 @@ This is an example configuration for a GUI that defines one custom widget for th
           download: http://localhost:37077/
 
 
+Settings and desktop notifications
+***********************************
+
+The GUI can show a desktop notification when a module goes into ``ERROR`` or when an ``ERROR`` or
+``CRITICAL`` log event arrives, so an operator who has the GUI open but is not looking at it notices.
+No tray icon is needed. Notifications are only shown while the GUI is not the active application.
+Clicking one brings the window forward (where the desktop allows it, otherwise it is highlighted in
+the taskbar) and, for a module error, selects that module.
+
+Configured GUI (YAML)
+=====================
+
+Notifications are **off** unless the configuration has a ``notifications:`` block. With the block
+present they are on, and these values can be set (all optional, shown with their defaults)::
+
+    class: pyobs_gui.GUI
+
+    notifications:
+      enabled: true
+      min_log_level: ERROR        # ERROR or CRITICAL
+      only_when_inactive: true    # nothing while the GUI is the active application
+      muted_modules: []           # modules that never notify
+      rate_limit: 10              # seconds, repeats from one module are combined into "N more"
+
+A typo in the block is an error at startup. At most 5 notifications are shown in 30 seconds, the rest
+is combined into one "+N more notifications". Modules that are already in ``ERROR`` when the GUI
+connects are announced together in one notification.
+
+Standalone GUI (login window)
+=============================
+
+The standalone GUI has a **Settings** button above "Log out". The settings are saved per account in
+``settings.yaml`` in the user's config directory (``~/.config/pyobs/pyobs-gui/`` on Linux) and apply
+immediately. There are two tabs:
+
+* *Notifications*: the values above, plus **Send test notification**, which shows whether the desktop
+  shows notifications at all.
+* *VFS*: the VFS roots, which the standalone GUI otherwise does not have. Without a root for the
+  path a camera publishes, images and the live view cannot be loaded. A root has a name, a class
+  (e.g. ``pyobs.vfs.HttpFile``) and parameters as YAML, the same as in a ``vfs:`` block.
+
+The file can contain tokens in clear text, so it is only readable by the user (on systems that have
+such permissions). A file that cannot be read is never overwritten: fix or delete it.
+
+If nothing appears
+==================
+
+Use the test button first. It reports an error if the system refuses, and says what to check if it
+does not. Notifications were checked on KDE Plasma and GNOME (Wayland) and on Windows 11, not yet on
+macOS.
+
+* On every system, check that Do Not Disturb (Focus Assist on Windows) is off.
+* Windows shows a notification only for an app that has an entry in the Start Menu. pyobs-gui creates
+  ``pyobs-gui`` there when it first sends a notification. Windows gives no error when it drops a
+  notification, so if the entry was deleted, restart the GUI.
+* macOS asks for permission once. If it was refused, allow it for pyobs-gui in System Settings.
+
 Available classes
 ******************
 

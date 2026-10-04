@@ -8,7 +8,7 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
-- `2026-10-04-desktop-notifications.md` — **proposed (issue #168)**. Desktop notifications for
+- `2026-10-04-desktop-notifications.md` — **implemented, #168 open for GNOME/Windows/macOS checks**. Desktop notifications for
   module `ERROR` and log `ERROR`/`CRITICAL`, no tray icon (`desktop-notifier` behind a small
   interface), startup summary, per-module and global rate limits, click raises the window. GNOME,
   KDE, Windows and macOS in scope. Lists what needs a spike on each first. Checklist in
