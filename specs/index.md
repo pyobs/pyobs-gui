@@ -74,6 +74,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
   single compiled binary that works across sites with no rebuild. **rejected 2026-09-14** — the
   real build came out several GB, not viable as a one-file download. The two pieces below shipped
   independently and aren't affected.
+- `pyobs-core/specs/design/gui-install-size-and-standalone-build.md` — slimmed install (1506 to
+  716 MB) and the experimental Nuitka binary (764 MB) with its open astropy unit-format issue.
+  **dependency split implemented** (`pyobs-gui` 2.6.1, `pyobs-core` 2.14.0), binary experimental.
 - `pyobs-core/specs/plans/2026-07-26-gui-interactive-login.md` — interactive login/settings
   dialog to replace the current YAML-config-file requirement (pyobs-core side).
   **implemented, closed** (landed 2026-07-27)
