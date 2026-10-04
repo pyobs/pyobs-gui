@@ -8,6 +8,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-10-04-settings-dialog.md` — **proposed (issues #168, #185, #186)**. Repos: pyobs-gui,
+  pyobs-core. One settings schema, YAML config in YAML mode, standalone-only settings dialog
+  (notifications, VFS roots, live apply). Checklist in `plans/2026-10-04-settings-dialog.md`.
 - `2026-09-29-live-view-mjpeg-raw.md` — **in progress (issue #182)**. Per-camera live-view mode:
   MJPEG with server-side stretch or raw stream with client-side stretch, fit-to-widget
   downsampling, settings remembered per camera. Zoom + server-side crop deferred.
