@@ -114,23 +114,44 @@ send a second one while the script's own window is focused.
       shortcut that already exists. Hand over to the Windows agent.
 - [ ] Per-platform fallback backends, only for what the spikes mark as failing. None so far.
 
-## 4. Manager and wiring
+## 4. Manager and wiring (done, not yet tried live)
 
-- [ ] `NotificationManager` (`QObject`): owns the policy, a `Notifier` and the timers
-      (`QTimer` for the summary and the trailing notifications). Reads
-      `gui.settings.notifications` at event time.
-- [ ] Presence: subscribe to `comm.subscribe_presence(module, cb)` for every connected module
-      (initial list at start, then `ModuleOpenedEvent`/`ModuleClosedEvent`), unsubscribe on
-      close and on log out. The callback marks the first call per module as initial.
-- [ ] Log events: feed from `MainWindow.process_log_entry`.
-- [ ] Click: raise the window; for a module `ERROR` also `_select_page_by_name(module)`; for a log
-      event only raise. Check that the page name really equals the module name.
-- [ ] `MainWindow.open()` creates the manager, `discard_all_widgets()` tears it down. Log out and
-      back in re-subscribes cleanly (test with the existing logout flow).
-- [ ] YAML mode: `GUI.__init__` uses `enabled=False` when `notifications` is not given.
-- [ ] Tests: subscriptions follow module open/close and log out, click behavior for state and log
-      events, disabled by default in YAML mode, enabled by default in standalone.
-
+- [x] `NotificationManager` (`pyobs_gui/notificationmanager.py`, a `QObject`): owns the policy,
+      a `Notifier` and one `QTimer` that is set from `policy.next_deadline()` after every call
+      and fires `tick()`. Reads `gui.settings.notifications` at event time.
+- [x] Presence: `comm.subscribe_presence(module, cb)` for every connected module at start, then
+      for `ModuleOpenedEvent` (once per module), unsubscribe on `ModuleClosedEvent` and on close.
+      The callback only emits a Qt signal, so it is handled on the main thread whichever thread
+      comm uses. The policy tells initial state from transitions by itself.
+- [x] Log events: the manager registers its own `LogEvent` handler, instead of being fed from
+      `MainWindow.process_log_entry` as the design said. Same events, no change to the window,
+      and the manager can be tested without one.
+- [x] Click: `MainWindow.bring_to_front(module)` shows (restores if minimized), raises and
+      activates the window, calls `QApplication.alert()` (the fallback where raising is refused,
+      see the KDE/GNOME spike) and selects the page for a module `ERROR`. Page names are the
+      module names (`_add_client`), a module without a page is a no-op. A log event only raises.
+- [x] The manager is created by `GUI` (`_start_notifications()` after the window is shown), not by
+      `MainWindow.open()`: `GUI` owns the settings and the module lifetime, and `MainWindow`
+      stays testable without comm. A failure to start is a warning and doesn't keep the GUI from
+      starting. It is stopped in `_logout()` before the comm is closed, and in `GUI.close()`.
+      Log out and back in builds a new one through `open()`.
+- [x] Permission: `ensure_authorisation()` of the backend is called when the manager starts with
+      notifications enabled, and again when `settings_changed` fires with them enabled. A refusal
+      is a warning in the log.
+- [x] YAML mode: `GUI.__init__` uses `enabled=False` when `notifications` is not given (a
+      `notifications:` block, even an empty one, switches it on). Standalone keeps the schema
+      default, on.
+- [x] Tests: `tests/test_notificationmanager.py` (subscriptions follow module open/close, state
+      and log notices, own events ignored, startup summary and trailing notices via the timer,
+      disabled, presence from another thread, close, permission, `bring_to_front`),
+      `tests/test_gui_notifications.py` (start, click, failing start, close, logout order),
+      `tests/test_settings.py` (YAML default). Checked by breaking the code on purpose seven ways
+      (unsubscribe on close, dedupe, timer stop, own name, logout teardown, YAML default,
+      page selection): each is caught.
+- [ ] Live check on KDE and GNOME with `test/full.yaml`: an error in a dummy module shows a
+      toast, the click selects the module and the window asks for attention, nothing while the
+      window is active, the startup summary with a module already in `ERROR`. Not done, needs
+      someone at the screen.
 ## 5. Dialog
 
 - [ ] Notifications tab: "Send test notification" button. Runs through the backend, shows the
