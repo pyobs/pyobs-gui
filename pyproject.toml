@@ -19,6 +19,8 @@ dependencies = [
     "keyring>=25.7.0,<26",
     "pydantic>=2.12.5,<3",
     "pyyaml>=6.0.2,<7",
+    "desktop-notifier>=6.2,<7",
+    "pywin32>=312; sys_platform == 'win32'",
     "secretstorage>=3.5.0,<4",
 ]
 
