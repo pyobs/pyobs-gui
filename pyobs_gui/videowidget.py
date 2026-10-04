@@ -15,9 +15,10 @@ from pyobs.vfs import HttpFile, VirtualFileSystem
 from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
 
 from .accounts import _APPLICATION, _ORGANIZATION
-from .base import BaseWidget
+from .base import BaseWidget, missing_root_message
 from .livestream import MjpegParser, RawFrame, RawParser, StreamError, fit_factor
 from .qt.videowidget_ui import Ui_VideoWidget
+from .utils import QAsyncMessageBox
 
 log = logging.getLogger(__name__)
 
@@ -158,6 +159,9 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self._executor: ThreadPoolExecutor | None = None
         self._render_error: str | None = None
 
+        # set while resolving stream URLs if a VFS root is not configured
+        self._missing_root_message: str | None = None
+
         # settings are only saved once they have been restored for this camera
         self._settings_loaded = False
 
@@ -189,6 +193,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         if not isinstance(self.vfs, VirtualFileSystem):
             log.error("Video is not available — no VFS.")
             return
+        self._missing_root_message = None
         for mode, path in ((MJPEG, caps.mjpeg), (RAW, caps.raw)):
             if path is not None:
                 url = await self._resolve_url(path)
@@ -196,6 +201,8 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
                     self._urls[mode] = url
         if not self._urls:
             log.error("Module %s has no usable video stream.", self.module)
+            if self._missing_root_message is not None:
+                await QAsyncMessageBox.warning(self, "VFS root not configured", self._missing_root_message)
             return
 
         # only offer available modes
@@ -230,6 +237,10 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         try:
             video_file = await loop.run_in_executor(None, self.vfs.open_file, path, "r")  # type: ignore[union-attr]
         except Exception as e:
+            message = missing_root_message(e, path, self.module)
+            if message is not None and self._missing_root_message is None:
+                # shown once by _init(), if no stream could be resolved at all
+                self._missing_root_message = message
             log.error("Could not open video VFS path %s: %s", path, e)
             return None
         if not isinstance(video_file, HttpFile):

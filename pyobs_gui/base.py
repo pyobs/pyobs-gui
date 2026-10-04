@@ -45,6 +45,20 @@ async def show_remote_error(parent: QtWidgets.QWidget, exception: Exception) -> 
         await QAsyncMessageBox.warning(parent, "Error", str(exception))
 
 
+def missing_root_message(exception: Exception, path: str, module: str) -> str | None:
+    """User-facing text if `exception` is the VFS's "unknown root" error, else None.
+
+    `VirtualFileSystem.open_file()` raises a plain `ValueError("Could not find root ...")`, so the
+    message prefix is the only way to tell it from other `ValueError`s.
+    """
+    from pyobs.vfs import VirtualFileSystem
+
+    if not isinstance(exception, ValueError) or not str(exception).startswith("Could not find root"):
+        return None
+    root, _ = VirtualFileSystem.split_root(path)
+    return f"Cannot open '{path}' from module '{module}': the VFS root '{root}' is not configured."
+
+
 async def cancel_and_drain(task: asyncio.Task[Any]) -> None:
     """Cancel a task and await its unwind, swallowing the resulting CancelledError."""
     task.cancel()
