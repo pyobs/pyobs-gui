@@ -26,12 +26,12 @@ settings).
 
 ## 3. Settings schema and store
 
-- [ ] `pyobs_gui/settings.py`: `NotificationSettings`, `VfsSettings`, `GuiSettings` (pydantic).
-- [ ] `SettingsStore` (Qt-free): load/save `settings.yaml` in `QStandardPaths.AppConfigLocation`,
+- [x] `pyobs_gui/settings.py`: `NotificationSettings`, `VfsSettings`, `GuiSettings` (pydantic).
+- [x] `SettingsStore` (Qt-free): load/save `settings.yaml` in `QStandardPaths.AppConfigLocation`,
       per account id, atomic write, mode `0600` on POSIX, unknown keys preserved.
-- [ ] Tests: round trip, unknown keys kept, missing file gives defaults, corrupt file gives a
+- [x] Tests: round trip, unknown keys kept, missing file gives defaults, corrupt file gives a
       clear error and does not overwrite it, per-account isolation.
-- [ ] YAML mode: `GUI.__init__(notifications=...)`, validated into `GuiSettings`. Test with a
+- [x] YAML mode: `GUI.__init__(notifications=...)`, validated into `GuiSettings`. Test with a
       `test/*.yaml` config.
 
 ## 4. Live VFS roots
