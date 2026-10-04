@@ -8,6 +8,9 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-09-29-live-view-mjpeg-raw.md` — **in progress (issue #182)**. Per-camera live-view mode:
+  MJPEG with server-side stretch or raw stream with client-side stretch, fit-to-widget
+  downsampling, settings remembered per camera. Zoom + server-side crop deferred.
 - `2026-09-14-stacked-widget-scroll-fallback.md` — **implemented**. `stackedWidget` wrapped in a
   `QScrollArea` (`stackedWidgetScroll`) as a general fallback once a module page can't shrink
   further, instead of every such floor needing its own individual fix. The flagged
