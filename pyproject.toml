@@ -17,6 +17,8 @@ dependencies = [
     "astroplan>=0.10.1",
     "astropy>=7.0.1,<8",
     "keyring>=25.7.0,<26",
+    "pydantic>=2.12.5,<3",
+    "pyyaml>=6.0.2,<7",
     "secretstorage>=3.5.0,<4",
 ]
 

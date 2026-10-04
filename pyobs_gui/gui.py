@@ -12,6 +12,7 @@ from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 
 from .nowheelfilter import NoWheelWhenUnfocused
+from .settings import GuiSettings, NotificationSettings, unknown_keys
 from .utils import QAsyncMessageBox
 
 log = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ class GUI(Module, IFitsHeaderBefore):
         widgets: list[dict[str, Any]] | None = None,
         sidebar: list[dict[str, Any]] | None = None,
         standalone: bool = False,
+        notifications: dict[str, Any] | None = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -49,10 +51,18 @@ class GUI(Module, IFitsHeaderBefore):
                 (pyobs_gui.login.login_and_build_gui) rather than a YAML-configured Comm. When
                 True, MainWindow's bottom-left button reads "Log out" and reconnects via the
                 login window instead of quitting the whole app.
+            notifications: Notification settings, see `NotificationSettings`. Unknown keys are
+                rejected, so a typo in the YAML doesn't silently do nothing.
         """
+
+        unknown = unknown_keys(NotificationSettings, notifications or {}, "notifications.")
+        if unknown:
+            raise ValueError(f"Unknown GUI settings: {', '.join(unknown)}")
+        settings = GuiSettings(notifications=NotificationSettings.model_validate(notifications or {}))
 
         # init module
         Module.__init__(self, *args, **kwargs)
+        self.settings = settings
         self._window: MainWindow | None = None
         self._show_shell = show_shell
         self._show_events = show_events
