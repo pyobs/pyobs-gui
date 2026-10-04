@@ -1018,6 +1018,23 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
             return
         self._select_page_by_name(name)
 
+    def bring_to_front(self, module: Optional[str] = None) -> None:
+        """A desktop notification was clicked: show the window, and select the page of `module`.
+
+        Raising may be refused (on KDE and GNOME under Wayland it is: the compositor wants an
+        activation token the notification doesn't pass on), so the window also asks for attention,
+        which the desktop shows as a highlighted taskbar entry. Selecting the page works either way.
+        """
+        if self.isMinimized():
+            self.showNormal()
+        else:
+            self.show()
+        self.raise_()
+        self.activateWindow()
+        QtWidgets.QApplication.alert(self)
+        if module is not None:
+            self._select_page_by_name(module)
+
     def _select_page_by_name(self, name: str) -> None:
         """Selects the listPages row for `name`; selection change drives the existing
         currentRowChanged -> _change_page path, so this never touches stackedWidget directly."""

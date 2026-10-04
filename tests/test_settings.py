@@ -181,8 +181,14 @@ def test_gui_reads_notifications_from_config() -> None:
     assert gui.settings.notifications.min_log_level == "ERROR"
 
 
-def test_gui_defaults_without_notifications() -> None:
-    assert _gui().settings == GuiSettings()
+def test_gui_notifications_are_off_without_a_notifications_block() -> None:
+    # YAML mode, so an upgrade does not start desktop notifications in existing control rooms
+    assert _gui().settings == GuiSettings(notifications=NotificationSettings(enabled=False))
+
+
+def test_gui_notifications_are_on_with_a_notifications_block() -> None:
+    assert _gui(notifications={}).settings == GuiSettings()
+    assert _gui(notifications={"rate_limit": 3}).settings.notifications.enabled is True
 
 
 def test_gui_rejects_typos_in_notifications() -> None:

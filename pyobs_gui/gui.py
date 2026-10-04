@@ -13,6 +13,9 @@ from pyobs.modules import Module
 
 from .nowheelfilter import NoWheelWhenUnfocused
 from .guisignals import gui_signals
+from .notificationmanager import NotificationManager
+from .notifier import GuardedNotifier
+from .notifier_backend import DesktopNotifierBackend
 from .settings import GuiSettings, NotificationSettings, SettingsError, SettingsStore, unknown_keys
 from .settingsdialog import SettingsDialog
 from .utils import QAsyncMessageBox
@@ -64,7 +67,14 @@ class GUI(Module, IFitsHeaderBefore):
         unknown = unknown_keys(NotificationSettings, notifications or {}, "notifications.")
         if unknown:
             raise ValueError(f"Unknown GUI settings: {', '.join(unknown)}")
-        settings = GuiSettings(notifications=NotificationSettings.model_validate(notifications or {}))
+        # YAML mode: off unless the config has a `notifications:` block, so existing control-room GUIs
+        # don't start showing desktop notifications after an upgrade
+        notification_settings = (
+            NotificationSettings.model_validate(notifications)
+            if notifications is not None
+            else NotificationSettings(enabled=False)
+        )
+        settings = GuiSettings(notifications=notification_settings)
 
         # init module
         Module.__init__(self, *args, **kwargs)
@@ -83,6 +93,7 @@ class GUI(Module, IFitsHeaderBefore):
         self._settings_key = settings_key
         self._store: SettingsStore | None = SettingsStore() if standalone and settings_key else None
         self._settings_dialog: SettingsDialog | None = None
+        self._notifications: NotificationManager | None = None
         if self._store is not None and settings_key is not None:
             self.settings = self._load_settings(settings_key)
 
@@ -162,6 +173,41 @@ class GUI(Module, IFitsHeaderBefore):
             observer=self._observer,
         )
         self._window.show()
+        await self._start_notifications()
+
+    async def _start_notifications(self) -> None:
+        """Desktop notifications for module errors. A problem here must not keep the GUI from starting."""
+        backend = DesktopNotifierBackend()
+        manager = NotificationManager(
+            comm=self.comm,
+            settings=lambda: self.settings.notifications,
+            notifier=GuardedNotifier(backend),
+            bring_to_front=self._bring_window_to_front,
+            authorise=backend.ensure_authorisation,
+        )
+        try:
+            await manager.start(self.comm.clients)
+        except Exception:
+            log.warning("Could not start desktop notifications.", exc_info=True)
+            return
+        self._notifications = manager
+
+    async def _close_notifications(self) -> None:
+        manager, self._notifications = self._notifications, None
+        if manager is not None:
+            try:
+                await manager.close()
+            except Exception:
+                log.warning("Could not stop desktop notifications cleanly.", exc_info=True)
+
+    def _bring_window_to_front(self, module: str | None) -> None:
+        if self._window is not None:
+            self._window.bring_to_front(module)
+
+    async def close(self) -> None:
+        """Close module."""
+        await self._close_notifications()
+        await Module.close(self)
 
     def _request_logout(self) -> None:
         """Wired to MainWindow's "Log out" button (standalone mode only). Hides the current
@@ -199,6 +245,8 @@ class GUI(Module, IFitsHeaderBefore):
             # first, so a stray in-flight callback can't fire against an already-destroyed label
             await old_window.discard_all_widgets()
             old_window.deleteLater()
+
+        await self._close_notifications()
 
         old_comm = self._comm
         if old_comm is not None:
