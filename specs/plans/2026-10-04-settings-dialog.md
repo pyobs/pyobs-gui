@@ -7,16 +7,22 @@ settings).
 
 ## 1. Audit (before any code)
 
-- [ ] `grep` every use of `self.vfs` / `read_fits` / `open_file` in `pyobs_gui/` and list which
+- [x] `grep` every use of `self.vfs` / `read_fits` / `open_file` in `pyobs_gui/` and list which
       widgets cache VFS-derived state (known: `VideoWidget` stream URLs). Add findings to the
-      design doc's "Risks".
+      design doc's "Risks". Done: only `VideoWidget` and `DataDisplayWidget` use the VFS, only
+      `VideoWidget` caches.
 
 ## 2. #185: clear error for unresolved roots (ships first, independent)
 
-- [ ] Helper that turns the `ValueError: Could not find root ...` from `VirtualFileSystem` into a
-      user-facing message with root name and module; standalone text points to Settings.
-- [ ] Use it in `DataDisplayWidget` (around `vfs.read_fits`) and `VideoWidget._resolve_url`.
-- [ ] Tests: missing root gives the message, not an unhandled exception; widget stays usable.
+- [x] Helper that turns the `ValueError: Could not find root ...` from `VirtualFileSystem` into a
+      user-facing message with root name and module (`missing_root_message()` in `base.py`).
+      The pointer to Settings in standalone mode is added in step 5, once the dialog exists.
+- [x] Use it in `DataDisplayWidget` (around `vfs.read_fits`, box once per root) and
+      `VideoWidget` (`_resolve_url` records it, `_init` shows it if no stream resolved).
+- [x] Tests (`tests/test_missing_vfs_root.py`): message content, once-per-root, other
+      `ValueError`s still propagate, video init shows the box and stays disabled.
+- [ ] Follow-up in core: a dedicated exception for an unknown root, so the message-prefix match in
+      `missing_root_message()` can go.
 
 ## 3. Settings schema and store
 

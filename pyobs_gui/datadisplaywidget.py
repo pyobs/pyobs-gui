@@ -15,7 +15,8 @@ from qfitswidget import QFitsWidget  # type: ignore
 from pyobs.events import NewImageEvent, NewSpectrumEvent, Event
 from pyobs.interfaces import IData, ISpectrograph
 from pyobs.vfs import VirtualFileSystem
-from .base import BaseWidget
+from .base import BaseWidget, missing_root_message
+from .utils import QAsyncMessageBox
 from .qt.datadisplaywidget_ui import Ui_DataDisplayWidget
 
 if TYPE_CHECKING:
@@ -43,6 +44,8 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         self.canvas: FigureCanvas | None = None
         self.plotTools: NavigationToolbar2QT | None = None
         self.is_spectrograph = False
+        # roots already reported to the user, so a stream of images doesn't open one box each
+        self._reported_roots: set[str] = set()
 
         # before first update, disable mys
         self.setEnabled(False)
@@ -100,6 +103,15 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
 
         # signal GUI update
         self.signal_update_gui.emit()
+
+    async def _report_missing_root(self, path: str, message: str) -> None:
+        """Log every time, but open the message box only once per root."""
+        log.error(message)
+        root = VirtualFileSystem.split_root(path)[0]
+        if root in self._reported_roots:
+            return
+        self._reported_roots.add(root)
+        await QAsyncMessageBox.warning(self, "VFS root not configured", message)
 
     def plot(self) -> None:
         """Show data."""
@@ -198,7 +210,14 @@ class DataDisplayWidget(BaseWidget, Ui_DataDisplayWidget):
         # download data
         if self.vfs is None or not isinstance(self.vfs, VirtualFileSystem):
             return False
-        data = await self.vfs.read_fits(event.filename)
+        try:
+            data = await self.vfs.read_fits(event.filename)
+        except ValueError as e:
+            message = missing_root_message(e, event.filename, self.module)
+            if message is None:
+                raise
+            await self._report_missing_root(event.filename, message)
+            return False
 
         # auto save?
         if autosave is not None:

@@ -141,6 +141,15 @@ behavior) is decided in #168's own design pass and consumes `NotificationSetting
   should validate the class path on Apply and show the error there, not only later at use.
 - Clear-text tokens: `0600` is POSIX only. On Windows the file is in the user profile but not
   restricted further. Acceptable per the requirement, but say so in the dialog text.
-- Whether other widgets cache VFS-derived state is not checked yet (plan item 1).
+- VFS audit (plan step 1, 2026-10-04): only two places in `pyobs_gui/` actually use the VFS.
+  `VideoWidget._resolve_url` (`vfs.open_file`, caches stream URLs from `open()`) and
+  `DataDisplayWidget._on_new_data` (`vfs.read_fits`, per event, no caching; also hit by
+  `NewSpectrumEvent`, so spectrographs are affected too). All other widgets only pass `vfs` through
+  `BaseWidget.open()` and keep the reference. `MainWindow` and `GUI.open` pass the one shared
+  instance, so in-place root updates reach everything. External widget plugins that use
+  `self.vfs` are not covered by this audit.
+- `DataDisplayWidget._on_new_data` has no error handling around `read_fits`; a missing root
+  raises out of the event handler. `grab_data()` calls it directly, so the error also surfaces
+  there. #185 needs to cover both call paths.
 - Changing the roots while a live-view stream is running: reconnect or keep the old stream until
   the next start. Proposed: keep it, re-resolve on next connect.
