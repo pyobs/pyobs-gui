@@ -16,6 +16,7 @@ from PySide6 import QtCore, QtGui, QtNetwork, QtWidgets  # type: ignore
 
 from .accounts import _APPLICATION, _ORGANIZATION
 from .base import BaseWidget, missing_root_message
+from .guisignals import gui_signals
 from .livestream import MjpegParser, RawFrame, RawParser, StreamError, fit_factor
 from .qt.videowidget_ui import Ui_VideoWidget
 from .utils import QAsyncMessageBox
@@ -162,6 +163,13 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         # set while resolving stream URLs if a VFS root is not configured
         self._missing_root_message: str | None = None
 
+        # set by _init(), used again when init is completed after a settings change
+        self._has_exposure_time = False
+        self._has_gain = False
+        self._started = False
+        self._resolve_lock = asyncio.Lock()
+        self._settings_connected = False
+
         # settings are only saved once they have been restored for this camera
         self._settings_loaded = False
 
@@ -181,34 +189,50 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         has_exposure_time = IExposureTime in self._interfaces
         has_gain = IGain in self._interfaces
 
+        self._has_exposure_time = has_exposure_time
+        self._has_gain = has_gain
+
         # hide single controls, if necessary
         self.groupExposure.setVisible(has_exposure_time)
         self.groupGain.setVisible(has_gain)
 
-        # get video URLs from capabilities
+        # stream URLs depend on the VFS roots, which the user can change at runtime. Connected
+        # before resolving, so a failed first attempt can be completed later.
+        gui_signals.settings_changed.connect(self._on_settings_changed)
+        self._settings_connected = True
+
+        urls = await self._resolve_streams()
+        if not urls:
+            return
+        self._urls = urls
+        await self._start(has_exposure_time, has_gain)
+
+    async def _resolve_streams(self) -> dict[str, _StreamUrl]:
+        """Resolve the module's stream paths through the VFS. Empty if none could be resolved, in
+        which case the reason is logged, and a missing VFS root is also shown to the user."""
         caps = await self.comm.get_capabilities(self.module, IVideo)
         if caps is None:
             log.error("Module %s has no IVideo capabilities.", self.module)
-            return
+            return {}
         if not isinstance(self.vfs, VirtualFileSystem):
             log.error("Video is not available — no VFS.")
-            return
+            return {}
         self._missing_root_message = None
+        urls: dict[str, _StreamUrl] = {}
         for mode, path in ((MJPEG, caps.mjpeg), (RAW, caps.raw)):
             if path is not None:
                 url = await self._resolve_url(path)
                 if url is not None:
-                    self._urls[mode] = url
-        if not self._urls:
+                    urls[mode] = url
+        if not urls:
             log.error("Module %s has no usable video stream.", self.module)
             if self._missing_root_message is not None:
                 await QAsyncMessageBox.warning(self, "VFS root not configured", self._missing_root_message)
-            return
+        return urls
 
-        # only offer available modes
-        for mode in _MODES:
-            item = self.comboMode.model().item(self.comboMode.findData(mode))
-            item.setEnabled(mode in self._urls)
+    async def _start(self, has_exposure_time: bool, has_gain: bool) -> None:
+        """Second half of init, once there is at least one stream URL."""
+        self._update_modes()
 
         # restore settings for this camera, falling back to an available mode
         self._load_settings()
@@ -225,10 +249,48 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
 
         # enable myself, now that init is done
         self.setEnabled(True)
+        self._started = True
 
         # _showEvent may already have run before the URLs were known
         if self.isVisible():
             self._connect()
+
+    def _update_modes(self) -> None:
+        """Only offer available modes."""
+        for mode in _MODES:
+            item = self.comboMode.model().item(self.comboMode.findData(mode))
+            item.setEnabled(mode in self._urls)
+
+    def _on_settings_changed(self) -> None:
+        asyncio.create_task(self._refresh_streams())
+
+    async def _refresh_streams(self) -> None:
+        """Re-resolve the stream URLs after the settings (VFS roots) changed.
+
+        A running stream is left alone, the new URLs are used at the next connect. If nothing
+        resolves any more, the previous URLs are kept. If init had failed for lack of a usable
+        root, this completes it.
+        """
+        if not self._initialized:
+            return  # _init() hasn't finished, it resolves against the current roots itself
+        async with self._resolve_lock:
+            urls = await self._resolve_streams()
+            if not urls:
+                return
+            self._urls = urls
+            if not self._started:
+                await self._start(self._has_exposure_time, self._has_gain)
+                return
+            self._update_modes()
+            if self._mode not in self._urls:
+                self._mode = next(iter(self._urls))
+                self._update_controls()
+
+    async def discard(self) -> None:
+        if self._settings_connected:
+            gui_signals.settings_changed.disconnect(self._on_settings_changed)
+            self._settings_connected = False
+        await BaseWidget.discard(self)
 
     async def _resolve_url(self, path: str) -> _StreamUrl | None:
         """Get URL and Authorization header for a stream's VFS path."""
