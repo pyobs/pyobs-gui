@@ -107,7 +107,9 @@ event is visible in the window anyway). Suppressed events don't count towards th
 ### Click
 
 The notification's `on_clicked` raises the window (`show()`, `raise_()`, `activateWindow()`), and
-for a module `ERROR` selects that module with `MainWindow._select_page_by_name()`. The backend
+for a module `ERROR` selects that module with `MainWindow._select_page_by_name()`. Under Wayland the
+raise may be refused (KDE: it is, see the spike list, item 3), so the handler also calls
+`QApplication.alert()` to get the window noticed. The backend
 callback may arrive on another thread (likely on Windows, unchecked), so it only emits a Qt
 signal and the work happens on the main thread.
 
@@ -137,12 +139,27 @@ signal and the work happens on the main thread.
 
 1. **Windows:** nothing here can test it. Does a toast appear without an installed shortcut or
    app identity, is the app name/icon right, does `on_clicked` fire, and on which thread.
-2. **GNOME:** a click may not be able to raise the window under Wayland, because the compositor
-   wants an activation token the library may not pass. If so, the click falls back to bringing the
-   window to attention only. Needs a real GNOME session.
-3. **KDE:** the Plasma notification server on the development machine advertises the `actions`
-   capability (Plasma 6.6.6, via `GetCapabilities`), so clicks should work. No notification has
-   been sent yet.
+2. **GNOME (checked 2026-10-04, GNOME Shell 50.1, Wayland, Kubuntu 26.04 with `gnome-session` added,
+   `desktop-notifier` 6.2.0 under qasync):** the server reports notification spec version 1.2 and the
+   capabilities `actions`, `body`, `body-markup`, `icon-static`, `persistence`, `sound` (no tray
+   involved). `on_clicked` fires, and raising the window from the click does **not** work, same as
+   on KDE: with the window in the background it stayed inactive after `showNormal()`/`raise_()`/
+   `activateWindow()`. So the Wayland behavior is the same on both desktops, and the click handler
+   has to rely on selecting the module page plus `QApplication.alert()`. Not checked: GNOME on X11
+   (GNOME 50 seems to have no X11 session, no `gnome-session-xsession` package in the Ubuntu
+   repository), toast lifetime, and whether the app needs a desktop entry to be listed properly
+   in GNOME's notification list.
+3. **KDE (checked 2026-10-04, Plasma 6.6.6, Wayland, `desktop-notifier` 6.2.0 under qasync):**
+   toasts show without a tray, authorization reports granted, `on_clicked` fires and runs on the Qt
+   main thread. **Raising the window from the click does not work under Wayland**: with the
+   window in the background, `showNormal()`/`raise_()`/`activateWindow()` in the callback left it
+   inactive (KWin keeps focus-stealing prevention, and the server reports notification spec
+   version 1.2, so there is probably no activation token to pass on, from my recollection of the
+   newer spec). Consequence for the design: the click handler still selects the module page, but
+   brings the window to attention with `QApplication.alert()` instead of relying on a raise
+   (to be checked on KDE under X11 and on GNOME). Not measured: how long a toast stays on screen
+   and whether critical ones persist, because `on_dismissed` did not fire within 70 s for either
+   a normal or a critical toast, so either it does not fire on expiry or they stay.
 4. **Packaging:** `desktop-notifier` loads its backend per platform at runtime, which may not
    survive the `pyside6-deploy` standalone build. Build once and check.
 5. **macOS:** nothing here can test it either. Does a build made with `pyside6-deploy` have a bundle

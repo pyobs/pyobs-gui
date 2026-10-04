@@ -27,11 +27,14 @@ Throwaway script, not committed, results go into the design doc's "Not verified 
 normal and a critical notification with `on_clicked`, print the thread the callback runs on,
 send a second one while the script's own window is focused.
 
-- [ ] KDE (Plasma), **first, runs locally**: toast shows, click fires `on_clicked`, urgency
-      behavior. (The notification server advertises `actions` on the development machine,
-      nothing was sent yet.)
-- [ ] GNOME (needs a machine): toast shows without a tray, click fires, can the callback raise
-      a window under Wayland and under X11, urgency behavior.
+- [x] KDE (Plasma 6.6.6, Wayland), done 2026-10-04: toast shows, click fires `on_clicked` on the Qt
+      thread. Raising the window from the click does **not** work (stays inactive), see the design
+      doc. Still open for KDE: toast lifetime and critical urgency (`on_dismissed` never fired in
+      70 s, needs a look at the screen), and KDE under X11.
+- [x] GNOME (Shell 50.1, Wayland), done 2026-10-04: toast shows without a tray, click fires
+      `on_clicked`, raising the window from the click does **not** work (same as KDE), see the
+      design doc. Still open: toast lifetime and urgency (look at the screen), X11 (probably not
+      available on GNOME 50), app identity in the notification list.
 - [ ] Windows (needs a machine): toast shows without an installed shortcut or app identity (and
       if not, what is the smallest thing that fixes it), app name and icon, click fires, which
       thread.
