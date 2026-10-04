@@ -2793,6 +2793,7 @@ source = { editable = "." }
 dependencies = [
     { name = "astroplan" },
     { name = "astropy" },
+    { name = "astroquery" },
     { name = "colour" },
     { name = "desktop-notifier" },
     { name = "keyring" },
@@ -2834,6 +2835,7 @@ dev = [
 requires-dist = [
     { name = "astroplan", specifier = ">=0.10.1" },
     { name = "astropy", specifier = ">=7.0.1,<8" },
+    { name = "astroquery", specifier = ">=0.4.10,<0.5" },
     { name = "colour", specifier = ">=0.1.5,<0.2" },
     { name = "desktop-notifier", specifier = ">=6.2,<7" },
     { name = "keyring", specifier = ">=25.7.0,<26" },
