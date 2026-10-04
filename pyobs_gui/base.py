@@ -358,7 +358,11 @@ class BaseWidget(BaseWindow, QtWidgets.QWidget):  # type: ignore
         self._init_steps_done.add(key)
 
     def hideEvent(self, event: QtGui.QHideEvent) -> None:
-        # run in loop
+        # run in loop (at shutdown Qt still hides widgets after the loop has stopped, nothing to cancel then)
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return
         asyncio.create_task(self._hide_event(event))
 
     async def _hide_event(self, event: QtGui.QHideEvent) -> None:
