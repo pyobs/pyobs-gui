@@ -74,11 +74,11 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
         self.spinExpTime.valueChanged.connect(self.exposure_time_changed)
         self.spinGain.valueChanged.connect(self.gain_changed)
         self.comboMode.currentIndexChanged.connect(self._mode_changed)
-        self.widgetLiveView.params_changed.connect(self._stretch_changed)
-        self.widgetLiveView.render_failed.connect(self._on_render_failed)
+        self.widgetLiveView.params_changed.connect(self._stretch_changed)  # type: ignore[missing-attribute]
+        self.widgetLiveView.render_failed.connect(self._on_render_failed)  # type: ignore[missing-attribute]
         self.spinQuality.valueChanged.connect(self._stream_params_changed)
         self.spinMaxRate.valueChanged.connect(self._stream_params_changed)
-        self.widgetLiveView.view_resized.connect(self._reconnect_timer_start)
+        self.widgetLiveView.view_resized.connect(self._reconnect_timer_start)  # type: ignore[missing-attribute]
 
         # reconnects, delayed (see _RECONNECT_DELAY_MS)
         self._reconnect_timer = QtCore.QTimer(self)
@@ -509,7 +509,7 @@ class VideoWidget(BaseWidget, Ui_VideoWidget):
             cut_values: list[float] = [controls.cut_lo, controls.cut_hi]
             for i, name in enumerate(("lo", "hi")):
                 try:
-                    cut_values[i] = float(s.value(self._settings_key(name)))
+                    cut_values[i] = float(str(s.value(self._settings_key(name))))
                 except (TypeError, ValueError):
                     pass
             controls.set_cut_values(*cut_values)
