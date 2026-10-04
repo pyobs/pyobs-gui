@@ -1,4 +1,5 @@
 import asyncio
+from functools import partial
 import logging
 import sys
 from typing import Any, cast, TYPE_CHECKING
@@ -12,6 +13,12 @@ from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 
 from .nowheelfilter import NoWheelWhenUnfocused
+from .guisignals import gui_signals
+from .notificationmanager import NotificationManager
+from .notifier import GuardedNotifier
+from .notifier_backend import DesktopNotifierBackend
+from .settings import GuiSettings, NotificationSettings, SettingsError, SettingsStore, unknown_keys
+from .settingsdialog import SettingsDialog
 from .utils import QAsyncMessageBox
 
 log = logging.getLogger(__name__)
@@ -34,6 +41,8 @@ class GUI(Module, IFitsHeaderBefore):
         widgets: list[dict[str, Any]] | None = None,
         sidebar: list[dict[str, Any]] | None = None,
         standalone: bool = False,
+        notifications: dict[str, Any] | None = None,
+        settings_key: str | None = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -49,10 +58,28 @@ class GUI(Module, IFitsHeaderBefore):
                 (pyobs_gui.login.login_and_build_gui) rather than a YAML-configured Comm. When
                 True, MainWindow's bottom-left button reads "Log out" and reconnects via the
                 login window instead of quitting the whole app.
+            notifications: Notification settings, see `NotificationSettings`. Unknown keys are
+                rejected, so a typo in the YAML doesn't silently do nothing.
+            settings_key: Standalone only: key of this connection's settings in the settings file
+                (see `login.settings_key`). The settings then come from that file and can be
+                edited with the settings dialog, `notifications` is not used.
         """
+
+        unknown = unknown_keys(NotificationSettings, notifications or {}, "notifications.")
+        if unknown:
+            raise ValueError(f"Unknown GUI settings: {', '.join(unknown)}")
+        # YAML mode: off unless the config has a `notifications:` block, so existing control-room GUIs
+        # don't start showing desktop notifications after an upgrade
+        notification_settings = (
+            NotificationSettings.model_validate(notifications)
+            if notifications is not None
+            else NotificationSettings(enabled=False)
+        )
+        settings = GuiSettings(notifications=notification_settings)
 
         # init module
         Module.__init__(self, *args, **kwargs)
+        self.settings = settings
         self._window: MainWindow | None = None
         self._show_shell = show_shell
         self._show_events = show_events
@@ -62,6 +89,60 @@ class GUI(Module, IFitsHeaderBefore):
         self._custom_sidebar_widgets = sidebar
         self._standalone = standalone
         self._logging_out = False
+
+        # standalone: settings live in a file, per connection
+        self._settings_key = settings_key
+        self._store: SettingsStore | None = SettingsStore() if standalone and settings_key else None
+        self._settings_dialog: SettingsDialog | None = None
+        self._notifications: NotificationManager | None = None
+        self._notifier_backend: DesktopNotifierBackend | None = None
+        if self._store is not None and settings_key is not None:
+            self.settings = self._load_settings(settings_key)
+
+    def _load_settings(self, key: str) -> GuiSettings:
+        """Settings from the file. An unreadable file must not keep the GUI from starting, so
+        that falls back to the defaults (saving then fails with the same error, rather than
+        overwriting the file)."""
+        assert self._store is not None
+        try:
+            return self._store.get(key)
+        except SettingsError:
+            log.exception("Could not load settings, using defaults.")
+            return GuiSettings()
+
+    def _apply_vfs_roots(self) -> None:
+        if self._store is not None:
+            self.vfs.set_roots(self.settings.vfs.roots)
+
+    def apply_settings(self, settings: GuiSettings) -> None:
+        """Standalone only: save the settings, put them into effect and tell the widgets.
+
+        Raises:
+            SettingsError: The file couldn't be written. Nothing was changed then.
+        """
+        if self._store is None or self._settings_key is None:
+            raise RuntimeError("Settings can only be changed in standalone mode.")
+        self._store.set(self._settings_key, settings)
+        self.settings = settings
+        self._apply_vfs_roots()
+        gui_signals.settings_changed.emit()
+
+    def _open_settings(self) -> None:
+        """Wired to MainWindow's "Settings" button (standalone mode only)."""
+        if self._settings_dialog is not None:
+            self._settings_dialog.raise_()
+            self._settings_dialog.activateWindow()
+            return
+        dialog = SettingsDialog(
+            self.settings,
+            list(self.comm.clients),
+            self.apply_settings,
+            send_test=self._send_test_notification,
+            parent=self._window,
+        )
+        dialog.finished.connect(lambda _result: setattr(self, "_settings_dialog", None))
+        self._settings_dialog = dialog
+        dialog.open()
 
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
@@ -80,6 +161,7 @@ class GUI(Module, IFitsHeaderBefore):
         from .mainwindow import MainWindow
 
         await Module.open(self)
+        self._apply_vfs_roots()
 
         # create and show window
         self._window = MainWindow(
@@ -90,6 +172,7 @@ class GUI(Module, IFitsHeaderBefore):
             widgets=self._custom_widgets,
             sidebar=self._custom_sidebar_widgets,
             on_logout=self._request_logout if self._standalone else None,
+            on_settings=self._open_settings if self._store is not None else None,
         )
         await self._window.open(
             module=self,
@@ -98,6 +181,54 @@ class GUI(Module, IFitsHeaderBefore):
             observer=self._observer,
         )
         self._window.show()
+        await self._start_notifications()
+
+    def _get_notifier_backend(self) -> DesktopNotifierBackend:
+        """One backend for the notifications and the test button, so the system sees one app."""
+        if self._notifier_backend is None:
+            self._notifier_backend = DesktopNotifierBackend()
+        return self._notifier_backend
+
+    async def _send_test_notification(self) -> None:
+        """The settings dialog's test button: straight through the backend, so a problem is raised
+        (as NotifierError) and the filters of the policy don't apply."""
+        await self._get_notifier_backend().send(
+            "pyobs-gui", "Desktop notifications work.", False, partial(self._bring_window_to_front, None)
+        )
+
+    async def _start_notifications(self) -> None:
+        """Desktop notifications for module errors. A problem here must not keep the GUI from starting."""
+        backend = self._get_notifier_backend()
+        manager = NotificationManager(
+            comm=self.comm,
+            settings=lambda: self.settings.notifications,
+            notifier=GuardedNotifier(backend),
+            bring_to_front=self._bring_window_to_front,
+            authorise=backend.ensure_authorisation,
+        )
+        try:
+            await manager.start(self.comm.clients)
+        except Exception:
+            log.warning("Could not start desktop notifications.", exc_info=True)
+            return
+        self._notifications = manager
+
+    async def _close_notifications(self) -> None:
+        manager, self._notifications = self._notifications, None
+        if manager is not None:
+            try:
+                await manager.close()
+            except Exception:
+                log.warning("Could not stop desktop notifications cleanly.", exc_info=True)
+
+    def _bring_window_to_front(self, module: str | None) -> None:
+        if self._window is not None:
+            self._window.bring_to_front(module)
+
+    async def close(self) -> None:
+        """Close module."""
+        await self._close_notifications()
+        await Module.close(self)
 
     def _request_logout(self) -> None:
         """Wired to MainWindow's "Log out" button (standalone mode only). Hides the current
@@ -109,6 +240,8 @@ class GUI(Module, IFitsHeaderBefore):
             return  # already logging out -- ignore a repeat click
         self._logging_out = True
 
+        if self._settings_dialog is not None:
+            self._settings_dialog.close()
         old_window = self._window
         self._window = None
         if old_window is not None:
@@ -134,6 +267,8 @@ class GUI(Module, IFitsHeaderBefore):
             await old_window.discard_all_widgets()
             old_window.deleteLater()
 
+        await self._close_notifications()
+
         old_comm = self._comm
         if old_comm is not None:
             await old_comm.close()
@@ -141,7 +276,7 @@ class GUI(Module, IFitsHeaderBefore):
         from .login import show_login_and_connect
 
         try:
-            new_comm = await show_login_and_connect()
+            new_comm, new_key = await show_login_and_connect()
         except asyncio.CancelledError:
             log.info("Login window closed without connecting; nothing left to do but quit.")
             self.quit()
@@ -155,6 +290,9 @@ class GUI(Module, IFitsHeaderBefore):
             self._logging_out = False
 
         self._comm = new_comm
+        if self._store is not None:
+            self._settings_key = new_key
+            self.settings = self._load_settings(new_key)
         try:
             await self.startup()
         except Exception as e:

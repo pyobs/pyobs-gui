@@ -8,6 +8,17 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
+- `2026-10-04-desktop-notifications.md` — **implemented, #168 open for GNOME/Windows/macOS checks**. Desktop notifications for
+  module `ERROR` and log `ERROR`/`CRITICAL`, no tray icon (`desktop-notifier` behind a small
+  interface), startup summary, per-module and global rate limits, click raises the window. GNOME,
+  KDE, Windows and macOS in scope. Lists what needs a spike on each first. Checklist in
+  `plans/2026-10-04-desktop-notifications.md`.
+- `2026-10-04-settings-dialog.md` — **proposed (issues #168, #185, #186)**. Repos: pyobs-gui,
+  pyobs-core. One settings schema, YAML config in YAML mode, standalone-only settings dialog
+  (notifications, VFS roots, live apply). Checklist in `plans/2026-10-04-settings-dialog.md`.
+- `2026-09-29-live-view-mjpeg-raw.md` — **in progress (issue #182)**. Per-camera live-view mode:
+  MJPEG with server-side stretch or raw stream with client-side stretch, fit-to-widget
+  downsampling, settings remembered per camera. Zoom + server-side crop deferred.
 - `2026-09-14-stacked-widget-scroll-fallback.md` — **implemented**. `stackedWidget` wrapped in a
   `QScrollArea` (`stackedWidgetScroll`) as a general fallback once a module page can't shrink
   further, instead of every such floor needing its own individual fix. The flagged

@@ -15,9 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QDoubleSpinBox, QFormLayout, QFrame,
-    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-    QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFormLayout,
+    QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+    QLabel, QSizePolicy, QSpacerItem, QSpinBox,
+    QVBoxLayout, QWidget)
 
 class Ui_VideoWidget(object):
     def setupUi(self, VideoWidget):
@@ -69,6 +70,50 @@ class Ui_VideoWidget(object):
 
         self.verticalLayout_2.addWidget(self.groupGain)
 
+        self.groupLiveView = QGroupBox(self.frame)
+        self.groupLiveView.setObjectName(u"groupLiveView")
+        self.formLayoutLiveView = QFormLayout(self.groupLiveView)
+        self.formLayoutLiveView.setObjectName(u"formLayoutLiveView")
+        self.labelMode = QLabel(self.groupLiveView)
+        self.labelMode.setObjectName(u"labelMode")
+
+        self.formLayoutLiveView.setWidget(0, QFormLayout.ItemRole.LabelRole, self.labelMode)
+
+        self.comboMode = QComboBox(self.groupLiveView)
+        self.comboMode.setObjectName(u"comboMode")
+
+        self.formLayoutLiveView.setWidget(0, QFormLayout.ItemRole.FieldRole, self.comboMode)
+
+        self.labelQuality = QLabel(self.groupLiveView)
+        self.labelQuality.setObjectName(u"labelQuality")
+
+        self.formLayoutLiveView.setWidget(1, QFormLayout.ItemRole.LabelRole, self.labelQuality)
+
+        self.spinQuality = QSpinBox(self.groupLiveView)
+        self.spinQuality.setObjectName(u"spinQuality")
+        self.spinQuality.setMinimum(0)
+        self.spinQuality.setMaximum(95)
+        self.spinQuality.setValue(0)
+
+        self.formLayoutLiveView.setWidget(1, QFormLayout.ItemRole.FieldRole, self.spinQuality)
+
+        self.labelMaxRate = QLabel(self.groupLiveView)
+        self.labelMaxRate.setObjectName(u"labelMaxRate")
+
+        self.formLayoutLiveView.setWidget(2, QFormLayout.ItemRole.LabelRole, self.labelMaxRate)
+
+        self.spinMaxRate = QDoubleSpinBox(self.groupLiveView)
+        self.spinMaxRate.setObjectName(u"spinMaxRate")
+        self.spinMaxRate.setDecimals(1)
+        self.spinMaxRate.setMinimum(0.000000000000000)
+        self.spinMaxRate.setMaximum(60.000000000000000)
+        self.spinMaxRate.setValue(5.000000000000000)
+
+        self.formLayoutLiveView.setWidget(2, QFormLayout.ItemRole.FieldRole, self.spinMaxRate)
+
+
+        self.verticalLayout_2.addWidget(self.groupLiveView)
+
         self.verticalSpacer = QSpacerItem(20, 340, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_2.addItem(self.verticalSpacer)
@@ -97,5 +142,12 @@ class Ui_VideoWidget(object):
         self.labelExpTime.setText(QCoreApplication.translate("VideoWidget", u"ExpTime:", None))
         self.groupGain.setTitle("")
         self.label_11.setText(QCoreApplication.translate("VideoWidget", u"Gain:", None))
+        self.groupLiveView.setTitle(QCoreApplication.translate("VideoWidget", u"Live view", None))
+        self.labelMode.setText(QCoreApplication.translate("VideoWidget", u"Mode:", None))
+        self.labelQuality.setText(QCoreApplication.translate("VideoWidget", u"Quality:", None))
+        self.spinQuality.setSpecialValueText(QCoreApplication.translate("VideoWidget", u"default", None))
+        self.labelMaxRate.setText(QCoreApplication.translate("VideoWidget", u"Max rate:", None))
+        self.spinMaxRate.setSpecialValueText(QCoreApplication.translate("VideoWidget", u"unlimited", None))
+        self.spinMaxRate.setSuffix(QCoreApplication.translate("VideoWidget", u" fps", None))
     # retranslateUi
 

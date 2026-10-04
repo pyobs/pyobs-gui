@@ -2,14 +2,23 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from astroplan import Observer
+from pyobs.comm import Comm
 from pyobs.events import NewImageEvent
+from pyobs.vfs import VirtualFileSystem
 
 from pyobs_gui.base import BaseWidget
 
 
 class ChildWidget(BaseWidget):
-    async def open(self, **kwargs: Any) -> None:
-        await BaseWidget.open(self, **kwargs)
+    async def open(
+        self,
+        modules: list[str] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
+    ) -> None:
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
         await self.register_event(NewImageEvent, self._on_new_image)
 
     async def _on_new_image(self, event: Any, sender: str) -> bool:
@@ -22,8 +31,14 @@ class ParentWidget(BaseWidget):
         # like CameraWidget.datadisplay: an embedded child, not a sidebar widget
         self.child = ChildWidget()
 
-    async def open(self, **kwargs: Any) -> None:
-        await BaseWidget.open(self, **kwargs)
+    async def open(
+        self,
+        modules: list[str] | None = None,
+        comm: Comm | None = None,
+        observer: Observer | None = None,
+        vfs: VirtualFileSystem | dict[str, Any] | None = None,
+    ) -> None:
+        await BaseWidget.open(self, modules=modules, comm=comm, observer=observer, vfs=vfs)
         await self._open_child(self.child)
 
 
