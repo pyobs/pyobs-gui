@@ -42,11 +42,9 @@ send a second one while the script's own window is focused.
       and active after the click. Still open: app name and icon in the toast, seconds on screen
       for normal and critical, whether critical is sticky, whether `on_dismissed` fires when the
       user removes a toast from the Action Center.
-- [ ] macOS (needs a machine): authorization prompt appears and `has_authorisation()` reflects
+- [ ] macOS (needs a machine, run from a pip install, no app bundle): authorization prompt appears
+      and `has_authorisation()` reflects
       the answer, toast shows, click fires, behavior while the app is frontmost.
-- [ ] Packaging: build the standalone binary with `pyside6-deploy` on Linux (local) and on each
-      other platform as machines become available, check that the backend modules (`dbus-fast`,
-      `winrt-*`, `rubicon-objc`) are included and notifications work from the built binary.
 - [ ] Decision gate, per platform as results come in: write down "desktop-notifier" or
       "fallback" (QtDBus + Windows toast library, macOS needs its own backend) and update the
       design doc.
@@ -83,10 +81,11 @@ send a second one while the script's own window is focused.
       feedback loop), and later failures stay quiet. Note that on Windows a missing app identity
       is not an error at all, the toast is silently dropped (see the Windows spike result).
 - [ ] Windows app identity: before the first toast, make sure a Start Menu shortcut with the
-      AppUserModelID `pyobs-gui` exists (target: the running executable). First check whether
-      `desktop-notifier` can create it, otherwise create it ourselves (COM `IPropertyStore` via
-      `pywin32` or `comtypes`, Windows-only dependency) or in the installer of the standalone
-      build. The registry key the library writes is not enough on Windows 11.
+      AppUserModelID `pyobs-gui` exists, targeting however the app was started (interpreter or the
+      `pyobs-gui` launcher). First check whether `desktop-notifier` can create it, otherwise
+      create it ourselves (COM `IPropertyStore` via `pywin32` or `comtypes`, Windows-only
+      dependency). No installer exists (the standalone binary was rejected). The registry key the
+      library writes is not enough on Windows 11.
 - [ ] Tests with a fake `DesktopNotifier`: send arguments, click marshalled to the main thread,
       failing backend logs once at `WARNING`.
 - [ ] Per-platform fallback backends, only for what the spike marked as failing.

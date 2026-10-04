@@ -92,12 +92,14 @@ events. A module that appears already in `ERROR` is therefore notified individua
 
 ### App identity (Windows)
 
-On the tested Windows 11, toasts only show for an app that has an AppUserModelID registered through a Start Menu
-shortcut (other Windows versions untested). Without it the toast is silently dropped, there is no error to catch. So before the first
-notification the Windows backend makes sure a shortcut with the id `pyobs-gui` exists (target: the
-running executable), created by the library if it can, otherwise by us (or by the installer of the
-standalone build). The test button can't detect a dropped toast, so its text says what to check if
-nothing appeared. A packaged build (MSIX) would get an identity from the package instead.
+On the tested Windows 11, toasts only show for an app that has an AppUserModelID registered through a
+Start Menu shortcut (other Windows versions untested). Without it the toast is silently dropped,
+there is no error to catch. So before the first notification the Windows backend makes sure a
+shortcut with the id `pyobs-gui` exists. Its target is however the app is started, the interpreter
+or the `pyobs-gui` launcher a pip install creates, so the shortcut is created by our own code at
+first use (the library if it can do it, otherwise COM `IPropertyStore`). There is no installer to
+do it, the standalone binary was rejected (`specs/design/gui-standalone-binary.md` in pyobs-core).
+The test button can't detect a dropped toast, so its text says what to check if nothing appeared.
 
 ### Authorization (macOS)
 
@@ -179,18 +181,19 @@ signal and the work happens on the main thread.
    (to be checked on KDE under X11 and on GNOME). Not measured: how long a toast stays on screen
    and whether critical ones persist, because `on_dismissed` did not fire within 70 s for either
    a normal or a critical toast, so either it does not fire on expiry or they stay.
-4. **Packaging:** `desktop-notifier` loads its backend per platform at runtime, which may not
-   survive the `pyside6-deploy` standalone build. Build once and check.
-5. **macOS:** nothing here can test it either. Does a build made with `pyside6-deploy` have a bundle
-   identity that Notification Center accepts, does the authorization prompt appear and is the
-   result reported correctly, does `on_clicked` fire. macOS normally doesn't show a banner for the
-   frontmost app, which fits `only_when_inactive` but should be confirmed. All from memory.
-6. **Urgency and expiry:** whether a "critical" notification stays on screen until dismissed on
+4. **macOS:** nothing here can test it either. The app runs from a pip/pipx install, there is no app
+   bundle (the standalone binary was rejected, see `specs/design/gui-standalone-binary.md` in
+   pyobs-core). Does Notification Center accept notifications from a plain Python process, under
+   which name does it list them, does the authorization prompt appear and is the result reported
+   correctly, does `on_clicked` fire. macOS normally doesn't show a banner for the frontmost app,
+   which fits `only_when_inactive` but should be confirmed. All from memory.
+5. **Urgency and expiry:** whether a "critical" notification stays on screen until dismissed on
    GNOME and KDE, and whether that is wanted for module `ERROR`. Start with normal urgency for
    log events and critical for module `ERROR`, and look at the result.
 
-If 1, 2 or 4 fail for `desktop-notifier` on Linux or Windows, the alternative above replaces the
-backend there without touching the rest. If 5 fails, macOS needs its own backend.
+If `desktop-notifier` turns out not to work on Linux or Windows in a case not covered above, the
+alternative replaces the backend there without touching the rest. If macOS (item 4) fails, macOS needs
+its own backend.
 
 ## Tests
 
