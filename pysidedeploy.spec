@@ -16,7 +16,7 @@ exec_directory = dist
 project_file = 
 
 # application icon
-icon = /home/husser/code/pyobs/pyobs-gui/.venv/lib/python3.13/site-packages/PySide6/scripts/deploy_lib/pyside_icon.jpg
+icon = pyobs_gui/icons/pyobs-gui.png
 
 [python]
 
@@ -68,7 +68,7 @@ macos.permissions =
 mode = standalone
 
 # specify any extra nuitka arguments
-extra_args = --quiet --noinclude-qt-translations --python-flag=-m --include-package=astropy.units.format --include-package=astropy.units.format.generic_parsetab --include-package=astropy.units.format.generic_lextab --include-package=astropy.units.format.cds_parsetab --include-package=astropy.units.format.cds_lextab --include-package=astropy.units.format.ogip_parsetab --include-package=astropy.units.format.ogip_lextab --include-package=astropy.coordinates.angles --include-package=astropy.coordinates.angles.angle_parsetab --include-package=astropy.coordinates.angles.angle_lextab --include-package=astropy.extern.ply --include-package-data=astropy --include-package-data=sunpy --include-package-data=matplotlib --include-package-data=qfitswidget --include-package-data=astropy_iers_data --include-package=pyobs.vfs --include-package-data=astroquery --include-package=slixmpp --include-package=pyobs_gui --noinclude-dlls=*webengine* --noinclude-dlls=*WebEngine* --include-distribution-metadata=astropy --include-distribution-metadata=numpy --include-distribution-metadata=PyYAML --include-distribution-metadata=sunpy --include-distribution-metadata=matplotlib --include-distribution-metadata=qfitswidget --include-distribution-metadata=astroquery --include-distribution-metadata=pyobs-core --include-distribution-metadata=pyobs-gui
+extra_args = --quiet --noinclude-qt-translations --python-flag=-m --include-package=astropy.units.format --include-package=astropy.units.format.generic_parsetab --include-package=astropy.units.format.generic_lextab --include-package=astropy.units.format.cds_parsetab --include-package=astropy.units.format.cds_lextab --include-package=astropy.units.format.ogip_parsetab --include-package=astropy.units.format.ogip_lextab --include-package=astropy.coordinates.angles --include-package=astropy.coordinates.angles.angle_parsetab --include-package=astropy.coordinates.angles.angle_lextab --include-package=astropy.extern.ply --include-package-data=astropy --include-package-data=sunpy --include-package-data=matplotlib --include-package-data=qfitswidget --include-package-data=astropy_iers_data --include-package=pyobs.vfs --include-package-data=astroquery --include-package=slixmpp --include-package=pyobs_gui --include-package-data=pyobs_gui --noinclude-dlls=*webengine* --noinclude-dlls=*WebEngine* --include-distribution-metadata=astropy --include-distribution-metadata=numpy --include-distribution-metadata=PyYAML --include-distribution-metadata=sunpy --include-distribution-metadata=matplotlib --include-distribution-metadata=qfitswidget --include-distribution-metadata=astroquery --include-distribution-metadata=pyobs-core --include-distribution-metadata=pyobs-gui
 
 [buildozer]
 

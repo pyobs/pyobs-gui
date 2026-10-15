@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from PySide6 import QtCore, QtGui, QtWidgets
 from pyobs.comm.xmpp import is_valid_jid
 
+from .appicon import window_icon
 from .accounts import SavedAccountsModel
 
 log = logging.getLogger(__name__)
@@ -86,6 +87,7 @@ def build_connection_request(
 class LoginWindow(QtWidgets.QDialog):
     def __init__(self, accounts: SavedAccountsModel | None = None, parent: QtWidgets.QWidget | None = None) -> None:
         super().__init__(parent)
+        self.setWindowIcon(window_icon())
         self.setWindowTitle("pyobs - Sign in")
         self.resize(640, 480)
 

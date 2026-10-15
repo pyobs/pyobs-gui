@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+from .appicon import icon_path
+
 log = logging.getLogger(__name__)
 
 SHORTCUT_NAME = "pyobs-gui.lnk"
@@ -52,6 +54,7 @@ def create_link_com(path: Path, target: str, arguments: str, app_id: str) -> Non
 
     link = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
     link.SetPath(target)
+    link.SetIconLocation(str(icon_path("ico")), 0)
     if arguments:
         link.SetArguments(arguments)
     store = link.QueryInterface(propsys.IID_IPropertyStore)
@@ -60,15 +63,36 @@ def create_link_com(path: Path, target: str, arguments: str, app_id: str) -> Non
     link.QueryInterface(pythoncom.IID_IPersistFile).Save(str(path), 0)
 
 
+def update_link_icon_com(path: Path) -> bool:
+    """Upgrade an existing shortcut's icon, preserving its target and app identity.
+
+    Like create_link_com(), this still needs verification on Windows (#192).
+    """
+    import pythoncom  # type: ignore[import-not-found]
+    from win32com.shell import shell  # type: ignore[import-not-found]
+
+    link = pythoncom.CoCreateInstance(shell.CLSID_ShellLink, None, pythoncom.CLSCTX_INPROC_SERVER, shell.IID_IShellLink)
+    persist = link.QueryInterface(pythoncom.IID_IPersistFile)
+    persist.Load(str(path))
+    location = (str(icon_path("ico")), 0)
+    if link.GetIconLocation() == location:
+        return False
+    link.SetIconLocation(*location)
+    persist.Save(str(path), 0)
+    return True
+
+
 def ensure_shortcut(
     app_id: str,
     path: Path | None = None,
     command: tuple[str, str] | None = None,
     create_link: Callable[[Path, str, str, str], None] = create_link_com,
+    update_icon: Callable[[Path], bool] = update_link_icon_com,
 ) -> bool:
     """Make sure the Start Menu shortcut with the AppUserModelID exists.
 
-    An existing shortcut is left alone, whatever it points to.
+    An existing shortcut keeps its target and identity; only its icon is updated.
+    Repeated starts leave the file alone when the icon already matches.
 
     Returns:
         Whether a shortcut was created.
@@ -78,6 +102,7 @@ def ensure_shortcut(
     """
     path = shortcut_path() if path is None else path
     if path.exists():
+        update_icon(path)
         return False
     target, arguments = launch_command() if command is None else command
     path.parent.mkdir(parents=True, exist_ok=True)

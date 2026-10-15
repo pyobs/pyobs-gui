@@ -203,3 +203,14 @@ async def test_guard_passes_everything_on() -> None:
 
 def test_app_name_is_what_windows_uses_as_the_id() -> None:
     assert APP_NAME == "pyobs-gui"
+
+
+def test_default_notifier_uses_packaged_app_icon(monkeypatch: pytest.MonkeyPatch) -> None:
+    from desktop_notifier import Icon
+    from pyobs_gui.appicon import icon_path
+
+    factory = MagicMock()
+    monkeypatch.setattr("desktop_notifier.DesktopNotifier", factory)
+    backend = DesktopNotifierBackend(ensure_identity=MagicMock())
+    backend._get()
+    factory.assert_called_once_with(app_name=APP_NAME, app_icon=Icon(path=icon_path()))
