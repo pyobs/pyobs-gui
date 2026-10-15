@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Entries for releases before this file existed were generated from commit subjects.
 
+## [2.7.0] - 2026-10-15
+
+### Added
+
+- Display structured-configuration choice labels while retaining the original typed
+  values; preserve unknown stored choices for explicit correction (#211, #218).
+
+### Fixed
+
+- Distinguish boolean and numeric choices when tracking configuration edits (#218).
+
+### Changed
+
+- Require pyobs-core 2.18.0 or newer for typed configuration-choice capabilities.
+
 ## [2.6.1] - 2026-10-04
 
 - Require pyobs-core 2.14.0, which has the slimmed base dependencies
