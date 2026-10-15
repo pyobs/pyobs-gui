@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -376,3 +377,119 @@ async def test_apply_failure_surfaces_through_show_remote_error(qapp) -> None:
 
     mock_show_error.assert_awaited_once()
     widget.close()
+
+
+@pytest.mark.parametrize("value", [16416, 1.5, True, False, "001"])
+def test_typed_choice_preserves_value_and_label(value) -> None:
+    schema = _typed_schema(type="enum", choices=[SimpleNamespace(value=value, label="Detector α")], default=value)
+    editor = _build_editor("detector", schema, lambda: None)
+    assert isinstance(editor.widget, QtWidgets.QComboBox)
+    assert editor.widget.itemText(0) == "Detector α"
+    assert editor.get_value() == value
+    assert type(editor.get_value()) is type(value)
+    editor.set_value(value)
+    assert type(editor.get_value()) is type(value)
+
+
+def test_typed_choice_identity_duplicate_labels_and_unknown_values() -> None:
+    values = [1, "1", True, "001"]
+    changes = []
+    editor = _build_editor(
+        "choice",
+        _typed_schema(
+            type="enum",
+            choices=[SimpleNamespace(value=value, label="same") for value in values],
+            default=1,
+        ),
+        lambda: changes.append(True),
+    )
+    combo = editor.widget
+    assert isinstance(combo, QtWidgets.QComboBox)
+    for index, value in enumerate(values):
+        editor.set_value(value)
+        assert combo.currentIndex() == index
+        assert type(editor.get_value()) is type(value)
+    assert changes  # index changes fire even when every display label is the same
+    for unknown in [999, None, "missing"]:
+        editor.set_value(unknown)  # pyrefly: ignore [bad-argument-type] -- intentionally invalid None
+        assert editor.get_value() == unknown
+        assert combo.count() == len(values) + 1
+        assert "unknown" in combo.currentText()
+    editor.set_value(1)
+    assert combo.count() == len(values)
+    combo.setCurrentIndex(-1)
+    assert editor.get_value() == 1
+
+
+def test_empty_choice_domain_preserves_received_value() -> None:
+    editor = _build_editor("choice", _typed_schema(type="enum", options=["legacy"], choices=[]), lambda: None)
+    editor.set_value(999)
+    assert editor.get_value() == 999
+    assert isinstance(editor.widget, QtWidgets.QComboBox)
+    assert "legacy" not in editor.widget.currentText()
+
+
+@pytest.mark.asyncio
+async def test_typed_choice_state_reset_and_apply() -> None:
+    widget = StructuredConfigWidget()
+    widget.modules = ["module"]
+    widget._build_form(
+        ConfigSchema(
+            fields={
+                "main": _typed_schema(
+                    type="object",
+                    nested={
+                        "detector": _typed_schema(
+                            type="enum",
+                            choices=[SimpleNamespace(value=1, label="A"), SimpleNamespace(value=2, label="B")],
+                        )
+                    },
+                )
+            }
+        )
+    )
+    widget._on_state(ConfigAppliedState(config={"main": {"detector": 1}}))
+    widget.update_gui()
+    assert not widget._is_dirty()
+    assert widget._root is not None and widget._root.children is not None
+    main = widget._root.children["main"]
+    assert main.children is not None
+    editor = main.children["detector"]
+    editor.set_value(2)
+    assert widget._is_dirty()
+    widget.reset_clicked()
+    assert editor.get_value() == 1
+    assert not widget._is_dirty()
+    editor.set_value(2)
+    proxy = AsyncMock()
+    widget._comm = FakeComm(proxy)  # pyrefly: ignore [bad-assignment]
+    await widget._apply_config(_nested_get(widget._root.children))
+    proxy.set_config.assert_awaited_once_with({"main": {"detector": 2}})
+    assert type(proxy.set_config.call_args.args[0]["main"]["detector"]) is int
+
+
+def _typed_schema(*, choices=None, **kwargs):
+    # Build the additive capability shape without requiring an unreleased core in CI.
+    schema = ConfigFieldSchema(**kwargs)
+    vars(schema)["choices"] = choices
+    return schema
+
+
+def test_numeric_and_boolean_choices_have_distinct_dirty_state() -> None:
+    widget = StructuredConfigWidget()
+    widget.modules = ["module"]
+    widget._build_form(
+        ConfigSchema(
+            fields={
+                "choice": _typed_schema(
+                    type="enum",
+                    choices=[SimpleNamespace(value=1, label="Number"), SimpleNamespace(value=True, label="Boolean")],
+                )
+            }
+        )
+    )
+    widget._on_state(ConfigAppliedState(config={"choice": 1}))
+    widget.update_gui()
+    assert widget._root is not None and widget._root.children is not None
+    widget._root.children["choice"].set_value(True)
+    assert widget._is_dirty()

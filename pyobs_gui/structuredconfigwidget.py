@@ -85,6 +85,53 @@ def _nested_set(children: Dict[str, _FieldEditor], value: ConfigValue) -> None:
             child.set_value(value[name])
 
 
+def _choice_equal(left: ConfigValue, right: ConfigValue) -> bool:
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(_choice_equal(value, right[key]) for key, value in left.items())
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(_choice_equal(a, b) for a, b in zip(left, right, strict=True))
+    if type(left) in (int, float) and type(right) in (int, float):
+        return left == right
+    return type(left) is type(right) and left == right
+
+
+def _build_enum_editor(schema: ConfigFieldSchema, on_change: Callable[[], None]) -> _FieldEditor:
+    combo = QtWidgets.QComboBox()
+    # Feature detection keeps older string-only core installations usable.
+    choices = getattr(schema, "choices", None)
+    values: list[ConfigValue] = (
+        [choice.value for choice in choices] if choices is not None else list(schema.options or [])
+    )
+    labels = [choice.label for choice in choices] if choices is not None else [str(value) for value in values]
+    combo.addItems(labels)
+    raw: list[ConfigValue] = [cast("ConfigValue", None)]
+
+    def set_value(value: ConfigValue) -> None:
+        raw[0] = value
+        if combo.count() > len(values):
+            combo.removeItem(len(values))
+        index = next((i for i, allowed in enumerate(values) if _choice_equal(value, allowed)), None)
+        if index is None:
+            index = len(values)
+            combo.addItem(f"(unknown value: {value!r})")
+        combo.setCurrentIndex(index)
+
+    def get_value() -> ConfigValue:
+        index = combo.currentIndex()
+        return values[index] if 0 <= index < len(values) else raw[0]
+
+    if schema.default is not None or not values:
+        set_value(cast("ConfigValue", schema.default))
+    combo.currentIndexChanged.connect(lambda _: on_change())
+    return _FieldEditor(
+        combo,
+        get_value,
+        set_value,
+        level=schema.level,
+        row_widget=_wrap_with_description(combo, schema.description),
+    )
+
+
 def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], None]) -> _FieldEditor:
     """Build one field's editor from its schema (recursively, for a nested object)."""
 
@@ -146,19 +193,7 @@ def _build_editor(name: str, schema: ConfigFieldSchema, on_change: Callable[[], 
         )
 
     if schema.type == "enum":
-        combo_box = QtWidgets.QComboBox()
-        options = schema.options or []
-        combo_box.addItems(options)
-        if schema.default is not None and str(schema.default) in options:
-            combo_box.setCurrentText(str(schema.default))
-        combo_box.currentTextChanged.connect(lambda _: on_change())
-        return _FieldEditor(
-            combo_box,
-            combo_box.currentText,
-            lambda value: combo_box.setCurrentText(str(value)),
-            level=schema.level,
-            row_widget=_wrap_with_description(combo_box, schema.description),
-        )
+        return _build_enum_editor(schema, on_change)
 
     if schema.type == "object" and schema.nested is not None:
         group_box = QtWidgets.QGroupBox(name)
@@ -325,7 +360,7 @@ class StructuredConfigWidget(BaseWidget):
     def _is_dirty(self) -> bool:
         if self._root is None or self._last_applied is None:
             return False
-        return self._root.get_value() != self._last_applied
+        return not _choice_equal(self._root.get_value(), self._last_applied)
 
     def _update_buttons(self) -> None:
         dirty = self._is_dirty()
