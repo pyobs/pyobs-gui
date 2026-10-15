@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>pyobs GUI icon</title>
+  <desc>A white observing monitor with a crosshair on a magenta rounded square.</desc>
+  <rect width="256" height="256" rx="52" fill="#d63384"/>
+  <g fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="42" y="53" width="172" height="119" rx="13"/>
+    <path d="M128 174v29M96 204h64"/>
+  </g>
+  <g fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round">
+    <circle cx="128" cy="112" r="20"/>
+    <path d="M128 78v16M128 130v16M94 112h16M146 112h16"/>
+  </g>
+</svg>

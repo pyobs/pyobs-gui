@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Entries for releases before this file existed were generated from commit subjects.
 
+## [Unreleased]
+
+### Added
+
+- Magenta observing-monitor app icon for Qt windows, desktop notifications and
+  Windows Start Menu shortcuts; update existing shortcuts without changing their targets (#197).
+
 ## [2.7.0] - 2026-10-15
 
 ### Added

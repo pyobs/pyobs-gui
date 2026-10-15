@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from PySide6 import QtCore  # type: ignore
 
+from .appicon import icon_path
 from .notifier import NotifierError
 
 if TYPE_CHECKING:
@@ -77,9 +78,9 @@ class DesktopNotifierBackend:
             if self._factory is not None:
                 self._notifier = self._factory()
             else:
-                from desktop_notifier import DesktopNotifier
+                from desktop_notifier import DesktopNotifier, Icon
 
-                self._notifier = DesktopNotifier(app_name=APP_NAME)
+                self._notifier = DesktopNotifier(app_name=APP_NAME, app_icon=Icon(path=icon_path()))
         return self._notifier
 
     async def ensure_authorisation(self) -> None:
