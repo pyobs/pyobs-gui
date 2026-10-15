@@ -110,3 +110,6 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
   live view in `VideoWidget`: MJPEG with server-side stretch for slow links, or `/video.raw` with
   client-side stretch/cuts and crop on zoom. Plan: `pyobs-core/specs/plans/2026-09-29-basevideo-frame-buffer-redesign.md`
   (phase 6).
+
+- [2026-10-14-typed-config-choices.md](2026-10-14-typed-config-choices.md) — **implemented; release pending** (#211). Typed structured-config combo values and
+  readable labels; coordinated core capability and provider metadata dependencies.
