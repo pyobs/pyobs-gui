@@ -37,6 +37,7 @@ from pyobs.interfaces import (
     IStructuredConfig,
 )
 
+from .appicon import window_icon
 from .base import BaseWindow, BaseWidget, cancel_and_drain
 from .acquisitionwidget import AcquisitionWidget
 from .autofocuswidget import AutoFocusWidget
@@ -641,6 +642,7 @@ class MainWindow(QtWidgets.QMainWindow, BaseWindow, Ui_MainWindow):  # type: ign
         QtWidgets.QMainWindow.__init__(self)
         BaseWindow.__init__(self)
         self.setupUi(self)  # type: ignore
+        self.setWindowIcon(window_icon())
         self.resize(1600, 900)
 
         # store stuff

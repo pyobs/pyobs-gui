@@ -18,6 +18,7 @@ from pydantic import ValidationError
 from pyobs.object import get_class_from_string
 from PySide6 import QtWidgets  # type: ignore
 
+from .appicon import window_icon
 from .notifier import NotifierError
 from .settings import GuiSettings, NotificationSettings, VfsSettings
 
@@ -83,6 +84,7 @@ class SettingsDialog(QtWidgets.QDialog):
         parent: QtWidgets.QWidget | None = None,
     ) -> None:
         super().__init__(parent)
+        self.setWindowIcon(window_icon())
         self.setWindowTitle("Settings")
         self.resize(640, 480)
         self._on_apply = on_apply

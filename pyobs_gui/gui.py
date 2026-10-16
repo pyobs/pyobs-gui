@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 from pyobs.interfaces import FitsHeaderEntry, IFitsHeaderBefore
 from pyobs.modules import Module
 
+from .appicon import window_icon
 from .nowheelfilter import NoWheelWhenUnfocused
 from .guisignals import gui_signals
 from .notificationmanager import NotificationManager
@@ -147,6 +148,7 @@ class GUI(Module, IFitsHeaderBefore):
     @staticmethod
     def new_event_loop() -> asyncio.AbstractEventLoop:
         GUI.app = QtWidgets.QApplication(sys.argv)
+        GUI.app.setWindowIcon(window_icon())
         # standalone/login mode briefly has zero visible top-level windows while the login
         # dialog closes and the (old or new) MainWindow hasn't opened yet -- Qt's default
         # "quit when the last window closes" would tear down the whole event loop right there,
