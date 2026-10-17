@@ -1,6 +1,6 @@
 # Settings: one schema, YAML in YAML mode, settings dialog in standalone mode
 
-Status: proposed (issues #168 notifications, #186 VFS roots, #185 unresolved-root error).
+Status: implemented (issues #168 notifications, #186 VFS roots, #185 unresolved-root error, all closed).
 Repos: pyobs-gui, pyobs-core (one small addition, see "VFS roots, live").
 Plan: `specs/plans/2026-10-04-settings-dialog.md`.
 
@@ -94,10 +94,11 @@ notifications:
 - One `QDialog`, two tabs: Notifications, VFS. OK/Apply/Cancel; Apply saves and applies live.
 - Notifications tab: the five fields above. `muted_modules` is an editable list with a completer
   filled from the modules currently connected (the dialog is only available after connecting).
-- VFS tab: table of roots (name, class, parameters). Class is a combo of the known VFS classes
-  (`HttpFile`, `LocalFile`, `SMBFile`, ... whatever `pyobs.vfs` ships), parameters are a
-  key/value table with a raw YAML edit toggle, since the parameter set depends on the class. No
-  auto-detection of roots.
+- VFS tab: list of roots (name, class, parameters). Class is a combo of the known VFS classes
+  (`HttpFile`, `LocalFile`, `SMBFile`, ... whatever `pyobs.vfs` ships, any class path can be
+  typed), parameters are YAML text, since the parameter set depends on the class. (Originally
+  planned as a key/value table with a YAML toggle, dropped for YAML text only.) No auto-detection
+  of roots.
 - Test: one test walks `GuiSettings.model_fields` recursively and fails if a field has no
   dialog widget, so "every setting is in the dialog" can't silently regress.
 
@@ -122,6 +123,9 @@ Settings in standalone mode. Ships first, independent of the dialog.
 This doc only covers where the settings come from and how they are edited. How notifications are
 shown (`QSystemTrayIcon`, availability on GNOME/Wayland, `notify-send` fallback, rate limiting
 behavior) is decided in #168's own design pass and consumes `NotificationSettings`.
+
+Defaults differ by mode: the schema default is `enabled: true`, but in YAML mode notifications
+are off unless the config has a `notifications:` block (see the user docs).
 
 ## Alternatives considered
 

@@ -13,7 +13,7 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
   interface), startup summary, per-module and global rate limits, click raises the window. GNOME,
   KDE, Windows and macOS in scope. Lists what needs a spike on each first. Checklist in
   `plans/2026-10-04-desktop-notifications.md`.
-- `2026-10-04-settings-dialog.md` — **proposed (issues #168, #185, #186)**. Repos: pyobs-gui,
+- `2026-10-04-settings-dialog.md` — **implemented (issues #168, #185, #186)**. Repos: pyobs-gui,
   pyobs-core. One settings schema, YAML config in YAML mode, standalone-only settings dialog
   (notifications, VFS roots, live apply). Checklist in `plans/2026-10-04-settings-dialog.md`.
 - `2026-09-29-live-view-mjpeg-raw.md` — **in progress (issue #182)**. Per-camera live-view mode:

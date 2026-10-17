@@ -5,6 +5,7 @@ from pyobs.events import NewImageEvent
 from pyobs.vfs import UnknownRootError, VirtualFileSystem
 
 from pyobs_gui.base import missing_root_message
+from pyobs_gui.guisignals import gui_signals
 from pyobs_gui.datadisplaywidget import DataDisplayWidget
 from pyobs_gui.videowidget import VideoWidget
 
@@ -21,6 +22,16 @@ def test_missing_root_message_names_root_path_and_module() -> None:
     message = missing_root_message(_missing_root_error(), "/cache/img.fits", "cam")
     assert message is not None
     assert "'cache'" in message and "'/cache/img.fits'" in message and "'cam'" in message
+
+
+def test_missing_root_message_points_to_settings_in_standalone_mode(monkeypatch: pytest.MonkeyPatch) -> None:
+    error = _missing_root_error()
+    monkeypatch.setattr(gui_signals, "settings_available", False)
+    message = missing_root_message(error, "/cache/img.fits", "cam")
+    assert message is not None and "Settings" not in message
+    monkeypatch.setattr(gui_signals, "settings_available", True)
+    message = missing_root_message(error, "/cache/img.fits", "cam")
+    assert message is not None and "under Settings" in message
 
 
 def test_missing_root_message_ignores_other_errors() -> None:

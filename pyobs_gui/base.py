@@ -11,6 +11,7 @@ from pyobs.object import create_object
 from pyobs.utils.enums import ModuleState
 from PySide6 import QtCore, QtGui, QtWidgets  # type: ignore
 
+from .guisignals import gui_signals
 from .utils import QAsyncMessageBox
 
 if TYPE_CHECKING:
@@ -51,7 +52,10 @@ def missing_root_message(exception: Exception, path: str, module: str) -> str | 
 
     if not isinstance(exception, UnknownRootError):
         return None
-    return f"Cannot open '{path}' from module '{module}': the VFS root '{exception.root}' is not configured."
+    message = f"Cannot open '{path}' from module '{module}': the VFS root '{exception.root}' is not configured."
+    if gui_signals.settings_available:
+        message += " You can add it under Settings."
+    return message
 
 
 async def cancel_and_drain(task: asyncio.Task[Any]) -> None:

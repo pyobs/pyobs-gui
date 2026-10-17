@@ -165,6 +165,8 @@ class GUI(Module, IFitsHeaderBefore):
         await Module.open(self)
         self._apply_vfs_roots()
 
+        gui_signals.settings_available = self._store is not None
+
         # create and show window
         self._window = MainWindow(
             show_shell=self._show_shell,
