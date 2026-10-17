@@ -9,6 +9,12 @@ Entries for releases before this file existed were generated from commit subject
 
 ## [Unreleased]
 
+## [2.8.1] - 2026-10-17
+
+### Changed
+
+- In standalone mode, the "VFS root not configured" message now points to Settings.
+
 ## [2.8.0] - 2026-10-17
 
 ### Changed
