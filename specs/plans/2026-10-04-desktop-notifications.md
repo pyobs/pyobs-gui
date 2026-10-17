@@ -185,7 +185,7 @@ send a second one while the script's own window is focused.
 - [x] `pyrefly`, `ruff`, `black`, full `pytest` (301 tests) for everything up to step 5.
 - [x] Status lines in `specs/index.md`, `specs/plans/index.md` and the design doc: implemented,
       with the open checks named.
-- [ ] Close #168 once the remaining platform checks are done or listed as untested in the user
+- [x] Close #168 once the remaining platform checks are done or listed as untested in the user
       docs (the docs already say macOS is untested).
 
 Open items, collected: Windows COM shortcut check, macOS check, GNOME live check, startup summary
