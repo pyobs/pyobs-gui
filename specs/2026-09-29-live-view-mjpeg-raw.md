@@ -1,7 +1,7 @@
 # Live view: MJPEG (server stretch) or raw stream (client stretch)
 
-Status: in progress (issue #182). Server side: pyobs-core #926, released in pyobs-core v2.13.0
-(design: pyobs-core `specs/design/basevideo-live-view.md`).
+Status: implemented (issue #182, closed), manual GUI test still open. Server side: pyobs-core #926,
+released in pyobs-core v2.13.0 (design: pyobs-core `specs/design/basevideo-live-view.md`).
 
 ## Scope
 
@@ -55,7 +55,7 @@ Status: in progress (issue #182). Server side: pyobs-core #926, released in pyob
 - [x] Parsers checked against a live DummyVideo (MJPEG with stretch params, raw full and binned,
   400 on bad parameters)
 - [ ] Manual GUI test with `test/video.yaml` (DummyVideo), both modes
-- [ ] Follow-up issue for zoom + server-side crop
+- [x] Follow-up issue for zoom + server-side crop (#198)
 
 ## Known problem (pyobs-core)
 
@@ -66,5 +66,4 @@ dtype.
 
 Fixed in pyobs-core: `stretch_to_uint8()`/`compute_cuts()` resolve the cuts from the input dtype, take
 an optional `dtype` for already-binned data, and the raw meta carries `SRCDTYPE` (dtype before
-binning). `render_raw()` passes `SRCDTYPE` through. Released in pyobs-core v2.13.4, which is the
-floor here.
+binning). `render_raw()` passes `SRCDTYPE` through. Released in pyobs-core v2.13.4 (the floor when this landed; now `>=2.19.0`).
