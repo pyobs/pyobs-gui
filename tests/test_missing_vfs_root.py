@@ -2,19 +2,19 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pyobs.events import NewImageEvent
-from pyobs.vfs import VirtualFileSystem
+from pyobs.vfs import UnknownRootError, VirtualFileSystem
 
 from pyobs_gui.base import missing_root_message
 from pyobs_gui.datadisplaywidget import DataDisplayWidget
 from pyobs_gui.videowidget import VideoWidget
 
 
-def _missing_root_error() -> ValueError:
+def _missing_root_error() -> UnknownRootError:
     try:
         VirtualFileSystem().open_file("/cache/img.fits", "rb")
-    except ValueError as e:
+    except UnknownRootError as e:
         return e
-    raise AssertionError("expected ValueError")
+    raise AssertionError("expected UnknownRootError")
 
 
 def test_missing_root_message_names_root_path_and_module() -> None:
@@ -25,6 +25,7 @@ def test_missing_root_message_names_root_path_and_module() -> None:
 
 def test_missing_root_message_ignores_other_errors() -> None:
     assert missing_root_message(ValueError("something else"), "/cache/img.fits", "cam") is None
+    assert missing_root_message(ValueError("Could not find root cache for file."), "/cache/img.fits", "cam") is None
     assert missing_root_message(OSError("Could not find root"), "/cache/img.fits", "cam") is None
 
 

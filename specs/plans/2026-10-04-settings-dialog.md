@@ -21,7 +21,7 @@ settings).
       `VideoWidget` (`_resolve_url` records it, `_init` shows it if no stream resolved).
 - [x] Tests (`tests/test_missing_vfs_root.py`): message content, once-per-root, other
       `ValueError`s still propagate, video init shows the box and stays disabled.
-- [ ] Follow-up in core: a dedicated exception for an unknown root, so the message-prefix match in
+- [x] Follow-up in core (pyobs-core#941): a dedicated exception for an unknown root, so the message-prefix match in
       `missing_root_message()` can go.
 
 ## 3. Settings schema and store
