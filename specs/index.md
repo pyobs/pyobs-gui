@@ -8,15 +8,15 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 
 ## Local plans
 
-- `2026-10-04-desktop-notifications.md` — **implemented, #168 open for GNOME/Windows/macOS checks**. Desktop notifications for
+- `2026-10-04-desktop-notifications.md` — **implemented, macOS untested (#226)**. Desktop notifications for
   module `ERROR` and log `ERROR`/`CRITICAL`, no tray icon (`desktop-notifier` behind a small
   interface), startup summary, per-module and global rate limits, click raises the window. GNOME,
   KDE, Windows and macOS in scope. Lists what needs a spike on each first. Checklist in
   `plans/2026-10-04-desktop-notifications.md`.
-- `2026-10-04-settings-dialog.md` — **proposed (issues #168, #185, #186)**. Repos: pyobs-gui,
+- `2026-10-04-settings-dialog.md` — **implemented (issues #168, #185, #186)**. Repos: pyobs-gui,
   pyobs-core. One settings schema, YAML config in YAML mode, standalone-only settings dialog
   (notifications, VFS roots, live apply). Checklist in `plans/2026-10-04-settings-dialog.md`.
-- `2026-09-29-live-view-mjpeg-raw.md` — **in progress (issue #182)**. Per-camera live-view mode:
+- `2026-09-29-live-view-mjpeg-raw.md` — **implemented** (issue #182), manual GUI test pending. Per-camera live-view mode:
   MJPEG with server-side stretch or raw stream with client-side stretch, fit-to-widget
   downsampling, settings remembered per camera. Zoom + server-side crop deferred.
 - `2026-09-14-stacked-widget-scroll-fallback.md` — **implemented**. `stackedWidget` wrapped in a
@@ -106,7 +106,7 @@ ADRs that concern `pyobs-gui` live in `pyobs-core`'s `specs/` tree instead (`spe
 - `pyobs-core/specs/plans/2026-08-21-basevideo-http-token-auth.md` — **proposed**. Shared-token
   auth + browser login for `BaseVideo` (pyobs-core side); pyobs-gui side is a one-header change
   in `VideoWidget`'s raw-socket GET (design: `pyobs-core/specs/design/basevideo-http-auth.md`).
-- `pyobs-core/specs/design/basevideo-live-view.md`: **proposed** (2026-09-29). User-selectable
+- `pyobs-core/specs/design/basevideo-live-view.md`: **implemented** (2026-09-29). User-selectable
   live view in `VideoWidget`: MJPEG with server-side stretch for slow links, or `/video.raw` with
   client-side stretch/cuts and crop on zoom. Plan: `pyobs-core/specs/plans/2026-09-29-basevideo-frame-buffer-redesign.md`
   (phase 6).

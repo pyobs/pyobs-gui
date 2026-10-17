@@ -1,6 +1,6 @@
 # Plan: settings schema, YAML config and standalone settings dialog
 
-Status: proposed. Design: `specs/2026-10-04-settings-dialog.md`.
+Status: implemented. Design: `specs/2026-10-04-settings-dialog.md`.
 Repos: pyobs-gui, pyobs-core (step 4 only).
 Issues: #185 (unresolved-root error), #186 (VFS roots), #168 (notifications, consumes the
 settings).
@@ -16,7 +16,8 @@ settings).
 
 - [x] Helper that turns the `ValueError: Could not find root ...` from `VirtualFileSystem` into a
       user-facing message with root name and module (`missing_root_message()` in `base.py`).
-      The pointer to Settings in standalone mode is added in step 5, once the dialog exists.
+      In standalone mode the message ends with a pointer to Settings (`gui_signals.settings_available`,
+      set in `GUI.open()`).
 - [x] Use it in `DataDisplayWidget` (around `vfs.read_fits`, box once per root) and
       `VideoWidget` (`_resolve_url` records it, `_init` shows it if no stream resolved).
 - [x] Tests (`tests/test_missing_vfs_root.py`): message content, once-per-root, other
@@ -70,11 +71,11 @@ settings).
 
 ## 6. Hand-off to #168
 
-- [ ] `NotificationSettings` is consumed by the notification implementation. Delivery mechanism,
+- [x] `NotificationSettings` is consumed by the notification implementation. Delivery mechanism,
       tray availability and rate-limit behavior are decided in #168's own design pass.
 
 ## 7. Wrap-up
 
-- [ ] Docs: user-facing description of `settings.yaml` and the `notifications:` YAML block.
-- [ ] `pyrefly`, `ruff`, `black`, full `pytest`.
-- [ ] Update `specs/index.md` and `specs/plans/index.md` status lines.
+- [x] Docs: user-facing description of `settings.yaml` and the `notifications:` YAML block.
+- [x] `pyrefly`, `ruff`, `black`, full `pytest`.
+- [x] Update `specs/index.md` and `specs/plans/index.md` status lines.

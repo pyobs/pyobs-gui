@@ -12,5 +12,8 @@ class GuiSignals(QtCore.QObject):
     # widgets re-read what they derived from them
     settings_changed = QtCore.Signal()
 
+    # True while a settings dialog exists (standalone mode), so messages can point to it
+    settings_available = False
+
 
 gui_signals = GuiSignals()
