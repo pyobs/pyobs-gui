@@ -9,6 +9,11 @@ Entries for releases before this file existed were generated from commit subject
 
 ## [Unreleased]
 
+### Changed
+
+- Recognize a missing VFS root by the new `pyobs.vfs.UnknownRootError` instead of matching the
+  error message. Requires pyobs-core 2.19.0 or newer.
+
 ### Added
 
 - Magenta observing-monitor app icon for Qt windows, desktop notifications and
