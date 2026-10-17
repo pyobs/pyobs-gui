@@ -1,6 +1,6 @@
 # Plan: settings schema, YAML config and standalone settings dialog
 
-Status: implemented, except the core-exception follow-up in step 2. Design: `specs/2026-10-04-settings-dialog.md`.
+Status: implemented. Design: `specs/2026-10-04-settings-dialog.md`.
 Repos: pyobs-gui, pyobs-core (step 4 only).
 Issues: #185 (unresolved-root error), #186 (VFS roots), #168 (notifications, consumes the
 settings).
