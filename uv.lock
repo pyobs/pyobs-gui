@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform == 'win32'",
@@ -2625,7 +2625,7 @@ wheels = [
 
 [[package]]
 name = "pyobs-core"
-version = "2.19.0"
+version = "2.19.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2645,9 +2645,9 @@ dependencies = [
     { name = "slixmpp" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/56/d9/a3442137d0b538351c2e3496a424c87300048451ad39e13cb32ad90755f8/pyobs_core-2.19.0.tar.gz", hash = "sha256:06cb8472cf425164bee1e6098a12073e256f9f8091d743f7e66c06caf68da2fa", size = 459938, upload-time = "2026-10-17T08:57:12.667Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0f/46/8cc9985d69b0557d2e384cb4f5db7d18a710e7f15bfae68546a1001354d9/pyobs_core-2.19.1.tar.gz", hash = "sha256:52f5b712dc709597ec075ae2cf315fdef07a108b43ba7a0b7dd8fe52a7e604da", size = 459934, upload-time = "2026-10-17T09:12:38.811Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/b7/bb983df178f7621bb0b2a74b3aed6871ef3f3561da0181f58d634b208491/pyobs_core-2.19.0-py3-none-any.whl", hash = "sha256:8abe5ae00a2286217b0c2c756a0aae1c3d95cf9c38b4655053d6a587fe84ccbf", size = 699926, upload-time = "2026-10-17T08:57:10.827Z" },
+    { url = "https://files.pythonhosted.org/packages/25/03/9ad60f45bc8b59bd414110b0cdb7aeba6c9b9767b30777c8576f5266cff2/pyobs_core-2.19.1-py3-none-any.whl", hash = "sha256:6f855ca18ee523a0670a15285730f13d5324d81a72ce64491b6c2c944ec581f1", size = 699926, upload-time = "2026-10-17T09:12:36.934Z" },
 ]
 
 [[package]]
