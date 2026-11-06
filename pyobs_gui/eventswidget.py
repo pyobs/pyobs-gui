@@ -41,7 +41,8 @@ class EventsWidget(BaseWidget, Ui_EventsWidget):
 
         # loop all event types
         for name, cls in pyobs.events.__dict__.items():
-            if isinstance(cls, type):
+            # only real events: newer pyobs-core also exports helpers like EventFactory
+            if isinstance(cls, type) and issubclass(cls, Event):
                 # register event
                 await self.comm.register_event(cls, self._handle_event)
 
