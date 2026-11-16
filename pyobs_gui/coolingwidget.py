@@ -35,12 +35,20 @@ class CoolingWidget(BaseWidget, Ui_CoolingWidget):
         if self.state is not None:
             self.setEnabled(True)
 
+            self.labelStatus.setText(self._status_text(self.state))
             if self.state.enabled:
-                self.labelStatus.setText("N/A" if self.state.setpoint is None else f"{self.state.setpoint:.1f}°C")
                 self.labelPower.setText("N/A" if self.state.power is None else f"{self.state.power:d}%")
             else:
-                self.labelStatus.setText("OFF")
                 self.labelPower.clear()
+
+    @staticmethod
+    def _status_text(state: CoolingState) -> str:
+        """Setpoint text; while a ramp runs, also the target it is heading for."""
+        setpoint = "N/A" if state.setpoint is None else f"{state.setpoint:.1f}°C"
+        if state.ramping and state.target is not None:
+            prefix = "" if state.enabled else "warming "
+            return f"{prefix}{setpoint} → {state.target:.1f}°C"
+        return setpoint if state.enabled else "OFF"
 
     @QtCore.Slot(bool)  # type: ignore
     def checkEnabled_toggled(self, enabled: bool) -> None:
