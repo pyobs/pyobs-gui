@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
+from PySide6 import QtWidgets
 from pyobs.vfs import VirtualFileSystem
 
 from pyobs_gui.guisignals import gui_signals
@@ -45,6 +46,7 @@ async def setup() -> AsyncIterator[tuple[VideoWidget, VirtualFileSystem, MagicMo
     ):
         yield widget, widget.vfs, comm, warning  # type: ignore[misc]
         await widget.discard()
+    QtWidgets.QApplication.processEvents()  # fire pending item-view timers while the widget is alive; Qt crashes on one that outlives it
     widget.close()
 
 
