@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.2
+## Created by: Qt User Interface Compiler version 6.12.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -85,6 +85,7 @@ class Ui_MainWindow(object):
         self.labelWeatherWarning.setFrameShape(QFrame.Shape.Box)
         self.labelWeatherWarning.setFrameShadow(QFrame.Shadow.Plain)
         self.labelWeatherWarning.setLineWidth(2)
+        self.labelWeatherWarning.setMaximumSize(QSize(16777215, 32))
         self.labelWeatherWarning.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.labelWeatherWarning.setMargin(0)
 
